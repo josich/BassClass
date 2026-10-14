@@ -7,8 +7,9 @@
 - The commit identity is already set locally in this repo (`josich` / `76693732+josich@users.noreply.github.com`). Don't change it or set a global one.
 - End every commit message with the `Co-Authored-By` trailer from the session's attribution instructions.
 - Windows PowerShell: write multi-line commit messages to a temp file and use `git commit -F <file>`. Here-strings are not passed to stdin.
+- Run `git pull --rebase origin main` before pushing: CI can push commits too (it committed the signing key `android/app/bassclass.p12` on its first run).
 - Each push to `main` runs two GitHub Actions workflows:
-  - **Build Android APK:** the artifact `BassClass-debug-apk` is the installable APK.
+  - **Build Android APK:** builds a signed release APK and publishes GitHub Release `v1.0.<run number>`. The user installs from https://github.com/josich/BassClass/releases/latest/download/BassClass.apk. Never delete or replace `bassclass.p12`: updates would stop installing over the old version.
   - **Publish web app (GitHub Pages):** deploys `web/` to https://josich.github.io/BassClass/, only once Pages → Source is "GitHub Actions"; until then it skips.
 - After pushing, check the runs at `https://api.github.com/repos/josich/BassClass/actions/runs` and fix any failure before reporting the work as done.
 

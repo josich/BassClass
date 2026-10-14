@@ -3,6 +3,13 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// Every CI build gets a higher version so Android installs it as an update.
+val buildNumber = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
+
+// One permanent signing key (created by the first CI build and committed), so
+// updates install over the previous version and keep the app's saved progress.
+val signingKey = file("bassclass.p12")
+
 android {
     namespace = "com.bassclass.app"
     compileSdk = 35
@@ -11,13 +18,27 @@ android {
         applicationId = "com.bassclass.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = buildNumber
+        versionName = "1.0.$buildNumber"
+    }
+
+    signingConfigs {
+        create("bassclass") {
+            storeFile = signingKey
+            storeType = "pkcs12"
+            storePassword = "bassclass"
+            keyAlias = "bassclass"
+            keyPassword = "bassclass"
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            if (signingKey.exists()) signingConfig = signingConfigs.getByName("bassclass")
+        }
+        debug {
+            if (signingKey.exists()) signingConfig = signingConfigs.getByName("bassclass")
         }
     }
 

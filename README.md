@@ -24,7 +24,15 @@ The tuner needs microphone access. Browsers only allow it on `https://` or `loca
 
 ## Get it on your Android phone
 
-There are three options, from quickest to most "app-like".
+### Install the app (recommended)
+On your phone, open **https://github.com/josich/BassClass/releases/latest/download/BassClass.apk**. Then:
+1. Download the file and open it.
+2. If asked, allow "install unknown apps" for your browser or file manager.
+3. Tap **Install**.
+
+Every push to `main` publishes a new release (version 1.0.N), so opening the same link later gets you the newest build. Updates install over the previous version and keep your progress, because every build is signed with the same key, `android/app/bassclass.p12`. The first CI run created that key.
+
+Other ways to run it:
 
 ### 1. Open it from your PC over Wi-Fi (quick test)
 1. Run `python tools/serve.py` on the PC.
@@ -41,7 +49,7 @@ Host the `web/` folder on any HTTPS static host, e.g. GitHub Pages, Netlify or C
 The `android/` folder is an Android Studio project. It wraps the same `web/` code in a full-screen landscape WebView that keeps the screen awake. No internet permission is needed.
 
 - **Android Studio:** File → Open → `android/`. Let it sync, then **Build → Build APK(s)**. Copy `app/build/outputs/apk/debug/app-debug.apk` to the phone and open it to install. You need to allow installing from unknown sources.
-- **No local SDK (GitHub):** push this folder to a GitHub repository. The workflow in `.github/workflows/android-apk.yml` builds the APK, which you download from the run's *Artifacts*.
+- **No local SDK (GitHub):** every push to `main` runs `.github/workflows/android-apk.yml`, which builds a signed release APK and publishes it as a GitHub Release (see "Install the app" above).
 
 Any change you make in `web/` is included automatically in the next APK build.
 
