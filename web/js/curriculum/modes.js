@@ -82,11 +82,14 @@ const MODE_FOR = {
   maj7: 'ionian', dom7: 'mixolydian', min7: 'dorian', m7b5: 'locrianN2', dim7: 'dimWH', mMaj7: 'melodicMinor', maj6: 'ionian', min6: 'melodicMinor',
   dom7s9: 'altered', dom7b9: 'dimHW', dom7s5: 'wholeTone', dom7b5: 'lydianDom', maj7s5: 'lydianAug',
 };
+/** Mode names for the chord-scale badge ("Ionian", not "Major"). */
+const modeName = (m) => ({ ionian: 'Ionian', aeolian: 'Aeolian' })[m] || T.SCALES[m].name.split(' (')[0];
+
 const chordScale = ex({
   id: 'md-chord-scale', module: M, level: 4, star: true,
   title: 'Chord-scale: the right mode on every chord',
   summary: 'ii–V–I and real progressions with each chord\'s mode: Dorian, Mixolydian, Ionian…',
-  about: 'Each chord in a progression implies a scale: m7 → Dorian, 7 → Mixolydian, maj7 → Ionian, m7♭5 → Locrian ♮2, mMaj7 → melodic minor. Each chord gets its scale in 8th notes, starting from the chord tone nearest the last note so the line flows. This is the foundation of improvising and of scalar walking lines.',
+  about: 'Each chord in a progression implies a scale: m7 → Dorian, 7 → Mixolydian, maj7 → Ionian, m7♭5 → Locrian ♮2, mMaj7 → melodic minor. Each chord gets its scale in 8th notes, starting on its root in the octave nearest the last note and alternating up and down, so the line flows. This is the foundation of improvising and of scalar walking lines.',
   tips: ['Notice how few notes change between neighbouring chords.', 'Then try only chord tones on the beats (1-3-5-7) and scale notes in between.'],
   source: 'Berklee chord-scale theory; Tony Grey Bass Academy; Mark Levine "The Jazz Theory Book"',
   params: { prog: progP(['ii-V-I', 'I-vi-ii-V', 'autumn', 'minor-ii-V-i', 'jazz-blues', 'cycle-251']), key: keyP(T.SCALES.ionian.iv) },
@@ -114,7 +117,7 @@ const chordScale = ex({
           const seg = up ? scaleRun(c.root, mode, start, { dir: 'up' }) : scaleRun(c.root, mode, start - 12, { dir: 'down' });
           run.push(...seg.slice(0, Math.min(8, total - run.length)));
         }
-        run.forEach((x, i) => items.push({ ...x, deg: T.fmtDeg(T.ivBetween(c.root, x.n)), dur: 1, chord: i === 0 ? c.sym : undefined, text: i === 0 ? T.SCALES[mode].name.split(' (')[0] : undefined }));
+        run.forEach((x, i) => items.push({ ...x, deg: T.fmtDeg(T.ivBetween(c.root, x.n)), dur: 1, chord: i === 0 ? c.sym : undefined, text: i === 0 ? modeName(mode) : undefined }));
         prev = items[items.length - 1].midi;
       });
     }
@@ -140,6 +143,8 @@ const harmonicModes = variant(melodicModes, {
   title: 'Modes of harmonic minor',
   summary: 'Locrian ♮6, Ionian ♯5, Dorian ♯4, Phrygian dominant, Lydian ♯2, ultralocrian.',
   about: 'Harmonic minor\'s modes give Spanish, Middle-Eastern and neo-classical colours. The 5th mode, Phrygian dominant, is the sound of the V7♭9 chord in minor keys and of flamenco. Play all seven from the same parent.',
+  tips: ['Phrygian dominant = harmonic minor from its 5th (C Phrygian dominant = F harmonic minor).', 'Listen for the augmented 2nd (three frets): it moves to a different place in every mode.'],
+  source: 'RSL Grade 8; Spanish conservatory programmes; flamenco and neo-classical practice (Phrygian dominant); Mark Levine',
   params: { key: keyP(T.SCALES.harmonicMinor.iv), dir: melodicModes.params.dir },
   build(p, ctx, S) { return relativeBuild(p, ctx, S, T.HARMONIC_MODES).build({ label: 'degree' }); },
 });

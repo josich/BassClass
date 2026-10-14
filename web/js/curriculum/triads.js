@@ -98,6 +98,7 @@ const triadShape = variant(triadQualities, {
   id: 'tri-shape', level: 1,
   title: 'Your first triads: major & minor',
   summary: 'Root, 3rd and 5th: the building block of every bass line.',
+  about: 'A triad stacks two thirds: root (R), 3rd and 5th. Major = R-3-5, minor = R-♭3-5. The two shapes differ by one note, the 3rd, which is what makes a chord sound happy or sad. Learn each shape and its sound together, and say the degrees out loud.',
   defaults: { shape: 'updown' }, only: { quality: ['maj', 'min'] }, bpm: 60, sub: 1,
 });
 
@@ -106,7 +107,7 @@ const fourTypes = ex({
   title: 'Four triad types from one root',
   summary: 'Major → minor → diminished → augmented on the same root: hear each colour change.',
   about: 'Keep the root fixed and change only the 3rd and 5th. Major to minor lowers the 3rd; minor to diminished lowers the 5th; augmented raises the 5th of the major triad. Each one is played twice, so you feel the shape before moving on.',
-  tips: ['Sing the 3rd before you play it.', 'Notice which finger moves when the quality changes: only one note moves at a time.'],
+  tips: ['Sing the 3rd before you play it.', 'Notice which finger moves when the quality changes: major → minor and minor → diminished move one note each; diminished → augmented moves both the 3rd and the 5th.'],
   source: 'TalkingBass free lesson "The four triad types"; RSL/LCM grades 3–5',
   params: { key: keyP(), root: rootStrP('A') },
   bpm: 70, sub: 3, label: 'degree',
@@ -407,6 +408,7 @@ const susQuartal = variant(diatonic, {
   title: 'Sus and quartal stacks through the scale',
   summary: 'Replace the 3rds with 4ths: modern, open sounds (McCoy Tyner, modal jazz, fusion).',
   about: 'Stack 4ths instead of 3rds and you get sus4 (1-4-5) or quartal (1-4-7) chords. They have no major/minor colour, which makes them ideal for modal music and fusion. On bass they lie flat across the strings (the same fret on neighbouring strings).',
+  source: 'McCoy Tyner and modal-jazz quartal voicings; Mark Levine "The Jazz Theory Book" (sus and fourth chords); fusion bass practice',
   defaults: { stack: 'quartal', pattern: 'up' },
 });
 
@@ -475,7 +477,7 @@ const allInversionsCycle = ex({
   summary: 'Climb three inversions of one key, then descend through the next. All 12 keys, no stopping.',
   about: 'This is a stamina and fluency drill. Play root position, 1st and 2nd inversion climbing in one key, then descend through the inversions of the next key in the cycle, starting from the nearest note. Your eyes and ears have to stay one chord ahead.',
   tips: ['Start at 60 bpm in triplets; the speed trainer adds 4 bpm per loop.', 'Keep the degree labels on until the shapes are automatic, then switch to "none".'],
-  source: 'Synthesis of LCM/ES all-inversions requirements and continuous-line practice (Banacos, Gwizdala)',
+  source: 'Synthesis of the LCM and Spanish conservatory all-inversions requirements and continuous-line practice (Banacos, Gwizdala)',
   params: { quality: sel('Triad', QUALITY_TRIADS.slice(0, 4)), order: orderP },
   bpm: 60, sub: 3, label: 'degree',
   build(p, ctx, S) {
@@ -502,33 +504,46 @@ const approachTriads = ex({
   id: 'tri-approach', module: M, level: 5,
   title: 'Triads with chromatic approach notes',
   summary: 'Target every chord tone from a half step away: the bebop way to outline chords.',
-  about: 'Precede every chord tone with a chromatic neighbour. The approach notes create tension and the chord tones resolve it. This is how bebop players and walking bassists make lines sound "inside" while using all 12 notes. Chord tones land on the beat and approach notes fall between the beats.',
+  about: 'Precede every chord tone with a chromatic neighbour. The approach notes create tension and the chord tones resolve it. This is how bebop players and walking bassists make lines sound "inside" while using all 12 notes.\n\nEvery chord tone lands on a beat, and the approach notes fill the rest of the beat, leading into the next one: 8th notes with a single approach note, triplets with an enclosure or a double approach. Approach notes are labelled →.',
   tips: ['Accent the chord tones, ghost the approach notes.', 'Try the enclosure: it frames each target from both sides.'],
   source: 'TalkingBass Chord Tone Essentials (approach notes & enclosures); Berklee level exams; jazz pedagogy',
   params: { key: keyP(['1', '3', '5']), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'harmonicMinor'])), approach: sel('Approach', Object.entries(APPROACH).filter(([k]) => k !== 'scale').map(([k, v]) => [k, v.name])), order: sel('Chords', [['up', 'I → I'], ['updown', 'Up & back']]) },
-  bpm: 66, sub: 4, label: 'degree',
+  bpm: 80, sub: 2, label: 'degree',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
+    // chord tones first, then each one is followed by the approach notes into the next target,
+    // so every target falls on a beat (the last target leads back to the first)
+    const segs = [];
     let prev = null;
     for (const k of keysFor(p.key)) {
       const tonic = T.bestRoot(k, T.SCALES[p.scale].iv);
       const r = pickRoot(ctx, k, { strings: ['A', 'E'], hi: 8, prev, prefer: 'A' });
       const stacks = diatonicStacks(tonic, p.scale, [0, 2, 4], S);
-      const items = [];
+      const targets = [];
       DEG_SEQ[p.order].forEach((d, i) => {
         const st = stacks[d % 7];
         const ord = i % 2 ? [2, 1, 0] : [0, 1, 2];
-        ord.forEach((ti, j) => {
-          const t = scaleTone(tonic, p.scale, r.midi, st.idxs[ti] + Math.floor(d / 7) * 7, st.root);
-          const apps = APPROACH[p.approach].f(t.midi);
-          apps.forEach((m, a) => items.push({ midi: m, n: spellMidi(m, m > t.midi), deg: '·', chord: j === 0 && a === 0 ? st.sym : undefined, text: j === 0 && a === 0 ? st.roman : undefined }));
-          items.push({ ...t, accent: true });
-        });
+        ord.forEach((ti, j) => targets.push({
+          ...scaleTone(tonic, p.scale, r.midi, st.idxs[ti] + Math.floor(d / 7) * 7, st.root),
+          chord: j === 0 ? st.sym : undefined, text: j === 0 ? st.roman : undefined,
+        }));
       });
-      b.line(items, { pattern: false, place: { open: 'avoid', center: r.f + 1 } });
+      segs.push({ targets, center: r.f + 1 });
       prev = r.midi;
     }
-    return b.build({ label: 'degree' });
+    const all = segs.flatMap((sg) => sg.targets);
+    const per = APPROACH[p.approach].f(0).length + 1;
+    let gi = 0;
+    for (const sg of segs) {
+      const items = [];
+      for (const t of sg.targets) {
+        items.push({ ...t, accent: true, dur: 1 / per });
+        const nx = all[++gi % all.length];
+        for (const m of APPROACH[p.approach].f(nx.midi)) items.push({ midi: m, n: spellMidi(m, m > nx.midi), deg: '→', dur: 1 / per });
+      }
+      b.line(items, { pattern: false, place: { open: 'avoid', center: sg.center } });
+    }
+    return b.build({ label: 'degree', uniform: false, sub: per });
   },
 });
 
@@ -553,7 +568,7 @@ const permutations = ex({
 const RUDIMENTS = {
   single: { name: 'Single strokes (R L R L) · pedal root', seq: 'RLRLRLRL' },
   double: { name: 'Double strokes (R R L L)', seq: 'RRLLRRLL' },
-  paradiddle: { name: 'Paradiddle (R L R R  L R L L)', seq: 'RLRRLRLL' },
+  paradiddle: { name: 'Paradiddle (R L R R L R L L)', seq: 'RLRRLRLL' },
   paradiddlediddle: { name: 'Paradiddle-diddle (R L R R L L)', seq: 'RLRRLL' },
   fivestroke: { name: 'Five-stroke roll (R R L L R) · groups of 5', seq: 'RRLLR' },
   doubled: { name: 'Doubled chord tones (1 1 3 3 5 5 8 8)', ladder: true },
@@ -592,20 +607,20 @@ const rudiments = ex({
 });
 
 const PAIRS = {
-  'IV-V': { name: 'IV & V major (F & G in C): Ionian/Lydian', a: [5, 'maj'], b: [7, 'maj'] },
-  'I-II': { name: 'I & II major (C & D): Lydian', a: [0, 'maj'], b: [2, 'maj'] },
+  'IV-V': { name: 'IV & V major (F & G over C): Ionian', a: [5, 'maj'], b: [7, 'maj'] },
+  'I-II': { name: 'I & II major (C & D over C): Lydian', a: [0, 'maj'], b: [2, 'maj'] },
   'bVI-bVII': { name: '♭VI & ♭VII major (A♭ & B♭ over C minor): Aeolian', a: [8, 'maj'], b: [10, 'maj'] },
-  'ii-iii': { name: 'ii & iii minor (Dm & Em): Dorian/Ionian', a: [2, 'min'], b: [4, 'min'] },
+  'ii-iii': { name: 'ii & iii minor (Dm & Em over C): Ionian', a: [2, 'min'], b: [4, 'min'] },
   'I-ii': { name: 'Major & minor a whole step apart (C & Dm)', a: [0, 'maj'], b: [2, 'min'] },
   'aug': { name: 'Augmented a half step apart (C+ & D♭+)', a: [0, 'aug'], b: [1, 'aug'] },
-  'bII-I': { name: '♭II & I major (D♭ & C): Phrygian', a: [1, 'maj'], b: [0, 'maj'] },
+  'bII-I': { name: '♭II & I major (D♭ & C over C): Phrygian dominant', a: [1, 'maj'], b: [0, 'maj'] },
 };
 
 const triadPairs = ex({
   id: 'tri-pairs', module: M, level: 5, star: true,
   title: 'Triad pairs',
   summary: 'Two triads that share no notes, alternated through inversions: a modern, hexatonic sound.',
-  about: 'A triad pair is two triads with no common notes, for example F and G over C. Together they make a 6-note scale. Alternating them, in climbing inversions, creates angular modern lines heard in players from Coltrane to modern fusion. Each pair suggests a mode: F/G over C is Ionian/Lydian, D/C is Lydian, A♭/B♭ over Cm is Aeolian.',
+  about: 'A triad pair is two triads with no common notes, for example F and G over C. Together they make a 6-note scale. Alternating them, in climbing inversions, creates angular modern lines heard in players from Coltrane to modern fusion. Each pair suggests a mode over the root of the key: F and G over C sound Ionian (major), C and D sound Lydian, A♭ and B♭ over C minor sound Aeolian, D♭ and C sound Phrygian dominant.',
   tips: ['Play it over a C drone (or the root of the key) to hear the mode.', 'Then mix the groupings: 2+2+2 or 4+2.'],
   source: 'Gary Campbell "Triad Pairs for Jazz"; Walt Weiskopf "Intervallic Improvisation"; fusion/jazz bass practice',
   params: { key: keyP(['1', '3', '5'], { def: '0' }), pair: sel('Pair', Object.entries(PAIRS).map(([k, v]) => [k, v.name])), dir: sel('Direction', [['updown', 'Up & down'], ['up', 'Up']]) },
@@ -706,7 +721,7 @@ const diatonicAllKeys = variant(diatonic, {
   id: 'tri-diatonic-all-keys', level: 6,
   title: 'Harmonized triads in all 12 keys, in inversions',
   summary: 'Diatonic triads, alternating directions, in 1st inversion, around the cycle without stopping.',
-  about: 'The full diatonic-triad drill as a mastery test: every key around the cycle of 4ths, chords alternating up and down, in inversion. Change the inversion and scale to multiply it: 3 inversions × 4 scales × 12 keys. When this flows at 100 BPM in 8th-note triplets, you know triads on the bass.',
+  about: 'The full diatonic-triad drill as a mastery test: every key around the cycle of 4ths, chords alternating up and down, in inversion. Change the inversion and scale to multiply it: 3 inversions × 9 scales × 12 keys. When this flows at 100 BPM in 8th-note triplets, you know triads on the bass.',
   defaults: { key: 'cycle4', pattern: 'alt', inversion: '1' }, bpm: 66,
 });
 

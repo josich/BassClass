@@ -4,11 +4,11 @@ import { settings, saveSettings, getProgress, updateProgress } from '../store.js
 import { makeCtx } from '../fretboard.js';
 import { FretboardView, degKey, PALETTE } from '../views/fretboardView.js';
 import { TabView } from '../views/tabView.js';
-import { Player } from '../player.js';
+import { Player, MAX_BPM, MIN_BPM } from '../player.js';
 import * as A from '../audio.js';
 import * as T from '../theory.js';
 import { moduleOf, LEVELS, defaultParams } from '../curriculum/index.js';
-import { CYCLE_OPTS } from '../curriculum/common.js';
+import { CYCLE_OPTS, PROGS } from '../curriculum/common.js';
 
 const SUBS = [['0.25', 'Whole'], ['0.5', 'Half'], ['1', '♩ 1/beat'], ['2', '♪ 2/beat'], ['3', '3 triplets'], ['4', '4 16ths'], ['5', '5 quint.'], ['6', '6 sext.']];
 const REVEALS = [['gradual', 'Step'], ['full', 'Shape'], ['quiz', 'Quiz']];
@@ -23,13 +23,37 @@ export function noteLabel(n, mode, notation) {
   return '';
 }
 
-/** Options for a param (key params are spelled for the current notation). */
-export function paramOptions(def, S) {
+/**
+ * How the key chips are spelled: for the chosen scale, chord or minor progression when the
+ * exercise has one, so the chip matches what plays (a minor key shows "C♯m", not "D♭").
+ */
+function keySpelling(def, p) {
+  if (PROGS[p.prog]?.minor || p.type === 'minor') return { ivs: T.SCALES.aeolian.iv, suffix: def.suffix || 'm' };
+  if (PROGS[p.prog]) return { ivs: T.SCALES.ionian.iv, suffix: def.suffix || '' };
+  const sc = T.SCALES[p.scale] || T.SCALES[p.type];
+  return { ivs: sc?.iv || T.CHORDS[p.quality]?.iv || def.ivs, suffix: def.suffix || '' };
+}
+
+/** Options for a param (key params are spelled for the current notation and the selected scale/chord). */
+export function paramOptions(def, S, p = {}) {
   if (def.kind === 'key') {
-    const opts = T.CHROMATIC_PC.map((pcv) => [String(pcv), T.noteName(T.bestRoot(pcv, def.ivs), S.notation)]);
+    const { ivs, suffix } = keySpelling(def, p);
+    const opts = T.CHROMATIC_PC.map((pcv) => [String(pcv), T.noteName(T.bestRoot(pcv, ivs), S.notation) + suffix]);
     return def.cycles ? [...opts, ...CYCLE_OPTS] : opts;
   }
   return def.options;
+}
+
+/** "Label: value" when the value alone does not say what it is (short or numeric values). */
+const optText = (def, label) => (label.length <= 3 || /^\d/.test(label) ? `${def.label}: ${label}` : label);
+
+/** One-line summary of an exercise's options (header button, warm-up list). */
+export function paramSummary(tpl, p, S, fixed = {}) {
+  return Object.entries(tpl.params || {}).map(([k, def]) => {
+    if (fixed[k]) return `${def.label}: ${fixed[k]}`;
+    const o = paramOptions(def, S, p).find((x) => x[0] === p[k]);
+    return optText(def, o ? o[1] : String(p[k] ?? ''));
+  }).join(' · ');
 }
 
 export function renderExercise(root, tpl, { params = {}, onBack, routine = null }) {
@@ -37,8 +61,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
   const prog = getProgress(tpl.id) || {};
   const p = { ...defaultParams(tpl), ...(prog.params || {}), ...params };
   for (const [k, def] of Object.entries(tpl.params || {})) {
-    const valid = paramOptions(def, S).some((o) => o[0] === p[k]);
-    if (!valid) p[k] = def.default;
+    if (def.kind === 'key') { if (!paramOptions(def, S).some((o) => o[0] === p[k])) p[k] = def.default; }
+    else if (!def.options.some((o) => o[0] === p[k])) p[k] = def.default;
   }
   let ctx = makeCtx(S);
   let inst = null;
@@ -47,6 +71,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
   let reveal = S.reveal;
   let segStart = [], segEnd = [], chordAt = [], textAt = [];
   let cur = -1;
+  let warnedFret = 0;
 
   document.body.classList.add('in-ex');
   const mod = moduleOf(tpl.module);
@@ -58,12 +83,17 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
   // all exercise options live behind one clear button (a strip of selects gets cut off on phones)
   const optsSum = h('span', { class: 'opts-sum' });
   const hasParams = Object.keys(tpl.params || {}).length > 0;
-  const optsBtn = hasParams ? h('button', { class: 'opts-btn', title: 'Change scale, key, pattern…', onClick: () => openOptions() },
+  const optsBtn = hasParams ? h('button', { class: 'opts-btn', title: 'Change scale, key, pattern…', onClick: () => (sheet.classList.contains('open') ? closeOptions() : openOptions()) },
     h('span', { class: 'opts-ico', html: icon('sliders') }),
     h('span', { class: 'opts-txt' }, h('small', {}, 'Options · tap to change'), optsSum)) : h('div', { class: 'grow' });
   const sheet = h('div', { class: 'sheet', onClick: (e) => { if (e.target === sheet) closeOptions(); } });
   const titleEl = h('div', { class: 'exv-title' }, h('b', {}, tpl.title), h('span', {}, `${mod?.name ?? ''} · Level ${tpl.level} ${lvl ? lvl.name : ''}`));
-  const nextBtn = routine ? h('button', { class: 'btn primary', onClick: () => routine.next() }, 'Next ›') : null;
+  let nextBtn = null;
+  if (routine) {
+    const last = routine.index + 1 >= routine.total;
+    nextBtn = h('button', { class: 'btn primary routine-next', title: `Warm-up: exercise ${routine.index + 1} of ${routine.total}`, onClick: () => routine.next() },
+      h('small', {}, `${routine.index + 1}/${routine.total}`), last ? 'Finish ✓' : 'Next ›');
+  }
   const top = h('header', { class: 'exv-top' },
     btn('back', 'Back', () => close()), titleEl, optsBtn, nextBtn,
     btn('tuner', 'Tuner', () => { location.hash = '#/tuner'; }), btn('info', 'About this exercise', () => openDrawer()));
@@ -78,24 +108,33 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
   const stage = h('div', { class: 'exv-stage' }, boardEl, tabEl);
 
   const bpmVal = h('div', { class: 'bpm' });
-  const bpmRange = h('input', { type: 'range', min: 30, max: 260, step: 1 });
+  const bpmRange = h('input', { type: 'range', min: MIN_BPM, max: MAX_BPM, step: 1, 'aria-label': 'Tempo' });
   bpmRange.addEventListener('input', () => setBpm(Number(bpmRange.value)));
   const tempo = h('div', { class: 'tempo' },
-    h('button', { class: 'lbl-btn', onClick: () => setBpm(player.bpm - 2) }, '−'), bpmRange,
-    h('button', { class: 'lbl-btn', onClick: () => setBpm(player.bpm + 2) }, '+'), bpmVal);
+    h('button', { class: 'lbl-btn', 'aria-label': 'Slower', onClick: () => setBpm(player.bpm - 2) }, '−'), bpmRange,
+    h('button', { class: 'lbl-btn', 'aria-label': 'Faster', onClick: () => setBpm(player.bpm + 2) }, '+'), bpmVal);
   const subSel = h('select', { class: 'mini-sel', title: 'Notes per beat' }, SUBS.map(([v, l]) => h('option', { value: v }, l)));
   subSel.addEventListener('change', () => { userSub = Number(subSel.value); player.setSub(userSub); updateProgress(tpl.id, { sub: userSub }); renderTab(); });
+  // shown instead of the subdivision select when the rhythm is part of the exercise (licks, grooves…)
+  const rhythmBtn = h('button', { class: 'lbl-btn written', title: 'Why can\'t I change the subdivision?',
+    onClick: () => toast('The rhythm is written into this exercise, so the subdivision is fixed. Change the tempo instead.') }, '♪ Written rhythm');
   const loopBtn = btn('loop', 'Loop', () => { player.loop = !player.loop; syncToggles(); });
   const metroBtn = btn('metro', 'Metronome', () => { player.metro = !player.metro; saveSettings({ metro: player.metro }); syncToggles(); });
   const soundBtn = btn('sound', 'Bass sound on/off', () => { player.sound = !player.sound; syncToggles(); });
-  const trainerBtn = btn('trainer', 'Speed trainer (+4 bpm each loop)', () => toggleTrainer());
+  const trainerBtn = btn('trainer', 'Speed trainer (+4 BPM each loop)', () => toggleTrainer());
   const doneBtn = btn('check', 'Mark as mastered', () => toggleDone());
   const revealBtn = h('button', { class: 'lbl-btn', title: 'Reveal mode: step by step / whole shape / quiz', onClick: () => cycleReveal() });
   const labelBtn = h('button', { class: 'lbl-btn', title: 'Dot labels: note / degree / finger / none', onClick: () => cycleLabel() });
+  // secondary controls: inline on wide screens, in a "⋯" popover on phones (see .more-pop in app.css)
+  const item = (el, text) => h('div', { class: 'mi' }, el, h('span', { class: 'mi-l', onClick: () => el.click() }, text));
+  const morePop = h('div', { class: 'more-pop' },
+    h('div', { class: 'sep' }), item(metroBtn, 'Metronome'), item(soundBtn, 'Bass sound'), item(trainerBtn, 'Speed trainer'),
+    h('div', { class: 'sep' }), item(revealBtn, 'Reveal'), item(labelBtn, 'Dot labels'), h('div', { class: 'grow' }), item(doneBtn, 'Mastered'));
+  const moreBtn = btn('more', 'More controls', () => toggleMore(), 'more-btn');
   const ctrl = h('footer', { class: 'exv-ctrl' },
     btn('restart', 'Back to start', () => restart()), btn('prev', 'Previous note (←)', () => manual(-1)), playBtn,
-    btn('next', 'Next note (→)', () => manual(1)), h('div', { class: 'sep' }), tempo, subSel, h('div', { class: 'sep' }),
-    loopBtn, metroBtn, soundBtn, trainerBtn, h('div', { class: 'sep' }), revealBtn, labelBtn, h('div', { class: 'grow' }), doneBtn);
+    btn('next', 'Next note (→)', () => manual(1)), h('div', { class: 'sep' }), tempo, subSel, rhythmBtn, h('div', { class: 'sep' }),
+    loopBtn, morePop, moreBtn);
 
   const drawer = h('aside', { class: 'drawer' });
   const view = h('div', { class: 'exv' }, top, stage, ctrl);
@@ -108,10 +147,11 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     onStep: (i) => showStep(i),
     onBeat: (level, beat) => flashBeat(beat),
     onState: (playing) => { playBtn.innerHTML = icon(playing ? 'pause' : 'play'); },
-    onLoop: (n, bpm) => {
+    onLoop: (n, bpm, done) => {
       syncBpm();
       const pr = getProgress(tpl.id) || {};
-      updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, bestBpm: Math.max(pr.bestBpm || 0, bpm), params: p, lastBpm: player.bpm });
+      // credit the tempo of the loop just played, not the speed trainer's next step
+      updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, bestBpm: Math.max(pr.bestBpm || 0, done ?? bpm), params: p, lastBpm: player.bpm });
     },
     onEnd: () => showStep(-1),
   });
@@ -124,46 +164,71 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
   // ------------------------------------------------------------ params
   /** Summary of the current options on the header button. */
   function renderParams() {
-    optsSum.textContent = Object.entries(tpl.params || {})
-      .map(([k, def]) => (paramOptions(def, S).find((o) => o[0] === p[k]) || [, p[k]])[1])
-      .join(' · ');
+    optsSum.textContent = paramSummary(tpl, p, S, inst?.fixed);
+  }
+
+  /** Options panel (right side, so the board stays visible and changes can be seen at once). */
+  function renderOptions() {
+    const old = sheet.querySelector('.panel');
+    const scroll = old ? old.scrollTop : 0;
+    const fixed = inst?.fixed || {};
+    const groups = Object.entries(tpl.params || {}).map(([k, def]) => {
+      const chips = h('div', { class: 'chips' });
+      for (const [v, l] of paramOptions(def, S, p)) {
+        chips.append(h('button', { class: `chip-btn${v === p[k] ? ' on' : ''}`, disabled: !!fixed[k], onClick: () => {
+          if (p[k] === v) return;
+          p[k] = v;
+          rebuild();
+          renderParams();
+          renderOptions();
+          updateProgress(tpl.id, { params: p });
+        } }, l));
+      }
+      return h('div', { class: `opt-group${fixed[k] ? ' fixed' : ''}` }, h('h4', {}, def.label),
+        fixed[k] ? h('p', { class: 'opt-note' }, `Fixed for this choice: ${fixed[k]}.`) : null, chips);
+    });
+    const panel = h('div', { class: 'panel' },
+      h('header', {}, h('div', {}, h('h2', {}, 'Options'), h('span', { class: 'muted small' }, 'Changes apply instantly.')),
+        h('button', { class: 'btn primary', onClick: () => closeOptions() }, 'Done')),
+      ...groups);
+    sheet.replaceChildren(panel);
+    panel.scrollTop = scroll;
   }
 
   function openOptions() {
-    const groups = Object.entries(tpl.params || {}).map(([k, def]) => {
-      const chips = h('div', { class: 'chips' });
-      for (const [v, l] of paramOptions(def, S)) {
-        const c = h('button', { class: `chip-btn${v === p[k] ? ' on' : ''}`, onClick: () => {
-          p[k] = v;
-          chips.querySelectorAll('.chip-btn').forEach((x) => x.classList.toggle('on', x === c));
-          rebuild();
-          renderParams();
-          updateProgress(tpl.id, { params: p });
-        } }, l);
-        chips.append(c);
-      }
-      return h('div', { class: 'opt-group' }, h('h4', {}, def.label), chips);
-    });
-    sheet.replaceChildren(h('div', { class: 'panel' },
-      h('header', {}, h('div', {}, h('h2', {}, tpl.title), h('span', { class: 'muted small' }, 'Changes apply instantly.')),
-        h('button', { class: 'btn primary', onClick: () => closeOptions() }, 'Done')),
-      ...groups));
+    closeMore();
+    renderOptions();
     sheet.classList.add('open');
   }
 
   function closeOptions() { sheet.classList.remove('open'); }
 
+  function toggleMore() {
+    if (morePop.classList.toggle('open')) {
+      moreBtn.classList.add('on');
+      setTimeout(() => document.addEventListener('pointerdown', outsideMore, true));
+    } else closeMore();
+  }
+  function closeMore() {
+    morePop.classList.remove('open');
+    moreBtn.classList.remove('on');
+    document.removeEventListener('pointerdown', outsideMore, true);
+  }
+  function outsideMore(e) { if (!morePop.contains(e.target) && !moreBtn.contains(e.target)) closeMore(); }
+
   function rebuild() {
     const wasPlaying = player.playing;
     ctx = makeCtx(S);
+    let next;
     try {
-      inst = tpl.build(p, ctx, S);
+      next = tpl.build(p, ctx, S);
     } catch (e) {
       console.error(e);
       toast('Could not build this variation');
       return;
     }
-    if (!inst.steps.length) { toast('No notes for this variation'); return; }
+    if (!next?.steps?.length) { toast('No notes for this variation'); return; }
+    inst = next;
     // segments: a chord label starts a new segment (used for the dot trail)
     segStart = []; segEnd = []; chordAt = []; textAt = [];
     let s0 = 0, ch = null, tx = null;
@@ -175,9 +240,10 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     });
     let e = inst.steps.length - 1;
     for (let i = inst.steps.length - 1; i >= 0; i--) { segEnd[i] = e; if (segStart[i] === i) e = i - 1; }
-    player.sub = userSub ?? inst.sub ?? tpl.sub ?? 2;
+    player.sub = (inst.uniform ? userSub : null) ?? inst.sub ?? tpl.sub ?? 2;
     subSel.value = String(player.sub);
-    subSel.disabled = !inst.uniform;
+    subSel.hidden = !inst.uniform;
+    rhythmBtn.hidden = !!inst.uniform;
     if (!labelMode) labelMode = inst.label || tpl.label || S.label;
     if (inst.reveal) reveal = inst.reveal;
     player.load(inst);
@@ -187,6 +253,10 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     renderTab();
     showStep(-1);
     syncToggles();
+    if (inst.overFret && inst.overFret !== warnedFret) {
+      warnedFret = inst.overFret;
+      toast(`This variation reaches fret ${inst.overFret}, above your highest fret (${ctx.maxFret}).`);
+    }
     if (wasPlaying) player.play();
   }
 
@@ -282,9 +352,10 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     showStep(cur);
   }
   function toggleTrainer() {
+    if (!player.trainer.on && player.bpm >= MAX_BPM) { toast(`Already at the top tempo (${MAX_BPM} BPM)`); return; }
     player.trainer.on = !player.trainer.on;
     if (player.trainer.on) {
-      player.trainer.target = Math.min(260, player.bpm + 40);
+      player.trainer.target = Math.min(MAX_BPM, player.bpm + 40);
       player.loop = true;
       toast(`Speed trainer: +${player.trainer.inc} BPM every loop, up to ${player.trainer.target}`);
     }
@@ -293,7 +364,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
   function toggleDone() {
     const pr = getProgress(tpl.id) || {};
     const done = !pr.done;
-    updateProgress(tpl.id, { done, bestBpm: Math.max(pr.bestBpm || 0, player.bpm) });
+    updateProgress(tpl.id, done ? { done, bestBpm: Math.max(pr.bestBpm || 0, player.bpm) } : { done });
     toast(done ? `Mastered at ${player.bpm} BPM ✓` : 'Unmarked');
     syncToggles();
   }
@@ -304,15 +375,19 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     soundBtn.innerHTML = icon(player.sound ? 'sound' : 'mute');
     trainerBtn.classList.toggle('on', player.trainer.on);
     doneBtn.classList.toggle('on', !!(getProgress(tpl.id) || {}).done);
-    revealBtn.textContent = REVEALS.find((r) => r[0] === reveal)[1];
-    labelBtn.textContent = LABELS.find((r) => r[0] === labelMode)[1];
+    revealBtn.textContent = (REVEALS.find((r) => r[0] === reveal) || REVEALS[0])[1];
+    labelBtn.textContent = (LABELS.find((r) => r[0] === labelMode) || LABELS[0])[1];
     syncBpm();
   }
 
   // ------------------------------------------------------------ info drawer
   function openDrawer() {
+    closeMore();
     const pr = getProgress(tpl.id) || {};
     const legend = [['root', 'Root (square)'], ['third', '3rd'], ['fifth', '5th'], ['seventh', '7th'], ['sixth', '6th'], ['other', 'Other / passing']].map(([k, n]) => [k, n, PALETTE[k]]);
+    const varyTip = inst?.uniform
+      ? 'Change the subdivision (♩ → 8ths → triplets → 16ths), switch to "Quiz" to test yourself, and finish with labels off.'
+      : 'The rhythm is written into this exercise, so keep the subdivision and work the tempo. Switch to "Quiz" to test yourself, and finish with labels off.';
     drawer.innerHTML = `
       <header><h2>${esc(tpl.title)}</h2><button class="icon-btn" data-close aria-label="Close">${icon('close')}</button></header>
       <div class="body">
@@ -323,7 +398,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
         <ul>
           <li>Step through it first with ◀ ▶ and say each note or degree out loud.</li>
           <li>Loop it at a tempo where it is effortless (about 60–70% of your limit). Raise 4 BPM after 3 clean loops, or switch on the speed trainer.</li>
-          <li>Change the subdivision (♩ → 8ths → triplets → 16ths), switch to "Quiz" to test yourself, and finish with labels off.</li>
+          <li>${esc(varyTip)}</li>
         </ul>
         <h4>Colours</h4>
         <div class="legend">${legend.map(([k, n, c]) => `<span><i style="background:${c}${k === 'root' ? ';border-radius:3px' : ''}"></i>${n}</span>`).join('')}</div>
@@ -343,7 +418,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     else if (e.code === 'ArrowLeft') manual(-1);
     else if (e.key === '+' || e.key === '=') setBpm(player.bpm + 2);
     else if (e.key === '-') setBpm(player.bpm - 2);
-    else if (e.key === 'Escape') { drawer.classList.remove('open'); closeOptions(); }
+    else if (e.key === 'Escape') { drawer.classList.remove('open'); closeOptions(); closeMore(); }
   }
   window.addEventListener('keydown', onKey);
 
@@ -352,11 +427,19 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
   function dispose() {
     player.stop(true);
     fb.destroy();
+    closeMore();
     window.removeEventListener('keydown', onKey);
     document.body.classList.remove('in-ex');
   }
 
-  renderParams();
-  rebuild();
+  // if the first build fails the screen is unusable: clean up and let the router recover
+  try {
+    rebuild();
+    if (!inst) throw new Error(`No notes for ${tpl.id}`);
+    renderParams();
+  } catch (err) {
+    dispose();
+    throw err;
+  }
   return { dispose, player };
 }

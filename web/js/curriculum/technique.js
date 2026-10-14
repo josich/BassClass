@@ -2,6 +2,8 @@
 import { T, Builder, ex, sel, spellMidi, keyP, keysFor, progChords, chordRootMidis, nm, progP } from './common.js';
 
 const M = 'technique';
+// start fret, kept low enough that the widest drill (start + 7 frets) stays under the highest fret
+const startFret = (p, ctx) => Math.max(1, Math.min(Number(p.pos), ctx.maxFret - 7));
 const posP = (def = '1', label = 'Start fret') => sel(label, [['1', 'Fret 1'], ['3', 'Fret 3'], ['5', 'Fret 5'], ['7', 'Fret 7'], ['9', 'Fret 9'], ['12', 'Fret 12']], def);
 const strings = (ctx) => [...ctx.tuning.keys()];
 const F = (ctx, s, f, finger, extra = {}) => ({ s, f, finger, n: spellMidi(ctx.tuning[s] + f), ...extra });
@@ -77,7 +79,7 @@ const c1234 = ex({
   bpm: 70, sub: 2, label: 'finger',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
-    const pos = Number(p.pos);
+    const pos = startFret(p, ctx);
     b.chord(`Pos ${pos}`);
     b.frets(chromaticBox(ctx, pos));
     b.frets(chromaticBox(ctx, pos, [4, 3, 2, 1], strings(ctx).reverse()));
@@ -128,7 +130,7 @@ const perms = ex({
   bpm: 70, sub: 2, label: 'finger',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
-    const pos = Number(p.pos);
+    const pos = startFret(p, ctx);
     const list = p.perm === 'all' ? PERMS : [p.perm];
     list.forEach((perm, i) => {
       const order = perm.split('').map(Number);
@@ -161,7 +163,7 @@ const spider = ex({
     const pat = SPIDERS[p.pattern].pat;
     const n = ctx.tuning.length;
     for (let k = 0; k < 4; k++) {
-      const pos = Number(p.pos) + k;
+      const pos = startFret(p, ctx) + k;
       b.chord(`Pos ${pos}`);
       const pairs = [...Array(n - 1).keys()];
       for (const s0 of (k % 2 ? pairs.reverse() : pairs)) b.frets(pat.map(([ds, fg]) => F(ctx, s0 + ds, pos + fg - 1, fg)));
@@ -185,7 +187,7 @@ const diagonal = ex({
     const e = Math.max(0, ctx.str('E'));
     const strs = [e, e + 1, e + 2, e + 3].filter((s) => s < n);
     for (let k = 0; k < 6; k++) {
-      const pos = Number(p.pos) + (k < 3 ? k : 5 - k);
+      const pos = startFret(p, ctx) + (k < 3 ? k : 5 - k);
       b.chord(`Pos ${pos}`);
       b.frets(strs.map((s, i) => F(ctx, s, pos + i, i + 1)));
       b.frets([...strs].reverse().map((s, i) => F(ctx, s, pos + i, i + 1)));
@@ -208,7 +210,7 @@ const fingerPairs = ex({
     const b = new Builder(ctx, S);
     const [a, c] = p.pair.split('').map(Number);
     for (let k = 0; k < 4; k++) {
-      const pos = Number(p.pos) + k;
+      const pos = startFret(p, ctx) + k;
       b.chord(`Pos ${pos}`);
       const strs = k % 2 ? strings(ctx).reverse() : strings(ctx);
       for (const s of strs) b.frets([a, c, a, c].map((fg) => F(ctx, s, pos + fg - 1, fg)));
@@ -229,7 +231,7 @@ const trills = ex({
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     const [a, c] = p.pair.split('').map(Number);
-    const pos = Number(p.pos);
+    const pos = startFret(p, ctx);
     for (const s of strings(ctx)) {
       b.chord(ctx.names[s]);
       const fa = pos + a - 1, fc = pos + c - 1;
@@ -251,7 +253,7 @@ const legato = ex({
   bpm: 60, sub: 4, label: 'finger',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
-    const pos = Number(p.pos);
+    const pos = startFret(p, ctx);
     for (const s of strings(ctx)) b.frets([1, 2, 3, 4].map((fg, i) => F(ctx, s, pos + fg - 1, fg, i ? { tag: 'H' } : {})));
     for (const s of strings(ctx).reverse()) b.frets([4, 3, 2, 1].map((fg, i) => F(ctx, s, pos + fg - 1, fg, i ? { tag: 'PO' } : {})));
     return b.build({ label: 'finger' });
@@ -269,7 +271,7 @@ const stringSkip = ex({
   bpm: 66, sub: 2, label: 'finger',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
-    const pos = Number(p.pos);
+    const pos = startFret(p, ctx);
     const n = ctx.tuning.length;
     const pairs = [];
     for (let s = 0; s + 2 < n; s++) pairs.push([s, s + 2]);
@@ -342,7 +344,7 @@ const simandl = ex({
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     for (let k = 0; k < 4; k++) {
-      const pos = Number(p.pos) + k;
+      const pos = startFret(p, ctx) + k;
       b.chord(`Pos ${pos}`);
       const strs = k % 2 ? strings(ctx).reverse() : strings(ctx);
       for (const s of strs) b.frets((k % 2 ? [[2, 4], [1, 2], [0, 1]] : [[0, 1], [1, 2], [2, 4]]).map(([d, fg]) => F(ctx, s, pos + d, fg)));
@@ -383,7 +385,7 @@ const dynamics = ex({
   bpm: 72, sub: 2, label: 'finger',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
-    const pos = Number(p.pos);
+    const pos = startFret(p, ctx);
     const a = Math.max(0, ctx.str('A'));
     const seq = [...DYN, ...DYN.slice(0, -1).reverse()];
     for (const [mark, vel] of seq) {
@@ -405,7 +407,7 @@ const accents = ex({
   bpm: 66, sub: 4, label: 'finger',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
-    const pos = Number(p.pos);
+    const pos = startFret(p, ctx);
     const total = p.group === '332' ? 32 : Number(p.group) * 16;
     const accentAt = (i) => (p.group === '332' ? [0, 3, 6].includes(i % 8) : i % Number(p.group) === 0);
     const box = [...chromaticBox(ctx, pos), ...chromaticBox(ctx, pos, [4, 3, 2, 1], strings(ctx).reverse())];
@@ -472,7 +474,7 @@ const endurance = ex({
   title: 'Endurance 16ths on the roots',
   summary: 'Continuous root 16ths over I–IV–V: stamina for the plucking hand.',
   about: 'Rock, metal and dance music often need minutes of continuous 16th notes. Play the root of each chord in 16ths and keep the volume and spacing even. Switch on the speed trainer and push the tempo a little each day.',
-  tips: ['Breathe and relax the shoulder: tension kills endurance.', 'Alternate strictly; try three fingers (r-m-i) at high tempos.'],
+  tips: ['Breathe and relax the shoulder: tension kills endurance.', 'Alternate strictly; at high tempos try three fingers (ring-middle-index, a-m-i).'],
   source: 'Trinity Grade 7; Jon Liebman "Bass Aerobics"; MI',
   params: { key: keyP(['1', '3', '5'], { def: '4' }), prog: progP(['I-IV-V-I', 'I-V-vi-IV', 'i-iv-v-min']) },
   bpm: 90, sub: 4, label: 'note',
@@ -539,7 +541,7 @@ const permStrings = ex({
   bpm: 60, sub: 2, label: 'finger',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
-    const pos = Number(p.pos);
+    const pos = startFret(p, ctx);
     const e = Math.max(0, ctx.str('E'));
     const strs = [e, e + 1, e + 2, e + 3].filter((s) => s < ctx.tuning.length);
     const list = p.perm === 'all' ? PERMS : [p.perm];

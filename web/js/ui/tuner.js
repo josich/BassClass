@@ -15,6 +15,7 @@ export function tunerScreen(main) {
   const tuning = TUNINGS[S.strings] || TUNINGS[4];
   let target = null;   // selected string midi, or null for auto
   let mic = null, analyser = null, raf = 0, frame = 0;
+  let opening = false, disposed = false; // the mic request can still be pending when the screen is left
   let hist = [], shown = 0, lastSeen = 0;
 
   const noteEl = h('div', { class: 'tn-note' }, '–');
@@ -69,13 +70,20 @@ export function tunerScreen(main) {
       statusEl.textContent = 'The microphone needs a secure page: use the installed app, https, or localhost.';
       return;
     }
+    if (opening) return;
+    opening = true;
+    statusEl.textContent = 'Opening the microphone…';
+    let m;
     try {
-      mic = await A.openMic();
+      m = await A.openMic();
     } catch (e) {
-      statusEl.textContent = e.name === 'NotAllowedError' ? 'Microphone access was blocked. Allow it in the browser/app settings.' : `Could not open the microphone (${e.name || e.message}).`;
-      mic = null;
+      opening = false;
+      if (!disposed) statusEl.textContent = e.name === 'NotAllowedError' ? 'Microphone access was blocked. Allow it in the browser/app settings.' : `Could not open the microphone (${e.name || e.message}).`;
       return;
     }
+    opening = false;
+    if (disposed) { m.stop(); return; }
+    mic = m;
     const lp1 = mic.ctx.createBiquadFilter();
     lp1.type = 'lowpass'; lp1.frequency.value = 1100;
     const lp2 = mic.ctx.createBiquadFilter();
@@ -154,7 +162,7 @@ export function tunerScreen(main) {
     if (needle) needle.setAttribute('transform', `rotate(${shown * 1.6} 160 150)`);
   }
 
-  return { dispose: stop };
+  return { dispose: () => { disposed = true; stop(); } };
 }
 
 function median(a) {

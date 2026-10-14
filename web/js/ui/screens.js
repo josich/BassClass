@@ -6,6 +6,7 @@ import { makeCtx, MAX_FRET } from '../fretboard.js';
 import { FretboardView, degKey } from '../views/fretboardView.js';
 import * as T from '../theory.js';
 import * as A from '../audio.js';
+import { paramSummary } from './exercise.js';
 
 export const go = (hash) => { location.hash = hash; };
 export const exHref = (id, params) => {
@@ -69,12 +70,15 @@ function modulesGrid() {
 }
 
 // ---------------------------------------------------------------- path
+// inside a level: hands and time first, then the neck, then theory and music
+const PATH_ORDER = ['technique', 'rhythm', 'fretboard', 'intervals', 'scales', 'modes', 'triads', 'arpeggios', 'harmony', 'grooves', 'walking', 'licks', 'slap'];
+
 export function pathScreen(main) {
-  const order = MODULES.map((m) => m.id);
+  const rank = (id) => { const i = PATH_ORDER.indexOf(id); return i < 0 ? PATH_ORDER.length : i; };
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('h1', {}, 'Learning path'), h('span', { class: 'muted' }, 'Six levels, from absolute beginner to mastery. Work top to bottom; mark exercises as mastered when they feel easy at tempo.')),
     ...LEVELS.flatMap((L) => {
-      const list = byLevel(L.n).sort((a, b) => order.indexOf(a.module) - order.indexOf(b.module));
+      const list = byLevel(L.n).sort((a, b) => rank(a.module) - rank(b.module));
       if (!list.length) return [];
       const done = list.filter((t) => (getProgress(t.id) || {}).done).length;
       return [
@@ -88,12 +92,14 @@ export function pathScreen(main) {
 export function libraryScreen(main) {
   const search = h('input', { class: 'search', type: 'search', placeholder: 'Search exercises… (e.g. "triad", "ii-V", "slap")' });
   const results = h('div');
+  // "ii-V" must find "ii–V": every kind of dash counts as a hyphen
+  const norm = (x) => x.toLowerCase().replace(/[\u2010-\u2015\u2212]/g, '-');
   const render = () => {
-    const q = search.value.trim().toLowerCase();
+    const q = norm(search.value.trim());
     if (!q) { results.replaceChildren(modulesGrid()); return; }
     const words = q.split(/\s+/);
     const list = EXERCISES.filter((t) => {
-      const hay = `${t.title} ${t.summary} ${t.about} ${t.module}`.toLowerCase();
+      const hay = norm(`${t.title} ${t.summary} ${t.about} ${t.module}`);
       return words.every((w) => hay.includes(w));
     }).sort((a, b) => a.level - b.level);
     results.replaceChildren(list.length ? h('div', { class: 'grid' }, list.map(card)) : h('p', { class: 'muted' }, 'Nothing found.'));
@@ -136,7 +142,7 @@ export function buildRoutine(level, seed) {
   const rand = rng(seed);
   const items = [];
   for (const slot of WARMUP_SLOTS) {
-    let pool = EXERCISES.filter((t) => slot.modules.includes(t.module) && t.level <= level && t.level >= Math.max(1, level - 2));
+    let pool = EXERCISES.filter((t) => slot.modules.includes(t.module) && t.level <= level && t.level >= Math.max(1, level - 1));
     if (!pool.length) pool = EXERCISES.filter((t) => slot.modules.includes(t.module) && t.level <= level);
     if (!pool.length) continue;
     const t = pool[Math.floor(rand() * pool.length)];
@@ -162,11 +168,7 @@ export function warmupScreen(main) {
     lvTabs.replaceChildren(...LEVELS.map((L) => h('button', { class: L.n === level ? 'on' : '', onClick: () => { level = L.n; saveSettings({ level }); render(); } }, `L${L.n}`)));
     listEl.replaceChildren(...items.map((it, i) => {
       const t = byId.get(it.id);
-      const desc = Object.entries(t.params || {}).map(([k, def]) => {
-        const v = it.params[k];
-        if (def.kind === 'key') return T.noteName(T.bestRoot(Number(v), def.ivs), settings.notation);
-        return (def.options.find((o) => o[0] === v) || [, v])[1];
-      }).join(' · ');
+      const desc = paramSummary(t, it.params, settings);
       return h('div', { class: 'item', onClick: () => go(exHref(it.id, { ...it.params, wu: i })) },
         h('div', { class: 'n' }, i + 1),
         h('div', { class: 't' }, h('b', {}, `${it.slot}: ${t.title}`), h('span', {}, desc)),
@@ -202,7 +204,7 @@ export function explorerScreen(main) {
   const fretSel = h('select', { class: 'mini-sel' }, [[12, 'Frets 0–12'], [17, 'Frets 0–17'], [24, 'Frets 0–24']].map(([v, l]) => h('option', { value: v }, l)));
   const info = h('div', { class: 'muted small' });
   main.replaceChildren(h('div', { class: 'explorer' },
-    h('div', { class: 'page-head' }, h('h1', {}, 'Fretboard explorer'), h('div', { class: 'grow' }), rootSel, setSel, labSel, fretSel),
+    h('div', { class: 'page-head' }, h('h1', {}, 'Neck explorer'), h('div', { class: 'grow' }), rootSel, setSel, labSel, fretSel),
     boardWrap, info));
   const host = h('div', { class: 'fb-host', style: { inset: '6px' } });
   boardWrap.append(host);
@@ -280,5 +282,5 @@ export function settingsScreen(main) {
       field('Progress', h('div', { class: 'row' },
         h('button', { class: 'btn', onClick: () => { if (confirm('Reset all progress?')) { resetProgress(); toast('Progress reset'); } } }, 'Reset progress'),
         h('button', { class: 'btn', onClick: () => { saveSettings({ ...DEFAULT_SETTINGS }); settingsScreen(main); toast('Settings restored'); } }, 'Restore defaults')))),
-    h('p', { class: 'muted small', style: { marginTop: '18px' } }, 'BassClass works offline once loaded. Sound is synthesized in the app (no samples). Install it from your browser menu → "Add to Home screen" for full-screen landscape mode.'));
+    h('p', { class: 'muted small', style: { marginTop: '18px' } }, 'BassClass works offline once loaded. The bass sound uses recorded CC0 samples (Karoryfer "darkblack"), with a built-in synthesizer as a backup. Install it from your browser menu → "Add to Home screen" for full-screen landscape mode.'));
 }

@@ -75,7 +75,7 @@ const landmarks = ex({
   title: 'Landmark frets: 3, 5, 7, 9, 12',
   summary: 'Memorise the notes under the fret markers. Every other note is ±1 fret away.',
   about: 'The dots on the neck are your map. Learn the notes at frets 3, 5, 7, 9 and 12 on every string. E string: G A B C♯ E. A string: C D E F♯ A. D string: F G A B D. G string: B♭ C D E G. Once these are automatic, any other note is just one fret away from a landmark.',
-  tips: ['Fret 5 is always the next string\'s open note (that\'s how you tune).', 'Fret 7 gives the open note of the string above it, one octave up.'],
+  tips: ['Fret 5 is always the next string\'s open note (that\'s how you tune).', 'Fret 7 gives the open note of the next lower string, one octave up (A string fret 7 = E, D string fret 7 = A).'],
   source: 'TalkingBass "Notes on the Neck"; LCM marker-dot system',
   params: { order: sel('Order', [['string', 'String by string'], ['fret', 'Fret by fret (across strings)']]) },
   bpm: 60, sub: 1, label: 'note',

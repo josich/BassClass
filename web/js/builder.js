@@ -153,14 +153,15 @@ export class Builder {
     let lo = 99, hi = 0;
     for (const st of this.steps) for (const n of st.notes) { lo = Math.min(lo, n.f); hi = Math.max(hi, n.f); }
     if (lo === 99) { lo = 0; hi = 12; }
+    // no default `sub` here: the template's own starting rhythm must win unless a build sets one
     return {
       uniform: true,
-      sub: 2,
-      bpm: 80,
       beatsPerBar: 4,
       ...meta,
       steps: this.steps,
       range: [lo, hi],
+      // some keys simply do not fit under a low "Highest fret used" setting: say so on screen
+      overFret: hi > this.ctx.maxFret ? hi : 0,
     };
   }
 }

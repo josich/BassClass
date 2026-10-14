@@ -19,7 +19,9 @@ export function scaleBuild(p, ctx, S, { type = p.type, pattern = p.pattern || 's
     const tonic = T.bestRoot(k, ivs);
     // one key: root on the chosen string; all keys: E or A string, whichever is nearest
     const single = octaves > 1 && rootStr === 'D' ? 'A' : rootStr;
-    const r = pickRoot(ctx, k, { strings: many ? ['E', 'A'] : [single], lo: open ? 0 : 1, hi: many ? 8 : 12, prev, prefer: rootStr });
+    // span: keep the top of a 2-octave run (and sequence overshoot) below the highest fret
+    const span = 12 * octaves + (pattern === 'straight' ? 0 : 5);
+    const r = pickRoot(ctx, k, { strings: many ? ['E', 'A'] : [single], lo: open ? 0 : 1, hi: many ? 8 : 12, prev, prefer: rootStr, span });
     b.chord(`${nm(tonic, S)} ${scaleShort(type)}`);
     b.line(scaleRun(tonic, type, r.midi, { octaves, pattern, dir }), { place: { pin: { [r.midi]: r.s }, open: open ? 'allow' : 'avoid', center: r.f + 1 } });
     prev = r.midi;
@@ -222,26 +224,27 @@ const positions = ex({
   id: 'sc-positions', module: M, level: 4,
   title: 'Major scale: the 7 positions across the neck',
   summary: 'Box positions that start on each degree on the E string. Link them and own the neck.',
-  about: 'Each position starts on a different scale degree on the E string and covers every note of the key within one hand span. Play each box from its lowest note to its highest and back. "All positions" climbs through them up the neck. Together they connect the whole fretboard in one key.',
+  about: 'Each position starts on a different scale degree on the E string and covers every note of the key within one hand span. They are numbered from the root: Position 1 starts on the root, Position 2 on the next note of the scale, and so on (a position that would start above fret 12 is played an octave lower). Play each box from its lowest note to its highest and back. "All positions" climbs through them from the lowest fret up the neck. Together they connect the whole fretboard in one key.',
   tips: ['The positions overlap: the top of one box is the bottom of the next.', 'Then play the same positions in a minor key (the relative minor uses the same boxes).'],
   source: 'Berklee PULSE & ILBS-244; LCM scales in 2–3 positions; TalkingBass "3 primary positions"',
-  params: { key: keyP(T.SCALES.ionian.iv, { cycles: false }), pos: sel('Position', [['all', 'All positions (up the neck)'], ...[1, 2, 3, 4, 5, 6, 7].map((i) => [String(i), `Position ${i}`])]), type: typeP(['ionian', 'aeolian', 'majorPent', 'minorPent']) },
+  params: { key: keyP(T.SCALES.ionian.iv, { cycles: false }), pos: sel('Position', [['all', 'All positions (up the neck)'], ...[1, 2, 3, 4, 5, 6, 7].map((i) => [String(i), `Position ${i}`])]), type: typeP(['ionian', 'aeolian']) },
   bpm: 76, sub: 2, label: 'degree',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     const k = Number(p.key);
     const tonic = T.bestRoot(k, T.SCALES[p.type].iv);
-    const len = T.SCALES[p.type].iv.length;
+    const ivs = T.SCALES[p.type].iv;
+    const len = ivs.length;
     const e = Math.max(0, ctx.str('E'));
-    // scale degrees on the E string, ascending from fret 1
-    const starts = [];
-    for (let f = 1; f <= 14; f++) {
-      const pc = T.mod(ctx.tuning[e] + f, 12);
-      const idx = T.SCALES[p.type].iv.findIndex((iv) => T.pc(T.up(tonic, iv)) === pc);
-      if (idx >= 0) starts.push({ f, idx });
-    }
-    const ordered = starts.slice(0, len);
-    const chosen = p.pos === 'all' ? ordered : [ordered[(Number(p.pos) - 1) % ordered.length]];
+    // positions numbered from the root: Position n starts on scale degree n on the E string,
+    // between frets 1 and 12 (one that would start higher is played an octave lower)
+    const rootF = T.mod(k - ctx.tuning[e], 12) || 12;
+    const starts = ivs.map((iv, idx) => {
+      let f = rootF + T.semis(iv);
+      while (f > 12) f -= 12;
+      return { f, n: idx + 1 };
+    });
+    const chosen = p.pos === 'all' ? [...starts].sort((a, c) => a.f - c.f) : [starts[(Number(p.pos) - 1) % len]];
     const notesIn = (lo, hi) => {
       const out = [];
       ctx.tuning.forEach((open, s) => {
@@ -256,7 +259,7 @@ const positions = ex({
     chosen.forEach((st, i) => {
       const lo = st.f, hi = st.f + (len === 5 ? 3 : 4);
       const box = notesIn(lo, hi).filter((q) => !(q.s === e && q.f < st.f));
-      b.chord(`Pos ${(starts.indexOf(st) % len) + 1}`, `${nm(tonic, S)} ${scaleShort(p.type)}`);
+      b.chord(`Pos ${st.n}`, `${nm(tonic, S)} ${scaleShort(p.type)}`);
       const seq = i % 2 === 0 || p.pos !== 'all' ? [...box, ...box.slice(0, -1).reverse()] : [...box].reverse();
       b.frets(seq.map((q) => ({ s: q.s, f: q.f, n: q.n, deg: q.deg })));
     });
@@ -269,6 +272,8 @@ const minorFamily = variant(sequences, {
   title: 'Harmonic & melodic minor',
   summary: 'The two minor scales of jazz and classical music, straight and in sequences.',
   about: 'Harmonic minor raises the 7th of natural minor, creating the exotic augmented 2nd (♭6 → 7) and a strong pull to the root. Melodic minor (jazz minor) also raises the 6th: it sounds like major with a ♭3 and is the parent of the altered and Lydian dominant scales. Both appear in RSL, LCM and conservatory programmes from the intermediate grades.',
+  tips: ['Harmonic minor: feel the augmented 2nd (♭6 → 7) as a three-fret gap.', 'Melodic minor is played the same going up and coming down, the way jazz players use it.'],
+  source: 'RSL Grades 6–8, LCM Grades 5–7, Spanish conservatory scale requirements; Berklee PULSE (melodic minor)',
   defaults: { type: 'harmonicMinor', pattern: 'g3' }, only: { type: ['harmonicMinor', 'melodicMinor', 'aeolian'] },
 });
 
@@ -276,9 +281,9 @@ const pentPositions = variant(positions, {
   id: 'sc-pent-positions', level: 4,
   title: 'Pentatonic: the 5 positions',
   summary: 'The five pentatonic boxes, linked up the neck in one key.',
-  about: 'The pentatonic scale has five shapes that tile the neck. Each one starts on a different note of the scale. Knowing all five lets you play riffs and fills anywhere, which is an RSL Grade 6 requirement.',
-  defaults: { type: 'minorPent' }, only: { type: ['minorPent', 'majorPent'] },
-  params: { ...positions.params, pos: sel('Position', [['all', 'All 5 (up the neck)'], ...[1, 2, 3, 4, 5].map((i) => [String(i), `Position ${i}`])]) },
+  about: 'The pentatonic scale has five shapes that tile the neck. Each one starts on a different note of the scale, numbered from the root: Position 1 is the box with the root under your first finger on the E string. Knowing all five lets you play riffs and fills anywhere, which is an RSL Grade 6 requirement.',
+  tips: ['The positions overlap: the top of one box is the bottom of the next.', 'Then switch to the major pentatonic: the relative major (E♭ for C minor) uses the same boxes.'],
+  params: { ...positions.params, type: typeP(['minorPent', 'majorPent']), pos: sel('Position', [['all', 'All 5 (up the neck)'], ...[1, 2, 3, 4, 5].map((i) => [String(i), `Position ${i}`])]) },
 });
 
 const bebop = ex({
@@ -351,6 +356,7 @@ const oddGroups = variant(sequences, {
   title: 'Odd groupings in 16ths, all keys',
   summary: 'Groups of 5 (or 3) in 16ths through all 12 keys: maximum rhythmic tension.',
   about: 'Phrase the scale in groups of 5 while playing 16ths. Each group starts on a different part of the beat, and you go around all 12 keys without stopping. This is a pro-level exercise for time, fretboard knowledge and stamina at once.',
+  source: 'Rhythmic displacement drills from jazz-fusion teaching (odd groupings over 16ths)',
   defaults: { pattern: 'g5', key: 'cycle4', oct: '1' }, sub: 4, bpm: 60,
 });
 
@@ -359,6 +365,7 @@ const intervallic = variant(sequences, {
   title: 'Alternating 3rds through all keys',
   summary: '1-3, 4-2, 3-5, 6-4… zig-zag 3rds in every key around the cycle.',
   about: 'Alternating-direction intervals produce wide, melodic lines that are hard to play cleanly. Taking them around all 12 keys without stopping is a mastery-level drill for ears, eyes and hands.',
+  source: 'Classic intervallic scale drills (3rds in alternating directions) from conservatory and jazz teaching',
   defaults: { pattern: 'thirdsAlt', key: 'cycle4' }, sub: 2, bpm: 76,
 });
 

@@ -1,6 +1,6 @@
 ---
 name: qa-user
-description: Player's-eye QA for BassClass. Run only when the user asks for it (he is asked first, typically after big changes or a new module); always in the background. Uses the app as real bass players would (a beginner, an intermediate/advanced player, a jazz teacher) and reports graphical issues, text problems, wrong or misleading information, illogical flows, things that make no sense, and musical content that is incorrect. Read-only on the app: never edits source, never commits, never pushes.
+description: Player's-eye QA for BassClass. Run only when the user asks for it (the user is asked first, typically after big changes or a new module); always in the background. Uses the app as real bass players would (a beginner, an intermediate/advanced player, a jazz teacher) and reports graphical issues, text problems, wrong or misleading information, illogical flows, things that make no sense, and musical content that is incorrect. Read-only on the app: never edits source, never commits, never pushes.
 disallowedTools: Edit, NotebookEdit
 model: inherit
 background: true

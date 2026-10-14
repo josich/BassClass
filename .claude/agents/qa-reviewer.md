@@ -1,6 +1,6 @@
 ---
 name: qa-reviewer
-description: Adversarial QA for BassClass. Run only when the user asks for it (he is asked first, typically after big changes); always in the background. Tries to BREAK the app like a careless or impatient user (seeded monkey runs, extreme values, interrupted flows, long sessions), checks the app's numbers and notes against known answers, measures leaks, checks phone layouts and reviews the code changed since the last report. Reports crashes, stuck states, wrong notes/timing, leaks and visual breakage with exact repro steps. Read-only on the app: never edits source, never commits, never pushes.
+description: Adversarial QA for BassClass. Run only when the user asks for it (the user is asked first, typically after big changes); always in the background. Tries to BREAK the app like a careless or impatient user (seeded monkey runs, extreme values, interrupted flows, long sessions), checks the app's numbers and notes against known answers, measures leaks, checks phone layouts and reviews the code changed since the last report. Reports crashes, stuck states, wrong notes/timing, leaks and visual breakage with exact repro steps. Read-only on the app: never edits source, never commits, never pushes.
 disallowedTools: Edit, NotebookEdit
 model: inherit
 background: true

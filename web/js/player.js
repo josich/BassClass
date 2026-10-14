@@ -3,6 +3,8 @@ import * as A from './audio.js';
 
 const LOOKAHEAD = 0.12;   // seconds scheduled ahead
 const TICK_MS = 25;
+export const MIN_BPM = 30;
+export const MAX_BPM = 260;
 
 export class Player {
   constructor(cb = {}) {
@@ -21,6 +23,7 @@ export class Player {
     this._timer = null;
     this._raf = null;
     this.queue = [];
+    this._token = 0;            // bumped by pause/stop: cancels a play() still waiting for samples
   }
 
   load(inst, { keepStep = false } = {}) {
@@ -58,10 +61,12 @@ export class Player {
   }
 
   setBpm(bpm) {
-    bpm = Math.max(20, Math.min(320, Math.round(bpm)));
+    bpm = Math.max(MIN_BPM, Math.min(MAX_BPM, Math.round(bpm) || MIN_BPM));
     if (this.playing) {
       // re-anchor at the next scheduled event so the change is seamless
-      const b = Math.min(this.nextStepAbs, this.nextClickAbs);
+      // (clicks only count while they are actually being scheduled)
+      const clicking = this.metro || this.nextClickAbs < this.countInEnd;
+      const b = clicking ? Math.min(this.nextStepAbs, this.nextClickAbs) : this.nextStepAbs;
       this.anchorTime = this._time(b);
       this.anchorBeat = b;
     }
@@ -73,8 +78,11 @@ export class Player {
   async play() {
     if (!this.inst || this.playing || this._starting) return;
     this._starting = true;
+    const token = ++this._token;
     A.audioCtx();
     await A.whenReady();
+    // leaving the exercise (or pressing pause) while samples loaded cancels this start
+    if (token !== this._token) return;
     this._starting = false;
     if (this.playing || !this.inst) return;
     const ac = A.audioCtx();
@@ -100,6 +108,8 @@ export class Player {
   }
 
   pause() {
+    this._token++;
+    this._starting = false;
     if (!this.playing) return;
     this.playing = false;
     clearInterval(this._timer);
@@ -113,7 +123,7 @@ export class Player {
     if (!silent) { this.cur = 0; this.cb.onStep?.(-1); }
   }
 
-  toggle() { this.playing ? this.pause() : this.play(); }
+  toggle() { (this.playing || this._starting) ? this.pause() : this.play(); }
 
   /** Manual stepping: move to step i and sound it. */
   stepTo(i, sound = true) {
@@ -142,8 +152,9 @@ export class Player {
       const t = Math.min(tStep, tClick);
       if (t > horizon) break;
       if (tClick <= tStep && tClick < ac.currentTime - 0.02) {
-        // stale click (metronome was off): skip it silently
-        this.nextClickAbs += clickInc;
+        // stale clicks (metronome was off): jump straight to the next upcoming click
+        const nowBeat = this.anchorBeat + ((ac.currentTime - this.anchorTime) * this.bpm) / 60;
+        this.nextClickAbs = Math.max(this.nextClickAbs + clickInc, Math.ceil(nowBeat / clickInc - 1e-9) * clickInc);
         continue;
       }
       if (tClick <= tStep) {
@@ -184,15 +195,17 @@ export class Player {
           this.si = 0;
           this.nextStepAbs = this.loopBase + this.starts[0];
           this.loopN++;
+          // `done` is the tempo of the loop just completed (what "best BPM" may credit)
+          const done = this.bpm;
           if (this.trainer.on && this.bpm < this.trainer.target) {
             const nb = Math.min(this.trainer.target, this.bpm + this.trainer.inc);
             const at = this.loopBase;
             this.anchorTime = this._time(at);
             this.anchorBeat = at;
             this.bpm = nb;
-            this._q({ time: this.anchorTime, type: 'loop', n: this.loopN, bpm: nb });
+            this._q({ time: this.anchorTime, type: 'loop', n: this.loopN, bpm: nb, done });
           } else {
-            this._q({ time: this._time(this.loopBase), type: 'loop', n: this.loopN, bpm: this.bpm });
+            this._q({ time: this._time(this.loopBase), type: 'loop', n: this.loopN, bpm: this.bpm, done });
           }
         } else {
           this.endAbs = this.loopBase + this.total;
@@ -206,6 +219,8 @@ export class Player {
 
   /** Insert a UI event keeping the queue in time order. */
   _q(e) {
+    // UI events drain on animation frames; if frames are paused (hidden app) keep the queue bounded
+    if (this.queue.length > 3000) this.queue.splice(0, 1500);
     let i = this.queue.length;
     while (i > 0 && this.queue[i - 1].time > e.time) i--;
     this.queue.splice(i, 0, e);
@@ -218,7 +233,7 @@ export class Player {
       const e = this.queue.shift();
       if (e.type === 'step') { this.cur = e.idx; this.cb.onStep?.(e.idx); }
       else if (e.type === 'beat') this.cb.onBeat?.(e.level, e.beat);
-      else if (e.type === 'loop') this.cb.onLoop?.(e.n, e.bpm);
+      else if (e.type === 'loop') this.cb.onLoop?.(e.n, e.bpm, e.done);
       else if (e.type === 'end') { this.pause(); this.cur = 0; this.cb.onEnd?.(); return; }
     }
     if (this.playing) this._raf = requestAnimationFrame(() => this._frame());

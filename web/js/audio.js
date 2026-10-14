@@ -137,7 +137,8 @@ export async function whenReady(timeoutMs = 2500) {
 }
 export const sampleInfo = () => bank.info;
 
-function nearest(map, midi, maxShift = 7) {
+// up to an octave of resampling: the top sample is E4 (64), the 6-string neck reaches C5 (72)
+function nearest(map, midi, maxShift = 12) {
   let best = null;
   for (const m of map.keys()) {
     const d = Math.abs(m - midi);

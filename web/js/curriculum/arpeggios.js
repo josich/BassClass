@@ -276,7 +276,7 @@ const dimToMinor = ex({
   about: 'A diminished 7th built on the leading tone is a dominant 7♭9 without its root (C♯°7 = A7♭9). Play it ascending and resolve to the minor triad descending. Through the cycle this gives a classic, dramatic bebop phrase.',
   tips: ['Each diminished note resolves by half step or common tone.', 'Hear A7♭9 → Dm even though the A is never played.'],
   source: 'Janek Gwizdala (dim7 → minor arpeggio drill); bebop vocabulary',
-  params: { key: keyP(['1', 'b3', '5'], { def: 'cycle4' }) },
+  params: { key: keyP(['1', 'b3', '5'], { def: 'cycle4', suffix: 'm' }) },
   bpm: 80, sub: 4, label: 'degree',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
@@ -284,7 +284,9 @@ const dimToMinor = ex({
     let prev = null;
     for (const k of keysFor(p.key)) {
       const minor = T.bestRoot(k, ivsOf('min'));
-      const lt = T.up(minor, '7');
+      // the leading tone; G♯ minor's F𝄪 is written as G so the chord stays readable
+      let lt = T.up(minor, '7');
+      if (Math.abs(lt.a) > 1) lt = T.bestRoot(T.pc(lt), ivsOf('dim7'));
       const r = pickRoot(ctx, k, { strings: ['E', 'A'], hi: 8, prev, prefer: 'A' });
       const ltMidi = r.midi - 1;
       chordTones(lt, ivsOf('dim7'), ltMidi, [0, 1, 2, 3]).forEach((t, j) => items.push({ ...t, chord: j === 0 ? chordName(lt, 'dim7', S) : undefined }));
@@ -387,24 +389,27 @@ const approach7 = ex({
   id: 'arp-approach', module: M, level: 5,
   title: 'Arpeggios with approach notes & enclosures',
   summary: 'Every chord tone targeted chromatically, through ii–V–I in all keys.',
-  about: 'The bebop way to outline changes: each chord tone is approached from a half step below, from above, or "enclosed" (above, below, target). Chord tones land on the beats and approach notes fill the off-beats. This is the core of jazz walking lines and solos (Berklee level exams).',
-  tips: ['Accent the targets, play approach notes lighter.', 'The enclosure (above-below-target) is a 3-note cell: count carefully.'],
+  about: 'The bebop way to outline changes: each chord tone is approached from a half step below, from above, or "enclosed" (above, below, target). Every chord tone lands on a beat, and the approach notes lead into the next one: 8th notes with a single approach note, triplets with an enclosure. This is the core of jazz walking lines and solos (Berklee level exams).',
+  tips: ['Accent the targets, play approach notes lighter.', 'The enclosure (above-below-target) fills the beat as a triplet: target, above, below, then the next target on the beat.', 'Approach notes are labelled →.'],
   source: 'Berklee level exams (approach notes); TalkingBass Chord Tone Essentials; David Baker',
   params: { key: keyP(['1', '3', '5', '7'], { def: 'cycle4' }), approach: sel('Approach', [['below', 'Half step below'], ['above', 'Half step above'], ['enclosure', 'Enclosure']]), prog: progP(['ii-V-I', 'minor-ii-V-i', 'I-vi-ii-V']) },
-  bpm: 70, sub: 4, label: 'degree',
+  bpm: 84, sub: 2, label: 'degree',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     const chords = [];
     for (const k of keysFor(p.key)) chords.push(...progChords(p.prog, k, { S }));
     const base = voiceLedItems(chords, { order: SEVENTH_ORDERS.alt.f, lo: 33, hi: 57, start: 40 });
+    // target on the beat, then the approach notes into the next target (the last one leads back to the first)
+    const apps = (m) => (p.approach === 'below' ? [m - 1] : p.approach === 'above' ? [m + 1] : [m + 1, m - 1]);
+    const per = apps(0).length + 1;
     const items = [];
-    for (const t of base) {
-      const apps = p.approach === 'below' ? [t.midi - 1] : p.approach === 'above' ? [t.midi + 1] : [t.midi + 1, t.midi - 1];
-      apps.forEach((m, a) => items.push({ midi: m, n: spellMidi(m, m > t.midi), deg: '·', dur: 1, chord: a === 0 ? t.chord : undefined }));
-      items.push({ ...t, chord: undefined, accent: true, dur: 1 });
-    }
+    base.forEach((t, i) => {
+      items.push({ ...t, accent: true, dur: 1 / per });
+      const nx = base[(i + 1) % base.length];
+      for (const m of apps(nx.midi)) items.push({ midi: m, n: spellMidi(m, m > nx.midi), deg: '→', dur: 1 / per });
+    });
     emitMixed(b, items, { center: 5, open: 'avoid' });
-    return b.build({ label: 'degree' });
+    return b.build({ label: 'degree', uniform: false, sub: per });
   },
 });
 

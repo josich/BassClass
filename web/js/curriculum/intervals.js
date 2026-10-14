@@ -67,7 +67,7 @@ const diatonic = ex({
   title: 'Diatonic intervals through the scale',
   summary: 'The scale in 3rds, 4ths, 5ths, 6ths and 7ths: classic melodic sequences.',
   about: 'Move through the scale in pairs of notes a fixed number of scale steps apart: 1-3, 2-4, 3-5… (3rds), or 1-4, 2-5… (4ths), and so on. The alternating versions flip the direction of every second pair (1-3, 4-2, 3-5, 6-4), which is more melodic and great for fills. These sequences are part of every conservatory scale exam.',
-  tips: ['Name the interval quality as you go: 3rds alternate major and minor.', 'In 6ths you will skip strings. Mute carefully.'],
+  tips: ['Name the interval quality as you go: in major the 3rds run M m m M M m m.', 'In 6ths you will skip strings. Mute carefully.'],
   source: 'Chuck Sher; Spanish conservatory access tests; Berklee levels; TalkingBass Creative Bassist',
   params: { pattern: sel('Interval', Object.entries(DIA)), key: keyP(T.SCALES.ionian.iv), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'harmonicMinor', 'melodicMinor', 'dorian', 'mixolydian'])), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]), root: rootStrP('A') },
   bpm: 72, sub: 2, label: 'degree',
@@ -159,13 +159,16 @@ const octavesScale = ex({
     const b = new Builder(ctx, S);
     const k = Number(p.key);
     const tonic = T.bestRoot(k, T.SCALES[p.scale].iv);
-    // the octave sits 2 frets above and the scale climbs 12 more: keep it on the neck
-    let s = Math.max(0, ctx.str(p.root));
-    let f0 = T.mod(k - ctx.tuning[s], 12);
-    if (f0 + 14 > ctx.maxFret) {
-      const alt = p.root === 'E' ? ctx.str('A') : ctx.str('E');
-      if (alt >= 0 && alt + 2 < ctx.tuning.length) { s = alt; f0 = T.mod(k - ctx.tuning[s], 12); }
+    // the octave sits 2 frets above and the scale climbs 12 more: use the string pair where it
+    // fits under the highest fret (the chosen string first), or overshoots least
+    const want = Math.max(0, ctx.str(p.root));
+    let best = null;
+    for (let x = 0; x + 2 < ctx.tuning.length; x++) {
+      const f = T.mod(k - ctx.tuning[x], 12);
+      const cost = Math.max(0, f + 14 - ctx.maxFret) * 10 + (x === want ? 0 : 1 + Math.abs(x - want));
+      if (!best || cost < best.cost) best = { cost, x, f };
     }
+    const s = best.x, f0 = best.f;
     const len = T.SCALES[p.scale].iv.length;
     const seq = [...Array(len + 1).keys(), ...[...Array(len).keys()].reverse()];
     for (const i of seq) {

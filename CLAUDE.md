@@ -37,11 +37,18 @@
   - `qa-reviewer` (`.claude/agents/qa-reviewer.md`): adversarial deep QA. It breaks the app with seeded monkey runs, extremes, corrupt storage and interrupted flows, checks notes/timing/samples/tuner against KNOWN answers, measures leaks, checks phone layouts and reviews changed code. Report: `qa/reports/<short-sha>-deep.md`. Server `qa`, port 8878.
   - `qa-user` (`.claude/agents/qa-user.md`): player's-eye QA. Three personas (beginner, advanced player, jazz teacher) look for graphical issues, text problems, wrong or misleading information, illogical flows and incorrect musical content. Report: `qa/reports/<short-sha>-user.md`. Server `qauser`, port 8890.
 - **Always ask the user before launching them.** Good moments are after big changes: a new module or screen, a change to the player, audio, fingering or theory engine, storage, the Android wrapper, or a batch of several releases since the newest report. When one would pay off, propose it in one line at the end of the round; never launch unasked.
-- When he says go: launch BOTH in the background in parallel and keep working. Agent files load at session start; in a session where they are not listed as agent types, launch `general-purpose` with "Read and follow .claude/agents/<name>.md exactly" (and the commit to test).
-- Relay an `URGENT:` line at once. Otherwise summarise both reports for the user, grouped by severity with a recommendation, and **fix only what he picks**. Log his decisions below so QA stops re-reporting them.
+- When the user says go: launch BOTH in the background in parallel and keep working. Agent files load at session start; in a session where they are not listed as agent types, launch `general-purpose` with "Read and follow .claude/agents/<name>.md exactly" (and the commit to test).
+- Relay an `URGENT:` line at once. Otherwise summarise both reports for the user, grouped by severity with a recommendation, and **fix only what the user picks**. Log the user's decisions below so QA stops re-reporting them.
 
 ### Decisions QA should not re-report
 - Navy/teal/periwinkle/peach design; root notes drawn as rounded squares; real string-gauge proportions.
 - The signing key `android/app/bassclass.p12` is committed on purpose (sideloaded app; updates must install over each other).
 - Jazz licks are original vocabulary, not transcriptions.
 - The tuner cannot open the microphone on plain `http://` pages (browser rule); it works on https, localhost and in the APK.
+- Scale and pentatonic positions are numbered from the root (Position 1 = the box with the root on the E string); a position that would start above fret 12 is played an octave lower. (QA round 1, user's choice.)
+- Inside a level the path lists hands and time first: technique, rhythm, fretboard, intervals, scales, modes, triads, arpeggios, harmony, grooves, walking, licks, slap. (QA round 1, user's choice.)
+- Approach and enclosure notes are labelled "→" in every module. Licks label the other notes against the chord under them in jazz terms (9, ♭9, ♯9, 11, ♯11, ♭13, 13); a dominant's ♭9/♯9 always keeps its name.
+- Lick notes are spelled against their chord; double accidentals become the plain enharmonic, and the ♯9 uses whichever of ♭3/♯2 reads more easily (B♭ over G7, B over A♭7).
+- When an exercise physically cannot fit under "Highest fret used" (e.g. two octaves of E♭ on a 4-string with 17 frets) it goes over and shows a notice. Intended.
+- Double accidentals are drawn as two glyphs (♭♭/♯♯), not 𝄫/𝄪, because Android system fonts may lack those characters.
+- Exercises with a written rhythm (licks, grooves, walking, approach drills) hide the subdivision selector and show "♪ Written rhythm".

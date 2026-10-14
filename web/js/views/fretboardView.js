@@ -1,4 +1,4 @@
-// SVG fretboard renderer: ebony board, real-gauge round-wound strings,
+// SVG fretboard renderer: navy board, real-gauge round-wound strings,
 // semi-realistic fret spacing and glossy note markers with motion cues.
 import { INLAYS, DOUBLE_INLAYS } from '../fretboard.js';
 
@@ -109,9 +109,11 @@ export class FretboardView {
     this.padL = padL;
     this.openW = openW;
     this.nutX = padL + openW;
-    this.gap = (h - padT - padB) / this.strings;
-    this.boardTop = padT;
-    this.boardBot = padT + this.gap * this.strings;
+    // on tall screens (tablets) the strings stop spreading apart and the board is centred
+    const fullGap = (h - padT - padB) / this.strings;
+    this.gap = Math.min(fullGap, 58);
+    this.boardTop = padT + ((fullGap - this.gap) * this.strings) / 2;
+    this.boardBot = this.boardTop + this.gap * this.strings;
     this.drawBoard();
     this.drawDots();
   }
@@ -246,7 +248,13 @@ export class FretboardView {
       const len = Math.hypot(x2 - x1, y2 - y1) || 1;
       const ux = (x2 - x1) / len, uy = (y2 - y1) / len;
       const ax = x1 + ux * R * 1.15, ay = y1 + uy * R * 1.15, bx = x2 - ux * R * 1.2, by = y2 - uy * R * 1.2;
-      const mx = (ax + bx) / 2 - uy * Math.min(40, len * 0.25), my = (ay + by) / 2 + ux * Math.min(40, len * 0.25) * (y2 >= y1 ? -1 : 1) - Math.min(18, len * 0.12);
+      // bend towards the middle of the board, so an arc along the top string stays on the board
+      const bend = Math.min(36, len * 0.25);
+      const midX = (ax + bx) / 2, midY = (ay + by) / 2;
+      const toward = (this.boardTop + this.boardBot) / 2 - midY || -1;
+      let nx = -uy, ny = ux;
+      if (ny * toward < 0) { nx = -nx; ny = -ny; }
+      const mx = midX + nx * bend, my = midY + ny * bend;
       const col = PALETTE[nxt.color] || PALETTE.none;
       out.push(`<path class="arc" d="M${ax},${ay} Q${mx},${my} ${bx},${by}" stroke="${col}"/>`);
     }

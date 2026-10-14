@@ -126,9 +126,9 @@ const ODD = {
 };
 const oddGroove = ex({
   id: 'gr-odd-meters', module: G, level: 4,
-  title: 'Odd-meter grooves: 5/4, 7/8, 7/4, 6/8',
-  summary: 'Feel the groups, not the count: 3+2, 2+2+3, 4+3.',
-  about: 'Odd meters are everywhere in prog, fusion, Balkan and film music. Each groove places its strongest notes on the start of the beat groups. Loop it until it feels natural rather than counted. In 7/8 and 6/8 the click marks every 8th note.',
+  title: 'Odd and compound meters: 5/4, 7/8, 7/4, 6/8',
+  summary: 'Feel the groups, not the count: 3+2, 2+2+3, 4+3, 3+3.',
+  about: 'Odd meters (5/4, 7/8, 7/4) are everywhere in prog, fusion, Balkan and film music, and 6/8 is the compound meter of ballads and Afro-Cuban grooves. Each groove places its strongest notes on the start of the beat groups. Loop it until it feels natural rather than counted. In 7/8 and 6/8 the click marks every 8th note.',
   tips: ['Say the groups: "1-2-3 1-2" for 5/4.', 'Record yourself; the last group is where most players rush.'],
   source: 'Trinity Grades 5–8; RSL Grade 8; MI 069E; Berklee Online Rock Bass L10',
   params: { meter: sel('Meter', Object.entries(ODD).map(([k, v]) => [k, v.name])), key: keyP(['1', 'b3', '5'], { def: '4', cycles: false }) },
@@ -223,13 +223,13 @@ const twoPerBar = walkEx('wk-two-per-bar', 5, 'mixed', 'rhythm-A', {
 
 const minorWalk = walkEx('wk-minor', 5, 'mixed', 'minor-ii-V-i', {
   title: 'Minor walking: iiø–V–i and minor blues',
-  summary: 'Walking in minor keys with half-diminished and altered dominant chords.',
-  about: 'Minor keys bring the half-diminished ii chord and a V7 that pulls hard to the minor tonic. Walk through the minor ii–V–i and the minor blues using the same devices, adapted to the darker chord tones.',
+  summary: 'Walking in minor keys: the half-diminished ii, the V7♭9 and the minor blues.',
+  about: 'Minor keys bring the half-diminished ii chord and a V7♭9 that pulls hard to the minor tonic. Walk through the minor ii–V–i and the minor blues using the same devices, adapted to the darker chord tones.',
   tips: ['On m7♭5 the 5th is flat: watch the dots.', 'The 3rd of V7 is the leading tone of the key.'],
   source: 'TalkingBass M3 (minor ii–V–i backing); Berklee', bpm: 108,
 });
 
-const tripletWalk = walkEx('wk-triplet-skips', 6, 'mixed', 'jazz-blues', {
+const tripletWalk = walkEx('wk-triplet-skips', 5, 'mixed', 'jazz-blues', {
   title: 'Walking with triplet skips',
   summary: 'A swung triplet "skip" on beat 3 of every other bar: the pro walking sound.',
   about: 'Great walking bassists decorate the quarter-note line with triplet skips: a note played on the beat and ghosted on the last triplet. It adds bounce and swing without breaking the line.',
@@ -245,6 +245,8 @@ const giantWalk = walkEx('wk-giant-steps', 6, 'mixed', 'jazz-blues', {
   source: 'Taller de Músics/Berklee jazz requirements; John Coltrane "Giant Steps"', bpm: 120,
 });
 giantWalk.params.prog = progP(['giant-steps'], 'giant-steps');
+minorWalk.params.prog = progP(['minor-ii-V-i', 'minor-blues', 'i-iv-V-i'], 'minor-ii-V-i');
+minorWalk.params.key = keyP(T.SCALES.aeolian.iv, { def: '2', suffix: 'm' });
 giantWalk.params.key = keyP(['1', '3', '5', '7'], { def: '11', cycles: false });
 
 // ---------------------------------------------------------------- slap

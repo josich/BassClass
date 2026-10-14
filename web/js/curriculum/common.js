@@ -22,8 +22,8 @@ export const CYCLE_OPTS = [
 ];
 
 /** Key parameter: 12 roots spelled for `ivs` (+ optional all-keys cycles). */
-export const keyP = (ivs = ['1', '3', '5'], { cycles = true, def = '0', label = 'Key' } = {}) =>
-  ({ kind: 'key', label, ivs, cycles, default: def });
+export const keyP = (ivs = ['1', '3', '5'], { cycles = true, def = '0', label = 'Key', suffix = '' } = {}) =>
+  ({ kind: 'key', label, ivs, cycles, default: def, suffix });
 
 /** Select parameter from [[value, label], ...]. */
 export const sel = (label, options, def) => ({ kind: 'select', label, options, default: def ?? options[0][0] });
@@ -41,15 +41,19 @@ export function ex(def) {
   return { bpm: 70, sub: 2, tips: [], params: {}, ...def };
 }
 
-/** Variant of a template: new id/level/title and different default params. */
+/**
+ * Variant of a template: new id/level/title, its own params (`params` replaces
+ * or adds parameters), different defaults (`defaults`) or fewer options (`only`).
+ */
 export function variant(base, over) {
+  const { defaults, only, params: extra, ...rest } = over;
+  const src = { ...base.params, ...(extra || {}) };
   const params = {};
-  for (const [k, v] of Object.entries(base.params)) {
+  for (const [k, v] of Object.entries(src)) {
     params[k] = { ...v };
-    if (over.defaults && over.defaults[k] != null) params[k].default = over.defaults[k];
-    if (over.only && over.only[k]) params[k].options = v.options.filter((o) => over.only[k].includes(o[0]));
+    if (defaults && defaults[k] != null) params[k].default = defaults[k];
+    if (only && only[k]) params[k].options = v.options.filter((o) => only[k].includes(o[0]));
   }
-  const { defaults, only, ...rest } = over;
   return { ...base, star: false, ...rest, params };
 }
 
@@ -78,18 +82,23 @@ export const scaleShort = (type) => SHORT[type] || T.SCALES[type].name.split(' (
 
 // ------------------------------------------------------------------ roots & zones
 
-/** Pick a root midi for pc on one of `strings` within [lo,hi], near prev (or lowest). */
-export function pickRoot(ctx, pcv, { strings = ['E', 'A'], lo = 1, hi = 12, prev = null, prefer = null } = {}) {
+/**
+ * Pick a root midi for pc on one of `strings` within [lo,hi], near prev (or lowest).
+ * `span` = semitones the exercise climbs above the root: roots that would push it
+ * past the "Highest fret used" setting are only chosen when nothing else fits.
+ */
+export function pickRoot(ctx, pcv, { strings = ['E', 'A'], lo = 1, hi = 12, prev = null, prefer = null, span = 0 } = {}) {
   let best = null;
+  const highest = ctx.tuning[ctx.tuning.length - 1] + ctx.maxFret;
   for (const name of strings) {
     const s = ctx.str(name);
     if (s < 0) continue;
     for (let f = lo; f <= hi; f++) {
       const midi = ctx.tuning[s] + f;
       if (T.mod(midi, 12) !== pcv) continue;
-      const score = prev == null
+      const score = (span && midi + span > highest ? 1000 : 0) + (prev == null
         ? (prefer && name !== prefer ? 50 : 0) + f
-        : Math.abs(midi - prev) * 2 + f * 0.05 + (prefer && name !== prefer ? 1 : 0);
+        : Math.abs(midi - prev) * 2 + f * 0.05 + (prefer && name !== prefer ? 1 : 0));
       if (!best || score < best.score) best = { score, s, f, midi, name };
     }
   }
@@ -158,7 +167,7 @@ export const PROGS = {
   'ii-bII7-I': { name: 'ii – ♭II7 – I (tritone sub)', chords: [['2', 'min7'], ['b2', 'dom7'], ['1', 'maj7', 8]] },
   'I-bVI-bVII-I': { name: 'I – ♭VI – ♭VII – I (borrowed)', chords: [['1', 'maj7'], ['b6', 'maj7'], ['b7', 'dom7'], ['1', 'maj7']] },
   'I-iv-I': { name: 'I – IV – iv – I (minor plagal)', chords: [['1', 'maj7'], ['4', 'maj7'], ['4', 'min6'], ['1', 'maj7']] },
-  'minor-ii-V-i': { name: 'Minor ii – V – i', minor: true, chords: [['2', 'm7b5'], ['5', 'dom7'], ['1', 'mMaj7', 8]] },
+  'minor-ii-V-i': { name: 'Minor ii – V – i', minor: true, chords: [['2', 'm7b5'], ['5', 'dom7b9'], ['1', 'mMaj7', 8]] },
   'i-iv-V-i': { name: 'i – iv – V – i (harmonic minor)', minor: true, chords: [['1', 'min7'], ['4', 'min7'], ['5', 'dom7'], ['1', 'min7']] },
   'i-bVII-bVI-V': { name: 'Andalusian i – ♭VII – ♭VI – V', minor: true, chords: [['1', 'min7'], ['b7', 'dom7'], ['b6', 'maj7'], ['5', 'dom7']] },
   'i-bVI-bIII-bVII': { name: 'i – ♭VI – ♭III – ♭VII (epic minor)', minor: true, chords: [['1', 'min7'], ['b6', 'maj7'], ['b3', 'maj7'], ['b7', 'dom7']] },
@@ -280,12 +289,12 @@ export function resolveToken(tok, chord, rootMidi, nextRoot, nextMidi) {
   }
   if (tok === 'A' || tok === 'Ab') {
     const m = nextMidi + (tok === 'A' ? -1 : 1);
-    return { midi: m, n: spellMidi(m, tok === 'Ab'), deg: tok === 'A' ? '↗' : '↘' };
+    return { midi: m, n: spellMidi(m, tok === 'Ab'), deg: '→' };
   }
   if (tok === 'N') return { midi: nextMidi, n: nextRoot, deg: 'R' };
   if (tok === 'D') {
     const m = nextMidi + 7 > rootMidi + 9 ? nextMidi - 5 : nextMidi + 7;
-    return { midi: m, n: T.up(nextRoot, '5'), deg: '5↗' };
+    return { midi: m, n: T.up(nextRoot, '5'), deg: '5→' };
   }
   if (tok === 'x') return { midi: rootMidi, n: chord.root, deg: 'x', tag: 'x' };
   if (!iv) return null;
@@ -329,17 +338,20 @@ export function grooveLine(b, chords, roots, pattern, { tags = true, place: popt
 
 /** Emit a list of pitches/rests (with per-item durations) placed as one melodic line. */
 export function emitMixed(b, items, popts = {}) {
+  const { fold = true, ...placeOpts } = popts;
   const notes = items.filter((x) => !x.rest);
   // fold single notes that fall off either end of the neck by an octave
+  // (phrases that must keep their shape pass fold:false and are shifted as a whole)
   const lowest = Math.min(...b.ctx.tuning);
   const highest = b.ctx.tuning[b.ctx.tuning.length - 1] + b.ctx.maxFret;
   const midis = notes.map((n) => {
     let m = n.midi;
+    if (!fold) return m;
     while (m < lowest) m += 12;
     while (m > highest) m -= 12;
     return m;
   });
-  const pos = place(midis, b.ctx, { open: 'allow', center: 4, ...popts });
+  const pos = place(midis, b.ctx, { open: 'allow', center: 4, ...placeOpts });
   let k = 0;
   for (const it of items) {
     if (it.chord) b.chord(it.chord);
@@ -526,5 +538,5 @@ export const DEG_SEQ = {
 };
 export const degSeqP = sel('Chord order', [
   ['up', 'I → I (ascending)'], ['down', 'I → I (descending)'], ['updown', 'Up & back'],
-  ['fourths', 'In 4ths (I-IV-vii-iii-vi-ii-V-I)'], ['fifths', 'In 5ths (I-V-ii-vi-iii-vii-IV-I)'],
+  ['fourths', 'In 4ths (I-IV-vii°-iii-vi-ii-V-I)'], ['fifths', 'In 5ths (I-V-ii-vi-iii-vii°-IV-I)'],
 ]);

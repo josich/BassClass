@@ -1,5 +1,5 @@
 // App bootstrap: navigation rail + hash router.
-import { h, icon } from './ui/dom.js';
+import { h, icon, toast } from './ui/dom.js';
 import { byId } from './curriculum/index.js';
 import { renderExercise } from './ui/exercise.js';
 import { loadBank } from './audio.js';
@@ -22,6 +22,21 @@ const NAV = [
 
 let active = null; // { dispose }
 
+// How many in-app screens deep we are, kept in history.state so Back never leaves the app
+// (history.length also counts pages from before the app was opened).
+let depth = -1;
+let replacing = false;
+function trackDepth() {
+  const st = history.state;
+  if (st && typeof st.depth === 'number') depth = st.depth;
+  else {
+    depth = replacing ? Math.max(depth, 0) : depth + 1;
+    try { history.replaceState({ ...(st || {}), depth }, ''); } catch { /* ignore */ }
+  }
+  replacing = false;
+}
+const back = () => (depth > 0 ? history.back() : go('#/'));
+
 function shell(navKey) {
   const rail = h('nav', { class: 'rail' },
     h('img', { class: 'logo', src: 'icons/icon.svg', alt: '' }),
@@ -32,6 +47,7 @@ function shell(navKey) {
 }
 
 function route() {
+  trackDepth();
   active?.dispose?.();
   active = null;
   const hash = location.hash || '#/';
@@ -46,14 +62,24 @@ function route() {
     let routine = null;
     if (wu != null && currentRoutine && currentRoutine[wu]) {
       routine = {
+        index: wu,
+        total: currentRoutine.length,
         next: () => {
           const nx = currentRoutine[wu + 1];
-          if (nx) location.replace(exHref(nx.id, { ...nx.params, wu: wu + 1 }));
-          else go('#/warmup');
+          replacing = true;
+          location.replace(nx ? exHref(nx.id, { ...nx.params, wu: wu + 1 }) : '#/warmup');
         },
       };
     }
-    active = renderExercise(app, tpl, { params, routine, onBack: () => (history.length > 1 ? history.back() : go('#/')) });
+    try {
+      active = renderExercise(app, tpl, { params, routine, onBack: back });
+    } catch (err) {
+      console.error(err);
+      document.body.classList.remove('in-ex');
+      toast('Sorry, this exercise could not be opened');
+      replacing = true;
+      location.replace('#/');
+    }
     return;
   }
   const key = { '': 'home', path: 'path', library: 'library', m: 'library', warmup: 'warmup', explorer: 'explorer', tuner: 'tuner', settings: 'settings' }[parts[0] || ''] || 'home';
