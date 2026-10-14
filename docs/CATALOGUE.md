@@ -1,0 +1,411 @@
+# BassClass exercise catalogue
+
+162 exercise families. Each runs in any key (or all 12 keys in a row) and has its own variations (patterns, inversions, scales, positions, rhythms), so the number of distinct drills runs into the thousands.
+
+Generated from `web/js/curriculum/` (run `saveCatalogue()` from `js/selftest.js` to refresh). ★ = core exercise.
+
+## By level
+
+### Level 1: Foundations
+
+_Open strings, first notes, steady pulse, first shapes._
+
+| Exercise | Module | What it trains | Based on |
+|---|---|---|---|
+| Open strings | Fretboard & Notes | Name and play the open strings: E-A-D-G (B and C on 5/6-string basses). | Hal Leonard Bass Method, RSL Debut, BassBuzz, StudyBass |
+| Natural notes on one string | Fretboard & Notes | E F G A B C D E: the musical alphabet along a string, fret 0 to 12. | TalkingBass Beginner Course, StudyBass, LCM Grade 1 |
+| All 12 notes on one string | Fretboard & Notes | Sharps going up, flats coming down: every fret has a name. | StudyBass (chromatic naming), BassBuzz |
+| Landmark frets: 3, 5, 7, 9, 12 | Fretboard & Notes | Memorise the notes under the fret markers. Every other note is ±1 fret away. | TalkingBass "Notes on the Neck"; LCM marker-dot system |
+| The octave shape | Fretboard & Notes | Two strings up, two frets up: the same note, one octave higher. | Hal Leonard Bass Method 2, TalkingBass, BassBuzz |
+| Alternate plucking (index–middle) | Technique & Rudiments | i-m-i-m on every open string: even volume, even timing. | Hal Leonard Bass Method, MI 011, BassBuzz (moveable anchor) |
+| Chromatic 1-2-3-4 | Technique & Rudiments | One finger per fret on every string: the universal warm-up. | Bass Fitness (Josquin des Prés); Berklee Online Bass 101 L1; universal |
+| Steady pulse & the inner clock | Rhythm & Time | Quarter notes with the click on every beat, then only on 2 & 4, then only on beat 1. | StudyBass (pulse & metronome); Carol Kaye / Berklee Online Bass 101 L5; Victor Wooten |
+| Subdivision pyramid | Rhythm & Time | 1, 2, 3, 4… notes per beat and back down: hear every subdivision. | StudyBass subdivisions; SBL; Berklee Online Bass 101 L5 |
+| Notes and rests | Rhythm & Time | Silence is rhythm too: play some beats, rest on others. | SBL Beginner Journey; BassBuzz; Hal Leonard Bass Method |
+| ★ Your first scales: major, minor, pentatonic | Scales | One octave, one position, one finger per fret. In any key. | RSL Debut–Grade 2, LCM Grade 1, MI 011, StudyBass, BassBuzz |
+| Scales in open position | Scales | E, A, G, C, F and D using open strings: the first-position keys. | Hal Leonard Bass Method; RSL Debut (E, A, G); LCM Preliminary |
+| Your first triads: major & minor | Triads | Root, 3rd and 5th: the building block of every bass line. | RSL Grade 1–3, LCM, StudyBass Fundamentals, TalkingBass Chord Tone Essentials |
+| Major vs minor: hear the 3rd | Triads | Alternate C and Cm. Only one note changes. | Common to all methods (StudyBass, BassBuzz, Hal Leonard) |
+| How a chord is built | Chords & Harmony | Play the scale, then pick notes 1-3-5 (triad) and 1-3-5-7 (7th chord). | StudyBass, TalkingBass Groove Trainer, Ariane Cap |
+| Root-note grooves: rock 8ths, root–5th, R-5-8 | Grooves & Bass Lines | The first job of a bass player: lock the roots with the drums. | StudyBass common patterns; Hal Leonard; Ed Friedland; RSL Group C |
+
+### Level 2: Elementary
+
+_Core shapes in every key, simple grooves, 8ths and triplets._
+
+| Exercise | Module | What it trains | Based on |
+|---|---|---|---|
+| Unisons: the same pitch on two strings | Fretboard & Notes | Fret 5 on one string = open (or fret 0) on the next: one note, many places. | Standard fretboard pedagogy (StudyBass, Berklee "Mastering the Fingerboard") |
+| Find every C (or any note) | Fretboard & Notes | Every place a note lives, from the nut to the 12th fret and beyond. | Berklee ILBS-244 "Mastering the Fingerboard"; Gary Willis Fingerboard Harmony; SBL Fretboard Accelerator |
+| Note sweep across the strings | Fretboard & Notes | One note on every string, up and back, then the next note in the cycle. | Anthony Wellington "Noteworthy"-style drill; StudyBass cycle-of-4ths note drill |
+| Root notes around the cycle in one zone | Fretboard & Notes | C F B♭ E♭ A♭ D♭ G♭ B E A D G without leaving a 5-fret zone. | Ed Friedland "Building Walking Bass Lines" (cycle roots); SBL Zones |
+| Note-finder quiz | Fretboard & Notes | The next note's name appears. Find it before the beat. A new set every time. | TalkingBass test sheets; StudyBass note drills |
+| String crossing & raking | Technique & Rudiments | Cross strings efficiently: alternate going up, rake with the same finger coming down. | Gary Willis-style raking; MI Online; Bass Aerobics |
+| 1-2-3-4 climbing the neck (classic warm-up) | Technique & Rudiments | Up the strings, shift one fret, back down the strings, shift… to the top and back. | Universal (Bass Fitness, Bass Aerobics, SBL) |
+| ★ Finger permutations (all 24) | Technique & Rudiments | 1234, 1243, 1324 … 4321: every finger order for complete independence. | Josquin des Prés "Bass Fitness"; Adam Nitti (24 permutations); TalkingBass finger permutations |
+| Spider walk | Technique & Rudiments | Two fingers on one string, two on the next: crawl across the neck like a spider. | Classic guitar/bass "spider" (Bass Fitness, SBL) |
+| Diagonal "X" pattern | Technique & Rudiments | E1 A2 D3 G4, then G1 D2 A3 E4: one finger per string in a diagonal. | Common technique drill (Bass Fitness) |
+| Finger pairs (1-2, 1-3, 1-4, 2-3, 2-4, 3-4) | Technique & Rudiments | Isolate two fingers at a time across all strings. | TalkingBass "Ultimate finger exercise" |
+| Octave jumps (disco octaves) | Technique & Rudiments | Root–octave 8ths moving chromatically up the neck: string skipping and muting. | Disco/funk octave technique; BassBuzz; StudyBass |
+| Dynamics ladder (pp → ff → pp) | Technique & Rudiments | The same phrase at six volumes: control comes from the plucking hand. | Victor Wooten (dynamics as a musical element); Trinity Grades 1–2 |
+| Off-beats: playing on the "&" | Rhythm & Time | Rest on the beat, play exactly between the clicks. | Trinity Grades 1–4 (syncopation); StudyBass |
+| Swing & shuffle feel | Rhythm & Time | Long-short 8ths: the first and third notes of a triplet. | StudyBass (shuffle & swing); RSL Grade 2; Berklee Online Rock Bass L4 |
+| Dotted rhythms & the Charleston | Rhythm & Time | Dotted quarter + 8th, dotted 8th + 16th: the long-short feels. | TalkingBass Groove Trainer; SBL Players Path L4; Hal Leonard |
+| Syncopation & anticipations | Rhythm & Time | Accents between the beats and notes that arrive early, across the bar line. | BassBuzz (syncopation); TalkingBass anticipation; Trinity Grades 1–4 |
+| Interval shapes from any root | Intervals | See and hear one interval: root, interval, root, interval, in any key. | MI 011, Chuck Sher "The Improviser's Bass Method", Ariane Cap |
+| Every interval from one root | Intervals | R-♭2, R-2, R-♭3 … R-8: the whole interval family in one position. | Standard interval training (MI, Berklee, StudyBass) |
+| One interval, moved chromatically | Intervals | Keep the shape, slide it up a fret at a time: hear the same distance from every root. | Common interval drill |
+| Interval quiz: hear it, name it, find it | Intervals | Random intervals from a root. Sing and find the second note before it appears. | RSL ear tests; Charlie Banacos-style ear training |
+| Blues scales | Scales | Minor pentatonic + ♭5 (the "blue note"), and the major blues scale. | RSL Grade 3, LCM Grade 3, Berklee Online Rock Bass |
+| Chromatic scale | Scales | All 12 notes: in one position across the strings, or along one string. | LCM Grade 6, Berklee Online Bass 101 |
+| Triad qualities: major, minor, dim, aug, sus | Triads | Every triad type as a movable shape, in any key or all 12. | RSL Grade 1–3, LCM, StudyBass Fundamentals, TalkingBass Chord Tone Essentials |
+| Four triad types from one root | Triads | Major → minor → diminished → augmented on the same root: hear each colour change. | TalkingBass free lesson "The four triad types"; RSL/LCM grades 3–5 |
+| ★ Triads around the cycle in one zone | Triads | All 12 triads without leaving a 5-fret zone. The zone decides the shape. | Scott Devine (Scott's Bass Lessons), "The Circle of 5ths + ZONES" and "3 Rule Fretboard Formula" |
+| The five 7th chords from one root | Arpeggios & 7ths | maj7 → 7 → m7 → m7♭5 → °7: lower one note at a time. | LCM Grade 3 (all five types); Berklee PULSE; TalkingBass Chord Tone Essentials |
+| 7th arpeggio study | Arpeggios & 7ths | Any 7th or 6th chord, any key or all 12, 1–2 octaves, many patterns. | RSL Grades 3–6, LCM Grades 2–6, Berklee PULSE, Janek Gwizdala (doubled-note arpeggios) |
+| Chord qualities of the key: hear the 3rd | Chords & Harmony | Root and 3rd on every degree: major, minor, minor, major, major, minor, diminished. | TalkingBass Chordal Mastery (thirds through a scale); StudyBass Fundamentals 3 |
+| Common progressions: root notes | Chords & Harmony | I–IV–V, I–V–vi–IV, ii–V–I, 12-bar blues, Andalusian… play the roots and learn the sound. | StudyBass, BassBuzz (Nashville numbers), RSL harmonic recall |
+| 12-bar blues: dominant 7th chord tones | Chords & Harmony | I7–IV7–V7 over the 12-bar form, outlined R-3-5-♭7. | StudyBass Fundamentals 2 (12-bar blues); RSL; BassBuzz |
+| Octaves & riffs: disco, rock, riff transposing | Grooves & Bass Lines | Disco octaves, R-5-♭7-8 and a minor pentatonic riff moved to each chord. | RSL Group C (riff transposer); BassBuzz; StudyBass (octaves, R-5-♭7-8) |
+| Blues lines: boogie-woogie & shuffle | Grooves & Bass Lines | R-3-5-6-♭7-6-5-3 and R-R-5-5-6-6-5-5 over the 12-bar blues. | StudyBass (boogie-woogie, 12-bar ladder); RSL Grade 2; Berklee Online Rock Bass L4 |
+
+### Level 3: Intermediate
+
+_Harmony on the neck: diatonic chords, sequences, positions._
+
+| Exercise | Module | What it trains | Based on |
+|---|---|---|---|
+| Every note in one position | Fretboard & Notes | All 12 notes inside one 4-fret position, string by string. | MI reading courses (low → middle → upper position); Berklee |
+| One note in all its octaves | Fretboard & Notes | Climb the same note from the lowest to the highest octave, through every location. | Willis "Fingerboard Harmony for Bass"; Berklee fingerboard mastery |
+| Hammer-on & pull-off trills | Technique & Rudiments | Pluck once, then hammer (H) and pull off (PO): left-hand strength and evenness. | Trinity Grade 3/7 (trills); MI; Bass Fitness |
+| Legato chromatic (one pluck per string) | Technique & Rudiments | Pluck once, hammer the next three notes; descending, pull off. | Common legato technique drill (Bass Fitness, fusion pedagogy) |
+| String skipping | Technique & Rudiments | 1-2-3-4 jumping over a string: E→D, A→G and back. | Bass Fitness; Trinity Grade 7 (string-skipping); common |
+| Shifting along one string | Technique & Rudiments | Groups of four notes, then shift: index lands where the pinky was (or further). | Willis linear approach; MI shifting drills; Simandl guide-finger shifts |
+| Simandl 1-2-4 fingering | Technique & Rudiments | The double-bass system: three fingers cover three frets in low positions. | Franz Simandl "New Method for the Double Bass"; Rufus Reid "The Evolving Bassist"; Carol Kaye |
+| Accent shifting: groups of 3, 5 and 7 over 4/4 | Technique & Rudiments | 16th notes with an accent every N notes: the accent wanders across the beat. | Common rhythmic-control drill; Taller de Músics entrance (3 against 4) |
+| Ghost-note 16ths | Technique & Rudiments | Real notes and muted "x" notes in a continuous 16th stream. | RSL Grade 4, Trinity Grade 5; Rocco Prestia-style 16ths |
+| Triplet feel: 8th-note vs quarter-note triplets | Rhythm & Time | Three notes in one beat, then three notes across two beats. | TalkingBass Groove Trainer Vol. 2; BassBuzz; RSL Grade 4 |
+| The 16th-note grid: all 15 cells | Rhythm & Time | Every combination of "1 e & a" within a beat. | MI Online (16th-note grid); RSL Grade 6; TalkingBass Groove Trainer Vol. 2 |
+| ★ Diatonic intervals through the scale | Intervals | The scale in 3rds, 4ths, 5ths, 6ths and 7ths: classic melodic sequences. | Chuck Sher; Spanish conservatory access tests; Berklee levels; TalkingBass Creative Bassist |
+| Two-octave scales | Scales | Major, minor, harmonic & melodic minor, pentatonics over two octaves with planned shifts. | RSL Grade 7, LCM Grade 6, Berklee ILBS-244, TalkingBass Scale Essentials |
+| ★ Scale sequences | Scales | Groups of 3 and 4, 1-2-3-1 turns, 3rds, diatonic triads and 7ths… through any scale. | StudyBass, MI 021, Berklee Online Rock Bass, TalkingBass Cyborg Bassist (1-2-3-1 etudes) |
+| Scales on one string (linear) | Scales | The whole scale along a single string: see the whole and half steps. | Gary Willis (linear approach); Victor Wooten; TalkingBass one-string scales |
+| ★ All 12 keys in one position | Scales | Cycle of 4ths without moving the hand: the root goes where the zone allows. | Ariane Cap / TalkingBass (keys in one position); Gary Willis; SBL Zones |
+| Three notes per string | Scales | Diagonal scale shapes that cover the neck: three notes on every string. | Common fusion/guitar-derived fingering; TalkingBass Scale Essentials |
+| ★ Modes of the major scale (relative) | Modes | C major from C, D, E, F, G, A, B: the seven modes share the same notes. | Berklee PULSE (relative modes); SBL Fretboard Crash Course; Ariane Cap |
+| ★ Parallel modes: brightest to darkest | Modes | Same root, one note darker each time: Lydian → Ionian → Mixolydian → … → Locrian. | Berklee PULSE (parallel modes); RSL Grades 6–7; LCM |
+| ★ The 3 triad fingerings (root under finger 1, 2 or 4) | Triads | Every triad can be fingered three ways. Learn all three and the neck connects. | SBL "3 Rule Fretboard Formula"; TalkingBass "3 fingerings per arpeggio"; LCM multi-position arpeggios |
+| One triad, every shape up the neck | Triads | Chain every fingering of one triad from the nut to fret 15 and back. | SBL "3 Rule Fretboard Formula" (Exercise 4); TalkingBass whole-neck coverage |
+| Triad inversions: root, 1st, 2nd | Triads | R-3-5, 3-5-R, 5-R-3: same chord, different bottom note. | LCM Grade 6, Spanish conservatory access tests, TalkingBass Chord Tone Essentials |
+| ★ Harmonized triads: I ii iii IV V vi vii° | Triads | Build a triad on every note of the scale. The core of harmony on the bass. | Berklee PULSE, Berklee Online Bass 101, StudyBass Fundamentals 3, Ariane Cap Music Theory for the Bass Player |
+| 7th arpeggios around the cycle in one zone | Arpeggios & 7ths | All 12 maj7, 7 or m7 arpeggios inside a 5-fret zone. | SBL Zones extended to 7th chords; Gary Willis ("don't move") |
+| ★ Diatonic 7th arpeggios: Imaj7 ii7 iii7 IVmaj7 V7 vi7 viiø7 | Arpeggios & 7ths | The harmonized scale in 7th chords: the vocabulary of jazz, soul and pop. | Berklee PULSE & "Chord Studies for Electric Bass"; MI; LCM; StudyBass |
+| ★ Chord tones over progressions | Chords & Harmony | Outline every chord of real progressions: R-5, R-3-5-3, R-3-5-7… | StudyBass (chord tones are primary); RSL Group C; Ed Friedland |
+| Double stops over progressions | Chords & Harmony | Two notes at once: power chords, octaves, 3rds, 10ths and shells. | Trinity Grades 5–7 (power chords, 10ths); TalkingBass/BassBuzz double stops; RSL |
+| Approach notes & Motown lines | Grooves & Bass Lines | Lead into each new chord: chromatic or 5th approach on the last beat. | StudyBass (chromatic & 5th approach, note-choice pyramid); TalkingBass approach notes |
+| Reggae, bossa nova & Latin tumbao | Grooves & Bass Lines | One-drop reggae, bossa R-5 and the anticipated tumbao: feels beyond 4/4 rock. | Chuck Sher (Latin appendix); MI Latin courses; Berklee audition; Trinity improvising |
+| Funk 16ths, ghost notes & fills | Grooves & Bass Lines | Syncopated 16th grooves with dead notes, and a groove that ends with a fill. | Rocco Prestia / Jaco-style 16ths; TalkingBass Groove Trainer Vol. 2; LCM fills |
+| Two-feel: half notes on roots and 5ths | Walking Bass | The first step to walking: two notes per bar, root on beat 1. | Ed Friedland "Building Walking Bass Lines"; TalkingBass Simple Steps to Walking Bass M1; Berklee |
+| Walking with chord tones | Walking Bass | Four quarter notes per chord: R-3-5-3, R-3-5-8, R-5-8-5. | Ed Friedland; Rufus Reid; TalkingBass Simple Steps to Walking Bass M2 |
+| Slap basics: thumb and octave pops | Slap & Pop | T = thumb strikes the string; P = finger pops the octave. | TalkingBass Slap Bass Essentials; Berklee ILBS-251; MI 021; Trinity Grade 5 |
+
+### Level 4: Upper-intermediate
+
+_Inversions, voice leading, modes, walking, two octaves._
+
+| Exercise | Module | What it trains | Based on |
+|---|---|---|---|
+| Key centres: every note of a key in one position | Fretboard & Notes | Play all the notes of a key that fall inside one 5-fret box, low to high. | Gary Willis "Fingerboard Harmony for Bass" (key centres); RSL/LCM scales in multiple positions |
+| Stretch builder: one finger per fret towards the nut | Technique & Rudiments | Start high, then move down one fret at a time while the stretch grows. | Classic stretch routine (Patitucci/Wooten workshops; Bass Fitness) |
+| Natural harmonics map (12, 7, 5, 4) | Technique & Rudiments | Touch the string lightly over the fret wire: bell-like overtones. | RSL Grade 7, Trinity Grade 8, Berklee Online Bass 101 L9 |
+| Endurance 16ths on the roots | Technique & Rudiments | Continuous root 16ths over I–IV–V: stamina for the plucking hand. | Trinity Grade 7; Jon Liebman "Bass Aerobics"; MI |
+| Odd groupings over 4/4 (3s, 5s, 7s) | Rhythm & Time | Phrase 16ths in groups of 3, 5 or 7 against the beat: rhythmic tension. | Taller de Músics entrance (3 against 4); Gary Willis; fusion practice |
+| Rhythmic displacement | Rhythm & Time | The same 3-note figure, shifted one 16th later every bar. | Common rhythmic-development technique (Berklee, drum pedagogy) |
+| Odd meters: 5/4, 7/8, 7/4 | Rhythm & Time | Count in 3+2, 2+2+3 and 4+3 and lock the accents. | Trinity Grades 5–8; RSL Grade 8; MI; Berklee Online Rock Bass L10 |
+| Gap click: keep time when the metronome disappears | Rhythm & Time | The click plays one bar, then goes silent for one or more bars. Land back on it. | Victor Wooten Groove Workshop ("disappearing drummer"); Berklee Online Bass 101 L5 |
+| Diatonic 10ths (Jaco style) | Intervals | Root on the E string, 10th on the G string, up the scale: big, piano-like harmony. | LCM Grade 7; Berklee Online Bass 101 L4; Jaco Pastorius |
+| Scale in octaves (double stops) | Intervals | Every scale note with its octave at once: two strings, two frets. | LCM Grades 6/8 (scales in octaves) |
+| Major scale: the 7 positions across the neck | Scales | Box positions that start on each degree on the E string. Link them and own the neck. | Berklee PULSE & ILBS-244; LCM scales in 2–3 positions; TalkingBass "3 primary positions" |
+| Pentatonic: the 5 positions | Scales | The five pentatonic boxes, linked up the neck in one key. | Berklee PULSE & ILBS-244; LCM scales in 2–3 positions; TalkingBass "3 primary positions" |
+| Harmonic & melodic minor | Scales | The two minor scales of jazz and classical music, straight and in sequences. | StudyBass, MI 021, Berklee Online Rock Bass, TalkingBass Cyborg Bassist (1-2-3-1 etudes) |
+| Mode study: any mode, any key, any sequence | Modes | Every mode of major, melodic minor and harmonic minor with sequences and two octaves. | RSL Grades 6–8; LCM; Tony Grey Bass Academy (fingerboard study of the modes) |
+| ★ Chord-scale: the right mode on every chord | Modes | ii–V–I and real progressions with each chord's mode: Dorian, Mixolydian, Ionian… | Berklee chord-scale theory; Tony Grey Bass Academy; Mark Levine "The Jazz Theory Book" |
+| Harmonized triads in minor scales | Triads | Natural, harmonic and melodic minor: where the V chord becomes major and the augmented triad appears. | Berklee PULSE, Berklee Online Bass 101, StudyBass Fundamentals 3, Ariane Cap Music Theory for the Bass Player |
+| Harmonized triads in inversions | Triads | The same diatonic chords starting from the 3rd or the 5th. | Berklee PULSE, Berklee Online Bass 101, StudyBass Fundamentals 3, Ariane Cap Music Theory for the Bass Player |
+| Diatonic triads in 4ths (I-IV-vii°-iii-vi-ii-V-I) | Triads | Move the chords in 4ths, the strongest root motion in music. | Berklee PULSE, Berklee Online Bass 101, StudyBass Fundamentals 3, Ariane Cap Music Theory for the Bass Player |
+| Open (spread) triads R-5-10 | Triads | Root, 5th and 10th: the big, open sound of piano left hands and chordal bass. | Berklee PULSE, Berklee Online Bass 101, StudyBass Fundamentals 3, Ariane Cap Music Theory for the Bass Player |
+| Two-octave triads | Triads | R-3-5-8-10-12-15 and back, with one clean shift. | RSL Grade 5–7, LCM Grade 6, TalkingBass two-octave arpeggios |
+| Triads on every string set | Triads | One note per string: root, 1st and 2nd inversion on E-A-D and A-D-G. | Common chord-study practice (Berklee Chord Studies for Electric Bass, MI) |
+| ★ Voice-led triads through all 12 keys | Triads | Each chord starts on the nearest chord tone. Musical inversions, no jumping. | Berklee Online Bass 101 (L8); Gwizdala / Banacos-style continuous lines |
+| Triads over real progressions | Triads | Pop, rock, jazz and minor progressions, each played as voice-led triads. | StudyBass Fundamentals 3, BassBuzz, Berklee Online Bass 101 |
+| 7th chord inversions climbing | Arpeggios & 7ths | R-3-5-7, 3-5-7-8, 5-7-8-10, 7-8-10-12: four inversions up the neck and back. | LCM Grade 8; Spanish conservatory years 4–5 |
+| Two-octave 7th arpeggios | Arpeggios & 7ths | Spread each 7th chord over two octaves with clean position shifts. | RSL Grades 3–6, LCM Grades 2–6, Berklee PULSE, Janek Gwizdala (doubled-note arpeggios) |
+| Diatonic 7ths in inversions | Arpeggios & 7ths | Every chord of the key starting from its 3rd, 5th or 7th. | Berklee PULSE & "Chord Studies for Electric Bass"; MI; LCM; StudyBass |
+| ★ ii–V–I arpeggios in all keys | Arpeggios & 7ths | Dm7 – G7 – Cmaj7 (and the minor iiø–V–i) voice-led through every key. | Berklee Online Jazz Bass L5; Berklee Press; Gwizdala / Banacos-style continuous lines |
+| ★ Voice-led 7th arpeggios over progressions | Arpeggios & 7ths | One continuous line through real changes: each chord starts on the nearest chord tone. | Charlie Banacos & Janek Gwizdala (continuous arpeggio lines); Berklee Online Jazz Bass |
+| Guide-tone lines (3rds and 7ths) | Arpeggios & 7ths | Only the 3rd and 7th of every chord, voice-led: the skeleton of the harmony. | Berklee Online Jazz Bass L3; jazz harmony pedagogy (guide-tone lines) |
+| Minor-key harmony | Chords & Harmony | i–iv–V–i, the Andalusian cadence, minor ii–V–i: where harmonic minor's V7 comes from. | StudyBass Fundamentals 3 (minor diatonic harmony); TalkingBass Ultimate Music Theory |
+| Shell voicings: R-7-10 chords on bass | Chords & Harmony | Root, 7th and 3rd (as a 10th): full jazz chords with three fingers. | RSL Grades 6–8 (chord shapes); MI 151E; Berklee Online Bass 101 L10 |
+| Odd-meter grooves: 5/4, 7/8, 7/4, 6/8 | Grooves & Bass Lines | Feel the groups, not the count: 3+2, 2+2+3, 4+3. | Trinity Grades 5–8; RSL Grade 8; MI 069E; Berklee Online Rock Bass L10 |
+| Walking with chromatic approach notes | Walking Bass | Beat 4 is a half step from the next root: the sound of jazz bass. | Ed Friedland; Berklee Online Jazz Bass L3 (R-5-R-half step); TalkingBass M1 |
+| Scalar walking lines | Walking Bass | R-2-3-5, R-2-3-approach, 8-7-6-5: stepwise lines between chord tones. | Ed Friedland; Chuck Sher "The Improviser's Bass Method" |
+| ★ Complete walking lines (mixed devices) | Walking Bass | Chord tones, scale steps, chromatic and dominant approaches combined. | Ed Friedland; Rufus Reid; Berklee Online Jazz Bass L6–11 |
+| Slap grooves: ghost thumbs, hammers & pull-offs | Slap & Pop | 16th-note slap patterns with left-hand mutes (x), hammer-ons (H) and pull-offs (PO). | TalkingBass Slap Bass Essentials (60 grooves); Berklee Online Slap; RSL Grades 6–8 |
+
+### Level 5: Advanced
+
+_Approach notes, triad pairs, melodic minor, odd groupings._
+
+| Exercise | Module | What it trains | Based on |
+|---|---|---|---|
+| Permutations across strings (one finger per string) | Technique & Rudiments | Each finger of the permutation lands on the next string: independence + string crossing. | Extension of Bass Fitness permutations (Josquin des Prés); Adam Nitti string-crossing permutations |
+| Thumb-index-middle (p-i-m) arpeggios | Technique & Rudiments | Classical-guitar right hand on bass: thumb on the low string, fingers on the high strings. | Dominique Di Piazza / Matthew Garrison right-hand approach; classical guitar technique |
+| Polyrhythms (3:2, 4:3, 5:4, 3:4) | Rhythm & Time | Even notes across a different number of beats. | Polyrhythm pedagogy (Berklee, Afro-Cuban rhythm studies) |
+| Interval cycles (Slonimsky-style) | Intervals | Chains of the same interval: 4ths, minor 3rds, major 3rds, whole tones… across the neck. | Nicolas Slonimsky "Thesaurus of Scales and Melodic Patterns"; Coltrane/Brecker practice |
+| Bebop scales | Scales | An extra chromatic passing note puts the chord tones on the beat. | Berklee PULSE; Barry Harris; David Baker "How to Play Bebop" |
+| Symmetric scales: diminished & whole tone | Scales | Scales built from repeating cells: the shape repeats every 3 frets (diminished) or 2 frets (whole tone). | RSL Grade 8; LCM Grade 7; Spanish conservatory year 5; Berklee PULSE |
+| Barry Harris: the 6th-diminished scale | Scales | C6 tones on the beat, Bdim7 tones between: an 8-note scale that "harmonises itself". | Barry Harris workshops; "The Barry Harris Approach to Improvised Lines and Harmony" (Alan Kingstone) |
+| Pentatonic side-stepping | Scales | Play the pentatonic, slip a half step up for one bar ("outside"), then resolve back. | Charlie Banacos (pentatonic side-stepping); Michael Brecker / Scott Henderson practice |
+| Pitch axis: one root, changing modes | Modes | Keep the same root and switch modes every bar: hear and feel each colour over a pedal. | Pitch-axis theory (Joe Satriani); modal improvisation pedagogy |
+| Modes of melodic minor | Modes | Dorian ♭2, Lydian augmented, Lydian dominant, Mixolydian ♭6, Locrian ♮2, altered. | RSL Grade 8; Spanish conservatory year 6; Tony Grey (melodic minor modes); Mark Levine |
+| Modes of harmonic minor | Modes | Locrian ♮6, Ionian ♯5, Dorian ♯4, Phrygian dominant, Lydian ♯2, ultralocrian. | RSL Grade 8; Spanish conservatory year 6; Tony Grey (melodic minor modes); Mark Levine |
+| Triads with chromatic approach notes | Triads | Target every chord tone from a half step away: the bebop way to outline chords. | TalkingBass Chord Tone Essentials (approach notes & enclosures); Berklee level exams; jazz pedagogy |
+| Triad permutations (all 6 orders) | Triads | 1-3-5, 1-5-3, 3-1-5, 3-5-1, 5-1-3, 5-3-1 through the harmonized scale. | Common mastery practice (Bass Fitness / Nitti permutation approach applied to triads) |
+| ★ Triad rudiments (drum stickings on chords) | Triads | Paradiddles, double strokes and rolls applied to triads: technique and harmony at once. | Drum rudiments (PAS) adapted to bass. Doubled-notes idea after Janek Gwizdala's arpeggio warm-ups |
+| ★ Triad pairs | Triads | Two triads that share no notes, alternated through inversions: a modern, hexatonic sound. | Gary Campbell "Triad Pairs for Jazz"; Walt Weiskopf "Intervallic Improvisation"; fusion/jazz bass practice |
+| Harmonized triads in all scales & modes | Triads | Melodic and harmonic minor modes, Phrygian dominant, Lydian dominant, altered… | Berklee PULSE, Berklee Online Bass 101, StudyBass Fundamentals 3, Ariane Cap Music Theory for the Bass Player |
+| Sus and quartal stacks through the scale | Triads | Replace the 3rds with 4ths: modern, open sounds (McCoy Tyner, modal jazz, fusion). | Berklee PULSE, Berklee Online Bass 101, StudyBass Fundamentals 3, Ariane Cap Music Theory for the Bass Player |
+| Upper-structure triads over a pedal | Triads | Play a triad from a different root over the bass note: instant Lydian, 13♯11 or altered colours. | Charlie Banacos (chord-on-chord), Mark Levine "The Jazz Theory Book", Berklee harmony |
+| Barry Harris: one diminished chord, four dominants | Arpeggios & 7ths | Lower any note of a dim7 a half step and you get a dominant 7th: four for the price of one. | Barry Harris workshops (diminished concept); "The Barry Harris Approach to Improvised Lines and Harmony" |
+| Diminished to minor (rootless 7♭9 resolution) | Arpeggios & 7ths | C♯°7 up, Dm down: the leading-tone diminished chord resolving, in every key. | Janek Gwizdala (dim7 → minor arpeggio drill); bebop vocabulary |
+| Extended arpeggios: 9ths, 11ths, 13ths | Arpeggios & 7ths | Keep stacking 3rds past the 7th, through the harmonized scale. | RSL Grade 7 (9ths), LCM Grade 8 (11ths/13ths); TalkingBass Chord Tone Essentials |
+| Upper-structure arpeggios (3-5-7-9) | Arpeggios & 7ths | Start each chord on its 3rd: Em7 over Cmaj7 gives Cmaj9. Instant sophistication. | Jazz superimposition (Mark Levine, Berklee); Gwizdala |
+| 7th chord permutations | Arpeggios & 7ths | 1-5-3-7, 3-1-7-5, 7-5-3-1… through the harmonized scale. | Common mastery practice; bebop vocabulary |
+| Arpeggios with approach notes & enclosures | Arpeggios & 7ths | Every chord tone targeted chromatically, through ii–V–I in all keys. | Berklee level exams (approach notes); TalkingBass Chord Tone Essentials; David Baker |
+| Altered dominants resolving | Arpeggios & 7ths | 7♯5, 7♭5, 7♭9, 7♯9 arpeggios, each resolving to Imaj7. | RSL Grade 8; LCM Grades 7–8; jazz harmony |
+| Secondary dominants, borrowed chords, tritone subs | Chords & Harmony | The "spice" chords: VI7, III7, ♭VI, ♭VII, iv, ♭II7, each outlined in context. | StudyBass Fundamentals 3 (secondary dominants, borrowed chords); TalkingBass Ultimate Music Theory Vol. 2 |
+| Funk 16ths through chord changes, all keys | Grooves & Bass Lines | Keep the ghost-note engine running while the chords move, then take it around the cycle. | Tower of Power / Rocco Prestia-style 16ths; TalkingBass Groove Trainer Vol. 2; RSL Grades 7–8 |
+| Walking with enclosures | Walking Bass | Beats 3–4 surround the next root: half step above, half step below, target. | TalkingBass M1 (enclosures); bebop vocabulary; Ed Friedland |
+| Two chords per bar | Walking Bass | Rhythm changes and ii–V cycles: root + approach on every chord. | TalkingBass Simple Steps M2 (two chords per bar); Berklee Online Jazz Bass |
+| Minor walking: iiø–V–i and minor blues | Walking Bass | Walking in minor keys with half-diminished and altered dominant chords. | TalkingBass M3 (minor ii–V–i backing); Berklee |
+
+### Level 6: Mastery
+
+_All keys, all inversions, Coltrane changes, pro-level stamina._
+
+| Exercise | Module | What it trains | Based on |
+|---|---|---|---|
+| Odd groupings in 16ths, all keys | Scales | Groups of 5 (or 3) in 16ths through all 12 keys: maximum rhythmic tension. | StudyBass, MI 021, Berklee Online Rock Bass, TalkingBass Cyborg Bassist (1-2-3-1 etudes) |
+| Alternating 3rds through all keys | Scales | 1-3, 4-2, 3-5, 6-4… zig-zag 3rds in every key around the cycle. | StudyBass, MI 021, Berklee Online Rock Bass, TalkingBass Cyborg Bassist (1-2-3-1 etudes) |
+| Chord-scale with altered dominants | Modes | ii – V7alt – I: altered, half-whole diminished, whole-tone and Lydian dominant over the V. | Berklee chord-scale theory; Tony Grey Bass Academy; Mark Levine "The Jazz Theory Book" |
+| Major-3rd cycle triads (Coltrane axis) | Triads | B → G → E♭ and back: the symmetric key centres of Giant Steps. | John Coltrane "Giant Steps" harmonic axis; Gwizdala Giant Steps practice |
+| Every inversion, every key (wave through the cycle) | Triads | Climb three inversions of one key, then descend through the next. All 12 keys, no stopping. | Synthesis of LCM/ES all-inversions requirements and continuous-line practice (Banacos, Gwizdala) |
+| Harmonized triads in all 12 keys, in inversions | Triads | Diatonic triads, alternating directions, in 1st inversion, around the cycle without stopping. | Berklee PULSE, Berklee Online Bass 101, StudyBass Fundamentals 3, Ariane Cap Music Theory for the Bass Player |
+| Triad rudiments in all 12 keys | Triads | Paradiddles, doubles and rolls on the harmonized scale of every key. | Drum rudiments (PAS) adapted to bass. Doubled-notes idea after Janek Gwizdala's arpeggio warm-ups |
+| Diatonic 7ths in all 12 keys (up one, down the next) | Arpeggios & 7ths | The harmonized scale in 7th chords through the whole cycle, alternating directions. | Berklee PULSE & "Chord Studies for Electric Bass"; MI; LCM; StudyBass |
+| Rhythm changes arpeggios (A section) | Arpeggios & 7ths | I-vi-ii-V turnarounds two chords per bar, in all keys. | Charlie Banacos & Janek Gwizdala (continuous arpeggio lines); Berklee Online Jazz Bass |
+| Giant Steps arpeggios | Arpeggios & 7ths | Coltrane changes: key centres a major 3rd apart, at tempo. | Charlie Banacos & Janek Gwizdala (continuous arpeggio lines); Berklee Online Jazz Bass |
+| Chordal bass: R-5-10 and R-7-10 through changes | Chords & Harmony | Three-note chords across four strings: accompany yourself like a pianist. | Jaco Pastorius / Victor Wooten chordal approach; RSL Grade 8; MI |
+| Walking with triplet skips | Walking Bass | A swung triplet "skip" on beat 3 of every other bar: the pro walking sound. | TalkingBass M2 (triplets); Ray Brown / Paul Chambers vocabulary |
+| Walking over Coltrane changes | Walking Bass | Giant Steps: key centres a major 3rd apart, two chords per bar. | Taller de Músics/Berklee jazz requirements; John Coltrane "Giant Steps" |
+| Double thumbing | Slap & Pop | Thumb down (↓) and up (↑) like a pick: Victor Wooten's signature technique. | Victor Wooten; TalkingBass Slap (double thumb); SBL Slap Accelerator |
+
+## Variation options per exercise
+
+### Fretboard & Notes
+
+- **Open strings** (L1, `fb-open-strings`): Notes per string: 4 / 2 / 1 (string crossing)
+- **Natural notes on one string** (L1, `fb-naturals`): String: E string / A string / D string / G string / Low B (5/6-string) / High C (6-string) · Range: Frets 0–12 / Frets 12–24 (upper octave)
+- **All 12 notes on one string** (L1, `fb-chromatic-string`): String: E string / A string / D string / G string / Low B (5/6-string) / High C (6-string)
+- **Landmark frets: 3, 5, 7, 9, 12** (L1, `fb-landmarks`): Order: String by string / Fret by fret (across strings)
+- **The octave shape** (L1, `fb-octaves`): Strings: E → D / A → G
+- **Unisons: the same pitch on two strings** (L2, `fb-unison`): String: E string / A string / D string / G string / Low B (5/6-string) / High C (6-string)
+- **Find every C (or any note)** (L2, `fb-find-note`): Key: 12 keys + all-keys cycles · Range: Frets 0–12 / Frets 0–17 / Whole neck
+- **Note sweep across the strings** (L2, `fb-note-sweep`): Key: 12 keys + all-keys cycles
+- **Root notes around the cycle in one zone** (L2, `fb-cycle-zone`): Zone: Zone 1 · frets 1–5 / Zone 2 · frets 5–9 / Zone 3 · frets 8–12 / Zone 4 · frets 12–16 · Key order: Cycle of 4ths / Cycle of 5ths / Chromatic
+- **Note-finder quiz** (L2, `fb-quiz`): Frets: 0–5 / 0–7 / 0–12 / 0–17 · Strings: E & A only / All strings · Notes: Natural notes / All 12 (♯/♭)
+- **Every note in one position** (L3, `fb-position-notes`): Position: Frets 1–4 / Frets 5–8 / Frets 7–10 / Frets 9–12 / Frets 12–15
+- **One note in all its octaves** (L3, `fb-all-octaves`): Key: 12 keys
+- **Key centres: every note of a key in one position** (L4, `fb-key-box`): Key: 12 keys + all-keys cycles · Position: Frets 1–5 / Frets 3–7 / Frets 5–9 / Frets 7–11 / Frets 9–13 / Frets 12–16
+
+### Technique & Rudiments
+
+- **Alternate plucking (index–middle)** (L1, `tech-alt-pluck`): Start with: Index (i) / Middle (m) · Notes per string: 8 / 4
+- **Chromatic 1-2-3-4** (L1, `tech-1234`): Position: Fret 1 / Fret 3 / Fret 5 / Fret 7 / Fret 9 / Fret 12
+- **String crossing & raking** (L2, `tech-raking`): Fret: Open strings / Fret 5 / Fret 7 · Pattern: E-A-D-G-D-A / Skips: E-D-A-G / E-A-D-A-D-G-D-A
+- **1-2-3-4 climbing the neck (classic warm-up)** (L2, `tech-1234-climb`): Climb to: Fret 5 / Fret 9 / Fret 12 · Direction: Up then down / Start high (stretch)
+- **Finger permutations (all 24)** (L2, `tech-permutations`): Permutation: 1-2-3-4 / 1-2-4-3 / 1-3-2-4 / 1-3-4-2 / 1-4-2-3 / 1-4-3-2 / 2-1-3-4 / 2-1-4-3 / 2-3-1-4 / 2-3-4-1 / 2-4-1-3 / 2-4-3-1 / 3-1-2-4 / 3-1-4-2 / 3-2-1-4 / 3-2-4-1 / 3-4-1-2 / 3-4-2-1 / 4-1-2-3 / 4-1-3-2 / 4-2-1-3 / 4-2-3-1 / 4-3-1-2 / 4-3-2-1 / All 24 in a row · Position: Fret 1 / Fret 3 / Fret 5 / Fret 7 / Fret 9 / Fret 12
+- **Spider walk** (L2, `tech-spider`): Pattern: 1-3 / 2-4 / 1-4 / 2-3 / 1-2 / 3-4 (zig-zag) · Start fret: Fret 1 / Fret 3 / Fret 5 / Fret 7 / Fret 9 / Fret 12
+- **Diagonal "X" pattern** (L2, `tech-diagonal`): Start fret: Fret 1 / Fret 3 / Fret 5 / Fret 7 / Fret 9 / Fret 12
+- **Finger pairs (1-2, 1-3, 1-4, 2-3, 2-4, 3-4)** (L2, `tech-finger-pairs`): Pair: 1-2 / 1-3 / 1-4 / 2-3 / 2-4 / 3-4 · Position: Fret 1 / Fret 3 / Fret 5 / Fret 7 / Fret 9 / Fret 12
+- **Octave jumps (disco octaves)** (L2, `tech-octaves`): Strings: E → D / A → G
+- **Dynamics ladder (pp → ff → pp)** (L2, `tech-dynamics`): Position: Fret 1 / Fret 3 / Fret 5 / Fret 7 / Fret 9 / Fret 12
+- **Hammer-on & pull-off trills** (L3, `tech-trills`): Fingers: 1-2 / 1-3 / 1-4 / 2-3 / 2-4 / 3-4 · Position: Fret 1 / Fret 3 / Fret 5 / Fret 7 / Fret 9 / Fret 12
+- **Legato chromatic (one pluck per string)** (L3, `tech-legato`): Position: Fret 1 / Fret 3 / Fret 5 / Fret 7 / Fret 9 / Fret 12
+- **String skipping** (L3, `tech-string-skip`): Style: Blocks (4 per string) / Zig-zag (alternate strings) · Position: Fret 1 / Fret 3 / Fret 5 / Fret 7 / Fret 9 / Fret 12
+- **Shifting along one string** (L3, `tech-shifting`): String: E string / A string / D string / G string · Shift: 1 fret / 2 frets / 3 frets (index → pinky's fret) / 4 frets (new position)
+- **Simandl 1-2-4 fingering** (L3, `tech-simandl`): Start position: Half position (fret 1) / First position (fret 2) / Second position (fret 3)
+- **Accent shifting: groups of 3, 5 and 7 over 4/4** (L3, `tech-accents`): Accent every: 3 notes / 5 notes / 7 notes / 3+3+2 · Position: Fret 1 / Fret 3 / Fret 5 / Fret 7 / Fret 9 / Fret 12
+- **Ghost-note 16ths** (L3, `tech-ghost-16ths`): Pattern: Note on every beat / Notes on 1 and the "a" / Octave funk
+- **Stretch builder: one finger per fret towards the nut** (L4, `tech-stretch`): Start at: Fret 9 / Fret 7 / Fret 12 · Down to: Fret 1 / Fret 3 / Fret 5
+- **Natural harmonics map (12, 7, 5, 4)** (L4, `tech-harmonics`): Order: Fret by fret / String by string
+- **Endurance 16ths on the roots** (L4, `tech-endurance`): Key: 12 keys + all-keys cycles · Progression: I – IV – V – I / I – V – vi – IV (pop) / i – iv – v – i (minor)
+- **Permutations across strings (one finger per string)** (L5, `tech-permutations-across`): Permutation: 1-2-3-4 / 1-2-4-3 / 1-3-2-4 / 1-3-4-2 / 1-4-2-3 / 1-4-3-2 / 2-1-3-4 / 2-1-4-3 / 2-3-1-4 / 2-3-4-1 / 2-4-1-3 / 2-4-3-1 / 3-1-2-4 / 3-1-4-2 / 3-2-1-4 / 3-2-4-1 / 3-4-1-2 / 3-4-2-1 / 4-1-2-3 / 4-1-3-2 / 4-2-1-3 / 4-2-3-1 / 4-3-1-2 / 4-3-2-1 / All 24 in a row · Position: Fret 1 / Fret 3 / Fret 5 / Fret 7 / Fret 9 / Fret 12
+- **Thumb-index-middle (p-i-m) arpeggios** (L5, `tech-pim`): Key: 12 keys + all-keys cycles · Progression: I – vi – IV – V (50s) / I – V – vi – IV (pop) / ii – V – I / Canon (I–V–vi–iii–IV–I–IV–V)
+
+### Rhythm & Time
+
+- **Steady pulse & the inner clock** (L1, `rh-pulse`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D · Click: Every beat / Beats 2 & 4 / Beat 1 only / Once every 2 bars
+- **Subdivision pyramid** (L1, `rh-pyramid`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D · Up to: 16ths (4) / Sextuplets (6) / 32nds (8)
+- **Notes and rests** (L1, `rh-rests`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D
+- **Off-beats: playing on the "&"** (L2, `rh-offbeats`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D
+- **Swing & shuffle feel** (L2, `rh-shuffle`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D
+- **Dotted rhythms & the Charleston** (L2, `rh-dotted`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D
+- **Syncopation & anticipations** (L2, `rh-syncopation`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D
+- **Triplet feel: 8th-note vs quarter-note triplets** (L3, `rh-triplets`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D
+- **The 16th-note grid: all 15 cells** (L3, `rh-16th-grid`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D
+- **Odd groupings over 4/4 (3s, 5s, 7s)** (L4, `rh-groupings`): Group of: 3 (R-5-8) / 5 (R-5-8-5-R) / 7 (R-3-5-8-5-3-R)
+- **Rhythmic displacement** (L4, `rh-displacement`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D · Shift by: a 16th / an 8th
+- **Odd meters: 5/4, 7/8, 7/4** (L4, `rh-odd-meters`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D · Meter: 5/4 (3+2) / 7/8 (2+2+3) / 7/8 (3+2+2) / 7/4 (4+3)
+- **Gap click: keep time when the metronome disappears** (L4, `rh-sparse-click`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D · Click: Beat 1, every 2 bars / Beat 1, every 4 bars
+- **Polyrhythms (3:2, 4:3, 5:4, 3:4)** (L5, `rh-polyrhythm`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D · Ratio: 3 over 2 beats / 3 over 4 beats / 4 over 3 beats / 5 over 4 beats / 7 over 4 beats
+
+### Intervals
+
+- **Interval shapes from any root** (L2, `iv-shapes`): Interval: ♭2 · Minor 2nd / 2 · Major 2nd / ♭3 · Minor 3rd / 3 · Major 3rd / 4 · Perfect 4th / ♭5 · Diminished 5th (tritone) / 5 · Perfect 5th / ♭6 · Minor 6th / 6 · Major 6th / ♭7 · Minor 7th / 7 · Major 7th / R · Octave / ♭9 · Minor 9th / 9 · Major 9th / ♭10 · Minor 10th / 10 · Major 10th · Key: 12 keys + all-keys cycles · Direction: Ascending / Descending / Up then down
+- **Every interval from one root** (L2, `iv-all-from-root`): Key: 12 keys · Root on: E string / A string / D string
+- **One interval, moved chromatically** (L2, `iv-moving`): Interval: ♭2 · Minor 2nd / 2 · Major 2nd / ♭3 · Minor 3rd / 3 · Major 3rd / 4 · Perfect 4th / ♭5 · Diminished 5th (tritone) / 5 · Perfect 5th / ♭6 · Minor 6th / 6 · Major 6th / ♭7 · Minor 7th / 7 · Major 7th / R · Octave / ♭9 · Minor 9th / 9 · Major 9th / ♭10 · Minor 10th / 10 · Major 10th · Root on: E string / A string
+- **Interval quiz: hear it, name it, find it** (L2, `iv-ear-quiz`): Key: 12 keys · Intervals: 3rds, 4ths, 5ths, octave / All within an octave
+- **Diatonic intervals through the scale** (L3, `iv-diatonic`): Interval: In 3rds (1-3, 2-4…) / In 4ths / In 5ths / In 6ths / In 7ths / 3rds alternating / 4ths alternating / 6ths alternating · Key: 12 keys + all-keys cycles · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) / Dorian / Mixolydian · Range: 1 octave / 2 octaves · Root on: E string / A string / D string
+- **Diatonic 10ths (Jaco style)** (L4, `iv-tenths`): Key: 12 keys · Style: Broken (R then 10th) / Double stops · Scale: Major (Ionian) / Natural minor (Aeolian) / Mixolydian / Dorian
+- **Scale in octaves (double stops)** (L4, `iv-scale-octaves`): Key: 12 keys · Scale: Major (Ionian) / Natural minor (Aeolian) / Minor pentatonic / Major pentatonic / Blues · Root on: E string / A string
+- **Interval cycles (Slonimsky-style)** (L5, `iv-cycles`): Interval: Whole tones / Major 3rds (augmented) / Perfect 4ths / Perfect 5ths / Minor 3rds (diminished) / Tritones · Key: 12 keys
+
+### Scales
+
+- **Your first scales: major, minor, pentatonic** (L1, `sc-one-octave`): Scale: Major (Ionian) / Natural minor (Aeolian) / Major pentatonic / Minor pentatonic · Key: 12 keys + all-keys cycles · Root on: E string / A string / D string · Direction: Up & down / Up / Down
+- **Scales in open position** (L1, `sc-open-position`): Scale: Major (Ionian) / Natural minor (Aeolian) / Minor pentatonic / Major pentatonic · Key: E / A / G / C / F / D · Direction: Up & down / Up / Down
+- **Blues scales** (L2, `sc-blues`): Scale: Major (Ionian) / Natural minor (Aeolian) / Major pentatonic / Minor pentatonic · Key: 12 keys + all-keys cycles · Root on: E string / A string / D string · Direction: Up & down / Up / Down
+- **Chromatic scale** (L2, `sc-chromatic`): Key: 12 keys · Layout: In position (2 octaves) / Along one string
+- **Two-octave scales** (L3, `sc-two-octaves`): Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) / Major pentatonic / Minor pentatonic / Blues / Dorian / Mixolydian · Key: 12 keys + all-keys cycles · Root on: E string / A string / D string · Direction: Up & down / Up / Down
+- **Scale sequences** (L3, `sc-sequences`): Sequence: Groups of 3 / Groups of 4 / Groups of 4 reversed (4-3-2-1) / 1-2-3-1 turns / Up 3, down 1 (1-2-3-2) / 1-2-3-5 cells (Coltrane) / In 3rds / 3rds alternating (1-3, 4-2…) / In 4ths / Diatonic triads (1-3-5) / Diatonic 7ths (1-3-5-7) / Groups of 5 · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) / Dorian / Phrygian / Lydian / Mixolydian / Locrian / Major pentatonic / Minor pentatonic · Key: 12 keys + all-keys cycles · Range: 1 octave / 2 octaves · Root on: E string / A string / D string
+- **Scales on one string (linear)** (L3, `sc-one-string`): Scale: Major (Ionian) / Natural minor (Aeolian) / Dorian / Mixolydian / Major pentatonic / Minor pentatonic / Harmonic minor / Melodic minor (jazz) · Key: 12 keys · String: E string / A string / D string / G string
+- **All 12 keys in one position** (L3, `sc-keys-one-position`): Scale: Major (Ionian) / Natural minor (Aeolian) / Mixolydian / Dorian / Major pentatonic / Minor pentatonic · Zone: Zone 1 · frets 1–5 / Zone 2 · frets 5–9 / Zone 3 · frets 8–12 / Zone 4 · frets 12–16 · Key order: Cycle of 4ths / Cycle of 5ths / Chromatic
+- **Three notes per string** (L3, `sc-3nps`): Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) / Dorian / Phrygian / Lydian / Mixolydian / Locrian · Key: 12 keys
+- **Major scale: the 7 positions across the neck** (L4, `sc-positions`): Key: 12 keys · Position: All positions (up the neck) / Position 1 / Position 2 / Position 3 / Position 4 / Position 5 / Position 6 / Position 7 · Scale: Major (Ionian) / Natural minor (Aeolian) / Major pentatonic / Minor pentatonic
+- **Pentatonic: the 5 positions** (L4, `sc-pent-positions`): Key: 12 keys · Position: All positions (up the neck) / Position 1 / Position 2 / Position 3 / Position 4 / Position 5 / Position 6 / Position 7 · Scale: Major pentatonic / Minor pentatonic
+- **Harmonic & melodic minor** (L4, `sc-minor-family`): Sequence: Groups of 3 / Groups of 4 / Groups of 4 reversed (4-3-2-1) / 1-2-3-1 turns / Up 3, down 1 (1-2-3-2) / 1-2-3-5 cells (Coltrane) / In 3rds / 3rds alternating (1-3, 4-2…) / In 4ths / Diatonic triads (1-3-5) / Diatonic 7ths (1-3-5-7) / Groups of 5 · Scale: Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) · Key: 12 keys + all-keys cycles · Range: 1 octave / 2 octaves · Root on: E string / A string / D string
+- **Bebop scales** (L5, `sc-bebop`): Scale: Bebop dominant / Bebop major / Bebop dorian · Key: 12 keys + all-keys cycles · Range: 1 octave / 2 octaves
+- **Symmetric scales: diminished & whole tone** (L5, `sc-symmetric`): Scale: Diminished half-whole / Diminished whole-half / Whole tone · Key: 12 keys + all-keys cycles · Sequence: Straight / In 3rds / Groups of 3 / Groups of 4 / In 4ths · Range: 1 octave / 2 octaves
+- **Barry Harris: the 6th-diminished scale** (L5, `sc-sixth-diminished`): Key: 12 keys + all-keys cycles · Sequence: Straight / In 3rds / Diatonic triads (1-3-5) / Groups of 4
+- **Pentatonic side-stepping** (L5, `sc-pent-sidestep`): Key: 12 keys · Side-step: Half step up / Half step down / Tritone away
+- **Odd groupings in 16ths, all keys** (L6, `sc-odd-groupings`): Sequence: Groups of 3 / Groups of 4 / Groups of 4 reversed (4-3-2-1) / 1-2-3-1 turns / Up 3, down 1 (1-2-3-2) / 1-2-3-5 cells (Coltrane) / In 3rds / 3rds alternating (1-3, 4-2…) / In 4ths / Diatonic triads (1-3-5) / Diatonic 7ths (1-3-5-7) / Groups of 5 · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) / Dorian / Phrygian / Lydian / Mixolydian / Locrian / Major pentatonic / Minor pentatonic · Key: 12 keys + all-keys cycles · Range: 1 octave / 2 octaves · Root on: E string / A string / D string
+- **Alternating 3rds through all keys** (L6, `sc-alternating-all-keys`): Sequence: Groups of 3 / Groups of 4 / Groups of 4 reversed (4-3-2-1) / 1-2-3-1 turns / Up 3, down 1 (1-2-3-2) / 1-2-3-5 cells (Coltrane) / In 3rds / 3rds alternating (1-3, 4-2…) / In 4ths / Diatonic triads (1-3-5) / Diatonic 7ths (1-3-5-7) / Groups of 5 · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) / Dorian / Phrygian / Lydian / Mixolydian / Locrian / Major pentatonic / Minor pentatonic · Key: 12 keys + all-keys cycles · Range: 1 octave / 2 octaves · Root on: E string / A string / D string
+
+### Modes
+
+- **Modes of the major scale (relative)** (L3, `md-relative`): Key: 12 keys + all-keys cycles · Direction: Each mode ascending / Up & down
+- **Parallel modes: brightest to darkest** (L3, `md-parallel`): Key: 12 keys · Order: Brightest → darkest / Darkest → brightest
+- **Mode study: any mode, any key, any sequence** (L4, `md-study`): Mode: Major (Ionian) / Dorian / Phrygian / Lydian / Mixolydian / Natural minor (Aeolian) / Locrian / Melodic minor (jazz) / Dorian ♭2 / Lydian augmented / Lydian dominant / Mixolydian ♭6 / Locrian ♮2 (half-diminished) / Altered (super Locrian) / Harmonic minor / Locrian ♮6 / Ionian ♯5 / Dorian ♯4 / Phrygian dominant / Lydian ♯2 / Ultralocrian · Key: 12 keys + all-keys cycles · Sequence: Straight / Groups of 3 / Groups of 4 / In 3rds / Diatonic triads (1-3-5) / Diatonic 7ths (1-3-5-7) / 1-2-3-1 turns · Range: 1 octave / 2 octaves · Root on: E string / A string
+- **Chord-scale: the right mode on every chord** (L4, `md-chord-scale`): Progression: ii – V – I / I – vi – ii – V (turnaround) / ii–V–I–IV–iiø–V–i (relative minor cycle) / Minor ii – V – i / Jazz blues / ii–V–I in all 12 keys · Key: 12 keys + all-keys cycles
+- **Pitch axis: one root, changing modes** (L5, `md-pitch-axis`): Key: 12 keys · Modes: Major modes (bright → dark) / Melodic minor modes / Lydian · Mixolydian · Dorian · Phrygian dominant · Altered
+- **Modes of melodic minor** (L5, `md-melodic-modes`): Key: 12 keys + all-keys cycles · Direction: Each mode ascending / Up & down
+- **Modes of harmonic minor** (L5, `md-harmonic-modes`): Key: 12 keys + all-keys cycles · Direction: Each mode ascending / Up & down
+- **Chord-scale with altered dominants** (L6, `md-altered-chord-scale`): Progression: ii – V – I / I – vi – ii – V (turnaround) / ii–V–I–IV–iiø–V–i (relative minor cycle) / Minor ii – V – i / Jazz blues / ii–V–I in all 12 keys · Key: 12 keys + all-keys cycles
+
+### Triads
+
+- **Your first triads: major & minor** (L1, `tri-shape`): Triad: Major / Minor · Key: 12 keys + all-keys cycles · Root on: E string / A string / D string · Pattern: Up & down / 1-3-5-8-5-3 / Up (1-3-5-8) / 1-3-5-3 / 1-5-3-5 / Down (8-5-3-1)
+- **Major vs minor: hear the 3rd** (L1, `tri-maj-min`): Key: 12 keys + all-keys cycles · Root on: E string / A string / D string
+- **Triad qualities: major, minor, dim, aug, sus** (L2, `tri-qualities`): Triad: Major / Minor / Diminished / Augmented / Sus2 / Sus4 · Key: 12 keys + all-keys cycles · Root on: E string / A string / D string · Pattern: Up & down / 1-3-5-8-5-3 / Up (1-3-5-8) / 1-3-5-3 / 1-5-3-5 / Down (8-5-3-1)
+- **Four triad types from one root** (L2, `tri-four-types`): Key: 12 keys + all-keys cycles · Root on: E string / A string / D string
+- **Triads around the cycle in one zone** (L2, `tri-zone-cycle`): Triad: Major / Minor / Diminished / Augmented / Sus2 · Zone: Zone 1 · frets 1–5 / Zone 2 · frets 5–9 / Zone 3 · frets 8–12 / Zone 4 · frets 12–16 · Key order: Cycle of 4ths / Cycle of 5ths / Chromatic · Pattern: R-3-5-3 / R-3-5 (up) / 5-3-R (down) / Up one, down the next / R-3-5-3-R / R-5-3-5
+- **The 3 triad fingerings (root under finger 1, 2 or 4)** (L3, `tri-three-forms`): Key: 12 keys · Triad: Major / Minor / Diminished / Augmented · Pattern: R-3-5-3 / R-3-5 (up) / R-3-5-3-R
+- **One triad, every shape up the neck** (L3, `tri-neck-chain`): Key: 12 keys · Triad: Major / Minor / Diminished / Augmented · Direction: Up the neck & back / Up the neck · Pattern: R-3-5 (up) / R-3-5-3
+- **Triad inversions: root, 1st, 2nd** (L3, `tri-inversions`): Key: 12 keys + all-keys cycles · Triad: Major / Minor / Diminished / Augmented · Layout: Climbing the neck / In one position · Root on: E string / A string / D string
+- **Harmonized triads: I ii iii IV V vi vii°** (L3, `tri-diatonic`): Key: 12 keys + all-keys cycles · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) / Dorian / Phrygian / Lydian / Mixolydian / Locrian · Chord order: I → I (ascending) / I → I (descending) / Up & back / In 4ths (I-IV-vii-iii-vi-ii-V-I) / In 5ths (I-V-ii-vi-iii-vii-IV-I) · Pattern: R-3-5 (up) / R-3-5-3 / Up one, down the next / 5-3-R (down) / R-3-5-3-R / R-5-3-5 · Inversion: Root position / 1st inversion / 2nd inversion · Stack: Triads (1-3-5) / Sus4 stacks (1-4-5) / Sus2 stacks (1-2-5) / Quartal (1-4-7) / Shell 1-5-3 (spread) · Root on: E string / A string / D string
+- **Harmonized triads in minor scales** (L4, `tri-diatonic-minor`): Key: 12 keys + all-keys cycles · Scale: Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) · Chord order: I → I (ascending) / I → I (descending) / Up & back / In 4ths (I-IV-vii-iii-vi-ii-V-I) / In 5ths (I-V-ii-vi-iii-vii-IV-I) · Pattern: R-3-5 (up) / R-3-5-3 / Up one, down the next / 5-3-R (down) / R-3-5-3-R / R-5-3-5 · Inversion: Root position / 1st inversion / 2nd inversion · Stack: Triads (1-3-5) / Sus4 stacks (1-4-5) / Sus2 stacks (1-2-5) / Quartal (1-4-7) / Shell 1-5-3 (spread) · Root on: E string / A string / D string
+- **Harmonized triads in inversions** (L4, `tri-diatonic-inversions`): Key: 12 keys + all-keys cycles · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) / Dorian / Phrygian / Lydian / Mixolydian / Locrian · Chord order: I → I (ascending) / I → I (descending) / Up & back / In 4ths (I-IV-vii-iii-vi-ii-V-I) / In 5ths (I-V-ii-vi-iii-vii-IV-I) · Pattern: R-3-5 (up) / R-3-5-3 / Up one, down the next / 5-3-R (down) / R-3-5-3-R / R-5-3-5 · Inversion: Root position / 1st inversion / 2nd inversion · Stack: Triads (1-3-5) / Sus4 stacks (1-4-5) / Sus2 stacks (1-2-5) / Quartal (1-4-7) / Shell 1-5-3 (spread) · Root on: E string / A string / D string
+- **Diatonic triads in 4ths (I-IV-vii°-iii-vi-ii-V-I)** (L4, `tri-diatonic-4ths`): Key: 12 keys + all-keys cycles · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) / Dorian / Phrygian / Lydian / Mixolydian / Locrian · Chord order: I → I (ascending) / I → I (descending) / Up & back / In 4ths (I-IV-vii-iii-vi-ii-V-I) / In 5ths (I-V-ii-vi-iii-vii-IV-I) · Pattern: R-3-5 (up) / R-3-5-3 / Up one, down the next / 5-3-R (down) / R-3-5-3-R / R-5-3-5 · Inversion: Root position / 1st inversion / 2nd inversion · Stack: Triads (1-3-5) / Sus4 stacks (1-4-5) / Sus2 stacks (1-2-5) / Quartal (1-4-7) / Shell 1-5-3 (spread) · Root on: E string / A string / D string
+- **Open (spread) triads R-5-10** (L4, `tri-open-spread`): Key: 12 keys + all-keys cycles · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) / Dorian / Phrygian / Lydian / Mixolydian / Locrian · Chord order: I → I (ascending) / I → I (descending) / Up & back / In 4ths (I-IV-vii-iii-vi-ii-V-I) / In 5ths (I-V-ii-vi-iii-vii-IV-I) · Pattern: R-3-5 (up) / R-3-5-3 / Up one, down the next / 5-3-R (down) / R-3-5-3-R / R-5-3-5 · Inversion: Root position / 1st inversion / 2nd inversion · Stack: Triads (1-3-5) / Sus4 stacks (1-4-5) / Sus2 stacks (1-2-5) / Quartal (1-4-7) / Shell 1-5-3 (spread) · Root on: E string / A string / D string
+- **Two-octave triads** (L4, `tri-two-octaves`): Key: 12 keys + all-keys cycles · Triad: Major / Minor / Diminished / Augmented · Root on: E string / A string / D string
+- **Triads on every string set** (L4, `tri-string-sets`): Key: 12 keys · Triad: Major / Minor / Diminished / Augmented
+- **Voice-led triads through all 12 keys** (L4, `tri-voice-led-cycle`): Key order: Cycle of 4ths / Cycle of 5ths / Chromatic / Minor 3rds / Major 3rds / Whole tones · Triad: Major / Minor / Diminished / Augmented · Pattern: Up one, down the next / R-3-5 (up) / 5-3-R (down) / R-3-5-3 · Voicing: Nearest inversion / Root position only · Register: Middle / Low / High
+- **Triads over real progressions** (L4, `tri-progressions`): Progression: I – V – vi – IV (pop) / I – vi – IV – V (50s) / I – IV – V – I / vi – IV – I – V / Canon (I–V–vi–iii–IV–I–IV–V) / I – ♭VII – IV – I (rock) / ii – V – I / I – vi – ii – V (turnaround) / Andalusian i – ♭VII – ♭VI – V / i – iv – V – i (harmonic minor) / i – ♭VI – ♭III – ♭VII (epic minor) / I – ♭VI – ♭VII – I (borrowed) / 12-bar blues · Key: 12 keys + all-keys cycles · Pattern: R-3-5-3 / R-3-5 (up) / Up one, down the next / R-5-3-5 / 5-3-R (down) · Voicing: Nearest inversion / Root position · Register: Middle / Low / High
+- **Triads with chromatic approach notes** (L5, `tri-approach`): Key: 12 keys + all-keys cycles · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor · Approach: Half step below / Half step above / Enclosure (above, below, target) / Double chromatic from below · Chords: I → I / Up & back
+- **Triad permutations (all 6 orders)** (L5, `tri-permutations`): Key: 12 keys + all-keys cycles · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) · Order: 3-1-5 / 3-5-1 / 5-1-3 / 5-3-1 / 1-3-5 / 1-5-3 / Rotate through all 6 · Chord order: I → I (ascending) / I → I (descending) / Up & back / In 4ths (I-IV-vii-iii-vi-ii-V-I) / In 5ths (I-V-ii-vi-iii-vii-IV-I)
+- **Triad rudiments (drum stickings on chords)** (L5, `tri-rudiments`): Key: 12 keys + all-keys cycles · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Mixolydian / Dorian · Rudiment: Single strokes (R L R L) · pedal root / Double strokes (R R L L) / Paradiddle (R L R R  L R L L) / Paradiddle-diddle (R L R R L L) / Five-stroke roll (R R L L R) · groups of 5 / Doubled chord tones (1 1 3 3 5 5 8 8) · Chords: I → I / Up & back / In 4ths
+- **Triad pairs** (L5, `tri-pairs`): Key: 12 keys + all-keys cycles · Pair: IV & V major (F & G in C): Ionian/Lydian / I & II major (C & D): Lydian / ♭VI & ♭VII major (A♭ & B♭ over C minor): Aeolian / ii & iii minor (Dm & Em): Dorian/Ionian / Major & minor a whole step apart (C & Dm) / Augmented a half step apart (C+ & D♭+) / ♭II & I major (D♭ & C): Phrygian · Direction: Up & down / Up
+- **Harmonized triads in all scales & modes** (L5, `tri-diatonic-modes`): Key: 12 keys + all-keys cycles · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) / Dorian / Phrygian / Lydian / Mixolydian / Locrian · Chord order: I → I (ascending) / I → I (descending) / Up & back / In 4ths (I-IV-vii-iii-vi-ii-V-I) / In 5ths (I-V-ii-vi-iii-vii-IV-I) · Pattern: R-3-5 (up) / R-3-5-3 / Up one, down the next / 5-3-R (down) / R-3-5-3-R / R-5-3-5 · Inversion: Root position / 1st inversion / 2nd inversion · Stack: Triads (1-3-5) / Sus4 stacks (1-4-5) / Sus2 stacks (1-2-5) / Quartal (1-4-7) / Shell 1-5-3 (spread) · Root on: E string / A string / D string
+- **Sus and quartal stacks through the scale** (L5, `tri-sus-quartal`): Key: 12 keys + all-keys cycles · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) / Dorian / Phrygian / Lydian / Mixolydian / Locrian · Chord order: I → I (ascending) / I → I (descending) / Up & back / In 4ths (I-IV-vii-iii-vi-ii-V-I) / In 5ths (I-V-ii-vi-iii-vii-IV-I) · Pattern: R-3-5 (up) / R-3-5-3 / Up one, down the next / 5-3-R (down) / R-3-5-3-R / R-5-3-5 · Inversion: Root position / 1st inversion / 2nd inversion · Stack: Triads (1-3-5) / Sus4 stacks (1-4-5) / Sus2 stacks (1-2-5) / Quartal (1-4-7) / Shell 1-5-3 (spread) · Root on: E string / A string / D string
+- **Upper-structure triads over a pedal** (L5, `tri-upper-structures`): Key: 12 keys + all-keys cycles · Structure: D/C → Cmaj7♯11 (Lydian) / G/C → Cmaj9 / Em/C → Cmaj7 / D/C7 → C13♯11 / A/C7 → C13♭9 / A♭/C7 → C7♯5♯9 / E♭/C7 → C7♯9 / G♭/C7 → C7♭9♯11 / B♭/Cm → Cm11
+- **Major-3rd cycle triads (Coltrane axis)** (L6, `tri-major-thirds`): Key: 12 keys · Triad: Major / Minor · Motion: Down in major 3rds / Up in major 3rds
+- **Every inversion, every key (wave through the cycle)** (L6, `tri-cycle-all-inversions`): Triad: Major / Minor / Diminished / Augmented · Key order: Cycle of 4ths / Cycle of 5ths / Chromatic
+- **Harmonized triads in all 12 keys, in inversions** (L6, `tri-diatonic-all-keys`): Key: 12 keys + all-keys cycles · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) / Dorian / Phrygian / Lydian / Mixolydian / Locrian · Chord order: I → I (ascending) / I → I (descending) / Up & back / In 4ths (I-IV-vii-iii-vi-ii-V-I) / In 5ths (I-V-ii-vi-iii-vii-IV-I) · Pattern: R-3-5 (up) / R-3-5-3 / Up one, down the next / 5-3-R (down) / R-3-5-3-R / R-5-3-5 · Inversion: Root position / 1st inversion / 2nd inversion · Stack: Triads (1-3-5) / Sus4 stacks (1-4-5) / Sus2 stacks (1-2-5) / Quartal (1-4-7) / Shell 1-5-3 (spread) · Root on: E string / A string / D string
+- **Triad rudiments in all 12 keys** (L6, `tri-rudiments-all-keys`): Key: 12 keys + all-keys cycles · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Mixolydian / Dorian · Rudiment: Single strokes (R L R L) · pedal root / Double strokes (R R L L) / Paradiddle (R L R R  L R L L) / Paradiddle-diddle (R L R R L L) / Five-stroke roll (R R L L R) · groups of 5 / Doubled chord tones (1 1 3 3 5 5 8 8) · Chords: I → I / Up & back / In 4ths
+
+### Arpeggios & 7ths
+
+- **The five 7th chords from one root** (L2, `arp-7th-qualities`): Key: 12 keys + all-keys cycles · Root on: E string / A string / D string
+- **7th arpeggio study** (L2, `arp-7th`): Chord: Major 7 / Dominant 7 / Minor 7 / Half-dim m7♭5 / Diminished 7 / Minor-major 7 / Maj7♯5 / Major 6 / Minor 6 · Key: 12 keys + all-keys cycles · Pattern: Up & down / Up (1-3-5-8) / Down (8-5-3-1) / Down & up / Doubled notes (1-1-3-3-5-5…) · Range: 1 octave / 2 octaves · Root on: E string / A string / D string
+- **7th arpeggios around the cycle in one zone** (L3, `arp-zone-cycle`): Chord: Major 7 / Dominant 7 / Minor 7 / Half-dim m7♭5 / Diminished 7 · Zone: Zone 1 · frets 1–5 / Zone 2 · frets 5–9 / Zone 3 · frets 8–12 / Zone 4 · frets 12–16 · Key order: Cycle of 4ths / Cycle of 5ths / Chromatic · Pattern: R-3-5-7 (up) / Up one, down the next / R-3-5-7-5-3
+- **Diatonic 7th arpeggios: Imaj7 ii7 iii7 IVmaj7 V7 vi7 viiø7** (L3, `arp-diatonic-7ths`): Key: 12 keys + all-keys cycles · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) / Dorian / Mixolydian / Lydian / Phrygian · Chord order: I → I (ascending) / I → I (descending) / Up & back / In 4ths (I-IV-vii-iii-vi-ii-V-I) / In 5ths (I-V-ii-vi-iii-vii-IV-I) · Pattern: R-3-5-7 (up) / Up one, down the next / 7-5-3-R (down) / R-3-5-7-5-3 · Inversion: Root position / 1st (from the 3rd) / 2nd (from the 5th) / 3rd (from the 7th) · Root on: E string / A string / D string
+- **7th chord inversions climbing** (L4, `arp-inversions`): Chord: Major 7 / Dominant 7 / Minor 7 / Half-dim m7♭5 / Diminished 7 · Key: 12 keys + all-keys cycles
+- **Two-octave 7th arpeggios** (L4, `arp-two-octaves`): Chord: Major 7 / Dominant 7 / Minor 7 / Half-dim m7♭5 / Diminished 7 / Minor-major 7 / Maj7♯5 / Major 6 / Minor 6 · Key: 12 keys + all-keys cycles · Pattern: Up & down / Up (1-3-5-8) / Down (8-5-3-1) / Down & up / Doubled notes (1-1-3-3-5-5…) · Range: 1 octave / 2 octaves · Root on: E string / A string / D string
+- **Diatonic 7ths in inversions** (L4, `arp-diatonic-inversions`): Key: 12 keys + all-keys cycles · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) / Dorian / Mixolydian / Lydian / Phrygian · Chord order: I → I (ascending) / I → I (descending) / Up & back / In 4ths (I-IV-vii-iii-vi-ii-V-I) / In 5ths (I-V-ii-vi-iii-vii-IV-I) · Pattern: R-3-5-7 (up) / Up one, down the next / 7-5-3-R (down) / R-3-5-7-5-3 · Inversion: Root position / 1st (from the 3rd) / 2nd (from the 5th) / 3rd (from the 7th) · Root on: E string / A string / D string
+- **ii–V–I arpeggios in all keys** (L4, `arp-ii-v-i`): Type: Major ii–V–I / Minor iiø–V–i · Key: 12 keys + all-keys cycles · Pattern: R-3-5-7 (up) / Up one, down the next / 7-5-3-R (down) · Voicing: Nearest chord tone / Root position · Register: Middle / Low / High
+- **Voice-led 7th arpeggios over progressions** (L4, `arp-voice-led`): Progression: Dominant 7ths around the cycle / ii–V–I in all 12 keys / I – vi – ii – V (turnaround) / iii – vi – ii – V – I / ii–V–I–IV–iiø–V–i (relative minor cycle) / Jazz blues / Rhythm changes (A section) / I – VI7 – ii – V (secondary dominant) / I – III7 – vi – II7 – V7 – I / Minor blues / Coltrane changes (Giant Steps) · Key: 12 keys + all-keys cycles · Pattern: Up one, down the next / R-3-5-7 (up) / 7-5-3-R (down) / R-3-5-7-5-3 · Register: Middle / Low / High
+- **Guide-tone lines (3rds and 7ths)** (L4, `arp-guide-tones`): Progression: ii – V – I / Dominant 7ths around the cycle / ii–V–I–IV–iiø–V–i (relative minor cycle) / Jazz blues / I – vi – ii – V (turnaround) / Minor ii – V – i · Key: 12 keys + all-keys cycles · Start on: the 3rd / the 7th
+- **Barry Harris: one diminished chord, four dominants** (L5, `arp-dim-dominants`): Key: 12 keys
+- **Diminished to minor (rootless 7♭9 resolution)** (L5, `arp-dim-to-minor`): Key: 12 keys + all-keys cycles
+- **Extended arpeggios: 9ths, 11ths, 13ths** (L5, `arp-extended`): Key: 12 keys + all-keys cycles · Up to: 9ths / 11ths / 13ths · Scale: Major (Ionian) / Natural minor (Aeolian) / Dorian / Melodic minor (jazz) · Chords: I → I / In 4ths
+- **Upper-structure arpeggios (3-5-7-9)** (L5, `arp-upper-structure`): Key: 12 keys + all-keys cycles · Scale: Major (Ionian) / Natural minor (Aeolian) / Dorian · Pattern: R-3-5-7 (up) / Up one, down the next
+- **7th chord permutations** (L5, `arp-permutations`): Key: 12 keys + all-keys cycles · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) · Order: 3-1-7-5 / 3-5-7-1 / 5-1-7-3 / 7-5-3-1 / 1-5-3-7 / 1-3-5-7 / Rotate · Chord order: I → I (ascending) / I → I (descending) / Up & back / In 4ths (I-IV-vii-iii-vi-ii-V-I) / In 5ths (I-V-ii-vi-iii-vii-IV-I)
+- **Arpeggios with approach notes & enclosures** (L5, `arp-approach`): Key: 12 keys + all-keys cycles · Approach: Half step below / Half step above / Enclosure · Progression: ii – V – I / Minor ii – V – i / I – vi – ii – V (turnaround)
+- **Altered dominants resolving** (L5, `arp-altered-dominants`): Dominant: 7♯5 / 7♭5 / 7♭9 / 7♯9 · Key: 12 keys + all-keys cycles
+- **Diatonic 7ths in all 12 keys (up one, down the next)** (L6, `arp-diatonic-all-keys`): Key: 12 keys + all-keys cycles · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) / Dorian / Mixolydian / Lydian / Phrygian · Chord order: I → I (ascending) / I → I (descending) / Up & back / In 4ths (I-IV-vii-iii-vi-ii-V-I) / In 5ths (I-V-ii-vi-iii-vii-IV-I) · Pattern: R-3-5-7 (up) / Up one, down the next / 7-5-3-R (down) / R-3-5-7-5-3 · Inversion: Root position / 1st (from the 3rd) / 2nd (from the 5th) / 3rd (from the 7th) · Root on: E string / A string / D string
+- **Rhythm changes arpeggios (A section)** (L6, `arp-rhythm-changes`): Progression: Dominant 7ths around the cycle / ii–V–I in all 12 keys / I – vi – ii – V (turnaround) / iii – vi – ii – V – I / ii–V–I–IV–iiø–V–i (relative minor cycle) / Jazz blues / Rhythm changes (A section) / I – VI7 – ii – V (secondary dominant) / I – III7 – vi – II7 – V7 – I / Minor blues / Coltrane changes (Giant Steps) · Key: 12 keys + all-keys cycles · Pattern: Up one, down the next / R-3-5-7 (up) / 7-5-3-R (down) / R-3-5-7-5-3 · Register: Middle / Low / High
+- **Giant Steps arpeggios** (L6, `arp-giant-steps`): Progression: Dominant 7ths around the cycle / ii–V–I in all 12 keys / I – vi – ii – V (turnaround) / iii – vi – ii – V – I / ii–V–I–IV–iiø–V–i (relative minor cycle) / Jazz blues / Rhythm changes (A section) / I – VI7 – ii – V (secondary dominant) / I – III7 – vi – II7 – V7 – I / Minor blues / Coltrane changes (Giant Steps) · Key: 12 keys + all-keys cycles · Pattern: Up one, down the next / R-3-5-7 (up) / 7-5-3-R (down) / R-3-5-7-5-3 · Register: Middle / Low / High
+
+### Chords & Harmony
+
+- **How a chord is built** (L1, `hm-build-a-chord`): Key: 12 keys + all-keys cycles · Scale: Major / Natural minor · Root on: E string / A string / D string
+- **Chord qualities of the key: hear the 3rd** (L2, `hm-chord-qualities`): Key: 12 keys + all-keys cycles · Scale: Major / Natural minor / Harmonic minor
+- **Common progressions: root notes** (L2, `hm-progression-roots`): Progression: I – IV – V – I / I – V – vi – IV (pop) / I – vi – IV – V (50s) / vi – IV – I – V / I – ♭VII – IV – I (rock) / Canon (I–V–vi–iii–IV–I–IV–V) / ii – V – I / I – vi – ii – V (turnaround) / iii – vi – ii – V – I / I – VI7 – ii – V (secondary dominant) / I – III7 – vi – II7 – V7 – I / ii – ♭II7 – I (tritone sub) / I – ♭VI – ♭VII – I (borrowed) / I – IV – iv – I (minor plagal) / Minor ii – V – i / i – iv – V – i (harmonic minor) / Andalusian i – ♭VII – ♭VI – V / i – ♭VI – ♭III – ♭VII (epic minor) / 12-bar blues / 12-bar blues (quick change) / Minor blues / Jazz blues / ii–V–I–IV–iiø–V–i (relative minor cycle) / Rhythm changes (A section) / ii – V7alt (♯9) – I / ii – V7♭9 – I / ii – V7♯5 – I / ii – V7♭5 – I / i – iv – v – i (minor) · Key: 12 keys + all-keys cycles · Rhythm: Whole notes / Half notes / Quarter notes / 8th notes
+- **12-bar blues: dominant 7th chord tones** (L2, `hm-12-bar-blues`): Progression: 12-bar blues / 12-bar blues (quick change) / Minor blues / Jazz blues · Key: 12 keys + all-keys cycles · Pattern: R-3-5-♭7 / R-5-8-5 / R-3-5-7-8-7-5-3 (8ths)
+- **Chord tones over progressions** (L3, `hm-chord-tones`): Progression: I – IV – V – I / I – V – vi – IV (pop) / I – vi – IV – V (50s) / vi – IV – I – V / I – ♭VII – IV – I (rock) / Canon (I–V–vi–iii–IV–I–IV–V) / ii – V – I / I – vi – ii – V (turnaround) / iii – vi – ii – V – I / I – VI7 – ii – V (secondary dominant) / I – III7 – vi – II7 – V7 – I / ii – ♭II7 – I (tritone sub) / I – ♭VI – ♭VII – I (borrowed) / I – IV – iv – I (minor plagal) / Minor ii – V – i / i – iv – V – i (harmonic minor) / Andalusian i – ♭VII – ♭VI – V / i – ♭VI – ♭III – ♭VII (epic minor) / 12-bar blues / 12-bar blues (quick change) / Minor blues / Jazz blues / ii–V–I–IV–iiø–V–i (relative minor cycle) / Rhythm changes (A section) / ii – V7alt (♯9) – I / ii – V7♭9 – I / ii – V7♯5 – I / ii – V7♭5 – I / i – iv – v – i (minor) · Key: 12 keys + all-keys cycles · Pattern: Root–5th (half notes) / Root–low 5th (two-feel) / R-5-8-5 (quarters) / R-3-5-3 (chord tones) / R-3-5-8 / R-3-5-7 (7th chords) / R-3-5-7-8-7-5-3 (8ths)
+- **Double stops over progressions** (L3, `hm-double-stops`): Interval: Power chord (R + 5) / Octave (R + 8) / R + 3rd (adjacent strings) / R + 10th (E & G strings) / R + 7th (shell) · Progression: I – V – vi – IV (pop) / I – vi – IV – V (50s) / I – IV – V – I / ii – V – I / I – vi – ii – V (turnaround) / Andalusian i – ♭VII – ♭VI – V · Key: 12 keys + all-keys cycles
+- **Minor-key harmony** (L4, `hm-minor-keys`): Progression: i – iv – V – i (harmonic minor) / Andalusian i – ♭VII – ♭VI – V / Minor ii – V – i / i – ♭VI – ♭III – ♭VII (epic minor) / Minor blues / i – iv – v – i (minor) · Key: 12 keys + all-keys cycles · Pattern: R-3-5-7 / R-3-5-3 / R-3-5-7-8-7-5-3 (8ths)
+- **Shell voicings: R-7-10 chords on bass** (L4, `hm-shells`): Progression: ii – V – I / I – vi – ii – V (turnaround) / ii–V–I–IV–iiø–V–i (relative minor cycle) / Jazz blues / Minor ii – V – i · Key: 12 keys + all-keys cycles
+- **Secondary dominants, borrowed chords, tritone subs** (L5, `hm-colour-chords`): Progression: I – VI7 – ii – V (secondary dominant) / I – III7 – vi – II7 – V7 – I / I – ♭VI – ♭VII – I (borrowed) / I – IV – iv – I (minor plagal) / ii – ♭II7 – I (tritone sub) · Key: 12 keys + all-keys cycles · Pattern: R-3-5-7 / R-3-5-7-8-7-5-3 (8ths)
+- **Chordal bass: R-5-10 and R-7-10 through changes** (L6, `hm-chordal-bass`): Voicing: R-5-10 / R-7-10 · Progression: I – vi – IV – V (50s) / I – V – vi – IV (pop) / ii – V – I / I – vi – ii – V (turnaround) / ii–V–I–IV–iiø–V–i (relative minor cycle) · Key: 12 keys + all-keys cycles
+
+### Grooves & Bass Lines
+
+- **Root-note grooves: rock 8ths, root–5th, R-5-8** (L1, `gr-roots`): Groove: Rock 8ths / Pop 8ths with approach / Root–5th two-beat (country) / R-5-8-5 quarters · Progression: Style default / I – V – vi – IV (pop) / I – vi – IV – V (50s) / I – IV – V – I / vi – IV – I – V / 12-bar blues / 12-bar blues (quick change) / I – vi – ii – V (turnaround) / ii – V – I / One-chord dominant vamp (4 bars) / One-chord minor vamp (4 bars) / i – iv – v – i (minor) · Key: 12 keys + all-keys cycles
+- **Octaves & riffs: disco, rock, riff transposing** (L2, `gr-octaves`): Groove: Disco octaves / R-5-♭7-8 (blues rock) / Minor pentatonic riff (transpose it) · Progression: Style default / I – V – vi – IV (pop) / I – vi – IV – V (50s) / I – IV – V – I / vi – IV – I – V / 12-bar blues / 12-bar blues (quick change) / I – vi – ii – V (turnaround) / ii – V – I / One-chord dominant vamp (4 bars) / One-chord minor vamp (4 bars) / i – iv – v – i (minor) · Key: 12 keys + all-keys cycles
+- **Blues lines: boogie-woogie & shuffle** (L2, `gr-blues`): Groove: Boogie-woogie (R-3-5-6-♭7-6-5-3) / Shuffle (R-R-5-5-6-6-5-5) / Swung boogie / R-5-♭7-8 (blues rock) / 12/8 slow blues (triplets) · Progression: Style default / I – V – vi – IV (pop) / I – vi – IV – V (50s) / I – IV – V – I / vi – IV – I – V / 12-bar blues / 12-bar blues (quick change) / I – vi – ii – V (turnaround) / ii – V – I / One-chord dominant vamp (4 bars) / One-chord minor vamp (4 bars) / i – iv – v – i (minor) · Key: 12 keys + all-keys cycles
+- **Approach notes & Motown lines** (L3, `gr-approach`): Groove: Chromatic approach on beat 4 / 5th (dominant) approach on beat 4 / Motown (dotted root, octave, approach) / Pop 8ths with approach · Progression: Style default / I – V – vi – IV (pop) / I – vi – IV – V (50s) / I – IV – V – I / vi – IV – I – V / 12-bar blues / 12-bar blues (quick change) / I – vi – ii – V (turnaround) / ii – V – I / One-chord dominant vamp (4 bars) / One-chord minor vamp (4 bars) / i – iv – v – i (minor) · Key: 12 keys + all-keys cycles
+- **Reggae, bossa nova & Latin tumbao** (L3, `gr-world`): Groove: Reggae one-drop (beat 1 empty) / Bossa nova (R-5 dotted) / Latin tumbao (anticipated) · Progression: Style default / I – V – vi – IV (pop) / I – vi – IV – V (50s) / I – IV – V – I / vi – IV – I – V / 12-bar blues / 12-bar blues (quick change) / I – vi – ii – V (turnaround) / ii – V – I / One-chord dominant vamp (4 bars) / One-chord minor vamp (4 bars) / i – iv – v – i (minor) · Key: 12 keys + all-keys cycles
+- **Funk 16ths, ghost notes & fills** (L3, `gr-funk`): Groove: Funk 16ths with ghost notes / Octave funk 16ths / 3 bars groove + pentatonic fill · Progression: Style default / I – V – vi – IV (pop) / I – vi – IV – V (50s) / I – IV – V – I / vi – IV – I – V / 12-bar blues / 12-bar blues (quick change) / I – vi – ii – V (turnaround) / ii – V – I / One-chord dominant vamp (4 bars) / One-chord minor vamp (4 bars) / i – iv – v – i (minor) · Key: 12 keys + all-keys cycles
+- **Odd-meter grooves: 5/4, 7/8, 7/4, 6/8** (L4, `gr-odd-meters`): Meter: 5/4 (3+2) / 6/8 (two groups of 3) / 7/4 (4+3) / 7/8 (2+2+3) · Key: 12 keys
+- **Funk 16ths through chord changes, all keys** (L5, `gr-funk-changes`): Groove: Funk 16ths with ghost notes / Octave funk 16ths · Progression: Style default / I – V – vi – IV (pop) / I – vi – IV – V (50s) / I – IV – V – I / vi – IV – I – V / 12-bar blues / 12-bar blues (quick change) / I – vi – ii – V (turnaround) / ii – V – I / One-chord dominant vamp (4 bars) / One-chord minor vamp (4 bars) / i – iv – v – i (minor) · Key: 12 keys + all-keys cycles
+
+### Walking Bass
+
+- **Two-feel: half notes on roots and 5ths** (L3, `wk-two-feel`): Progression: ii – V – I / I – vi – ii – V (turnaround) / Jazz blues / ii–V–I–IV–iiø–V–i (relative minor cycle) / Minor ii – V – i / Minor blues / Rhythm changes (A section) / ii–V–I in all 12 keys / iii – vi – ii – V – I · Key: 12 keys + all-keys cycles
+- **Walking with chord tones** (L3, `wk-chord-tones`): Progression: ii – V – I / I – vi – ii – V (turnaround) / Jazz blues / ii–V–I–IV–iiø–V–i (relative minor cycle) / Minor ii – V – i / Minor blues / Rhythm changes (A section) / ii–V–I in all 12 keys / iii – vi – ii – V – I · Key: 12 keys + all-keys cycles
+- **Walking with chromatic approach notes** (L4, `wk-approach`): Progression: ii – V – I / I – vi – ii – V (turnaround) / Jazz blues / ii–V–I–IV–iiø–V–i (relative minor cycle) / Minor ii – V – i / Minor blues / Rhythm changes (A section) / ii–V–I in all 12 keys / iii – vi – ii – V – I · Key: 12 keys + all-keys cycles
+- **Scalar walking lines** (L4, `wk-scalar`): Progression: ii – V – I / I – vi – ii – V (turnaround) / Jazz blues / ii–V–I–IV–iiø–V–i (relative minor cycle) / Minor ii – V – i / Minor blues / Rhythm changes (A section) / ii–V–I in all 12 keys / iii – vi – ii – V – I · Key: 12 keys + all-keys cycles
+- **Complete walking lines (mixed devices)** (L4, `wk-mixed`): Progression: ii – V – I / I – vi – ii – V (turnaround) / Jazz blues / ii–V–I–IV–iiø–V–i (relative minor cycle) / Minor ii – V – i / Minor blues / Rhythm changes (A section) / ii–V–I in all 12 keys / iii – vi – ii – V – I · Key: 12 keys + all-keys cycles
+- **Walking with enclosures** (L5, `wk-enclosures`): Progression: ii – V – I / I – vi – ii – V (turnaround) / Jazz blues / ii–V–I–IV–iiø–V–i (relative minor cycle) / Minor ii – V – i / Minor blues / Rhythm changes (A section) / ii–V–I in all 12 keys / iii – vi – ii – V – I · Key: 12 keys + all-keys cycles
+- **Two chords per bar** (L5, `wk-two-per-bar`): Progression: ii – V – I / I – vi – ii – V (turnaround) / Jazz blues / ii–V–I–IV–iiø–V–i (relative minor cycle) / Minor ii – V – i / Minor blues / Rhythm changes (A section) / ii–V–I in all 12 keys / iii – vi – ii – V – I · Key: 12 keys + all-keys cycles
+- **Minor walking: iiø–V–i and minor blues** (L5, `wk-minor`): Progression: ii – V – I / I – vi – ii – V (turnaround) / Jazz blues / ii–V–I–IV–iiø–V–i (relative minor cycle) / Minor ii – V – i / Minor blues / Rhythm changes (A section) / ii–V–I in all 12 keys / iii – vi – ii – V – I · Key: 12 keys + all-keys cycles
+- **Walking with triplet skips** (L6, `wk-triplet-skips`): Progression: ii – V – I / I – vi – ii – V (turnaround) / Jazz blues / ii–V–I–IV–iiø–V–i (relative minor cycle) / Minor ii – V – i / Minor blues / Rhythm changes (A section) / ii–V–I in all 12 keys / iii – vi – ii – V – I · Key: 12 keys + all-keys cycles
+- **Walking over Coltrane changes** (L6, `wk-giant-steps`): Progression: Coltrane changes (Giant Steps) · Key: 12 keys
+
+### Slap & Pop
+
+- **Slap basics: thumb and octave pops** (L3, `sl-thumb-pop`): Pattern: Thumb on the root (8ths) / Thumb–pop octaves · Progression: One-chord minor vamp (4 bars) / One-chord dominant vamp (4 bars) / i – iv – v – i (minor) / I – IV – V – I / 12-bar blues · Key: 12 keys + all-keys cycles
+- **Slap grooves: ghost thumbs, hammers & pull-offs** (L4, `sl-grooves`): Pattern: Thumb – mute – pop (16ths) / Thumb – hammer – pop – pull-off / Slap arpeggio (T R, T 5, P 8, P 10) · Progression: One-chord minor vamp (4 bars) / One-chord dominant vamp (4 bars) / i – iv – v – i (minor) / I – IV – V – I / 12-bar blues · Key: 12 keys + all-keys cycles
+- **Double thumbing** (L6, `sl-double-thumb`): Pattern: Double thumb (down ↓ / up ↑) + pop · Progression: One-chord minor vamp (4 bars) / One-chord dominant vamp (4 bars) / i – iv – v – i (minor) / I – IV – V – I / 12-bar blues · Key: 12 keys + all-keys cycles

@@ -1,0 +1,17 @@
+{
+  "name": "BassClass: visual bass trainer",
+  "short_name": "BassClass",
+  "description": "Learn bass guitar visually with step-by-step fretboard exercises from beginner to mastery.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#12142a",
+  "theme_color": "#12142a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

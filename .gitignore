@@ -1,0 +1,21 @@
+# Android / Gradle
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.iml
+*.apk
+*.aab
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+__pycache__/
+
+# local Claude Code settings (launch.json is shared on purpose)
+.claude/settings.local.json
+
+# raw sample staging used by web/js/dev/sampleprep.js
+web/_raw/

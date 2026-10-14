@@ -1,0 +1,366 @@
+// Scales: from the first major scale to sequences, positions, symmetric and bebop scales.
+import {
+  T, Builder, keysFor, ex, variant, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS,
+  rootStrP, dirP, place, scaleShort, ZONES, zoneP, orderP,
+} from './common.js';
+
+const M = 'scales';
+const patP = (keys, def) => sel('Sequence', keys.map((k) => [k, SCALE_PATTERNS[k].name]), def || keys[0]);
+const typeP = (keys, def) => sel('Scale', SCALE_TYPE_OPTS(keys), def || keys[0]);
+
+/** Generic scale exercise: one key or all keys, any pattern, 1–2 octaves. */
+export function scaleBuild(p, ctx, S, { type = p.type, pattern = p.pattern || 'straight', octaves = Number(p.oct || 1), dir = p.dir || 'updown', rootStr = p.root || 'A', open = p.open === 'yes' } = {}) {
+  const b = new Builder(ctx, S);
+  const keys = keysFor(p.key);
+  const many = keys.length > 1;
+  let prev = null;
+  for (const k of keys) {
+    const ivs = T.SCALES[type].iv;
+    const tonic = T.bestRoot(k, ivs);
+    // one key: root on the chosen string; all keys: E or A string, whichever is nearest
+    const single = octaves > 1 && rootStr === 'D' ? 'A' : rootStr;
+    const r = pickRoot(ctx, k, { strings: many ? ['E', 'A'] : [single], lo: open ? 0 : 1, hi: many ? 8 : 12, prev, prefer: rootStr });
+    b.chord(`${nm(tonic, S)} ${scaleShort(type)}`);
+    b.line(scaleRun(tonic, type, r.midi, { octaves, pattern, dir }), { place: { pin: { [r.midi]: r.s }, open: open ? 'allow' : 'avoid', center: r.f + 1 } });
+    prev = r.midi;
+  }
+  return b;
+}
+
+const BASIC = ['ionian', 'aeolian', 'majorPent', 'minorPent'];
+const ALL7 = ['ionian', 'aeolian', 'harmonicMinor', 'melodicMinor', 'dorian', 'phrygian', 'lydian', 'mixolydian', 'locrian'];
+const MANY = [...ALL7, 'majorPent', 'minorPent', 'blues', 'majorBlues', 'bebopDom', 'bebopMajor', 'bebopDorian', 'dimHW', 'dimWH', 'wholeTone', 'sixthDim', 'phrygianDom', 'lydianDom', 'altered'];
+
+const oneOctave = ex({
+  id: 'sc-one-octave', module: M, level: 1, star: true,
+  title: 'Your first scales: major, minor, pentatonic',
+  summary: 'One octave, one position, one finger per fret. In any key.',
+  about: 'A scale is the set of notes a melody or bass line is made from. The major scale (do-re-mi) follows the pattern whole-whole-half-whole-whole-whole-half. Natural minor is the darker version, and the pentatonics are 5-note scales with no "wrong" notes, the basis of rock and blues bass. Each fits in one hand position: learn the shape and then move it to any key.',
+  tips: ['Major with root on finger 2: fingers 2-4, 1-2-4, 1-3-4 across three strings.', 'Minor with root on finger 1: 1-3-4, 1-3-4, 1-3.', 'Say the degree numbers (1 2 3…) as you play.'],
+  source: 'RSL Debut–Grade 2, LCM Grade 1, MI 011, StudyBass, BassBuzz',
+  params: { type: typeP(BASIC), key: keyP(T.SCALES.ionian.iv), root: rootStrP('A'), dir: dirP },
+  bpm: 60, sub: 1, label: 'degree',
+  build(p, ctx, S) { return scaleBuild(p, ctx, S).build({ label: 'degree' }); },
+});
+
+const blues = variant(oneOctave, {
+  id: 'sc-blues', level: 2,
+  title: 'Blues scales',
+  summary: 'Minor pentatonic + ♭5 (the "blue note"), and the major blues scale.',
+  about: 'Add the ♭5 to the minor pentatonic and you get the blues scale (1 ♭3 4 ♭5 5 ♭7). The major blues scale (1 2 ♭3 3 5 6) slides from the minor to the major 3rd: the classic country and Motown sound. Both are essential for rock, blues and funk lines and fills.',
+  params: { type: typeP(['blues', 'majorBlues']), key: keyP(T.SCALES.blues.iv), root: rootStrP('E'), dir: dirP },
+  tips: ['Slide into the ♭5 or bend it slightly: it is a passing note.', 'Over a 12-bar blues, the same scale works on all three chords.'],
+  source: 'RSL Grade 3, LCM Grade 3, Berklee Online Rock Bass',
+});
+
+const openPosition = ex({
+  id: 'sc-open-position', module: M, level: 1,
+  title: 'Scales in open position',
+  summary: 'E, A, G, C, F and D using open strings: the first-position keys.',
+  about: 'Open strings ring for free and make low keys sound huge. In first position the open strings replace fretted notes. These are the keys of countless rock, pop and folk songs, and of the first grades of every exam board.',
+  tips: ['Let open strings ring their full value, then stop them cleanly.', 'Notice which notes are open strings in each key.'],
+  source: 'Hal Leonard Bass Method; RSL Debut (E, A, G); LCM Preliminary',
+  params: { type: typeP(['ionian', 'aeolian', 'minorPent', 'majorPent']), key: sel('Key', [['4', 'E'], ['9', 'A'], ['7', 'G'], ['0', 'C'], ['5', 'F'], ['2', 'D']]), dir: dirP },
+  bpm: 60, sub: 1, label: 'degree',
+  build(p, ctx, S) {
+    const b = new Builder(ctx, S);
+    const k = Number(p.key);
+    const tonic = T.bestRoot(k, T.SCALES[p.type].iv);
+    const r = pickRoot(ctx, k, { strings: ['E', 'A'], lo: 0, hi: 4 });
+    b.chord(`${nm(tonic, S)} ${scaleShort(p.type)}`);
+    b.line(scaleRun(tonic, p.type, r.midi, { dir: p.dir }), { place: { open: 'prefer', region: [0, 4] } });
+    return b.build({ label: 'degree' });
+  },
+});
+
+const chromatic = ex({
+  id: 'sc-chromatic', module: M, level: 2,
+  title: 'Chromatic scale',
+  summary: 'All 12 notes: in one position across the strings, or along one string.',
+  about: 'The chromatic scale uses every fret. In position it is a pure one-finger-per-fret workout; along one string it drills shifting. Chromatic notes are also the "glue" of walking bass and Motown lines.',
+  tips: ['Sharps going up, flats coming down.', 'Keep the volume even across string changes.'],
+  source: 'LCM Grade 6, Berklee Online Bass 101',
+  params: { key: keyP(['1'], { cycles: false }), layout: sel('Layout', [['pos', 'In position (2 octaves)'], ['string', 'Along one string']]) },
+  bpm: 72, sub: 2, label: 'note',
+  build(p, ctx, S) {
+    const b = new Builder(ctx, S);
+    const k = Number(p.key);
+    const oct = p.layout === 'pos' ? 2 : 1;
+    // along one string the octave must fit below the last fret
+    const r = p.layout === 'string'
+      ? pickRoot(ctx, k, { strings: ['E', 'A', 'D'], lo: 0, hi: ctx.maxFret - 12, prefer: 'E' })
+      : pickRoot(ctx, k, { strings: ['E'], lo: 1, hi: 12 });
+    const run = scaleRun(T.bestRoot(k, ['1']), 'chromatic', r.midi, { octaves: oct });
+    const half = Math.ceil(run.length / 2);
+    run.forEach((x, i) => { x.n = i < half ? x.n : T.N(['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'][T.mod(x.midi, 12)]); });
+    run.forEach((x, i) => { if (i < half) x.n = T.N(['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][T.mod(x.midi, 12)]); });
+    b.line(run, { place: p.layout === 'string' ? { string: r.s } : { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
+    return b.build({ label: 'note' });
+  },
+});
+
+const twoOctaves = ex({
+  id: 'sc-two-octaves', module: M, level: 3,
+  title: 'Two-octave scales',
+  summary: 'Major, minor, harmonic & melodic minor, pentatonics over two octaves with planned shifts.',
+  about: 'Two octaves cover most of the useful range of the bass. You need at least one shift. The app chooses fingerings that shift as little as possible and uses the same fingering going up and coming down. Watch where the hand moves and practise those shifts slowly.',
+  tips: ['Start with the root on the E string.', 'Shift with the finger that just played, sliding lightly.'],
+  source: 'RSL Grade 7, LCM Grade 6, Berklee ILBS-244, TalkingBass Scale Essentials',
+  params: { type: typeP(['ionian', 'aeolian', 'harmonicMinor', 'melodicMinor', 'majorPent', 'minorPent', 'blues', 'dorian', 'mixolydian']), key: keyP(T.SCALES.ionian.iv), root: rootStrP('E'), dir: dirP },
+  bpm: 72, sub: 2, label: 'degree',
+  build(p, ctx, S) { return scaleBuild({ ...p, oct: '2' }, ctx, S).build({ label: 'degree' }); },
+});
+
+const SEQ = ['g3', 'g4', 'g4rev', 'turn', 'up3down1', 'r1235', 'thirds', 'thirdsAlt', 'fourths', 'triads', 'sevenths', 'g5'];
+const sequences = ex({
+  id: 'sc-sequences', module: M, level: 3, star: true,
+  title: 'Scale sequences',
+  summary: 'Groups of 3 and 4, 1-2-3-1 turns, 3rds, diatonic triads and 7ths… through any scale.',
+  about: 'Playing a scale straight up and down is only the start. Sequences break it into repeating melodic cells (1-2-3, 2-3-4, 3-4-5…) that sound like music and stop you running scales on autopilot. Every sequence works in every scale and key. Combine them with the subdivision selector: groups of 3 in 16ths shift across the beat.',
+  tips: ['Groups of 3 → triplets, groups of 4 → 16ths, then swap them for rhythmic tension.', 'Keep one position; let the sequence decide when you shift.'],
+  source: 'StudyBass, MI 021, Berklee Online Rock Bass, TalkingBass Cyborg Bassist (1-2-3-1 etudes)',
+  params: { pattern: patP(SEQ, 'g4'), type: typeP(ALL7.concat(['majorPent', 'minorPent'])), key: keyP(T.SCALES.ionian.iv), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]), root: rootStrP('A') },
+  bpm: 72, sub: 4, label: 'degree',
+  build(p, ctx, S) { return scaleBuild(p, ctx, S).build({ label: 'degree' }); },
+});
+
+const oneString = ex({
+  id: 'sc-one-string', module: M, level: 3,
+  title: 'Scales on one string (linear)',
+  summary: 'The whole scale along a single string: see the whole and half steps.',
+  about: 'Played along one string, a scale shows its structure clearly: two frets for a whole step, one for a half step. Gary Willis and Victor Wooten recommend this to understand the neck horizontally and to practise shifting.',
+  tips: ['Use fingers 1-2-4 or 1-3-4 per shift, like the double-bass Simandl method.', 'Say the step size: W W H W W W H.'],
+  source: 'Gary Willis (linear approach); Victor Wooten; TalkingBass one-string scales',
+  params: { type: typeP(['ionian', 'aeolian', 'dorian', 'mixolydian', 'majorPent', 'minorPent', 'harmonicMinor', 'melodicMinor']), key: keyP(T.SCALES.ionian.iv, { cycles: false }), string: sel('String', [['E', 'E string'], ['A', 'A string'], ['D', 'D string'], ['G', 'G string']], 'A') },
+  bpm: 66, sub: 2, label: 'degree',
+  build(p, ctx, S) {
+    const b = new Builder(ctx, S);
+    const k = Number(p.key);
+    let s = Math.max(0, ctx.str(p.string));
+    let f0 = T.mod(k - ctx.tuning[s], 12);
+    let moved = '';
+    if (f0 + 12 > ctx.maxFret) {
+      // the octave would run off the neck: use the nearest string where it fits
+      const alt = [s - 1, s + 1, s - 2, s + 2].find((x) => x >= 0 && x < ctx.tuning.length && T.mod(k - ctx.tuning[x], 12) + 12 <= ctx.maxFret);
+      if (alt != null) { s = alt; f0 = T.mod(k - ctx.tuning[s], 12); moved = `on the ${ctx.names[s]} string`; }
+    }
+    const tonic = T.bestRoot(k, T.SCALES[p.type].iv);
+    b.chord(`${nm(tonic, S)} ${scaleShort(p.type)}`, moved || undefined);
+    b.line(scaleRun(tonic, p.type, ctx.tuning[s] + f0), { place: { string: s } });
+    return b.build({ label: 'degree' });
+  },
+});
+
+const allKeysPosition = ex({
+  id: 'sc-keys-one-position', module: M, level: 3, star: true,
+  title: 'All 12 keys in one position',
+  summary: 'Cycle of 4ths without moving the hand: the root goes where the zone allows.',
+  about: 'Stay inside one 5-fret zone and play the scale of every key around the cycle. The root sometimes starts on the E string and sometimes on the A string, and the fingering changes, but the hand stays still. This is how sight-readers and jazz players learn to see every key under their hand.',
+  tips: ['Before each key, find its root inside the zone.', 'Fingerings with the root under finger 1, 2 or 4 will all appear.'],
+  source: 'Ariane Cap / TalkingBass (keys in one position); Gary Willis; SBL Zones',
+  params: { type: typeP(['ionian', 'aeolian', 'mixolydian', 'dorian', 'majorPent', 'minorPent']), zone: zoneP, order: orderP },
+  bpm: 72, sub: 2, label: 'degree',
+  build(p, ctx, S) {
+    const b = new Builder(ctx, S);
+    const zone = ZONES[p.zone];
+    const region = [zone[0], zone[1]];
+    for (const k of keysFor(p.order)) {
+      const tonic = T.bestRoot(k, T.SCALES[p.type].iv);
+      let best = null;
+      for (const sName of ['E', 'A', 'D']) {
+        const s = ctx.str(sName);
+        if (s < 0) continue;
+        for (let f = region[0]; f <= region[1]; f++) {
+          if (T.mod(ctx.tuning[s] + f, 12) !== k) continue;
+          const run = scaleRun(tonic, p.type, ctx.tuning[s] + f);
+          const uniq = [...new Set(run.map((x) => x.midi))].sort((a, c) => a - c);
+          const path = place(uniq, ctx, { region, open: 'avoid', pin: { [ctx.tuning[s] + f]: s } });
+          const cost = path.cost + (sName === 'D' ? 1 : 0);
+          if (!best || cost < best.cost) best = { cost, run, s, midi: ctx.tuning[s] + f };
+        }
+      }
+      if (!best) continue;
+      b.chord(`${nm(tonic, S)} ${scaleShort(p.type)}`);
+      b.line(best.run, { place: { region, open: 'avoid', pin: { [best.midi]: best.s } } });
+    }
+    return b.build({ label: 'degree', zone });
+  },
+});
+
+const threeNps = ex({
+  id: 'sc-3nps', module: M, level: 3,
+  title: 'Three notes per string',
+  summary: 'Diagonal scale shapes that cover the neck: three notes on every string.',
+  about: 'With three notes per string the scale climbs diagonally up the neck, covering more range with fewer string crossings. It is the standard fingering for fast scalar runs in fusion and metal, and it links positions together.',
+  tips: ['Some strings need a 5-fret stretch: pivot on the thumb.', 'Use legato (hammer-ons) for speed once it is clean.'],
+  source: 'Common fusion/guitar-derived fingering; TalkingBass Scale Essentials',
+  params: { type: typeP(ALL7), key: keyP(T.SCALES.ionian.iv, { cycles: false }) },
+  bpm: 72, sub: 3, label: 'degree',
+  build(p, ctx, S) {
+    const b = new Builder(ctx, S);
+    const k = Number(p.key);
+    const tonic = T.bestRoot(k, T.SCALES[p.type].iv);
+    const s0 = 0;
+    let f0 = T.mod(k - ctx.tuning[s0], 12);
+    if (f0 < 1) f0 += 12;
+    if (f0 > 9) f0 -= 12;
+    if (f0 < 1) f0 += 12;
+    const n = ctx.tuning.length * 3;
+    const items = [];
+    for (let i = 0; i < n; i++) {
+      const q = T.scalePitch(tonic, p.type, ctx.tuning[s0] + f0, i);
+      const s = s0 + Math.floor(i / 3);
+      items.push({ s, f: q.midi - ctx.tuning[s], n: q.n, deg: q.deg });
+    }
+    b.chord(`${nm(tonic, S)} ${scaleShort(p.type)}`);
+    b.frets([...items, ...items.slice(0, -1).reverse()]);
+    return b.build({ label: 'degree' });
+  },
+});
+
+const positions = ex({
+  id: 'sc-positions', module: M, level: 4,
+  title: 'Major scale: the 7 positions across the neck',
+  summary: 'Box positions that start on each degree on the E string. Link them and own the neck.',
+  about: 'Each position starts on a different scale degree on the E string and covers every note of the key within one hand span. Play each box from its lowest note to its highest and back. "All positions" climbs through them up the neck. Together they connect the whole fretboard in one key.',
+  tips: ['The positions overlap: the top of one box is the bottom of the next.', 'Then play the same positions in a minor key (the relative minor uses the same boxes).'],
+  source: 'Berklee PULSE & ILBS-244; LCM scales in 2–3 positions; TalkingBass "3 primary positions"',
+  params: { key: keyP(T.SCALES.ionian.iv, { cycles: false }), pos: sel('Position', [['all', 'All positions (up the neck)'], ...[1, 2, 3, 4, 5, 6, 7].map((i) => [String(i), `Position ${i}`])]), type: typeP(['ionian', 'aeolian', 'majorPent', 'minorPent']) },
+  bpm: 76, sub: 2, label: 'degree',
+  build(p, ctx, S) {
+    const b = new Builder(ctx, S);
+    const k = Number(p.key);
+    const tonic = T.bestRoot(k, T.SCALES[p.type].iv);
+    const len = T.SCALES[p.type].iv.length;
+    const e = Math.max(0, ctx.str('E'));
+    // scale degrees on the E string, ascending from fret 1
+    const starts = [];
+    for (let f = 1; f <= 14; f++) {
+      const pc = T.mod(ctx.tuning[e] + f, 12);
+      const idx = T.SCALES[p.type].iv.findIndex((iv) => T.pc(T.up(tonic, iv)) === pc);
+      if (idx >= 0) starts.push({ f, idx });
+    }
+    const ordered = starts.slice(0, len);
+    const chosen = p.pos === 'all' ? ordered : [ordered[(Number(p.pos) - 1) % ordered.length]];
+    const notesIn = (lo, hi) => {
+      const out = [];
+      ctx.tuning.forEach((open, s) => {
+        for (let f = lo; f <= hi; f++) {
+          const pc = T.mod(open + f, 12);
+          const i = T.SCALES[p.type].iv.findIndex((iv) => T.pc(T.up(tonic, iv)) === pc);
+          if (i >= 0 && !out.some((q) => q.midi === open + f)) out.push({ s, f, midi: open + f, n: T.up(tonic, T.SCALES[p.type].iv[i]), deg: T.scaleLabel(p.type, i) });
+        }
+      });
+      return out.sort((a, c) => a.midi - c.midi);
+    };
+    chosen.forEach((st, i) => {
+      const lo = st.f, hi = st.f + (len === 5 ? 3 : 4);
+      const box = notesIn(lo, hi).filter((q) => !(q.s === e && q.f < st.f));
+      b.chord(`Pos ${(starts.indexOf(st) % len) + 1}`, `${nm(tonic, S)} ${scaleShort(p.type)}`);
+      const seq = i % 2 === 0 || p.pos !== 'all' ? [...box, ...box.slice(0, -1).reverse()] : [...box].reverse();
+      b.frets(seq.map((q) => ({ s: q.s, f: q.f, n: q.n, deg: q.deg })));
+    });
+    return b.build({ label: 'degree' });
+  },
+});
+
+const minorFamily = variant(sequences, {
+  id: 'sc-minor-family', level: 4,
+  title: 'Harmonic & melodic minor',
+  summary: 'The two minor scales of jazz and classical music, straight and in sequences.',
+  about: 'Harmonic minor raises the 7th of natural minor, creating the exotic augmented 2nd (♭6 → 7) and a strong pull to the root. Melodic minor (jazz minor) also raises the 6th: it sounds like major with a ♭3 and is the parent of the altered and Lydian dominant scales. Both appear in RSL, LCM and conservatory programmes from the intermediate grades.',
+  defaults: { type: 'harmonicMinor', pattern: 'g3' }, only: { type: ['harmonicMinor', 'melodicMinor', 'aeolian'] },
+});
+
+const pentPositions = variant(positions, {
+  id: 'sc-pent-positions', level: 4,
+  title: 'Pentatonic: the 5 positions',
+  summary: 'The five pentatonic boxes, linked up the neck in one key.',
+  about: 'The pentatonic scale has five shapes that tile the neck. Each one starts on a different note of the scale. Knowing all five lets you play riffs and fills anywhere, which is an RSL Grade 6 requirement.',
+  defaults: { type: 'minorPent' }, only: { type: ['minorPent', 'majorPent'] },
+  params: { ...positions.params, pos: sel('Position', [['all', 'All 5 (up the neck)'], ...[1, 2, 3, 4, 5].map((i) => [String(i), `Position ${i}`])]) },
+});
+
+const bebop = ex({
+  id: 'sc-bebop', module: M, level: 5,
+  title: 'Bebop scales',
+  summary: 'An extra chromatic passing note puts the chord tones on the beat.',
+  about: 'The bebop dominant scale adds a major 7th to Mixolydian; bebop major adds a ♯5 to major. With eight notes, a descending 8th-note run from the root lands chord tones on the downbeats, which is the secret of bebop lines and great walking bass. Play them descending first, the bebop way.',
+  tips: ['Start on the root on a downbeat and descend: chord tones fall on 1, 2, 3, 4.', 'Use it over a dominant 7th chord (dominant) or a major 6th chord (major).'],
+  source: 'Berklee PULSE; Barry Harris; David Baker "How to Play Bebop"',
+  params: { type: typeP(['bebopDom', 'bebopMajor', 'bebopDorian']), key: keyP(T.SCALES.bebopDom.iv), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]) },
+  bpm: 80, sub: 2, label: 'degree',
+  build(p, ctx, S) { return scaleBuild({ ...p, root: 'E' }, ctx, S, { dir: 'downup', octaves: Number(p.oct) }).build({ label: 'degree' }); },
+});
+
+const symmetric = ex({
+  id: 'sc-symmetric', module: M, level: 5,
+  title: 'Symmetric scales: diminished & whole tone',
+  summary: 'Scales built from repeating cells: the shape repeats every 3 frets (diminished) or 2 frets (whole tone).',
+  about: 'The half-whole diminished scale alternates half and whole steps and fits dominant 7♭9 chords. The whole-half version fits diminished chords. The whole-tone scale is all whole steps, the sound of augmented chords and dream sequences. Because they are symmetric, their shapes repeat along the neck.',
+  tips: ['Find the repeating 2-string shape and move it up 3 frets.', 'Sequences in 3rds and 4ths sound very modern on these scales.'],
+  source: 'RSL Grade 8; LCM Grade 7; Spanish conservatory year 5; Berklee PULSE',
+  params: { type: typeP(['dimHW', 'dimWH', 'wholeTone']), key: keyP(T.SCALES.dimHW.iv), pattern: patP(['straight', 'thirds', 'g3', 'g4', 'fourths'], 'straight'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]) },
+  bpm: 72, sub: 4, label: 'degree',
+  build(p, ctx, S) { return scaleBuild({ ...p, root: 'E' }, ctx, S).build({ label: 'degree' }); },
+});
+
+const sixthDim = ex({
+  id: 'sc-sixth-diminished', module: M, level: 5,
+  title: 'Barry Harris: the 6th-diminished scale',
+  summary: 'C6 tones on the beat, Bdim7 tones between: an 8-note scale that "harmonises itself".',
+  about: 'Barry Harris taught adding a ♭6 to the major scale (C D E F G A♭ A B). Its notes alternate between a C6 chord (C E G A) and a Bdim7 chord (B D F A♭). Played in 8ths, chord tones land on the beats, and every diminished note resolves to a chord tone a half step away. This is the foundation of bebop movement.',
+  tips: ['Accent the C6 notes; feel the diminished notes as passing.', 'Then harmonize it in 3rds: it creates alternating C6 and Bdim7 shapes.'],
+  source: 'Barry Harris workshops; "The Barry Harris Approach to Improvised Lines and Harmony" (Alan Kingstone)',
+  params: { key: keyP(T.SCALES.sixthDim.iv), pattern: patP(['straight', 'thirds', 'triads', 'g4'], 'straight') },
+  bpm: 76, sub: 2, label: 'degree',
+  build(p, ctx, S) {
+    const b = scaleBuild({ ...p, root: 'A', oct: '1' }, ctx, S, { type: 'sixthDim', pattern: p.pattern });
+    b.steps.forEach((st) => { const d = st.notes[0]?.deg; if (['R', '3', '5', '6'].includes(d)) st.accent = true; });
+    return b.build({ label: 'degree' });
+  },
+});
+
+const sidestep = ex({
+  id: 'sc-pent-sidestep', module: M, level: 5,
+  title: 'Pentatonic side-stepping',
+  summary: 'Play the pentatonic, slip a half step up for one bar ("outside"), then resolve back.',
+  about: 'Side-stepping is a classic way to play "outside": shift the whole pentatonic up a half step for a moment, creating tension, and then resolve back into the key. It works because the shape is strong and the resolution is clear. Fusion and modern jazz players use it constantly.',
+  tips: ['Make the outside bar sound intentional: strong rhythm, clear shape.', 'Resolve to a chord tone on beat 1.'],
+  source: 'Charlie Banacos (pentatonic side-stepping); Michael Brecker / Scott Henderson practice',
+  params: { key: keyP(T.SCALES.minorPent.iv, { def: '9', cycles: false }), side: sel('Side-step', [['1', 'Half step up'], ['-1', 'Half step down'], ['6', 'Tritone away']]) },
+  bpm: 80, sub: 2, label: 'note',
+  build(p, ctx, S) {
+    const b = new Builder(ctx, S);
+    const k = Number(p.key);
+    const r = pickRoot(ctx, k, { strings: ['E'], hi: 9 });
+    const parts = [[k, 'inside'], [T.mod(k + Number(p.side), 12), 'outside'], [k, 'inside']];
+    for (const [pcv, label] of parts) {
+      const tonic = T.bestRoot(pcv, T.SCALES.minorPent.iv);
+      let m = r.midi + (pcv - k);
+      if (Number(p.side) === 6 && label === 'outside') m = r.midi + 6;
+      b.chord(`${nm(tonic, S)}m pent`, label);
+      b.line(scaleRun(tonic, 'minorPent', m, { pattern: 'straight' }), { place: { open: 'avoid', center: r.f + 1 } });
+    }
+    return b.build({ label: 'note' });
+  },
+});
+
+const oddGroups = variant(sequences, {
+  id: 'sc-odd-groupings', level: 6,
+  title: 'Odd groupings in 16ths, all keys',
+  summary: 'Groups of 5 (or 3) in 16ths through all 12 keys: maximum rhythmic tension.',
+  about: 'Phrase the scale in groups of 5 while playing 16ths. Each group starts on a different part of the beat, and you go around all 12 keys without stopping. This is a pro-level exercise for time, fretboard knowledge and stamina at once.',
+  defaults: { pattern: 'g5', key: 'cycle4', oct: '1' }, sub: 4, bpm: 60,
+});
+
+const intervallic = variant(sequences, {
+  id: 'sc-alternating-all-keys', level: 6,
+  title: 'Alternating 3rds through all keys',
+  summary: '1-3, 4-2, 3-5, 6-4… zig-zag 3rds in every key around the cycle.',
+  about: 'Alternating-direction intervals produce wide, melodic lines that are hard to play cleanly. Taking them around all 12 keys without stopping is a mastery-level drill for ears, eyes and hands.',
+  defaults: { pattern: 'thirdsAlt', key: 'cycle4' }, sub: 2, bpm: 76,
+});
+
+export default [oneOctave, openPosition, blues, chromatic, twoOctaves, sequences, oneString, allKeysPosition, threeNps, positions, pentPositions, minorFamily, bebop, symmetric, sixthDim, sidestep, oddGroups, intervallic];
+void MANY;

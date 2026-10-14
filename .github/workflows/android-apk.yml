@@ -1,0 +1,31 @@
+# Builds the BassClass Android APK on GitHub's servers (no local Android SDK needed).
+# Push the project to a GitHub repository, then download the APK from the run's "Artifacts".
+name: Build Android APK
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build debug APK
+        run: gradle -p android assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BassClass-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
