@@ -9,6 +9,7 @@ import triads from './triads.js';
 import arpeggios from './arpeggios.js';
 import harmony from './harmony.js';
 import grooves from './grooves.js';
+import licks from './licks.js';
 
 export const LEVELS = [
   { n: 1, name: 'Foundations', desc: 'Open strings, first notes, steady pulse, first shapes.' },
@@ -31,10 +32,11 @@ export const MODULES = [
   { id: 'harmony', name: 'Chords & Harmony', icon: '🎹', desc: 'How chords work, progressions, double stops, shells.' },
   { id: 'grooves', name: 'Grooves & Bass Lines', icon: '🥁', desc: 'Rock, blues, Motown, funk, reggae, Latin, odd meters.' },
   { id: 'walking', name: 'Walking Bass', icon: '🚶', desc: 'Two-feel to bebop: chord tones, approaches, enclosures.' },
+  { id: 'licks', name: 'Jazz Licks', icon: '🎷', desc: 'Advanced vocabulary: ii–V–I, minor, blues, bebop, modern, bass solos.' },
   { id: 'slap', name: 'Slap & Pop', icon: '👍', desc: 'Thumb, pop, hammer, ghost notes, double thumb.' },
 ];
 
-const ALL = [...fretboard, ...technique, ...rhythm, ...intervals, ...scales, ...modes, ...triads, ...arpeggios, ...harmony, ...grooves];
+const ALL = [...fretboard, ...technique, ...rhythm, ...intervals, ...scales, ...modes, ...triads, ...arpeggios, ...harmony, ...grooves, ...licks];
 {
   const seen = new Set();
   for (const t of ALL) {

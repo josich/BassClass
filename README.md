@@ -2,7 +2,7 @@
 
 A landscape app to learn bass from the first open string to mastery. Every exercise is shown **note by note on a fretboard**. Each marker appears as it plays, with the note name, degree or finger, and a dashed arc points to the next note. You hear a **recorded bass**, a metronome counts, and a scrolling tab strip below the neck shows what is coming. A **microphone tuner** is built in.
 
-- **162 exercise families** in 12 modules and 6 levels: fretboard & notes, technique/rudiments, rhythm, intervals, scales, modes, triads, arpeggios & 7ths, chords & harmony, grooves, walking bass, slap. See [docs/CATALOGUE.md](docs/CATALOGUE.md).
+- **169 exercise families** in 13 modules and 6 levels: fretboard & notes, technique/rudiments, rhythm, intervals, scales, modes, triads, arpeggios & 7ths, chords & harmony, grooves, walking bass, **jazz licks**, slap. See [docs/CATALOGUE.md](docs/CATALOGUE.md).
 - **Every exercise is generated, not hard-coded.** Any key, or all 12 keys in a row (cycle of 4ths/5ths/chromatic), plus inversions, scales, patterns, positions, zones and rhythms. That adds up to thousands of distinct drills.
 - **Correct fingering.** A fingering engine models the hand position (one finger per fret, stretches, shifts along a string) and adapts to **4, 5 or 6-string** basses.
 - **Correct spelling.** E.g. B♭ vs A♯, D♭maj7 vs C♯maj7. Degree colours: root, 3rd, 5th, 7th.
@@ -10,6 +10,7 @@ A landscape app to learn bass from the first open string to mastery. Every exerc
 - **Tuner.** Chromatic or per-string, with a cents gauge, adjustable A4 and reference tones. It uses YIN pitch detection, which works down to a 5-string's low B.
 - **Elegant fretboard.** Ebony board, nickel round-wound strings drawn at real gauge ratios (.045–.130), and glossy colour-coded markers (root = square).
 - **Built for practice.** Step-by-step mode (◀ ▶), loop, tempo 30–260, subdivision selector (whole notes to sextuplets), count-in, speed trainer (+4 BPM per loop), "Shape" and "Quiz" reveal modes, mastered/best-BPM tracking, daily warm-up generator and a fretboard explorer.
+- **Jazz licks for advanced players.** 33 original phrases in real jazz vocabulary (ii–V–I, minor ii–V–i, blues, turnarounds, bebop, modern sounds, bass-solo devices). Each plays over its chord changes in all 12 keys, with swing and colour-coded tensions.
 - **Grounded in real curricula.** Content draws on Scott's Bass Lessons, TalkingBass, StudyBass, BassBuzz, RSL/Trinity/LCM grades, Berklee, MI, Spanish conservatories, Bass Fitness, Willis, Friedland, Barry Harris, Banacos, Gwizdala and others. See [docs/RESEARCH.md](docs/RESEARCH.md).
 
 ## Run it on this computer
@@ -71,6 +72,7 @@ web/                    the app (static HTML/CSS/JS, no build step)
   js/dev/sampleprep.js  dev tool that converted the raw samples (trim, retune, level-match, 22 kHz)
 android/                Android Studio WebView wrapper (Kotlin)
 tools/serve.py          local dev server; tools/make_icons.py renders the icons
+.claude/agents/         the two QA agents (qa-reviewer, qa-user); reports go to qa/reports/
 docs/                   research summary and generated exercise catalogue
 ```
 

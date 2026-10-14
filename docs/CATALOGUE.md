@@ -1,6 +1,6 @@
 # BassClass exercise catalogue
 
-162 exercise families. Each runs in any key (or all 12 keys in a row) and has its own variations (patterns, inversions, scales, positions, rhythms), so the number of distinct drills runs into the thousands.
+169 exercise families. Each runs in any key (or all 12 keys in a row) and has its own variations (patterns, inversions, scales, positions, rhythms), so the number of distinct drills runs into the thousands.
 
 Generated from `web/js/curriculum/` (run `saveCatalogue()` from `js/selftest.js` to refresh). ★ = core exercise.
 
@@ -188,6 +188,11 @@ _Approach notes, triad pairs, melodic minor, odd groupings._
 | Walking with enclosures | Walking Bass | Beats 3–4 surround the next root: half step above, half step below, target. | TalkingBass M1 (enclosures); bebop vocabulary; Ed Friedland |
 | Two chords per bar | Walking Bass | Rhythm changes and ii–V cycles: root + approach on every chord. | TalkingBass Simple Steps M2 (two chords per bar); Berklee Online Jazz Bass |
 | Minor walking: iiø–V–i and minor blues | Walking Bass | Walking in minor keys with half-diminished and altered dominant chords. | TalkingBass M3 (minor ii–V–i backing); Berklee |
+| ★ Jazz licks: major ii–V–I | Jazz Licks | Six phrases over Dm7 – G7 – Cmaj7: arpeggios, enclosures, guide tones, ♭9s and tritone subs. | Original licks in standard bebop and post-bop vocabulary (Charlie Parker, Barry Harris, John Coltrane, Ray Brown). |
+| Jazz licks: minor ii–V–i | Jazz Licks | Dm7♭5 – G7♭9 – Cm6: Locrian ♮2, harmonic minor, diminished and altered lines. | Original licks in standard minor-key bebop vocabulary (Barry Harris diminished concept, melodic and harmonic minor). |
+| Jazz licks: blues | Jazz Licks | Blues-scale riffs, the ♭3→3 "blue" slide, chromatic approaches and a walking-solo fill. | Original licks in standard jazz-blues vocabulary (Ray Brown, Paul Chambers, blues tradition). |
+| Jazz licks: turnarounds | Jazz Licks | I–VI7–ii–V and the tritone-sub turnaround in two bars, looping back to the top. | Original turnaround licks in standard jazz vocabulary (secondary dominants, tritone substitution). |
+| Jazz licks: bass solo devices | Jazz Licks | Two-feel pickups, walking lines with triplet skips and pedal-point fills: how bassists solo. | Original phrases inspired by the walking-solo language of Ray Brown and Paul Chambers. |
 
 ### Level 6: Mastery
 
@@ -208,6 +213,8 @@ _All keys, all inversions, Coltrane changes, pro-level stamina._
 | Chordal bass: R-5-10 and R-7-10 through changes | Chords & Harmony | Three-note chords across four strings: accompany yourself like a pianist. | Jaco Pastorius / Victor Wooten chordal approach; RSL Grade 8; MI |
 | Walking with triplet skips | Walking Bass | A swung triplet "skip" on beat 3 of every other bar: the pro walking sound. | TalkingBass M2 (triplets); Ray Brown / Paul Chambers vocabulary |
 | Walking over Coltrane changes | Walking Bass | Giant Steps: key centres a major 3rd apart, two chords per bar. | Taller de Músics/Berklee jazz requirements; John Coltrane "Giant Steps" |
+| ★ Jazz licks: bebop vocabulary | Jazz Licks | "The Lick", enclosure chains, the bebop dominant scale, upper structures and tritone-sub lines. | Original phrases in classic bebop vocabulary (Charlie Parker, Barry Harris, David Baker's bebop studies); "The Lick" is a traditional jazz cliché. |
+| Jazz licks: modern sounds | Jazz Licks | Pentatonic superimposition, triad pairs, the altered scale, Coltrane changes, side-slipping, 16th-note runs. | Original licks inspired by John Coltrane, McCoy Tyner, triad-pair studies (Gary Campbell) and Jaco Pastorius' 16th-note style. |
 | Double thumbing | Slap & Pop | Thumb down (↓) and up (↑) like a pick: Victor Wooten's signature technique. | Victor Wooten; TalkingBass Slap (double thumb); SBL Slap Accelerator |
 
 ## Variation options per exercise
@@ -403,6 +410,16 @@ _All keys, all inversions, Coltrane changes, pro-level stamina._
 - **Minor walking: iiø–V–i and minor blues** (L5, `wk-minor`): Progression: ii – V – I / I – vi – ii – V (turnaround) / Jazz blues / ii–V–I–IV–iiø–V–i (relative minor cycle) / Minor ii – V – i / Minor blues / Rhythm changes (A section) / ii–V–I in all 12 keys / iii – vi – ii – V – I · Key: 12 keys + all-keys cycles
 - **Walking with triplet skips** (L6, `wk-triplet-skips`): Progression: ii – V – I / I – vi – ii – V (turnaround) / Jazz blues / ii–V–I–IV–iiø–V–i (relative minor cycle) / Minor ii – V – i / Minor blues / Rhythm changes (A section) / ii–V–I in all 12 keys / iii – vi – ii – V – I · Key: 12 keys + all-keys cycles
 - **Walking over Coltrane changes** (L6, `wk-giant-steps`): Progression: Coltrane changes (Giant Steps) · Key: 12 keys
+
+### Jazz Licks
+
+- **Jazz licks: major ii–V–I** (L5, `lk-ii-v-i`): Lick: Arpeggio up, ♭9 down / Enclosure into the 3rd / Guide tones with triplets / 1-2-3-5 cells + tritone sub / Bebop scale descent / Triad pairs, then altered triads · Key: 12 keys + all-keys cycles · Feel: Swing 8ths / Straight 8ths
+- **Jazz licks: minor ii–V–i** (L5, `lk-minor-ii-v-i`): Lick: Locrian ♮2 to melodic minor / Harmonic minor descent / Diminished arpeggios (Barry Harris) / Altered scale into the 5th · Key: 12 keys + all-keys cycles · Feel: Swing 8ths / Straight 8ths
+- **Jazz licks: blues** (L5, `lk-blues`): Lick: Blues-scale riff to the IV / Blue-note triplet fill / Chromatic double approach / Blue third (♭3 → 3) · Key: 12 keys + all-keys cycles · Feel: Swing 8ths / Straight 8ths
+- **Jazz licks: turnarounds** (L5, `lk-turnarounds`): Lick: Arpeggios with ♭9s / Chromatic guide tones / Triplet turnaround / Tritone-sub turnaround · Key: 12 keys + all-keys cycles · Feel: Swing 8ths / Straight 8ths
+- **Jazz licks: bass solo devices** (L5, `lk-bass-solo`): Lick: Two-feel to walking pickup / Walking line with triplet skips / Pedal-point fill · Key: 12 keys + all-keys cycles · Feel: Swing 8ths / Straight 8ths
+- **Jazz licks: bebop vocabulary** (L6, `lk-bebop`): Lick: The Lick / Enclosure chain on G7 / Bebop dominant scale from the 3rd / Upper structure to altered / Chromatic approach to every chord tone / Tritone-sub line (D♭7 over G7) · Key: 12 keys + all-keys cycles · Feel: Swing 8ths / Straight 8ths
+- **Jazz licks: modern sounds** (L6, `lk-modern`): Lick: Pentatonic superimposition (Dm7) / Triad pairs C & D (Lydian) / Altered scale run / 16th-note arpeggio run (Jaco-inspired) / Coltrane major-3rd cycle / Side-slipping (out and back in) · Key: 12 keys + all-keys cycles · Feel: Swing 8ths / Straight 8ths
 
 ### Slap & Pop
 

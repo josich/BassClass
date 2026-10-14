@@ -127,7 +127,7 @@ const WARMUP_SLOTS = [
   { label: 'Scales', modules: ['scales', 'modes'] },
   { label: 'Triads', modules: ['triads'] },
   { label: 'Arpeggios', modules: ['arpeggios', 'harmony'] },
-  { label: 'Groove', modules: ['grooves', 'walking', 'rhythm'] },
+  { label: 'Groove', modules: ['grooves', 'walking', 'rhythm', 'licks'] },
 ];
 
 export let currentRoutine = null;

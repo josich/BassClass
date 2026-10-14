@@ -6,6 +6,18 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["tools/serve.py", "8765"],
       "port": 8765
+    },
+    {
+      "name": "qa",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["tools/serve.py", "8878"],
+      "port": 8878
+    },
+    {
+      "name": "qauser",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["tools/serve.py", "8890"],
+      "port": 8890
     }
   ]
 }
