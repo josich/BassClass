@@ -55,11 +55,17 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
   // ------------------------------------------------------------ layout
   const btn = (name, title, onClick, cls = '') => h('button', { class: `icon-btn ${cls}`, title, 'aria-label': title, html: icon(name), onClick });
   const playBtn = btn('play', 'Play / pause (space)', () => { player.toggle(); }, 'big');
-  const paramsEl = h('div', { class: 'exv-params' });
+  // all exercise options live behind one clear button (a strip of selects gets cut off on phones)
+  const optsSum = h('span', { class: 'opts-sum' });
+  const hasParams = Object.keys(tpl.params || {}).length > 0;
+  const optsBtn = hasParams ? h('button', { class: 'opts-btn', title: 'Change scale, key, pattern…', onClick: () => openOptions() },
+    h('span', { class: 'opts-ico', html: icon('sliders') }),
+    h('span', { class: 'opts-txt' }, h('small', {}, 'Options · tap to change'), optsSum)) : h('div', { class: 'grow' });
+  const sheet = h('div', { class: 'sheet', onClick: (e) => { if (e.target === sheet) closeOptions(); } });
   const titleEl = h('div', { class: 'exv-title' }, h('b', {}, tpl.title), h('span', {}, `${mod?.name ?? ''} · Level ${tpl.level} ${lvl ? lvl.name : ''}`));
   const nextBtn = routine ? h('button', { class: 'btn primary', onClick: () => routine.next() }, 'Next ›') : null;
   const top = h('header', { class: 'exv-top' },
-    btn('back', 'Back', () => close()), titleEl, paramsEl, nextBtn,
+    btn('back', 'Back', () => close()), titleEl, optsBtn, nextBtn,
     btn('tuner', 'Tuner', () => { location.hash = '#/tuner'; }), btn('info', 'About this exercise', () => openDrawer()));
 
   const boardEl = h('div', { class: 'exv-board' });
@@ -93,7 +99,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
 
   const drawer = h('aside', { class: 'drawer' });
   const view = h('div', { class: 'exv' }, top, stage, ctrl);
-  root.replaceChildren(view, drawer);
+  root.replaceChildren(view, drawer, sheet);
 
   const fb = new FretboardView(fbHost, { onTap: (s, f) => tapNote(s, f) });
   const tab = new TabView(tabEl, { onSeek: (i) => { if (player.playing) player.pause(); player.stepTo(i); } });
@@ -116,14 +122,36 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
   A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol, octaveUp: S.octaveUp, voice: S.voice });
 
   // ------------------------------------------------------------ params
+  /** Summary of the current options on the header button. */
   function renderParams() {
-    paramsEl.replaceChildren();
-    for (const [k, def] of Object.entries(tpl.params || {})) {
-      const sel = h('select', {}, paramOptions(def, S).map(([v, l]) => h('option', { value: v, selected: v === p[k] }, l)));
-      sel.addEventListener('change', () => { p[k] = sel.value; rebuild(); updateProgress(tpl.id, { params: p }); });
-      paramsEl.append(h('label', { class: 'psel' }, h('small', {}, def.label), sel));
-    }
+    optsSum.textContent = Object.entries(tpl.params || {})
+      .map(([k, def]) => (paramOptions(def, S).find((o) => o[0] === p[k]) || [, p[k]])[1])
+      .join(' · ');
   }
+
+  function openOptions() {
+    const groups = Object.entries(tpl.params || {}).map(([k, def]) => {
+      const chips = h('div', { class: 'chips' });
+      for (const [v, l] of paramOptions(def, S)) {
+        const c = h('button', { class: `chip-btn${v === p[k] ? ' on' : ''}`, onClick: () => {
+          p[k] = v;
+          chips.querySelectorAll('.chip-btn').forEach((x) => x.classList.toggle('on', x === c));
+          rebuild();
+          renderParams();
+          updateProgress(tpl.id, { params: p });
+        } }, l);
+        chips.append(c);
+      }
+      return h('div', { class: 'opt-group' }, h('h4', {}, def.label), chips);
+    });
+    sheet.replaceChildren(h('div', { class: 'panel' },
+      h('header', {}, h('div', {}, h('h2', {}, tpl.title), h('span', { class: 'muted small' }, 'Changes apply instantly.')),
+        h('button', { class: 'btn primary', onClick: () => closeOptions() }, 'Done')),
+      ...groups));
+    sheet.classList.add('open');
+  }
+
+  function closeOptions() { sheet.classList.remove('open'); }
 
   function rebuild() {
     const wasPlaying = player.playing;
@@ -315,7 +343,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     else if (e.code === 'ArrowLeft') manual(-1);
     else if (e.key === '+' || e.key === '=') setBpm(player.bpm + 2);
     else if (e.key === '-') setBpm(player.bpm - 2);
-    else if (e.key === 'Escape') drawer.classList.remove('open');
+    else if (e.key === 'Escape') { drawer.classList.remove('open'); closeOptions(); }
   }
   window.addEventListener('keydown', onKey);
 
