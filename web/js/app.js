@@ -102,7 +102,8 @@ function route() {
   }
   // an exercise number this version does not have (e.g. a link from a newer version)
   if (parts[0] === 'ex') {
-    toast(/^\d+$/.test(parts[1] || '') ? `Exercise ${Number(parts[1])} is not in this version of BassClass` : 'This exercise does not exist');
+    const n = /^\d{1,4}$/.test(parts[1] || '') ? Number(parts[1]) : 0;
+    toast(n >= 1 ? `Exercise ${n} is not in this version of BassClass` : 'This exercise does not exist');
     replacing = true;
     location.replace('#/');
     return;

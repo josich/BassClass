@@ -93,7 +93,7 @@ const climb = ex({
   title: '1-2-3-4 climbing the neck (classic warm-up)',
   summary: 'Up the strings, shift one fret, back down the strings, shift… to the top and back.',
   about: 'The classic chromatic warm-up. Play 1-2-3-4 across all strings, shift up one fret, play 4-3-2-1 back across the strings, shift again, and continue up the neck before coming back down. The frets get closer as you climb, so your stretch changes all the time.',
-  tips: ['The shift is part of the exercise: keep it in time.', 'Alternate i-m strictly, including on string changes.', 'Starting high and moving towards the nut is a great stretch exercise.'],
+  tips: ['The shift is part of the exercise: keep it in time.', 'Alternate i-m strictly, or rake when you move to a lower string (see String crossing & raking).', 'Starting high and moving towards the nut is a great stretch exercise.'],
   source: 'Universal (Bass Fitness, Bass Aerobics, SBL)',
   params: { top: sel('Climb to', [['5', 'Fret 5'], ['9', 'Fret 9'], ['12', 'Fret 12']]), dir: sel('Direction', [['up', 'Up then down'], ['down', 'Start high (stretch)']]) },
   bpm: 80, sub: 2, label: 'finger',

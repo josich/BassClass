@@ -1,6 +1,6 @@
 // Modes: relative and parallel views, mode study, chord-scale playing, melodic/harmonic minor and harmonic major modes.
 import {
-  T, Builder, keysFor, ex, variant, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS, octP,
+  T, Builder, keysFor, ex, variant, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS, octP, jazzAltered,
   progChords, progP, chordRootMidis, emitMixed,
 } from './common.js';
 import { scaleBuild } from './scales.js';
@@ -74,7 +74,7 @@ const parallel = ex({
     const order = p.dir === 'bright' ? BRIGHT : [...BRIGHT].reverse();
     for (const mode of order) {
       const tonic = T.bestRoot(k, T.SCALES[mode].iv);
-      b.chord(`${nm(tonic, S)} ${T.SCALES[mode].name.split(' (')[0]}${sameRoot(k, tonic, S)}`);
+      b.chord(`${nm(tonic, S)} ${modeName(mode)}${sameRoot(k, tonic, S)}`);
       b.line(scaleRun(tonic, mode, r.midi, { dir: 'updown', octaves }), { place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
     }
     return b.build({ label: 'degree' });
@@ -99,10 +99,28 @@ const MODE_FOR = {
   dom7s9: 'altered', dom7b9: 'dimHW', dom7s5: 'wholeTone', dom7b5: 'wholeTone', maj7s5: 'lydianAug',
 };
 const MINOR_TYPES = ['min7', 'min6', 'mMaj7', 'm7b5', 'min'];
-/** Scale for a chord; a dominant resolving down a 5th to a minor chord takes Phrygian dominant (♭9, ♭13). */
+const FAMILY = { maj7: 'maj', maj6: 'maj', maj: 'maj', min7: 'min', min: 'min', dom7: 'dom', m7b5: 'hdim' };
+/** Chord-scale theory (Berklee): a diatonic chord takes the mode of its degree in the key. */
+const BY_DEGREE = {
+  major: { '0:maj': 'ionian', '2:min': 'dorian', '4:min': 'phrygian', '5:maj': 'lydian', '7:dom': 'mixolydian', '9:min': 'aeolian', '11:hdim': 'locrian' },
+  minor: { '0:min': 'aeolian', '2:hdim': 'locrian', '3:maj': 'ionian', '5:min': 'dorian', '7:min': 'phrygian', '8:maj': 'lydian', '10:dom': 'mixolydian' },
+};
+/**
+ * Scale for a chord by its function: diatonic chords by degree (IV Lydian, vi Aeolian, a minor key's
+ * iiø Locrian), a dominant resolving down a 5th to a minor chord Phrygian dominant (♭9, ♭13), and any
+ * other chord by its quality (secondary dominants Mixolydian, m(maj7) melodic minor, °7 whole-half).
+ */
 function modeFor(c, next) {
   const toMinor = next && MINOR_TYPES.includes(next.type) && T.mod(T.pc(next.root) - T.pc(c.root), 12) === 5;
   if (toMinor && (c.type === 'dom7' || c.type === 'dom7b9')) return 'phrygianDom';
+  const fam = FAMILY[c.type];
+  if (fam && c.key != null) {
+    const deg = T.mod(T.pc(c.root) - c.key, 12);
+    const mode = BY_DEGREE[c.minorKey ? 'minor' : 'major'][`${deg}:${fam}`];
+    if (mode) return mode;
+  }
+  // the iiø of a minor ii–V–i in a major-key progression (Autumn's relative minor) is Locrian too
+  if (c.type === 'm7b5') return 'locrian';
   return MODE_FOR[c.type] || 'ionian';
 }
 /**
@@ -116,6 +134,8 @@ const DOM_SPELL = {
   wholeToneB5: { 0: ['1', '1'], 2: ['2', '9'], 4: ['3', '3'], 6: ['b5', 'b5'], 8: ['b6', 'b13'], 10: ['b7', 'b7'] },
   lydianDom: { 0: ['1', '1'], 2: ['2', '9'], 4: ['3', '3'], 6: ['#4', '#11'], 7: ['5', '5'], 9: ['6', '13'], 10: ['b7', 'b7'] },
   phrygianDom: { 0: ['1', '1'], 1: ['b2', 'b9'], 4: ['3', '3'], 5: ['4', '11'], 7: ['5', '5'], 8: ['b6', 'b13'], 10: ['b7', 'b7'] },
+  // on every dominant the tensions are named 9, 11, 13 (not 2, 4, 6)
+  mixolydian: { 0: ['1', '1'], 2: ['2', '9'], 4: ['3', '3'], 5: ['4', '11'], 7: ['5', '5'], 9: ['6', '13'], 10: ['b7', 'b7'] },
 };
 /** Mode names for the chord-scale badge ("Ionian", not "Major"). */
 const modeName = (m) => ({ ionian: 'Ionian', aeolian: 'Aeolian' })[m] || T.SCALES[m].name.split(' (')[0];
@@ -124,7 +144,7 @@ const chordScale = ex({
   id: 'md-chord-scale', module: M, level: 4, star: true,
   title: 'Chord-scale: the right mode on every chord',
   summary: 'ii–V–I and real progressions with each chord\'s mode: Dorian, Mixolydian, Ionian…',
-  about: 'Each chord in a progression implies a scale: m7 → Dorian, 7 → Mixolydian (Phrygian dominant when it resolves to a minor chord), maj7 → Ionian, m7♭5 → Locrian ♮2, mMaj7 → melodic minor. Each chord gets its scale in 8th notes, starting on its root in the octave nearest the last note and alternating up and down, so the line flows. This is the foundation of improvising and of scalar walking lines.',
+  about: 'Each chord in a progression implies a scale, chosen by its function in the key (Berklee chord-scale theory): I Ionian, ii Dorian, iii Phrygian, IV Lydian, V Mixolydian, vi Aeolian, viiø Locrian; in a minor key i Aeolian, iiø Locrian, iv Dorian, and a V7 that resolves to a minor chord Phrygian dominant (♭9, ♭13). Chords from outside the key take the scale of their quality: a secondary dominant Mixolydian, m(maj7) melodic minor, °7 whole-half diminished. On dominants the tensions are named 9, 11 and 13. Each chord gets its scale in 8th notes, starting on its root in the octave nearest the last note and alternating up and down, so the line flows. This is the foundation of improvising and of scalar walking lines.',
   tips: ['Notice how few notes change between neighbouring chords.', 'Then try only chord tones on the beats (1-3-5-7) and scale notes in between.'],
   source: 'Berklee chord-scale theory; Tony Grey Bass Academy; Mark Levine "The Jazz Theory Book"',
   params: { prog: progP(['ii-V-I', 'I-vi-ii-V', 'autumn', 'minor-ii-V-i', 'jazz-blues', 'cycle-251']), key: keyP(T.SCALES.ionian.iv) },
@@ -207,8 +227,9 @@ const pitchAxis = ex({
     const sets = { major: BRIGHT, melodic: T.MELODIC_MODES, mix: ['lydian', 'mixolydian', 'dorian', 'phrygianDom', 'altered'] };
     for (const mode of sets[p.set]) {
       const tonic = T.bestRoot(k, T.SCALES[mode].iv);
-      b.chord(`${nm(tonic, S)} ${T.SCALES[mode].name.split(' (')[0]}${sameRoot(k, tonic, S)}`);
-      b.line(scaleRun(tonic, mode, r.midi, { dir: 'up', octaves }), { place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
+      b.chord(`${nm(tonic, S)} ${modeName(mode)}${sameRoot(k, tonic, S)}`);
+      // the altered scale named the jazz way (R ♭9 ♯9 3 ♭5 ♭13 ♭7), like the chord-scale exercises
+      b.line(jazzAltered(mode, tonic, scaleRun(tonic, mode, r.midi, { dir: 'up', octaves })), { place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
     }
     return b.build({ label: 'degree' });
   },

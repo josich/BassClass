@@ -130,7 +130,7 @@ const doubleStops = ex({
   title: 'Double stops over progressions',
   summary: 'Two notes at once: power chords, octaves, 3rds, 10ths and shells.',
   about: 'Bass players add harmony with double stops: root + 5th (rock), root + octave (unison riffs), root + 3rd or 10th (sweet, chordal), root + 7th (jazz shells). Each chord of the progression is struck twice as a double stop with the right 3rd or 7th for its quality.',
-  tips: ['Pluck both strings together with two fingers, or thumb + finger.', 'Mute every other string with the fretting hand.'],
+  tips: ['Pluck both strings together with two fingers, or thumb + finger.', 'Mute every other string with the fretting hand.', 'Close 3rds blur in the low register: they are played an octave up here, and 10ths sound even clearer.'],
   source: 'Trinity Grades 5–7 (power chords, 10ths); TalkingBass/BassBuzz double stops; RSL',
   params: { type: sel('Interval', Object.entries(DS).map(([k, v]) => [k, v.name]), 'tenth'), prog: progP(['I-V-vi-IV', 'I-vi-IV-V', 'I-IV-V-I', 'ii-V-I', 'I-vi-ii-V', 'i-bVII-bVI-V']), key: keyP(T.SCALES.ionian.iv) },
   bpm: 76, sub: 1, label: 'degree',
@@ -138,7 +138,8 @@ const doubleStops = ex({
     const b = new Builder(ctx, S, { jazz: true });
     const e = Math.max(0, ctx.str('E'));
     for (const k of keysFor(p.key)) {
-      const chords = progChords(p.prog, k, { S });
+      // the shell (R + 7th) needs 7th chords; the other double stops follow the style (pop = triads)
+      const chords = progChords(p.prog, k, { S, triads: p.type === 'seventh' ? false : undefined });
       const roots = chordRootMidis(chords, { lo: 29, hi: 40, firstLo: 29, firstHi: 40 });
       chords.forEach((c, i) => {
         let iv = DS[p.type].iv;
@@ -147,7 +148,8 @@ const doubleStops = ex({
         const gap = p.type === 'tenth' ? 3 : p.type === 'third' || p.type === 'power' ? 1 : 2;
         // find a root position (E string first, then higher) where both notes are on the neck
         let pos = null;
-        for (const rm of [roots[i], roots[i] + 12]) {
+        // close 3rds sound muddy in the lowest register: play them an octave up
+        for (const rm of p.type === 'third' ? [roots[i] + 12, roots[i]] : [roots[i], roots[i] + 12]) {
           for (let s0 = e; s0 + gap < ctx.tuning.length && !pos; s0++) {
             const f0 = rm - ctx.tuning[s0], f2 = rm + T.semis(iv) - ctx.tuning[s0 + gap];
             if (f0 >= 1 && f0 <= 12 && f2 >= 0 && f2 <= ctx.maxFret) pos = { s0, f0, f2 };
@@ -272,7 +274,7 @@ const chordal10ths = ex({
     const b = new Builder(ctx, S, { jazz: true });
     const e = Math.max(0, ctx.str('E'));
     for (const k of keysFor(p.key)) {
-      const chords = progChords(p.prog, k, { S });
+      const chords = progChords(p.prog, k, { S, triads: p.voicing === '7' ? false : undefined });
       const roots = chordRootMidis(chords, { lo: 29, hi: 41, firstLo: 29, firstHi: 38 });
       chords.forEach((c, i) => {
         const s0 = e;
@@ -285,6 +287,9 @@ const chordal10ths = ex({
           { s: s0 + (p.voicing === '5' ? 1 : 2), f: roots[i] + T.semis(mid) - ctx.tuning[s0 + (p.voicing === '5' ? 1 : 2)], n: T.up(c.root, mid), deg: T.fmtDeg(mid), tag: 'i' },
           { s: s0 + 3, f: roots[i] + 12 + T.semis(third) - ctx.tuning[s0 + 3], n: T.up(c.root, third), deg: third === 'b3' ? '♭10' : '10', tag: 'm' },
         ];
+        // one hand shape for the strum and the arpeggio: fingers by fret from the lowest
+        const lo = Math.min(...notes.filter((x) => x.f > 0).map((x) => x.f));
+        notes.forEach((x) => { x.finger = x.f === 0 ? 0 : Math.min(4, x.f - lo + 1); });
         b.chord(c.sym);
         b.stack(notes, { dur: c.beats / 2 });
         b.frets([notes[0], notes[1], notes[2], notes[1]].map((x) => ({ ...x, dur: c.beats / 8 })));

@@ -39,7 +39,7 @@ function keySpelling(def, p) {
 export function paramOptions(def, S, p = {}) {
   if (def.kind === 'key') {
     const { ivs, suffix } = keySpelling(def, p);
-    const opts = T.CHROMATIC_PC.map((pcv) => [String(pcv), T.noteName(T.bestRoot(pcv, ivs), S.notation) + suffix]);
+    const opts = T.CHROMATIC_PC.map((pcv) => [String(pcv), T.noteName(def.plain ? T.flatRoot(pcv) : T.bestRoot(pcv, ivs), S.notation) + suffix]);
     return def.cycles ? [...opts, ...CYCLE_OPTS] : opts;
   }
   // options marked { minStrings } only exist on basses with that many strings

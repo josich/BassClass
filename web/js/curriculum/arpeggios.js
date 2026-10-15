@@ -59,7 +59,7 @@ const twoOct = variant(study, {
   title: 'Two-octave 7th arpeggios',
   summary: 'Spread each 7th chord over two octaves with clean position shifts.',
   about: 'Two-octave arpeggios are the RSL Grade 5–7 and LCM Grade 6 standard. Play the first octave in position, shift at the octave and repeat the shape. Plan the shift and keep it identical on the way down.',
-  defaults: { oct: '2', shape: 'updown' },
+  defaults: { oct: '2', shape: 'updown' }, only: { oct: ['2'] },
 });
 
 const SCALES7 = ['ionian', 'aeolian', 'harmonicMinor', 'melodicMinor', 'dorian', 'mixolydian', 'lydian', 'phrygian'];
@@ -86,7 +86,7 @@ const diatonic7inv = variant(diatonic7, {
   title: 'Diatonic 7ths in inversions',
   summary: 'Every chord of the key starting from its 3rd, 5th or 7th.',
   about: 'Inversions of 7th chords give smooth, scale-like bass lines and are required at LCM Grade 8 and in conservatory programmes. Move through the key with each chord in the same inversion, then mix them.',
-  defaults: { inversion: '1', pattern: 'alt' },
+  defaults: { inversion: '1', pattern: 'alt' }, only: { inversion: ['1', '2', '3'] },
 });
 
 const zoneCycle7 = ex({
@@ -198,15 +198,15 @@ const giant = variant(voiceLed, {
   title: 'Giant Steps arpeggios',
   summary: 'Coltrane changes: key centres a major 3rd apart, at tempo.',
   about: 'John Coltrane\'s "Giant Steps" moves between three keys a major 3rd apart (B, G, E♭) with V7 chords connecting them, often two chords per bar. Arpeggiating the changes in a continuous, voice-led line is one of the classic mastery tests for bassists and soloists.',
-  defaults: { prog: 'giant-steps', key: '11', pattern: 'up' }, bpm: 100,
+  defaults: { prog: 'giant-steps', key: '11', pattern: 'up' }, only: { prog: ['giant-steps'] }, bpm: 100,
 });
 
 const rhythmChanges = variant(voiceLed, {
   id: 'arp-rhythm-changes', level: 6,
   title: 'Rhythm changes arpeggios (A section)',
-  summary: 'I-vi-ii-V turnarounds two chords per bar, in all keys.',
+  summary: 'The A section of rhythm changes: I – VI7 – ii – V turnarounds, two chords per bar.',
   about: 'The A section of "I Got Rhythm" changes chord every two beats. Outlining it with voice-led arpeggios at tempo is a standard benchmark in jazz programmes. Then move it around the cycle.',
-  defaults: { prog: 'rhythm-A', key: '10' }, bpm: 120,
+  defaults: { prog: 'rhythm-A', key: '10' }, only: { prog: ['rhythm-A'] }, bpm: 120,
 });
 
 const guideTones = ex({
@@ -454,7 +454,7 @@ const diatonic7AllKeys = variant(diatonic7, {
   title: 'Diatonic 7ths in all 12 keys (up one, down the next)',
   summary: 'The harmonised scale in 7th chords through the whole cycle, alternating directions.',
   about: 'Every diatonic 7th chord of every key, without stopping: Imaj7 up, iim7 down, iiim7 up… then the next key in the cycle. Switch inversions and scales (harmonic and melodic minor) for a complete conservatory-level workout.',
-  defaults: { key: 'cycle4', pattern: 'alt' }, bpm: 66,
+  defaults: { key: 'cycle4', pattern: 'alt' }, only: { pattern: ['alt'] }, bpm: 66,
 });
 
 const BROKEN_CHORDS = [

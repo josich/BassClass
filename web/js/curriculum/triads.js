@@ -19,7 +19,13 @@ export function arpBuild(p, ctx, S, { ivs, type, shape = 'updown', octaves = 1, 
   for (const k of keys) {
     const root = T.bestRoot(k, ivs);
     const many = keys.length > 1;
-    const r = pickRoot(ctx, k, { strings: many ? ['E', 'A'] : [rootStr], hi: many ? 8 : 12, prev, prefer: rootStr });
+    let r = pickRoot(ctx, k, { strings: many ? ['E', 'A'] : [rootStr], hi: many ? 8 : 12, prev, prefer: rootStr });
+    // a root up at frets 10–12 (A on the A string) moves to the string below, if it is lower there
+    if (!many && octaves === 1 && r.f > 9 && ctx.str(rootStr) > 0) {
+      const below = ctx.names[ctx.str(rootStr) - 1];
+      const r2 = pickRoot(ctx, k, { strings: [below], lo: 1, hi: 9 });
+      if (r2.f >= 1 && r2.f <= 9) { b.fixed = { root: `${below} string (on the ${rootStr} string the root is at fret ${r.f})` }; r = r2; }
+    }
     const idxs = ARP_SHAPES[shape].f(ivs.length, octaves);
     b.chord(chordName(root, type, S));
     const tones = chordTones(root, ivs, r.midi, idxs, inversion);
@@ -88,7 +94,7 @@ const triadQualities = ex({
   about: 'A triad stacks two thirds: root (R), 3rd and 5th. Major = R-3-5, minor = R-♭3-5, diminished = R-♭3-♭5, augmented = R-3-♯5. Sus chords replace the 3rd with a 2nd or 4th. Each quality has its own shape on the neck; learn the shape and the sound together and say the degrees aloud.',
   tips: ['Major with root on finger 2: 3rd one string up and one fret back (finger 1), 5th one string up and two frets forward (finger 4).',
     'Minor with root on finger 1: ♭3 three frets up on the same string (finger 4), 5th one string up two frets forward (finger 3).',
-    'Use "All 12 · cycle of 4ths" once a shape is comfortable. That is how every academy drills it.'],
+    'Use "All 12 · cycle of 4ths" once a shape is comfortable: the classic way to drill a shape in every key.'],
   source: 'RSL Grade 1–3, LCM, StudyBass Fundamentals, TalkingBass Chord Tone Essentials',
   params: { quality: sel('Triad', QUALITY_TRIADS), key: keyP(), root: rootStrP('A'), shape: arpShapeP(['updown', 'octave', 'up', 'turn', 'r535', 'down']) },
   bpm: 70, sub: 2, label: 'degree',
@@ -320,7 +326,7 @@ const stringSets = ex({
   id: 'tri-string-sets', module: M, level: 4,
   title: 'Triads on every string set',
   summary: 'One note per string: root, 1st and 2nd inversion on E-A-D and A-D-G.',
-  about: 'Here each note of the triad sits on its own string, across three adjacent strings. On each string set you play root position, 1st inversion and 2nd inversion, moving up the neck. These "spread" shapes are the ones chordal bassists and soloists use.',
+  about: 'Here each note of the triad sits on its own string, across three adjacent strings. On each string set you play root position, 1st inversion and 2nd inversion, moving up the neck. These one-note-per-string shapes are the ones chordal bassists and soloists use.',
   tips: ['Use one finger per note and let the notes ring as a chord at the end.', 'On a 5-string you also get the B-E-A set.'],
   source: 'Common chord-study practice (Berklee Chord Studies for Electric Bass, MI)',
   params: { key: keyP(['1', '3', '5'], { cycles: false }), quality: sel('Triad', QUALITY_TRIADS.slice(0, 4)) },
@@ -368,11 +374,12 @@ const diatonic = ex({
     key: keyP(['1', '3', '5']), scale: sel('Scale', SCALE_TYPE_OPTS(SCALES_DIATONIC)), order: degSeqP,
     pattern: triadOrderP(['up', 'turn', 'alt', 'down', 'updown', 'r535'], 'up'),
     inversion: sel('Inversion', [['0', 'Root position'], ['1', '1st inversion'], ['2', '2nd inversion']]),
-    stack: sel('Stack', Object.entries(STACKS).map(([k, v]) => [k, v.name])), root: rootStrP('A'),
+    root: rootStrP('A'),
   },
   bpm: 72, sub: 3, label: 'degree',
+  // triads by default; the sus/quartal and spread exercises bring their own stack
   build(p, ctx, S) {
-    return diatonicBuild(p, ctx, S, { offsets: STACKS[p.stack].off, order: TRIAD_ORDERS[p.pattern].f, inversion: Number(p.inversion) }).build({ label: 'degree' });
+    return diatonicBuild(p, ctx, S, { offsets: STACKS[p.stack || 'thirds'].off, order: TRIAD_ORDERS[p.pattern].f, inversion: Number(p.inversion) }).build({ label: 'degree' });
   },
 });
 
@@ -380,7 +387,7 @@ const diatonicMinor = variant(diatonic, {
   id: 'tri-diatonic-minor', level: 4,
   title: 'Harmonised triads in minor scales',
   summary: 'Natural, harmonic and melodic minor: where the V chord becomes major and the augmented triad appears.',
-  about: 'Harmonise the three minor scales. Natural minor gives i ii° III iv v VI VII. Harmonic minor raises the 7th, so V becomes major and III becomes augmented. Melodic minor also raises the 6th, giving i ii III+ IV V vi° vii°. These chords are behind most minor-key music and jazz.',
+  about: 'Harmonise the three minor scales. Natural minor gives i ii° ♭III iv v ♭VI ♭VII. Harmonic minor raises the 7th, so V becomes major and ♭III becomes augmented. Melodic minor also raises the 6th, giving i ii ♭III+ IV V vi° vii°. (The numerals are counted from the major scale, as on the chord badges.) These chords are behind most minor-key music and jazz.',
   defaults: { scale: 'harmonicMinor' }, only: { scale: ['aeolian', 'harmonicMinor', 'melodicMinor'] },
 });
 
@@ -389,7 +396,7 @@ const diatonicInv = variant(diatonic, {
   title: 'Harmonised triads in inversions',
   summary: 'The same diatonic chords starting from the 3rd or the 5th.',
   about: 'Play every diatonic triad in 1st inversion (3-5-R) or 2nd inversion (5-R-3). You get new shapes and new lines, and these are the inversions that make bass lines move smoothly.',
-  defaults: { inversion: '1', pattern: 'turn' },
+  defaults: { inversion: '1', pattern: 'turn' }, only: { inversion: ['1', '2'] },
 });
 
 const diatonic4ths = variant(diatonic, {
@@ -397,7 +404,7 @@ const diatonic4ths = variant(diatonic, {
   title: 'Diatonic triads in 4ths (I-IV-vii°-iii-vi-ii-V-I)',
   summary: 'Move the chords in 4ths, the strongest root motion in music.',
   about: 'Root movement by 4ths (or 5ths down) is the backbone of real progressions: vi-ii-V-I, iii-vi-ii-V. This drills the diatonic cycle inside one key, so the progressions you meet later already feel familiar.',
-  defaults: { order: 'fourths', pattern: 'alt' },
+  defaults: { order: 'fourths', pattern: 'alt' }, only: { order: ['fourths'] },
 });
 
 const diatonicModes = variant(diatonic, {
@@ -414,7 +421,8 @@ const susQuartal = variant(diatonic, {
   summary: 'Replace the 3rds with 4ths: modern, open sounds (McCoy Tyner, modal jazz, fusion).',
   about: 'Stack 4ths instead of 3rds and you get sus4 (1-4-5) or quartal (1-4-7) chords. They have no major/minor colour, which makes them ideal for modal music and fusion. On bass they lie flat across the strings (the same fret on neighbouring strings).',
   source: 'McCoy Tyner and modal-jazz quartal voicings; Mark Levine "The Jazz Theory Book" (sus and fourth chords); fusion bass practice',
-  defaults: { stack: 'quartal', pattern: 'up' },
+  params: { stack: sel('Stack', ['sus4', 'sus2', 'quartal'].map((k) => [k, STACKS[k].name]), 'quartal') },
+  defaults: { pattern: 'up' },
 });
 
 const openTriads = variant(diatonic, {
@@ -422,7 +430,8 @@ const openTriads = variant(diatonic, {
   title: 'Open (spread) triads R-5-10',
   summary: 'Root, 5th and 10th: the big, open sound of piano left hands and chordal bass.',
   about: 'Move the 3rd up an octave and you get the open voicing R-5-10. It spans a wide interval and crosses strings, so your hand learns to leap. Play it through the harmonised scale for a full, orchestral sound.',
-  defaults: { stack: 'spread', pattern: 'up', root: 'E' },
+  defaults: { pattern: 'up', root: 'E' },
+  build(p, ctx, S) { return diatonic.build({ ...p, stack: 'spread' }, ctx, S); },
 });
 
 // ---------------------------------------------------------------- voice leading & progressions
@@ -640,20 +649,30 @@ const triadPairs = ex({
       const pr = PAIRS[p.pair];
       const A = { root: T.bestRoot(T.mod(k + pr.a[0], 12), ivsOf(pr.a[1])), ivs: ivsOf(pr.a[1]), type: pr.a[1] };
       const B = { root: T.bestRoot(T.mod(k + pr.b[0], 12), ivsOf(pr.b[1])), ivs: ivsOf(pr.b[1]), type: pr.b[1] };
-      const base = pickRoot(ctx, T.pc(A.root), { strings: ['E', 'A'], hi: 7 }).midi;
+      const rA = pickRoot(ctx, T.pc(A.root), { strings: ['E', 'A'], lo: 2, hi: 8 });
+      const base = rA.midi;
       let bBase = base + T.mod(T.pc(B.root) - T.pc(A.root), 12);
       if (bBase - base > 6) bBase -= 12;
-      const items = [];
+      // each inversion pair (one triad of each) is one hand position; the hand moves up between pairs
+      const groups = [];
       for (let inv = 0; inv < 4; inv++) {
+        const g = [];
         for (const [X, xm] of [[A, base], [B, bBase]]) {
-          chordTones(X.root, X.ivs, xm, [inv, inv + 1, inv + 2]).forEach((t, j) => items.push({ ...t, chord: j === 0 ? chordName(X.root, X.type, S) : undefined }));
+          chordTones(X.root, X.ivs, xm, [inv, inv + 1, inv + 2]).forEach((t, j) => g.push({ ...t, chord: j === 0 ? chordName(X.root, X.type, S) : undefined }));
         }
+        groups.push(g);
       }
+      const all = groups.flat();
       if (p.dir === 'updown') {
-        const down = items.slice(0, -3).reverse().map((it) => ({ ...it, chord: undefined }));
-        items.push(...down);
+        const down = all.slice(0, -3).reverse().map((it) => ({ ...it, chord: undefined }));
+        for (let i = 0; i < down.length; i += 6) groups.push(down.slice(i, i + 6));
       }
-      b.line(items, { pattern: true, place: { open: 'avoid', center: ctx.str ? 5 : 5 } });
+      const posOf = (m) => {
+        // the fret of a pitch on the lowest string that has it between frets 1 and 12
+        for (let s = 0; s < ctx.tuning.length; s++) { const f = m - ctx.tuning[s]; if (f >= 1 && f <= 12) return f; }
+        return 5;
+      };
+      for (const g of groups) b.line(g, { pattern: true, place: { open: 'avoid', center: posOf(Math.min(...g.map((x) => x.midi))) + 1 } });
     }
     return b.build({ label: 'note' });
   },
@@ -731,7 +750,7 @@ const diatonicAllKeys = variant(diatonic, {
   title: 'Harmonised triads in all 12 keys, in inversions',
   summary: 'Diatonic triads, alternating directions, in 1st inversion, around the cycle without stopping.',
   about: 'The full diatonic-triad drill as a mastery test: every key around the cycle of 4ths, chords alternating up and down, in inversion. Change the inversion and scale to multiply it: 3 inversions × 9 scales × 12 keys. When this flows at 100 BPM in 8th-note triplets, you know triads on the bass.',
-  defaults: { key: 'cycle4', pattern: 'alt', inversion: '1' }, bpm: 66,
+  defaults: { key: 'cycle4', pattern: 'alt', inversion: '1' }, only: { inversion: ['1', '2'] }, bpm: 66,
 });
 
 const rudimentsAllKeys = variant(rudiments, {

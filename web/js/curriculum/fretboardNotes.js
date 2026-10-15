@@ -77,7 +77,7 @@ const landmarks = ex({
   summary: 'Memorise the notes under the fret markers. Every other note is ±1 fret away.',
   about: 'The dots on the neck are your map. Learn the notes at frets 3, 5, 7, 9 and 12 on every string. E string: G A B C♯ E. A string: C D E F♯ A. D string: F G A B D. G string: B♭ C D E G. Once these are automatic, any other note is just one fret away from a landmark.',
   tips: ['Fret 5 is always the next string\'s open note (that\'s how you tune).', 'Fret 7 gives the open note of the next lower string, one octave up (A string fret 7 = E, D string fret 7 = A).'],
-  source: 'TalkingBass "Notes on the Neck"; LCM marker-dot system',
+  source: 'TalkingBass "Notes on the Neck"; position-marker landmarks (frets 3, 5, 7, 9, 12)',
   params: { order: sel('Order', [['string', 'String by string'], ['fret', 'Fret by fret (across strings)']]) },
   bpm: 60, sub: 1, label: 'note',
   build(p, ctx, S) {
@@ -167,7 +167,7 @@ const noteSweep = ex({
   summary: 'One note on every string, up and back, then the next note in the cycle.',
   about: 'Choose a note and find it on each string, staying in the same area of the neck. Play it from the lowest string to the highest and back, saying its name. Then move to the next note in the cycle of 4ths. This builds the vertical view of the neck that sight-readers and improvisers rely on.',
   tips: ['Stay within a few frets: use unisons and octaves, do not jump to the other end of the neck.', 'Start at 60 BPM with one note per beat.'],
-  source: 'Anthony Wellington "Noteworthy"-style drill; StudyBass cycle-of-4ths note drill',
+  source: 'Cycle-of-4ths note-finding drills (StudyBass and others)',
   params: { key: keyP(['1'], { def: 'cycle4' }) },
   bpm: 60, sub: 1, label: 'note',
   build(p, ctx, S) {
@@ -216,7 +216,7 @@ const cycleZone = ex({
 const positionNotes = ex({
   id: 'fb-position-notes', module: M, level: 3,
   title: 'Every note in one position',
-  summary: 'All 12 notes inside one 4-fret position, string by string.',
+  summary: 'Every note inside one 4-fret position, string by string (11 of the 12: the 12th is one fret away).',
   about: 'Reading and improvising happen "in position": the hand stays still and every note within reach must be known instantly. Play every fret of the position on each string, sharps up and flats down, and name them.',
   tips: ['Once you can do it slowly, try Quiz mode on the same position.', 'One finger per fret: index on the first fret of the zone.'],
   source: 'MI reading courses (low → middle → upper position); Berklee',

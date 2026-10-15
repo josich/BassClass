@@ -1,7 +1,7 @@
 // Scales: from the first major scale to sequences, positions, symmetric and bebop scales.
 import {
   T, Builder, keysFor, ex, variant, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS,
-  rootStrP, dirP, octP, place, scaleShort, ZONES, zoneP, orderP,
+  rootStrP, dirP, octP, place, scaleShort, ZONES, zoneP, orderP, jazzAltered, plainKeyP,
 } from './common.js';
 
 const M = 'scales';
@@ -16,15 +16,21 @@ export function scaleBuild(p, ctx, S, { type = p.type, pattern = p.pattern || 's
   let prev = null;
   for (const k of keys) {
     const ivs = T.SCALES[type].iv;
-    const tonic = T.bestRoot(k, ivs);
+    const tonic = plain ? T.flatRoot(k) : T.bestRoot(k, ivs);
     // one key: root on the chosen string; all keys: E or A string, whichever is nearest
     // two octaves always start on the E string (the "Root on" choice applies to one octave)
     const single = octaves > 1 ? 'E' : rootStr;
     // span: keep the top of a 2-octave run (and sequence overshoot) below the highest fret
     const span = 12 * octaves + (pattern === 'straight' ? 0 : 5);
-    const r = pickRoot(ctx, k, { strings: many ? ['E', 'A'] : [single], lo: open ? 0 : 1, hi: many ? 8 : 12, prev, prefer: rootStr, span });
+    let r = pickRoot(ctx, k, { strings: many ? ['E', 'A'] : [single], lo: open ? 0 : 1, hi: many ? 8 : 12, prev, prefer: rootStr, span });
+    // a root up at frets 10–12 (A on the A string) moves to the string below, if it is lower there
+    if (!many && octaves === 1 && r.f > 9 && ctx.str(single) > 0) {
+      const below = ctx.names[ctx.str(single) - 1];
+      const r2 = pickRoot(ctx, k, { strings: [below], lo: 1, hi: 9, span });
+      if (r2.f >= 1 && r2.f <= 9) { b.fixed = { root: `${below} string (on the ${single} string the root is at fret ${r.f})` }; r = r2; }
+    }
     b.chord(`${nm(tonic, S)} ${scaleShort(type)}`);
-    b.line(scaleRun(tonic, type, r.midi, { octaves, pattern, dir }), { place: { pin: { [r.midi]: r.s }, open: open ? 'allow' : 'avoid', center: r.f + 1 } });
+    b.line(jazzAltered(type, tonic, scaleRun(tonic, type, r.midi, { octaves, pattern, dir })), { place: { pin: { [r.midi]: r.s }, open: open ? 'allow' : 'avoid', center: r.f + 1 } });
     prev = r.midi;
   }
   if (octaves > 1) b.fixed = { root: 'E string (2 octaves start low)' };
@@ -53,7 +59,7 @@ const blues = variant(oneOctave, {
   summary: 'Minor pentatonic + ♭5 (the "blue note"), and the major blues scale.',
   about: 'Add the ♭5 to the minor pentatonic and you get the blues scale (1 ♭3 4 ♭5 5 ♭7). The major blues scale (1 2 ♭3 3 5 6) slides from the minor to the major 3rd: the classic country and Motown sound. Both are essential for rock, blues and funk lines and fills.',
   params: { type: typeP(['blues', 'majorBlues']), key: keyP(T.SCALES.blues.iv), root: rootStrP('E'), dir: dirP, oct: octP() },
-  tips: ['Slide into the ♭5 or bend it slightly: it is a passing note.', 'Over a 12-bar blues, the same scale works on all three chords.'],
+  tips: ['Slide into the ♭5 or bend it slightly: it is a passing note.', 'Over a 12-bar blues the (minor) blues scale works on all three chords; the major blues scale follows each chord (C major blues over C7, F major blues over F7).'],
   source: 'RSL Grade 3, LCM Grade 3, Berklee Online Rock Bass',
 });
 
@@ -62,7 +68,7 @@ const openPosition = ex({
   title: 'Scales in open position',
   summary: 'E, A, G, C, F and D using open strings: the first-position keys.',
   about: 'Open strings ring for free and make low keys sound huge. In first position the open strings replace fretted notes. These are the keys of countless rock, pop and folk songs, and of the first grades of every exam board.',
-  tips: ['Let open strings ring their full value, then stop them cleanly.', 'Notice which notes are open strings in each key.'],
+  tips: ['Let open strings ring their full value, then stop them cleanly.', 'Notice which notes are open strings in each key.', 'D major and D minor reach C♯/C and D on the G string (frets 5–7): a small shift at the top.'],
   source: 'Hal Leonard Bass Method; RSL Debut (E, A, G); LCM Preliminary',
   params: { type: typeP(['ionian', 'aeolian', 'minorPent', 'majorPent']), key: sel('Key', [['4', 'E'], ['9', 'A'], ['7', 'G'], ['0', 'C'], ['5', 'F'], ['2', 'D']]), dir: dirP, oct: octP() },
   bpm: 60, sub: 1, label: 'degree',
@@ -187,8 +193,26 @@ const allKeysPosition = ex({
         }
       }
       if (!best) continue;
+      // the zone holds a little more than an octave and a half: when no root has a full octave
+      // above it inside the zone, play down from a high root, or (if neither fits) every note of
+      // the key inside the zone, from the root up to the top, down to the bottom and back
+      const zLo = ctx.tuning[0] + region[0], zHi = ctx.tuning[ctx.tuning.length - 1] + region[1];
+      let run = best.run;
+      const fits = (xs) => xs.every((x) => x.midi >= zLo && x.midi <= zHi);
+      if (!fits(run)) {
+        const roots = [];
+        for (let m = zLo; m <= zHi; m++) if (T.mod(m, 12) === k) roots.push(m);
+        const down = roots.map((m) => scaleRun(tonic, p.type, m - 12, { dir: 'downup' })).find(fits);
+        if (down) run = down;
+        else {
+          const inZone = [];
+          for (let i = -14; i <= 14; i++) { const q = T.scalePitch(tonic, p.type, roots[0], i); if (q.midi >= zLo && q.midi <= zHi) inZone.push({ midi: q.midi, n: q.n, deg: q.deg }); }
+          const t0 = inZone.findIndex((x) => x.midi === roots[0]);
+          run = [...inZone.slice(t0), ...inZone.slice(0, -1).reverse(), ...inZone.slice(1, t0 + 1)];
+        }
+      }
       b.chord(`${nm(tonic, S)} ${scaleShort(p.type)}`);
-      b.line(best.run, { place: { region, open: 'avoid', pin: { [best.midi]: best.s } } });
+      b.line(run, { place: { region, open: 'avoid' } });
     }
     return b.build({ label: 'degree', zone });
   },
@@ -317,7 +341,7 @@ const pentPositions = variant(positions, {
   id: 'sc-pent-positions', level: 4,
   title: 'Pentatonic: the 5 positions',
   summary: 'The five pentatonic boxes, linked up the neck in one key.',
-  about: 'The pentatonic scale has five shapes that tile the neck. Each one starts on a different note of the scale, numbered from the root: Position 1 is the box with the root under your first finger on the E string. Knowing all five lets you play riffs and fills anywhere, which is an RSL Grade 6 requirement.',
+  about: 'The pentatonic scale has five shapes that tile the neck. Each one starts on a different note of the scale, numbered from the root: Position 1 is the box with the root under your first finger on the E string. Knowing all five lets you play riffs and fills anywhere on the neck.',
   tips: ['The positions overlap: the top of one box is the bottom of the next.', 'Then switch to the major pentatonic: the relative major (E♭ for C minor) uses the same boxes.'],
   params: { ...positions.params, type: typeP(['minorPent', 'majorPent']), pos: sel('Position', [['all', 'All 5 (up the neck)'], ...[1, 2, 3, 4, 5].map((i) => [String(i), `Position ${i}`])]) },
 });
@@ -327,7 +351,7 @@ const bebop = ex({
   title: 'Bebop scales',
   summary: 'An extra chromatic passing note puts the chord tones on the beat.',
   about: 'The bebop dominant scale adds a major 7th to Mixolydian; bebop major adds a ♯5 to major. With eight notes, a descending 8th-note run from the root lands chord tones on the downbeats, which is the secret of bebop lines and great walking bass. Play them descending first, the bebop way.',
-  tips: ['Start on the root on a downbeat and descend: chord tones fall on 1, 2, 3, 4.', 'Use it over a dominant 7th chord (dominant) or a major 6th chord (major).'],
+  tips: ['Bebop dominant and bebop major: start on the root on a downbeat and descend, and the chord tones fall on 1, 2, 3, 4.', 'Bebop Dorian (David Baker: Dorian plus the major 3rd) works from the 4th: descending from F in C, the beats get F E♭ C A, the IV7 (F7). It plays ii and V as one sound.', 'Use them over a dominant 7th chord (dominant), a major 6th chord (major) or a minor 7th chord (Dorian).'],
   source: 'Berklee PULSE; Barry Harris; David Baker "How to Play Bebop"',
   params: { type: typeP(['bebopDom', 'bebopMajor', 'bebopDorian']), key: keyP(T.SCALES.bebopDom.iv), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]) },
   bpm: 80, sub: 2, label: 'degree',
@@ -341,7 +365,7 @@ const symmetric = ex({
   about: 'The half-whole diminished scale alternates half and whole steps and fits dominant 7♭9 chords. The whole-half version fits diminished chords. The whole-tone scale is all whole steps, the sound of augmented chords and dream sequences. The augmented scale (1 ♭3 3 5 ♯5 7) alternates minor 3rds and half steps: two augmented triads a half step apart, loved by Coltrane and Oliver Nelson. Because they are symmetric, their shapes repeat along the neck.',
   tips: ['Find the repeating 2-string shape and move it up 3 frets.', 'Sequences in 3rds and 4ths sound very modern on these scales.'],
   source: 'RSL Grade 8; LCM Grade 7; Spanish conservatory year 5; Berklee PULSE',
-  params: { type: typeP(['dimHW', 'dimWH', 'wholeTone', 'augmented']), key: keyP(T.SCALES.dimHW.iv), pattern: patP(['straight', 'thirds', 'g3', 'g4', 'fourths'], 'straight'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]) },
+  params: { type: typeP(['dimHW', 'dimWH', 'wholeTone', 'augmented']), key: plainKeyP(T.SCALES.dimHW.iv), pattern: patP(['straight', 'skip', 'g3', 'g4', 'skip2'], 'straight'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]) },
   bpm: 72, sub: 4, label: 'degree',
   // symmetric scales do not have one note per letter, so they are spelled plainly (D♭ half-whole: D, not E𝄫)
   build(p, ctx, S) { return scaleBuild({ ...p, root: 'E' }, ctx, S, { plain: true }).build({ label: 'degree' }); },
@@ -351,10 +375,10 @@ const sixthDim = ex({
   id: 'sc-sixth-diminished', module: M, level: 5,
   title: 'Barry Harris: the 6th-diminished scale',
   summary: 'C6 tones on the beat, Bdim7 tones between: an 8-note scale that "harmonises itself".',
-  about: 'Barry Harris taught adding a ♭6 to the major scale (C D E F G A♭ A B). Its notes alternate between a C6 chord (C E G A) and a Bdim7 chord (B D F A♭). Played in 8ths, chord tones land on the beats, and every diminished note resolves to a chord tone a half step away. This is the foundation of bebop movement.',
-  tips: ['Accent the C6 notes; feel the diminished notes as passing.', 'Then harmonise it in 3rds: it creates alternating C6 and Bdim7 shapes.'],
+  about: 'Barry Harris taught adding a ♭6 to the major scale (C D E F G A♭ A B). Its notes alternate between a C6 chord (C E G A) and a Bdim7 chord (B D F A♭). Played in 8ths, chord tones land on the beats, and every diminished note resolves to a chord tone a step away. This is the foundation of bebop movement.',
+  tips: ['Accent the C6 notes; feel the diminished notes as passing.', 'Then play it as chords (every other note): C6 and B°7 shapes alternate, the way Barry Harris harmonised it.'],
   source: 'Barry Harris workshops; "The Barry Harris Approach to Improvised Lines and Harmony" (Alan Kingstone)',
-  params: { key: keyP(T.SCALES.sixthDim.iv), pattern: patP(['straight', 'thirds', 'triads', 'g4'], 'straight'), oct: octP() },
+  params: { key: keyP(T.SCALES.sixthDim.iv), pattern: patP(['straight', 'skip', 'sixdim', 'g4'], 'straight'), oct: octP() },
   bpm: 76, sub: 2, label: 'degree',
   build(p, ctx, S) {
     const b = scaleBuild({ ...p, root: p.oct === '2' ? 'E' : 'A', oct: p.oct || '1' }, ctx, S, { type: 'sixthDim', pattern: p.pattern });
@@ -398,7 +422,7 @@ const oddGroups = variant(sequences, {
   summary: 'Groups of 5 (or 3) in 16ths through all 12 keys: maximum rhythmic tension.',
   about: 'Phrase the scale in groups of 5 while playing 16ths. Each group starts on a different part of the beat, and you go around all 12 keys without stopping. This is a pro-level exercise for time, fretboard knowledge and stamina at once.',
   source: 'Rhythmic displacement drills from jazz-fusion teaching (odd groupings over 16ths)',
-  defaults: { pattern: 'g5', key: 'cycle4', oct: '1' }, sub: 4, bpm: 60,
+  defaults: { pattern: 'g5', key: 'cycle4', oct: '1' }, only: { pattern: ['g3', 'g5'] }, sub: 4, bpm: 60,
 });
 
 const intervallic = variant(sequences, {
@@ -408,7 +432,7 @@ const intervallic = variant(sequences, {
   about: 'Alternating-direction intervals produce wide, melodic lines that are hard to play cleanly. Taking them around all 12 keys without stopping is a mastery-level drill for ears, eyes and hands.',
   tips: ['Name each 3rd as you play it: in major they run M m m M M m m.', 'Keep the hand still and let the zig-zag cross strings; shift only where the key forces you to.'],
   source: 'Classic intervallic scale drills (3rds in alternating directions) from conservatory and jazz teaching',
-  defaults: { pattern: 'thirdsAlt', key: 'cycle4' }, sub: 2, bpm: 76,
+  defaults: { pattern: 'thirdsAlt', key: 'cycle4' }, only: { pattern: ['thirdsAlt'] }, sub: 2, bpm: 76,
 });
 
 const EXOTIC = [
@@ -436,7 +460,7 @@ const messiaen = ex({
   about: 'The composer Olivier Messiaen used seven scales built from a cell that repeats inside the octave. Because of that they can be transposed only a few times before the same notes come back: the whole-tone scale (mode 1) has just 2 versions, the diminished scale (mode 2) 3, mode 3 has 4 and modes 4 to 7 have 6. Modes 1 and 2 are the whole-tone and diminished scales of jazz; modes 3 to 7 give the floating, colourful harmony of Messiaen\'s music. Find the repeating cell on the neck and the whole scale follows.',
   tips: ['Mode 3 repeats every 4 frets (1 2 ♭3 | 3 ♯4 5 | ♭6 ♭7 7); modes 4 to 7 repeat every 6 frets.', 'Mode 5 has 6 notes like the whole-tone scale, built from a tiny cell: 1 ♭2 4, then the same cell a tritone higher (♯4 5 7).'],
   source: 'Olivier Messiaen "The Technique of My Musical Language" (1944)',
-  params: { type: typeP(MESSIAEN, 'messiaen3'), key: keyP(T.SCALES.messiaen3.iv, { cycles: false }), pattern: patP(['straight', 'skip', 'g3', 'g4'], 'straight'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]) },
+  params: { type: typeP(MESSIAEN, 'messiaen3'), key: plainKeyP(T.SCALES.messiaen3.iv, { cycles: false }), pattern: patP(['straight', 'skip', 'g3', 'g4'], 'straight'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]) },
   bpm: 72, sub: 4, label: 'degree',
   // more notes than letters: spelled plainly, like the symmetric scales
   build(p, ctx, S) { return scaleBuild({ ...p, root: 'E' }, ctx, S, { plain: true }).build({ label: 'degree' }); },

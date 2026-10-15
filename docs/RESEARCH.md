@@ -28,7 +28,7 @@ This is a summary of the sources used to design the BassClass exercise library. 
 | 2 Elementary | Blues scale, dominant 7th, slides, hammer-ons, 16ths begin, shuffle, keys up to 3 sharps/flats |
 | 3 Intermediate | Harmonic minor, maj7/m7 over 2 octaves, dim/aug triads, inversions, ghost notes, first slap, 5/4 and 7/8 |
 | 4 Upper-intermediate | Pentatonic in 5 positions, modes in 2 positions, melodic minor, m7♭5, dim7, 9ths, inversions in all keys, 10ths |
-| 5 Advanced | Whole-tone, diminished, altered, Lydian dominant, 11ths/13ths, all 7th inversions, tapping, odd-time grooves |
+| 5 Advanced | Whole-tone, diminished, altered, Lydian dominant, 11ths/13ths, all 7th inversions, odd-time grooves (tapping is not covered yet) |
 | 6 Mastery | Melodic/harmonic minor modes, bebop scales, approach notes and enclosures, standards (Autumn Leaves, rhythm changes, Giant Steps) |
 
 ## Principles every program shares (and the app follows)

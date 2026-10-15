@@ -238,6 +238,8 @@ export const SCALE_PATTERNS = {
   up3down1: { name: 'Up 3, down 1 (1-2-3-2)', off: [0, 1, 2, 1] },
   thirdsAlt: { name: '3rds alternating (1-3, 4-2…)', alt: true, off: [0, 2] },
   skip: { name: 'Skip one note', off: [0, 2] }, // "in 3rds" only on 7-note scales
+  skip2: { name: 'Skip two notes', off: [0, 3] },
+  sixdim: { name: 'Every other note: C6 and dim7 chords', off: [0, 2, 4, 6] },
 };
 
 /** Index sequence over a scale spanning `top` steps (len * octaves). */

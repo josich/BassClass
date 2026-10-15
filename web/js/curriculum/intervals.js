@@ -4,7 +4,7 @@ import { T, Builder, keysFor, ex, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTE
 const M = 'intervals';
 const IVS = ['b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7', '8', 'b9', '9', 'b10', '10'];
 const ivName = (iv) => T.IV_NAMES[iv] || iv;
-const ivP = (def = '5') => sel('Interval', IVS.map((iv) => [iv, `${T.fmtDeg(iv)} · ${ivName(iv)}`]), def);
+const ivP = (def = '5') => sel('Interval', IVS.map((iv) => [iv, `${iv === '8' ? '8' : T.fmtDeg(iv)} · ${ivName(iv)}`]), def);
 
 const shapes = ex({
   id: 'iv-shapes', module: M, level: 2,
@@ -66,7 +66,7 @@ const diatonic = ex({
   id: 'iv-diatonic', module: M, level: 3, star: true,
   title: 'Diatonic intervals through the scale',
   summary: 'The scale in 3rds, 4ths, 5ths, 6ths and 7ths: classic melodic sequences.',
-  about: 'Move through the scale in pairs of notes a fixed number of scale steps apart: 1-3, 2-4, 3-5… (3rds), or 1-4, 2-5… (4ths), and so on. The alternating versions flip the direction of every second pair (1-3, 4-2, 3-5, 6-4), which is more melodic and great for fills. These sequences are part of every conservatory scale exam.',
+  about: 'Move through the scale in pairs of notes a fixed number of scale steps apart: 1-3, 2-4, 3-5… (3rds), or 1-4, 2-5… (4ths), and so on. The alternating versions flip the direction of every second pair (1-3, 4-2, 3-5, 6-4), which is more melodic and great for fills. These sequences are a standard part of conservatory scale work.',
   tips: ['Name the interval quality as you go: in major the 3rds run M m m M M m m.', 'In 6ths you will skip strings. Mute carefully.'],
   source: 'Chuck Sher; Spanish conservatory access tests; Berklee levels; TalkingBass Creative Bassist',
   params: { pattern: sel('Interval', Object.entries(DIA)), key: keyP(T.SCALES.ionian.iv), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'harmonicMinor', 'melodicMinor', 'dorian', 'mixolydian'])), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]), root: rootStrP('A') },
@@ -126,22 +126,28 @@ const tenths = ex({
     const tonic = T.bestRoot(k, T.SCALES[p.scale].iv);
     const ivs = T.SCALES[p.scale].iv;
     const notes = [];
+    const base = ctx.tuning[e] + T.mod(k - ctx.tuning[e], 12) - 12;
     for (let i = 0; i < 21; i++) {
-      const q = T.scalePitch(tonic, p.scale, ctx.tuning[e] + T.mod(k - ctx.tuning[e], 12) - 12, i);
+      const q = T.scalePitch(tonic, p.scale, base, i);
       const f = q.midi - ctx.tuning[e];
       if (f >= 1 && f <= 14) notes.push({ q, f, i });
     }
-    const seq = [...notes, ...notes.slice(0, -1).reverse()];
+    // start on the tonic: up to the top of the window, down to its bottom, back to the tonic
+    const t0 = notes.findIndex((x) => T.mod(x.i, ivs.length) === 0);
+    const seq = t0 <= 0 ? [...notes, ...notes.slice(0, -1).reverse()]
+      : [...notes.slice(t0), ...notes.slice(0, -1).reverse(), ...notes.slice(1, t0 + 1)];
     for (const { q, i } of seq) {
-      const up = T.scalePitch(tonic, p.scale, ctx.tuning[e] + T.mod(k - ctx.tuning[e], 12) - 12, i + 2 + 7);
+      const up = T.scalePitch(tonic, p.scale, base, i + 2 + 7);
+      const fifth = T.scalePitch(tonic, p.scale, base, i + 4);
       const third = T.ivBetween(q.n, up.n);
+      const quality = T.ivBetween(q.n, fifth.n);
       const lo = { s: e, f: q.midi - ctx.tuning[e], n: q.n, deg: 'R' };
       const hi = { s: g, f: up.midi - ctx.tuning[g], n: up.n, deg: third === 'b3' ? '♭10' : '10' };
-      b.chord(nm(q.n, S) + (third === 'b3' ? 'm' : ''));
+      // the chord of the degree: B° in C major (not "Bm"), C+ in harmonic minor
+      b.chord(nm(q.n, S) + (third === 'b3' ? (quality === 'b5' ? '°' : 'm') : quality === '#5' ? '+' : ''));
       if (p.mode === 'stop') b.stack([lo, hi], { dur: 2 });
       else b.frets([lo, hi]);
     }
-    void ivs;
     return b.build({ label: 'degree' });
   },
 });
@@ -221,7 +227,7 @@ const earQuiz = ex({
   title: 'Interval quiz: hear it, name it, find it',
   summary: 'Random intervals from a root. Sing and find the second note before it appears.',
   about: 'The root plays, then the interval note. In Quiz mode the next note\'s name shows in the corner and its dot only appears when it sounds. Try to sing it, name the interval and play it before it appears. A new random set is generated every time you open the exercise or change a setting.',
-  tips: ['Turn the bass sound off for the second note and check yourself with the dots.', 'Start with only 3rds, 4ths and 5ths in mind, then add the rest.'],
+  tips: ['Sing or name the second note before it sounds, then check yourself with the dots.', 'Start with only 3rds, 4ths and 5ths in mind, then add the rest.'],
   source: 'RSL ear tests; Charlie Banacos-style ear training',
   params: { key: keyP(['1'], { cycles: false }), set: sel('Intervals', [['basic', '3rds, 4ths, 5ths, octave'], ['all', 'All within an octave']]) },
   bpm: 60, sub: 1, label: 'degree', reveal: 'quiz',

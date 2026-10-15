@@ -47,7 +47,9 @@ class MainActivity : Activity() {
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                 .build()
             val playing = try { audio.getAudioDevicesForAttributes(media) } catch (e: Exception) { emptyList() }
-            if (playing.isNotEmpty()) return if (playing.any { it.type in EXTERNAL_OUTPUTS }) "external" else "speaker"
+            // only the phone's own speaker gets the phone-speaker sound; docks, car audio, casting
+            // and any other output get the natural sound
+            if (playing.isNotEmpty()) return if (playing.all { it.type in BUILTIN_SPEAKERS }) "speaker" else "external"
         }
         // older Android: headphones or an external speaker take over media output as soon as they connect
         val external = audio.getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { it.type in EXTERNAL_OUTPUTS }
@@ -183,6 +185,7 @@ class MainActivity : Activity() {
         const val REQ_MIC = 7
 
         /** Outputs that can play real bass: headphones, headsets, Bluetooth and USB audio, line out, HDMI. */
+        val BUILTIN_SPEAKERS = setOf(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER, 24 /* TYPE_BUILTIN_SPEAKER_SAFE, API 30 */)
         val EXTERNAL_OUTPUTS = setOf(
             AudioDeviceInfo.TYPE_WIRED_HEADSET,
             AudioDeviceInfo.TYPE_WIRED_HEADPHONES,

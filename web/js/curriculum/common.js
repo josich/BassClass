@@ -24,6 +24,8 @@ export const CYCLE_OPTS = [
 /** Key parameter: 12 roots spelled for `ivs` (+ optional all-keys cycles). */
 export const keyP = (ivs = ['1', '3', '5'], { cycles = true, def = '0', label = 'Key', suffix = '' } = {}) =>
   ({ kind: 'key', label, ivs, cycles, default: def, suffix });
+/** Key of a plain-spelled scale (symmetric, Messiaen): flats on the black keys. */
+export const plainKeyP = (ivs, opts) => ({ ...keyP(ivs, opts), plain: true });
 
 /** Select parameter from [[value, label], ...]. */
 export const sel = (label, options, def) => ({ kind: 'select', label, options, default: def ?? options[0][0] });
@@ -82,6 +84,19 @@ export const dirP = sel('Direction', [['updown', 'Up & down'], ['up', 'Up'], ['d
 export const orderP = sel('Key order', [['cycle4', 'Cycle of 4ths'], ['cycle5', 'Cycle of 5ths'], ['chromatic', 'Chromatic']]);
 
 export const SCALE_TYPE_OPTS = (list) => list.map((k) => [k, T.SCALES[k].name]);
+
+/**
+ * The altered scale as jazz players write it over its dominant: G A♭ B♭ B D♭ E♭ F =
+ * R ♭9 ♯9 3 ♭5 ♭13 ♭7 (the academic spelling would call B a "C♭" and label it a 4th).
+ */
+const ALTERED_JAZZ = { 0: ['1', '1'], 1: ['b2', 'b9'], 3: ['b3', '#9'], 4: ['3', '3'], 6: ['b5', 'b5'], 8: ['b6', 'b13'], 10: ['b7', 'b7'] };
+export function jazzAltered(type, tonic, items) {
+  if (type !== 'altered') return items;
+  return items.map((x) => {
+    const sp = ALTERED_JAZZ[T.mod(x.midi - T.pc(tonic), 12)];
+    return sp ? { ...x, n: T.up(tonic, sp[0]), deg: T.fmtDeg(sp[1]) } : x;
+  });
+}
 // scale names on badges: common nouns in lower case ("C major", "C whole tone"), names of modes
 // and of peoples/places capitalised ("C Dorian", "C Phrygian dominant", "C Hungarian minor")
 export const SHORT = {
@@ -190,12 +205,12 @@ export const SEVENTH_ORDERS = {
 
 /** Chords as [interval-from-tonic | semitone offset, chord type, beats]. */
 export const PROGS = {
-  'I-IV-V-I': { name: 'I – IV – V – I', chords: [['1', 'maj7'], ['4', 'maj7'], ['5', 'dom7'], ['1', 'maj7']] },
-  'I-V-vi-IV': { name: 'I – V – vi – IV (pop)', chords: [['1', 'maj7'], ['5', 'dom7'], ['6', 'min7'], ['4', 'maj7']] },
-  'I-vi-IV-V': { name: 'I – vi – IV – V (50s)', chords: [['1', 'maj7'], ['6', 'min7'], ['4', 'maj7'], ['5', 'dom7']] },
-  'vi-IV-I-V': { name: 'vi – IV – I – V', chords: [['6', 'min7'], ['4', 'maj7'], ['1', 'maj7'], ['5', 'dom7']] },
-  'I-bVII-IV-I': { name: 'I – ♭VII – IV – I (rock)', chords: [['1', 'maj7'], ['b7', 'maj7'], ['4', 'maj7'], ['1', 'maj7']] },
-  canon: { name: 'Canon (I–V–vi–iii–IV–I–IV–V)', chords: [['1', 'maj7'], ['5', 'dom7'], ['6', 'min7'], ['3', 'min7'], ['4', 'maj7'], ['1', 'maj7'], ['4', 'maj7'], ['5', 'dom7']] },
+  'I-IV-V-I': { name: 'I – IV – V – I', pop: true, chords: [['1', 'maj7'], ['4', 'maj7'], ['5', 'dom7'], ['1', 'maj7']] },
+  'I-V-vi-IV': { name: 'I – V – vi – IV (pop)', pop: true, chords: [['1', 'maj7'], ['5', 'dom7'], ['6', 'min7'], ['4', 'maj7']] },
+  'I-vi-IV-V': { name: 'I – vi – IV – V (50s)', pop: true, chords: [['1', 'maj7'], ['6', 'min7'], ['4', 'maj7'], ['5', 'dom7']] },
+  'vi-IV-I-V': { name: 'vi – IV – I – V', pop: true, chords: [['6', 'min7'], ['4', 'maj7'], ['1', 'maj7'], ['5', 'dom7']] },
+  'I-bVII-IV-I': { name: 'I – ♭VII – IV – I (rock)', pop: true, chords: [['1', 'maj7'], ['b7', 'maj7'], ['4', 'maj7'], ['1', 'maj7']] },
+  canon: { name: 'Canon (I–V–vi–iii–IV–I–IV–V)', pop: true, chords: [['1', 'maj7'], ['5', 'dom7'], ['6', 'min7'], ['3', 'min7'], ['4', 'maj7'], ['1', 'maj7'], ['4', 'maj7'], ['5', 'dom7']] },
   'ii-V-I': { name: 'ii – V – I', chords: [['2', 'min7'], ['5', 'dom7'], ['1', 'maj7', 8]] },
   'I-vi-ii-V': { name: 'I – vi – ii – V (turnaround)', chords: [['1', 'maj7'], ['6', 'min7'], ['2', 'min7'], ['5', 'dom7']] },
   'iii-vi-ii-V': { name: 'iii – vi – ii – V – I', chords: [['3', 'min7'], ['6', 'min7'], ['2', 'min7'], ['5', 'dom7'], ['1', 'maj7']] },
@@ -206,8 +221,8 @@ export const PROGS = {
   'I-iv-I': { name: 'I – IV – iv – I (minor plagal)', chords: [['1', 'maj7'], ['4', 'maj7'], ['4', 'min6'], ['1', 'maj7']] },
   'minor-ii-V-i': { name: 'Minor ii – V – i', minor: true, chords: [['2', 'm7b5'], ['5', 'dom7b9'], ['1', 'mMaj7', 8]] },
   'i-iv-V-i': { name: 'i – iv – V – i (harmonic minor)', minor: true, chords: [['1', 'min7'], ['4', 'min7'], ['5', 'dom7'], ['1', 'min7']] },
-  'i-bVII-bVI-V': { name: 'Andalusian i – ♭VII – ♭VI – V', minor: true, chords: [['1', 'min7'], ['b7', 'dom7'], ['b6', 'maj7'], ['5', 'dom7']] },
-  'i-bVI-bIII-bVII': { name: 'i – ♭VI – ♭III – ♭VII (epic minor)', minor: true, chords: [['1', 'min7'], ['b6', 'maj7'], ['b3', 'maj7'], ['b7', 'dom7']] },
+  'i-bVII-bVI-V': { name: 'Andalusian i – ♭VII – ♭VI – V', minor: true, pop: true, chords: [['1', 'min7'], ['b7', 'dom7'], ['b6', 'maj7'], ['5', 'dom7']] },
+  'i-bVI-bIII-bVII': { name: 'i – ♭VI – ♭III – ♭VII (epic minor)', minor: true, pop: true, chords: [['1', 'min7'], ['b6', 'maj7'], ['b3', 'maj7'], ['b7', 'dom7']] },
   blues: {
     name: '12-bar blues', chords: [['1', 'dom7'], ['1', 'dom7'], ['1', 'dom7'], ['1', 'dom7'], ['4', 'dom7'], ['4', 'dom7'],
       ['1', 'dom7'], ['1', 'dom7'], ['5', 'dom7'], ['4', 'dom7'], ['1', 'dom7'], ['5', 'dom7']],
@@ -239,7 +254,7 @@ export const PROGS = {
   'ii-V7b5-I': { name: 'ii – V7♭5 – I', chords: [['2', 'min7'], ['5', 'dom7b5'], ['1', 'maj7', 8]] },
   'vamp-min': { name: 'One-chord minor vamp (4 bars)', minor: true, chords: [['1', 'min7', 16]] },
   'vamp-dom': { name: 'One-chord dominant vamp (4 bars)', chords: [['1', 'dom7', 16]] },
-  'i-iv-v-min': { name: 'i – iv – v – i (minor)', minor: true, chords: [['1', 'min7'], ['4', 'min7'], ['5', 'min7'], ['1', 'min7']] },
+  'i-iv-v-min': { name: 'i – iv – v – i (minor)', minor: true, pop: true, chords: [['1', 'min7'], ['4', 'min7'], ['5', 'min7'], ['1', 'min7']] },
   'cycle-dom7': {
     name: 'Dominant 7ths around the cycle', chords: [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7].map((o) => [o, 'dom7']),
   },
@@ -265,14 +280,18 @@ const TRIAD_OF = {
 export const toTriad = (type) => TRIAD_OF[type] || type;
 
 /**
- * Resolve a progression in a key (pc) to chords: { root, type, beats, ivs, sym }.
+ * Resolve a progression in a key (pc) to chords: { root, type, beats, ivs, sym, key, minorKey }.
  * Interval-string chords are spelled from the tonic; semitone chords get best spelling.
+ * triads: true / false forces triads or 7th chords; left out, pop, rock, folk and reggae
+ * progressions (pop: true) are triads (A E F♯m D) and jazz, soul and blues ones keep their 7ths.
+ * `key` is the pc of the key the chord belongs to (a local key for ii–V–I cycles, Giant Steps).
  */
-export function progChords(progKey, tonicPc, { triads = false, S = {} } = {}) {
+export function progChords(progKey, tonicPc, { triads, S = {} } = {}) {
   const prog = PROGS[progKey];
   const tonic = T.bestRoot(tonicPc, prog.minor ? T.SCALES.aeolian.iv : T.SCALES.ionian.iv);
+  const asTriads = triads ?? !!prog.pop;
   return prog.chords.map(([where, type0, beats = 4, keyOff]) => {
-    const type = triads ? toTriad(type0) : type0;
+    const type = asTriads ? toTriad(type0) : type0;
     const ivs = T.CHORDS[type].iv;
     let root;
     if (typeof where !== 'number') root = T.up(tonic, where);
@@ -283,7 +302,8 @@ export function progChords(progKey, tonicPc, { triads = false, S = {} } = {}) {
     } else root = T.bestRoot(T.mod(tonicPc + where, 12), ivs);
     // lead-sheet names: B7, not C♭7 (IV of G♭), and never a double accidental
     if (T.awkward(root)) root = T.bestRoot(T.pc(root), ivs);
-    return { root, type, beats, ivs, sym: chordName(root, type, S) };
+    const key = keyOff != null ? T.mod(tonicPc + keyOff, 12) : tonicPc;
+    return { root, type, beats, ivs, sym: chordName(root, type, S), key, minorKey: !!prog.minor && keyOff == null };
   });
 }
 
@@ -321,7 +341,8 @@ export function resolveToken(tok, chord, rootMidi, nextRoot, nextMidi) {
   const ivs = chord.ivs;
   const third = ivs[1] || '3';
   const fifth = ivs[2] || '5';
-  const seventh = ivs[3] && /7$/.test(ivs[3]) ? ivs[3] : 'b7';
+  // the "7" slot: the chord's own 4th note (the 6 of a 6th chord), or the octave on a triad
+  const seventh = ivs[3] || '8';
   let iv = null, below = false;
   switch (tok) {
     case '3': iv = third; break;
@@ -372,7 +393,8 @@ export function grooveLine(b, chords, roots, pattern, { tags = true, place: popt
         if (tok === '-') {
           pitches.push({ rest: true, dur: d, chord: first ? c.sym : undefined });
         } else {
-          const p = resolveToken(tok, c, roots[ci], nextC.root, nextMidi);
+          const lowTok = tok === 'A' && nextMidi - 1 < Math.min(...b.ctx.tuning) ? 'Ab' : tok;
+          const p = resolveToken(lowTok, c, roots[ci], nextC.root, nextMidi);
           pitches.push({ ...p, dur: d, chord: first ? c.sym : undefined, tag: p.tag === 'x' ? 'x' : (tags && tag) || p.tag });
         }
         first = false;
@@ -427,9 +449,13 @@ const WALK_FORMULAS = {
 export function walkLine(b, chords, roots, formula = 'mixed', { triplets = false } = {}) {
   const cells = WALK_FORMULAS[formula];
   const items = [];
+  const lowest = b.ctx.tuning[0];
   chords.forEach((c, ci) => {
     const next = chords[(ci + 1) % chords.length];
-    const nextMidi = roots[(ci + 1) % chords.length];
+    // approach the note the next bar really starts on: the upper root when its cell opens on '8'
+    const nextCell = cells[(ci + 1) % cells.length];
+    const nextMidi = roots[(ci + 1) % chords.length] + (formula !== 'twofeel' && next.beats > 2 && nextCell[0] === '8' ? 12 : 0);
+    const start = items.length;
     // a dominant with ♭9, or one resolving down a 5th to a minor chord, walks with ♭9 and ♭13
     const toMinor = ['min7', 'min6', 'mMaj7', 'm7b5', 'min'].includes(next.type) && T.mod(T.pc(next.root) - T.pc(c.root), 12) === 5;
     const flatTensions = c.type === 'm7b5' || c.ivs.includes('b9') || (c.type.startsWith('dom') && toMinor);
@@ -449,19 +475,21 @@ export function walkLine(b, chords, roots, formula = 'mixed', { triplets = false
       }
       if (tok === '7' && !c.ivs.find((x) => /7$/.test(x))) tok = 'b7';
       let r = resolveToken(tok, c, roots[ci], next.root, nextMidi);
-      if (r && (tok === 'A' || tok === 'Ab')) {
-        // never "approach" with the note just played (in any octave): take the other side of the target
-        const prevMidi = items.length ? items[items.length - 1].midi : null;
-        // (nor with the current chord's root, which the bar has already stated)
-        // (nor below the lowest string: then it comes from above)
-        const lowest = b.ctx.tuning[0];
-        if ((prevMidi != null && T.mod(r.midi - prevMidi, 12) === 0) || T.mod(r.midi - roots[ci], 12) === 0 || r.midi < lowest) {
-          // from above (the first note of an enclosure): a whole step above instead, so the
-          // enclosure still closes in from both sides; from below: the whole step below when the
-          // note before came from above (the end of an enclosure), else the half step above
-          if (tok === 'Ab') r = { midi: nextMidi + 2, n: spellMidi(nextMidi + 2, true), deg: '→' };
-          else if (prevMidi != null && prevMidi > nextMidi && nextMidi - 2 >= lowest) r = { midi: nextMidi - 2, n: spellMidi(nextMidi - 2, false), deg: '→' };
-          else r = resolveToken('Ab', c, roots[ci], next.root, nextMidi);
+      const prevMidi = items.length ? items[items.length - 1].midi : null;
+      // the dominant approach (the next chord's 5th) cannot be the chord just stated (E7 → Am: E)
+      if (r && tok === 'D' && T.mod(r.midi - roots[ci], 12) === 0) r = resolveToken('A', c, roots[ci], next.root, nextMidi);
+      if (r && (tok === 'A' || tok === 'Ab' || r.deg === '→')) {
+        // an approach is never the note just played (in any octave), never the current chord's
+        // root (the bar has stated it) and never below the lowest string
+        const bad = (m) => m < lowest || (prevMidi != null && T.mod(m - prevMidi, 12) === 0) || T.mod(m - roots[ci], 12) === 0;
+        if (bad(r.midi)) {
+          // from above (the first note of an enclosure): a whole step above, so the enclosure still
+          // closes in from both sides; from below: the whole step below after a note from above
+          // (the end of an enclosure), else the half step above
+          const fromAbove = prevMidi != null && prevMidi > nextMidi;
+          const offs = tok === 'Ab' ? [2, -1, -2] : fromAbove ? [-2, 1, 2] : [1, -2, 2];
+          const m = offs.map((o) => nextMidi + o).find((x) => !bad(x));
+          if (m != null) r = { midi: m, n: spellMidi(m, m > nextMidi), deg: '→' };
         }
         // an approach note that is also a chord tone is spelled as that chord tone (B♭ under B♭7),
         // unless that needs a double sharp/flat (then the plain name reads better)
@@ -475,11 +503,14 @@ export function walkLine(b, chords, roots, formula = 'mixed', { triplets = false
       const cell = cells[ci % cells.length];
       const per = c.beats / 2;
       cell.forEach((tok, i) => items.push({ ...res(tok), dur: per, chord: i === 0 ? c.sym : undefined }));
+      fixLast();
       return;
     }
     if (c.beats <= 2) {
       items.push({ ...res('R'), dur: 1, chord: c.sym });
-      items.push({ ...res(ci % 2 ? 'Ab' : 'A'), dur: 1 });
+      // chord tones only: R and 5 (or 3); the other lines approach the next root
+      items.push({ ...res(formula === 'ct' ? '5' : ci % 2 ? 'Ab' : 'A'), dur: 1 });
+      fixLast();
       return;
     }
     let left = c.beats;
@@ -501,6 +532,16 @@ export function walkLine(b, chords, roots, formula = 'mixed', { triplets = false
       });
       left -= 4;
       k++;
+    }
+    fixLast();
+    // the last note of the chord never repeats the pitch the next chord starts on: chord-tone
+    // lines take another chord tone, the others approach it
+    function fixLast() {
+      const last = items[items.length - 1];
+      if (items.length <= start || !last || last.rest || last.deg === '→') return;
+      if (T.mod(last.midi - nextMidi, 12) !== 0) return;
+      const alt = formula === 'ct' ? ['3', '5'].map((t) => res(t)).find((x) => x && T.mod(x.midi - nextMidi, 12) !== 0) : res('A');
+      if (alt) items[items.length - 1] = { ...last, ...alt, tag: undefined };
     }
   });
   emitMixed(b, items, { center: 4 });
@@ -547,10 +588,11 @@ export function voiceLedItems(chords, { order, lo = 31, hi = 55, rootOnly = fals
   const items = [];
   let prev = null;
   chords.forEach((c, i) => {
-    const vs = voicings(c.root, c.ivs, lo, hi, { rootOnly });
-    const ord = order(i, c.ivs.length);
+    const ivs = c.ivs.length > 4 ? c.ivs.filter((iv) => iv !== '5') : c.ivs;
+    const vs = voicings(c.root, ivs, lo, hi, { rootOnly });
+    const ord = order(i, ivs.length);
     let best = null;
-    const n = c.ivs.length;
+    const n = ivs.length;
     for (const v of vs) {
       const first = v.tones[ord[0] % n].midi + Math.floor(ord[0] / n) * 12;
       const d = Math.abs(first - (prev ?? start)) + (rootOnly ? 0 : v.inv * 0.01);

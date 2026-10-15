@@ -122,7 +122,7 @@ export const SCALES = {
   majorBlues:   { name: 'Major blues', iv: ['1', '2', 'b3', '3', '5', '6'] },
   bebopDom:     { name: 'Bebop dominant', iv: ['1', '2', '3', '4', '5', '6', 'b7', '7'] },
   bebopMajor:   { name: 'Bebop major', iv: ['1', '2', '3', '4', '5', '#5', '6', '7'] },
-  bebopDorian:  { name: 'Bebop dorian', iv: ['1', '2', 'b3', '3', '4', '5', '6', 'b7'] },
+  bebopDorian:  { name: 'Bebop Dorian', iv: ['1', '2', 'b3', '3', '4', '5', '6', 'b7'] },
   sixthDim:     { name: 'Major 6th diminished (Barry Harris)', iv: ['1', '2', '3', '4', '5', 'b6', '6', '7'] },
   dimHW:        { name: 'Diminished half-whole', iv: ['1', 'b2', '#2', '3', '#4', '5', '6', 'b7'] },
   dimWH:        { name: 'Diminished whole-half', iv: ['1', '2', 'b3', '4', 'b5', 'b6', '6', '7'] },
@@ -300,6 +300,10 @@ export function bestRoot(pcv, ivs = ['1', '3', '5']) {
   }
   return best.root;
 }
+
+/** Root names for scales spelled plainly (symmetric, Messiaen): flats on the black keys. */
+const FLAT_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+export const flatRoot = (pcv) => N(FLAT_NAMES[mod(pcv, 12)]);
 
 export const KEY_OPTIONS = (ivs) =>
   CHROMATIC_PC.map((p) => ({ value: String(p), label: noteName(bestRoot(p, ivs)) }));

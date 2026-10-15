@@ -294,7 +294,7 @@ const bebop = lickTemplate({
     { name: 'Enclosure chain on the V7', prog: V_I, notes: 'G2:t C3:t A#2:t B2:t Eb3:t C#3:t D3:t Gb3:t E3:t F3:t D3:t D#3:t | E3:q C3 G2 A2 B2 C3:q' },
     { name: 'Bebop dominant scale from the 3rd', prog: V_I, notes: 'B2 A2 G2 F#2 F2 E2 D2 Db2 | C2:q E2 G2 B2 D3 C3:q' },
     { name: 'Upper structure to altered', prog: V_I, notes: 'F2 A2 C3 E3 Eb3 Db3 B2 Ab2 | G2:q E2 G2 C3 E3 D3:q' },
-    { name: 'Chromatic approach to every chord tone', prog: [['1', 'maj7', 8]], notes: 'C2 D#2 E2 F#2 G2 A#2 B2 C#3 | C3:q B2 G2 E2 C2 r:q' },
+    { name: 'Chromatic approach to every chord tone', prog: [['1', 'maj7', 8]], notes: 'C2 D#2 E2 F#2 G2 A#2 B2 Db3 | C3:q B2 G2 E2 C2 r:q' },
     { name: 'Tritone-sub line (♭II7 over V7)', prog: V_I, notes: 'Ab2 Db3 F3 Ab3 G3 F3 Db3 B2 | C3:q E3 G3 B2 A2 G2:q' },
   ],
 });

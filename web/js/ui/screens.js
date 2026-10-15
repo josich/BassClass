@@ -352,7 +352,7 @@ export function settingsScreen(main) {
       field('Count-in', seg('countIn', [[true, 'One bar'], [false, 'Off']])),
       field('Metronome clicks', seg('clickSubs', [[false, 'Beats only'], [true, 'Beats + subdivisions']])),
       field('Bass volume', range('bassVol', 0, 2, 0.1, 2)),
-      field('Metronome volume', range('clickVol', 0, 1.5, 0.05)),
+      field('Metronome volume', range('clickVol', 0, 1.5, 0.075, 1.5)),
       field('Progress', h('div', { class: 'row' },
         h('button', { class: 'btn', onClick: () => { if (confirm('Reset all progress?')) { resetProgress(); toast('Progress reset'); } } }, 'Reset progress'),
         h('button', { class: 'btn', onClick: () => {
