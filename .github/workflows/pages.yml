@@ -43,6 +43,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Stamp the commit into the web app
+        run: |
+          echo "export const VERSION = '';" > web/js/version.js
+          echo "export const COMMIT = '${GITHUB_SHA::7}';" >> web/js/version.js
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

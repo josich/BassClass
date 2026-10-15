@@ -27,6 +27,7 @@
 - This PC has no JDK, Android SDK, Node, Gradle or numpy, so APKs are built only by GitHub Actions. Audio processing runs in the browser (`web/js/dev/sampleprep.js`).
 - Exercises live in `web/js/curriculum/`, one file per module, with shared helpers in `common.js`. See README "Adding an exercise".
 - Exercise numbers follow the Library order: level, then topic (PATH_ORDER), then the order of the module's `export default [...]` list (computed in `curriculum/index.js`). Put a new exercise where it belongs in that list; the ones after it move up by one (user's choice, 2026-10-15, replacing the earlier frozen `numbers.js`). Everything stored uses ids, never numbers.
+- `web/js/version.js` is overwritten by CI with the release number (`1.0.<run number>`) and commit, shown at the bottom of Settings. Keep the committed copy empty (it reads "development version" locally).
 - Sound: CC0 Karoryfer "darkblack" bass samples in `web/audio/bass/` (B0–E4, plus ghost notes); `web/js/audio.js` falls back to a synth.
 - Design: navy/teal/periwinkle/peach palette (no brown fretboard), real string-gauge proportions, root markers drawn as rounded squares. Keep this look.
 - Downloading anything new (samples, packages, SDKs) needs the user's explicit OK first.

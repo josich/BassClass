@@ -1,4 +1,5 @@
 // Browsing screens: home (daily warm-up + favorites), learning path (topics), library (every exercise), module list, explorer, settings.
+import { VERSION, COMMIT } from '../version.js';
 import { h, icon, toast, rng, esc } from './dom.js';
 import { settings, saveSettings, getProgress, allProgress, resetProgress, DEFAULT_SETTINGS, getFavorites } from '../store.js';
 import { EXERCISES, MODULES, LEVELS, byModule, byLevel, moduleOf, byId, byNumber, defaultParams, topicRank as rank } from '../curriculum/index.js';
@@ -361,5 +362,7 @@ export function settingsScreen(main) {
           settingsScreen(main);
           toast('Settings restored');
         } }, 'Restore defaults')))),
-    h('p', { class: 'muted small', style: { marginTop: '18px' } }, `BassClass works offline once loaded. The bass sound uses recorded CC0 samples (Karoryfer "darkblack"), with a built-in synthesizer as a backup.${location.hostname === 'appassets.androidplatform.net' ? '' : ' Install it from your browser menu → "Add to Home screen" for full-screen landscape mode.'}`));
+    h('p', { class: 'muted small', style: { marginTop: '18px' } }, `BassClass works offline once loaded. The bass sound uses recorded CC0 samples (Karoryfer "darkblack"), with a built-in synthesizer as a backup.${location.hostname === 'appassets.androidplatform.net' ? '' : ' Install it from your browser menu → "Add to Home screen" for full-screen landscape mode.'}`),
+    // the release number (written by the build) and the commit it was built from
+    h('p', { class: 'muted small version' }, VERSION ? `BassClass ${VERSION}${COMMIT ? ` · build ${COMMIT}` : ''}` : `BassClass · development version${COMMIT ? ` · build ${COMMIT}` : ''}`));
 }

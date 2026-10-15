@@ -45,6 +45,13 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      # the app shows its release number at the bottom of Settings
+      - name: Stamp the version into the web app
+        run: |
+          echo "export const VERSION = '1.0.${{ github.run_number }}';" > web/js/version.js
+          echo "export const COMMIT = '${GITHUB_SHA::7}';" >> web/js/version.js
+          cat web/js/version.js
+
       - name: Build signed release APK
         run: |
           gradle -p android assembleRelease
