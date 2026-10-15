@@ -3,12 +3,11 @@
 import { midiToFreq } from './theory.js';
 
 let ac = null;
-let bassBus, bassVolume, clickBus, fullPath, phonePath, phonePresence;
+let bassBus, bassVolume, clickBus, fullPath, phonePath;
 const synthCache = new Map();
-// speaker: 'auto' | 'phone' | 'full'; route: what the Android app reports ('speaker' | 'external'), or null
-const opts = { bassVol: 1, clickVol: 0.6, voice: 'auto', speaker: 'auto', octaveLayer: false, phoneBoost: 12, route: null };
-let testProfile = null; // the Settings speaker test forces one profile for a moment
-const profileListeners = new Set();
+// route: what the Android app reports ('speaker' | 'external'), or null in a browser
+const opts = { bassVol: 2, clickVol: 0.6, route: null };
+const PHONE_BOOST = 15; // dB lifted around 850 Hz on the phone speaker
 
 // The Android app tells us when headphones or an external speaker are connected (see MainActivity.kt).
 try { if (window.BassClassNative?.audioRoute) opts.route = window.BassClassNative.audioRoute(); } catch { /* not in the app */ }
@@ -18,21 +17,18 @@ window.addEventListener('bassclass-route', (e) => { opts.route = e.detail; apply
  * Phone speakers cannot play a bass's notes (they start around 500 Hz, the open E is 41 Hz). The
  * phone-speaker profile uses only the real recording: it cuts the inaudible lows (which only waste
  * headroom), lifts the band where the string's own overtones and the finger's growl live (~850 Hz,
- * by `phoneBoost` dB, Settings) and trims the treble so it stays soft.
+ * by PHONE_BOOST dB) and trims the treble so it stays soft.
  * Measured offline on a low-register phrase at 200% with +12 dB: +9 dB in the 600 Hz–2 kHz band
  * with the treble unchanged. Two earlier versions added synthetic harmonics instead (a waveshaper,
  * then per-note overtone voices): louder, but on a phone they sounded distorted, then harsh/synthetic.
+ * The owner tuned it on a real phone and fixed it at +15 dB, the maximum (2026-10-15).
+ * The Android app switches profiles when headphones or a speaker are connected; a browser
+ * cannot see headphones, so there a phone or tablet always gets the phone-speaker profile.
  */
 export function phoneProfile() {
-  if (testProfile != null) return testProfile;
-  if (opts.speaker === 'phone') return true;
-  if (opts.speaker === 'full') return false;
   if (opts.route) return opts.route === 'speaker';
-  return /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent); // a browser cannot see headphones
+  return /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
 }
-/** Current output situation, for the Settings screen. */
-export const audioRoute = () => ({ phone: phoneProfile(), route: opts.route, speaker: opts.speaker });
-export function onProfileChange(cb) { profileListeners.add(cb); return () => profileListeners.delete(cb); }
 
 function applyProfile() {
   const phone = phoneProfile();
@@ -41,7 +37,6 @@ function applyProfile() {
     fullPath.gain.setTargetAtTime(phone ? 0 : 1, t, 0.03);
     phonePath.gain.setTargetAtTime(phone ? 1 : 0, t, 0.03);
   }
-  for (const cb of profileListeners) cb(audioRoute());
 }
 
 // ------------------------------------------------------------------ context & routing
@@ -109,8 +104,7 @@ export function audioCtx() {
     // own overtones around 850 Hz, and trim the treble so the finger noise does not turn harsh
     phonePath = ac.createGain();
     phonePath.gain.value = phone ? 1 : 0;
-    phonePresence = filter('peaking', 850, 0.6, opts.phoneBoost);
-    top.connect(filter('highpass', 200)).connect(filter('highpass', 200)).connect(phonePresence)
+    top.connect(filter('highpass', 200)).connect(filter('highpass', 200)).connect(filter('peaking', 850, 0.6, PHONE_BOOST))
       .connect(filter('highshelf', 3000, 0.7, -5)).connect(phonePath).connect(glue);
 
     // the metronome joins after the limiter, so a click never pushes the bass down
@@ -123,24 +117,11 @@ export function audioCtx() {
   return ac;
 }
 
+/** bassVol: 0–2 (Settings shows it as 0–100%; above 1 the bass is pushed into the limiter). */
 export function setAudioOptions(o) {
   Object.assign(opts, o);
   if (bassVolume) bassVolume.gain.value = opts.bassVol;
   if (clickBus) clickBus.gain.value = opts.clickVol;
-  if (phonePresence) phonePresence.gain.value = opts.phoneBoost;
-  if (o.speaker != null) applyProfile();
-}
-
-/** Settings speaker test: play the same low phrase with one profile, then go back to normal. */
-let testTimer = null;
-export function speakerTest(phone) {
-  audioCtx();
-  testProfile = phone;
-  applyProfile();
-  const t0 = now() + 0.12;
-  [28, 31, 33, 36, 38, 40, 43, 45, 43, 40, 38, 33].forEach((m, i) => playNote(m, t0 + i * 0.28, 0.26, i % 4 === 0 ? 1 : 0.85));
-  clearTimeout(testTimer);
-  testTimer = setTimeout(() => { testProfile = null; applyProfile(); }, 12 * 280 + 700);
 }
 
 export const now = () => (ac ? ac.currentTime : 0);
@@ -203,7 +184,7 @@ export const samplesReady = () => bank.ready;
 
 /** Resolve once the recorded samples are decoded (or immediately if there are none). */
 export async function whenReady(timeoutMs = 2500) {
-  if (bank.ready || opts.voice === 'synth') return;
+  if (bank.ready) return;
   audioCtx();
   const t0 = performance.now();
   const raw = await Promise.race([bank.raw, new Promise((r) => setTimeout(r, timeoutMs))]);
@@ -224,7 +205,7 @@ function nearest(map, midi, maxShift = 12) {
 }
 
 function useSamples() {
-  return opts.voice !== 'synth' && bank.ready;
+  return bank.ready;
 }
 
 // ------------------------------------------------------------------ physical-model fallback
@@ -306,13 +287,6 @@ export function playNote(midi, when = now(), dur = 0.5, vel = 1, ghost = false, 
   const node = ac.createBufferSource();
   node.buffer = src;
   node.playbackRate.value = rate;
-  // optional octave-up layer on the phone speaker: the same note an octave higher, a little softer
-  let layer = null;
-  if (opts.octaveLayer && !ghost && phoneProfile()) {
-    layer = ac.createBufferSource();
-    layer.buffer = src;
-    layer.playbackRate.value = rate * 2;
-  }
   const tone = ac.createBiquadFilter();
   tone.type = 'lowpass';
   tone.frequency.value = ghost ? 700 : 900 + 5200 * v * v;
@@ -327,13 +301,6 @@ export function playNote(midi, when = now(), dur = 0.5, vel = 1, ghost = false, 
   node.connect(tone).connect(g).connect(bassBus);
   node.start(when);
   node.stop(when + hold + 0.45);
-  if (layer) {
-    const lg = ac.createGain();
-    lg.gain.value = 0.6;
-    layer.connect(lg).connect(tone);
-    layer.start(when);
-    layer.stop(when + hold + 0.45);
-  }
 }
 
 function harmonicVoice(midi, when, dur, vel) {

@@ -312,21 +312,7 @@ export function explorerScreen(main) {
 }
 
 // ---------------------------------------------------------------- settings
-/** What the Speaker setting is doing right now, in words. */
-function speakerStatus({ phone, route, speaker }) {
-  if (speaker === 'phone') return 'Always the phone-speaker sound.';
-  if (speaker === 'full') return 'Always the natural sound (best with headphones, an amp or an external speaker).';
-  if (route === 'speaker') return 'Now: phone-speaker sound (nothing is plugged in). It switches to the natural sound when you connect headphones or a speaker.';
-  if (route === 'external') return 'Now: natural sound (headphones or a speaker are connected). It switches back when you disconnect them.';
-  return phone
-    ? 'Now: phone-speaker sound. A browser cannot tell when headphones are plugged in: choose "Headphones / amp" while you use them.'
-    : 'Now: natural sound. On a phone without headphones, choose "Phone speaker".';
-}
-
-let settingsCleanup = null;
-
 export function settingsScreen(main) {
-  settingsCleanup?.();
   const S = settings;
   const seg = (key, opts, after) => {
     const el = h('div', { class: 'seg' });
@@ -334,30 +320,18 @@ export function settingsScreen(main) {
     draw();
     return el;
   };
-  const range = (key, min, max, step) => {
+  // `scale`: the stored value is shown as a percentage of it (bass volume: 0–2 is shown as 0–100%)
+  const range = (key, min, max, step, scale = 1) => {
     const el = h('input', { type: 'range', min, max, step, value: S[key] });
-    const pct = h('b', { class: 'pct' }, `${Math.round(S[key] * 100)}%`);
+    const pct = h('b', { class: 'pct' }, `${Math.round((S[key] / scale) * 100)}%`);
     el.addEventListener('input', () => {
       saveSettings({ [key]: Number(el.value) });
-      pct.textContent = `${Math.round(S[key] * 100)}%`;
+      pct.textContent = `${Math.round((S[key] / scale) * 100)}%`;
       A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol });
     });
     return h('div', { class: 'range-row' }, el, pct);
   };
   const field = (label, control, hint) => h('div', { class: 'field' }, h('label', {}, label), control, hint ? h('div', { class: 'hint' }, hint) : null);
-  const boostControl = () => {
-    const el = h('input', { type: 'range', min: 0, max: 15, step: 1, value: S.phoneBoost, 'aria-label': 'Phone-speaker boost' });
-    const val = h('b', { class: 'pct' }, `+${S.phoneBoost} dB`);
-    el.addEventListener('input', () => {
-      saveSettings({ phoneBoost: Number(el.value) });
-      val.textContent = `+${S.phoneBoost} dB`;
-      A.setAudioOptions({ phoneBoost: S.phoneBoost });
-    });
-    return h('div', { class: 'range-row' }, el, val);
-  };
-  const speakerHint = h('span', {}, speakerStatus(A.audioRoute()));
-  const off = A.onProfileChange((r) => { speakerHint.textContent = speakerStatus(r); });
-  settingsCleanup = () => { off(); settingsCleanup = null; };
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('h1', {}, 'Settings')),
     h('div', { class: 'form' },
@@ -365,26 +339,17 @@ export function settingsScreen(main) {
       field('Note names', seg('notation', [['letters', 'C D E'], ['solfege', 'Do Re Mi']])),
       field('Handedness', seg('lefty', [[false, 'Right-handed'], [true, 'Left-handed']]), 'Mirrors the fretboard.'),
       field('Highest fret used', seg('maxFret', [[17, '17'], [20, '20'], [21, '21'], [24, '24']])),
-      field('Bass sound', seg('voice', [['auto', 'Recorded bass'], ['synth', 'Synth']], () => A.setAudioOptions({ voice: S.voice })), A.samplesReady() ? `Recorded: ${A.sampleInfo()?.name || 'sampled bass'}.` : 'Recorded samples load in the background; the synth plays until they are ready.'),
-      field('Speaker', seg('speaker', [['auto', 'Auto'], ['phone', 'Phone speaker'], ['full', 'Headphones / amp']], () => A.setAudioOptions({ speaker: S.speaker })), speakerHint),
-      field('Phone-speaker boost', boostControl(), 'How much the phone-speaker sound lifts the bass\'s own overtones (around 850 Hz). More is louder on the phone speaker but less round. Try it with the speaker test below.'),
-      field('Octave-up layer', seg('octaveLayer', [[false, 'Off'], [true, 'On']], () => A.setAudioOptions({ octaveLayer: S.octaveLayer })), 'Phone-speaker sound only: adds every note an octave higher for even more presence. The octave you hear changes, so it is off by default.'),
-      field('Speaker test', h('div', { class: 'row' },
-        h('button', { class: 'btn', onClick: () => A.speakerTest(false) }, '▶ Natural sound'),
-        h('button', { class: 'btn', onClick: () => A.speakerTest(true) }, '▶ Phone-speaker sound')),
-        'The same low phrase both ways: try them on your phone\'s speaker. Phone speakers cannot play a bass\'s low notes (they start around 500 Hz; the open E is 41 Hz), so the phone-speaker sound cuts those lows and lifts the string\'s own overtones, which your ear uses to hear the low notes.'),
       field('Count-in', seg('countIn', [[true, 'One bar'], [false, 'Off']])),
       field('Metronome clicks', seg('clickSubs', [[false, 'Beats only'], [true, 'Beats + subdivisions']])),
-      field('Bass volume', range('bassVol', 0, 2, 0.05), 'Above 100% the bass is pushed into a limiter, for the loudest sound without distortion.'),
+      field('Bass volume', range('bassVol', 0, 2, 0.1, 2)),
       field('Metronome volume', range('clickVol', 0, 1.5, 0.05)),
       field('Progress', h('div', { class: 'row' },
         h('button', { class: 'btn', onClick: () => { if (confirm('Reset all progress?')) { resetProgress(); toast('Progress reset'); } } }, 'Reset progress'),
         h('button', { class: 'btn', onClick: () => {
           saveSettings({ ...DEFAULT_SETTINGS });
-          A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol, voice: S.voice, speaker: S.speaker, octaveLayer: S.octaveLayer, phoneBoost: S.phoneBoost });
+          A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol });
           settingsScreen(main);
           toast('Settings restored');
         } }, 'Restore defaults')))),
     h('p', { class: 'muted small', style: { marginTop: '18px' } }, `BassClass works offline once loaded. The bass sound uses recorded CC0 samples (Karoryfer "darkblack"), with a built-in synthesizer as a backup.${location.hostname === 'appassets.androidplatform.net' ? '' : ' Install it from your browser menu → "Add to Home screen" for full-screen landscape mode.'}`));
-  return { dispose: () => settingsCleanup?.() };
 }

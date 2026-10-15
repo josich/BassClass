@@ -114,7 +114,7 @@ function route() {
 window.addEventListener('hashchange', route);
 route();
 // saved sound settings apply everywhere (Neck, tuner reference notes), not only in exercises
-setAudioOptions({ bassVol: settings.bassVol, clickVol: settings.clickVol, voice: settings.voice, speaker: settings.speaker, octaveLayer: settings.octaveLayer, phoneBoost: settings.phoneBoost });
+setAudioOptions({ bassVol: settings.bassVol, clickVol: settings.clickVol });
 // fetch the recorded bass samples in the background (decoded on first sound)
 loadBank();
 
