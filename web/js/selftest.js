@@ -5,7 +5,7 @@ import { EXERCISES, byNumber } from './curriculum/index.js';
 import { makeCtx } from './fretboard.js';
 import * as T from './theory.js';
 
-function combos(params, limit = 60) {
+function combos(params, limit = 400) {
   const keys = Object.keys(params);
   const opts = keys.map((k) => {
     const def = params[k];
@@ -13,10 +13,18 @@ function combos(params, limit = 60) {
     return def.options.map((o) => o[0]);
   });
   const out = [];
-  // defaults, then vary one param at a time, then a few random mixes
+  // defaults, then vary one param at a time, then every key with every value of the options that
+  // move the line on the neck (range, root string, position), then a few random mixes
   const base = Object.fromEntries(keys.map((k) => [k, params[k].default]));
   out.push(base);
   keys.forEach((k, i) => opts[i].forEach((v) => out.push({ ...base, [k]: v })));
+  const ki = keys.findIndex((k) => params[k].kind === 'key');
+  if (ki >= 0) {
+    keys.forEach((k, i) => {
+      if (!['oct', 'root', 'pos', 'string', 'range', 'zone'].includes(k)) return;
+      for (const v of opts[i]) for (const kv of opts[ki]) out.push({ ...base, [k]: v, [keys[ki]]: kv });
+    });
+  }
   for (let r = 0; r < 12; r++) out.push(Object.fromEntries(keys.map((k, i) => [k, opts[i][Math.floor(Math.random() * opts[i].length)]])));
   return out.slice(0, limit);
 }

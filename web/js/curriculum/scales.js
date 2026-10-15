@@ -18,7 +18,8 @@ export function scaleBuild(p, ctx, S, { type = p.type, pattern = p.pattern || 's
     const ivs = T.SCALES[type].iv;
     const tonic = T.bestRoot(k, ivs);
     // one key: root on the chosen string; all keys: E or A string, whichever is nearest
-    const single = octaves > 1 && rootStr === 'D' ? 'A' : rootStr;
+    // two octaves always start on the E string (the "Root on" choice applies to one octave)
+    const single = octaves > 1 ? 'E' : rootStr;
     // span: keep the top of a 2-octave run (and sequence overshoot) below the highest fret
     const span = 12 * octaves + (pattern === 'straight' ? 0 : 5);
     const r = pickRoot(ctx, k, { strings: many ? ['E', 'A'] : [single], lo: open ? 0 : 1, hi: many ? 8 : 12, prev, prefer: rootStr, span });
@@ -26,6 +27,7 @@ export function scaleBuild(p, ctx, S, { type = p.type, pattern = p.pattern || 's
     b.line(scaleRun(tonic, type, r.midi, { octaves, pattern, dir }), { place: { pin: { [r.midi]: r.s }, open: open ? 'allow' : 'avoid', center: r.f + 1 } });
     prev = r.midi;
   }
+  if (octaves > 1) b.fixed = { root: 'E string (2 octaves start low)' };
   return b;
 }
 
@@ -72,7 +74,7 @@ const openPosition = ex({
     b.chord(`${nm(tonic, S)} ${scaleShort(p.type)}`);
     // two octaves start in open position and shift up the neck for the top of the scale
     const octaves = Number(p.oct || 1);
-    b.line(scaleRun(tonic, p.type, r.midi, { dir: p.dir, octaves }), { place: octaves > 1 ? { open: 'prefer' } : { open: 'prefer', region: [0, 4] } });
+    b.line(scaleRun(tonic, p.type, r.midi, { dir: p.dir, octaves }), { place: octaves > 1 ? { open: 'prefer', center: 2 } : { open: 'prefer', region: [0, 4] } });
     return b.build({ label: 'degree' });
   },
 });
@@ -111,7 +113,7 @@ const twoOctaves = ex({
   about: 'Two octaves cover most of the useful range of the bass. You need at least one shift. The app chooses fingerings that shift as little as possible and uses the same fingering going up and coming down. Watch where the hand moves and practise those shifts slowly.',
   tips: ['Start with the root on the E string.', 'Shift with the finger that just played, sliding lightly.'],
   source: 'RSL Grade 7, LCM Grade 6, Berklee ILBS-244, TalkingBass Scale Essentials',
-  params: { type: typeP(['ionian', 'aeolian', 'harmonicMinor', 'melodicMinor', 'majorPent', 'minorPent', 'blues', 'dorian', 'mixolydian']), key: keyP(T.SCALES.ionian.iv), root: rootStrP('E'), dir: dirP },
+  params: { type: typeP(['ionian', 'aeolian', 'harmonicMinor', 'melodicMinor', 'majorPent', 'minorPent', 'blues', 'dorian', 'mixolydian']), key: keyP(T.SCALES.ionian.iv), dir: dirP },
   bpm: 72, sub: 2, label: 'degree',
   build(p, ctx, S) { return scaleBuild({ ...p, oct: '2' }, ctx, S).build({ label: 'degree' }); },
 });
@@ -212,13 +214,24 @@ const threeNps = ex({
     if (f0 < 1) f0 += 12;
     // two octaves on a 4-string: 3 notes on each string, the top string takes the rest
     const n = p.oct === '2' ? T.SCALES[p.type].iv.length * 2 + 1 : ctx.tuning.length * 3;
-    if (p.oct === '2' && f0 > 10) f0 -= 12; // E: from the open string, so the top stays on the neck
+    if (p.oct === '2' && f0 === 12) f0 = 0; // E: from the open string, so the top stays on the neck
     const items = [];
     for (let i = 0; i < n; i++) {
       const q = T.scalePitch(tonic, p.type, ctx.tuning[s0] + f0, i);
       const s = Math.min(s0 + Math.floor(i / 3), ctx.tuning.length - 1);
-      items.push({ s, f: q.midi - ctx.tuning[s], n: q.n, deg: q.deg });
+      items.push({ s, f: q.midi - ctx.tuning[s], n: q.n, deg: q.deg, cell: Math.floor(i / 3) });
     }
+    // each string's three notes are one hand position: 1-2-4 or 1-3-4 (the 5-fret ones stretch
+    // 1-2-4), never a shift inside the string
+    for (let c = 0; c * 3 < items.length; c++) {
+      const cell = items.filter((it) => it.cell === c);
+      const lo = Math.min(...cell.map((it) => it.f)), span = Math.max(...cell.map((it) => it.f)) - lo;
+      cell.forEach((it) => {
+        const r = it.f - lo;
+        it.finger = it.f === 0 ? 0 : r === 0 ? 1 : r === span ? 4 : span <= 3 ? (r === 1 ? 2 : 3) : (r >= 3 ? 3 : 2);
+      });
+    }
+    items.forEach((it) => { delete it.cell; });
     b.chord(`${nm(tonic, S)} ${scaleShort(p.type)}`);
     b.frets([...items, ...items.slice(0, -1).reverse()]);
     return b.build({ label: 'degree' });
@@ -261,12 +274,30 @@ const positions = ex({
       });
       return out.sort((a, c) => a.midi - c.midi);
     };
+    // a box is played without moving the hand: one finger per fret; a 5-fret box joins the two
+    // neighbouring frets that never appear on the same string under one finger (a stretch)
+    const boxFingers = (box, lo, hi) => {
+      const frets = [];
+      for (let f = lo; f <= hi; f++) frets.push(f);
+      if (frets.length <= 4) return new Map(frets.map((f, j) => [f, j + 1]));
+      const byString = new Map();
+      for (const q of box) byString.set(q.s, [...(byString.get(q.s) || []), q.f]);
+      const clash = (f) => [...byString.values()].some((fs) => fs.includes(f) && fs.includes(f + 1));
+      let join = [hi - 1, lo, lo + 1, lo + 2].find((f) => !clash(f));
+      if (join == null) join = hi - 1;
+      const map = new Map();
+      let finger = 0;
+      for (const f of frets) { if (f !== join + 1) finger++; map.set(f, Math.min(4, finger)); }
+      return map;
+    };
     chosen.forEach((st, i) => {
       const lo = st.f, hi = st.f + (len === 5 ? 3 : 4);
       const box = notesIn(lo, hi).filter((q) => !(q.s === e && q.f < st.f));
+      const fingerOf = boxFingers(box, lo, hi);
+      box.forEach((q) => { q.finger = q.f === 0 ? 0 : fingerOf.get(q.f); });
       b.chord(`Pos ${st.n}`, `${nm(tonic, S)} ${scaleShort(p.type)}`);
       const seq = i % 2 === 0 || p.pos !== 'all' ? [...box, ...box.slice(0, -1).reverse()] : [...box].reverse();
-      b.frets(seq.map((q) => ({ s: q.s, f: q.f, n: q.n, deg: q.deg })));
+      b.frets(seq.map((q) => ({ s: q.s, f: q.f, n: q.n, deg: q.deg, finger: q.finger })));
     });
     return b.build({ label: 'degree' });
   },
@@ -352,7 +383,10 @@ const sidestep = ex({
       let m = r.midi + (pcv - k);
       if (Number(p.side) === 6 && label === 'outside') m = r.midi + 6;
       b.chord(`${nm(tonic, S)}m pent`, label);
-      b.line(scaleRun(tonic, 'minorPent', m, { pattern: 'straight', octaves }), { place: { open: 'avoid', center: r.f + 1 } });
+      // each bar's box sits where its own root is (the tritone side-step moves the hand), an octave
+      // lower when two octaves would run off the neck
+      if (m + 12 * octaves > ctx.tuning[ctx.tuning.length - 1] + ctx.maxFret && m - 12 >= ctx.tuning[r.s]) m -= 12;
+      b.line(scaleRun(tonic, 'minorPent', m, { pattern: 'straight', octaves }), { place: { open: 'avoid', pin: { [m]: r.s }, center: m - ctx.tuning[r.s] + 1 } });
     }
     return b.build({ label: 'note' });
   },

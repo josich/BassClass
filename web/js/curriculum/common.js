@@ -246,12 +246,13 @@ export const PROGS = {
   'cycle-251': {
     name: 'ii–V–I in all 12 keys', chords: [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7].flatMap((o) => [[o + 2, 'min7', 2, o], [o + 7, 'dom7', 2, o], [o, 'maj7', 4, o]]),
   },
+  // each chord is spelled from the key it leads to (4th element): F♯7 – B, not G♭7 – B
   'giant-steps': {
     name: 'Coltrane changes (Giant Steps)', chords: [
-      [0, 'maj7', 2], [3, 'dom7', 2], [8, 'maj7', 2], [11, 'dom7', 2], [4, 'maj7'], [10, 'min7', 2], [3, 'dom7', 2],
-      [8, 'maj7', 2], [11, 'dom7', 2], [4, 'maj7', 2], [7, 'dom7', 2], [0, 'maj7'], [6, 'min7', 2], [11, 'dom7', 2],
-      [4, 'maj7'], [10, 'min7', 2], [3, 'dom7', 2], [8, 'maj7'], [2, 'min7', 2], [7, 'dom7', 2],
-      [0, 'maj7'], [6, 'min7', 2], [11, 'dom7', 2], [4, 'maj7'], [2, 'min7', 2], [7, 'dom7', 2]],
+      [0, 'maj7', 2, 0], [3, 'dom7', 2, 8], [8, 'maj7', 2, 8], [11, 'dom7', 2, 4], [4, 'maj7', 4, 4], [10, 'min7', 2, 8], [3, 'dom7', 2, 8],
+      [8, 'maj7', 2, 8], [11, 'dom7', 2, 4], [4, 'maj7', 2, 4], [7, 'dom7', 2, 0], [0, 'maj7', 4, 0], [6, 'min7', 2, 4], [11, 'dom7', 2, 4],
+      [4, 'maj7', 4, 4], [10, 'min7', 2, 8], [3, 'dom7', 2, 8], [8, 'maj7', 4, 8], [2, 'min7', 2, 0], [7, 'dom7', 2, 0],
+      [0, 'maj7', 4, 0], [6, 'min7', 2, 4], [11, 'dom7', 2, 4], [4, 'maj7', 4, 4], [2, 'min7', 2, 0], [7, 'dom7', 2, 0]],
   },
 };
 

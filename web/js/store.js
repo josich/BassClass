@@ -18,6 +18,7 @@ export const DEFAULT_SETTINGS = {
   clickVol: 0.6,
   maxFret: 20,
   level: 1,                // preferred level for warm-ups (new players start at Level 1)
+  v: 2,                    // settings format (see migrate)
 };
 
 const oneOf = (list) => (v) => list.includes(v);
@@ -33,6 +34,7 @@ const SETTING_RULES = {
   bassVol: numIn(0, 2), clickVol: numIn(0, 1.5),
   maxFret: oneOf([17, 20, 21, 24]),
   level: oneOf([1, 2, 3, 4, 5, 6]),
+  v: numIn(1, 99),
 };
 export const SUB_VALUES = [0.25, 0.5, 1, 2, 3, 4, 5, 6];
 export const LABEL_VALUES = ['note', 'degree', 'finger', 'none'];
@@ -74,7 +76,16 @@ function cleanEntry(e) {
   return out;
 }
 
-export const settings = cleanSettings(read(KEY_SETTINGS));
+// v2 (2026-10-15): the bass volume scale doubled (0-2 shown as 0-100%, default the maximum).
+// Settings saved before stored the old default, 1, which would now read 50%.
+function migrate(raw) {
+  if (!(raw.v >= 2)) {
+    if (raw.bassVol === 1) raw.bassVol = DEFAULT_SETTINGS.bassVol;
+    raw.v = 2;
+  }
+  return raw;
+}
+export const settings = cleanSettings(migrate(read(KEY_SETTINGS)));
 export function saveSettings(patch) {
   for (const [k, v] of Object.entries(patch)) if (!SETTING_RULES[k] || SETTING_RULES[k](v)) settings[k] = v;
   write(KEY_SETTINGS, settings);

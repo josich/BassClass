@@ -140,7 +140,8 @@ function lickItems(lick, k, S, ctx, swing, { keyPcs, blue }) {
     const iv = T.ivBetween(c.cRoot, x.n);
     let n = iv !== '?' ? T.up(c.root, iv) : plainSpelling(T.mod(T.pc(c.root) + a.s, 12), Math.sign(x.n.a) || -1);
     const core = a.ct && ['1', '3', 'b3', '5', '7', 'b7', '6'].includes(c.semis.get(a.s));
-    const altered = !a.ct && (appr[i] || blue || (c.fam === 'dom' && [1, 3, 6, 8].includes(a.s)));
+    // (on a dominant the ♭9 ♯9 ♯11/♭5 ♭13 are alterations even when the symbol names them: A♭7♭9 has an A)
+    const altered = (c.fam === 'dom' && [1, 3, 6, 8].includes(a.s)) || (!a.ct && (appr[i] || blue));
     const written = n;
     if ((Math.abs(n.a) > 1 && !core) || (altered && awkward(n))) n = plain(n);
     else if (!a.ct && !appr[i] && !blue && c.fam === 'dom' && a.s === 3) {
@@ -194,7 +195,11 @@ function lickTemplate(def) {
       segs.forEach((seg, i) => {
         const last = [...seg].reverse().find((x) => !x.rest);
         const first = segs[(i + 1) % segs.length].find((x) => !x.rest);
-        if (last && first && last.canApproach && first.ct && Math.abs(first.midi - last.midi) === 1 && last !== first) last.deg = '→';
+        if (last && first && last.canApproach && first.ct && Math.abs(first.midi - last.midi) === 1 && last !== first) {
+          last.deg = '→';
+          // an approach note is written plainly, like every other approach (no C♭ or F♭)
+          if (awkward(last.n)) last.n = plain(last.n);
+        }
       });
       const items = segs.flat();
       // the phrase keeps its shape: it is moved as a whole, never note by note

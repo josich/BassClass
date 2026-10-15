@@ -86,6 +86,8 @@ export function buildRoutine(level, seed) {
     const params = defaultParams(t);
     for (const [k, def] of Object.entries(t.params || {})) {
       if (def.kind === 'key') params[k] = String(Math.floor(rand() * 12));
+      // Levels 1–2: keep the range, position and string at their defaults (no surprise 2-octave run)
+      else if (level <= 2 && ['oct', 'range', 'pos', 'zone', 'root', 'string', 'layout'].includes(k)) continue;
       else if (k !== 'key' && rand() < 0.5) {
         const opts = paramOptions(def, settings);
         if (opts.length > 1) params[k] = opts[Math.floor(rand() * opts.length)][0];

@@ -17,15 +17,20 @@ function relativeBuild(p, ctx, S, family) {
     const parent = family[0];
     const tonic = T.bestRoot(k, T.SCALES[parent].iv);
     const r = pickRoot(ctx, k, { strings: ['E', 'A'], hi: octaves > 1 ? 5 : 7, prev, prefer: 'E' });
+    let modePrev = null;
     const modes = family.map((mode, d) => {
-      // the mode is the parent scale starting on degree d
-      const seq = scaleRun(tonic, parent, r.midi, { dir: p.dir || 'up', startDeg: d, octaves });
+      // the mode is the parent scale starting on degree d; two octaves start from the mode's own
+      // root on the E or A string, placed like any two-octave scale (no leaps inside the run)
       const modeRoot = T.up(tonic, T.SCALES[parent].iv[d]);
-      return seq.map((x, i) => ({ ...x, deg: T.fmtDeg(T.ivBetween(modeRoot, x.n)), chord: i === 0 ? `${nm(modeRoot, S)} ${T.SCALES[mode].name.split(' (')[0]}` : undefined }));
+      const offset = T.semis(T.SCALES[parent].iv[d]);
+      const rr = octaves > 1 ? pickRoot(ctx, T.pc(modeRoot), { strings: ['E', 'A'], lo: 1, hi: 8, prev: modePrev, prefer: 'E', span: 24 }) : null;
+      if (rr) modePrev = rr.midi;
+      const seq = scaleRun(tonic, parent, rr ? rr.midi - offset : r.midi, { dir: p.dir || 'up', startDeg: d, octaves });
+      const items = seq.map((x, i) => ({ ...x, deg: T.fmtDeg(T.ivBetween(modeRoot, x.n)), chord: i === 0 ? `${nm(modeRoot, S)} ${modeName(mode)}` : undefined }));
+      return { items, rr };
     });
-    // one octave: all seven modes in one hand area; two octaves: each mode is fitted to the neck on its own
-    if (octaves > 1) modes.forEach((items) => b.line(items, { place: { open: 'avoid' } }));
-    else b.line(modes.flat(), { place: { open: 'avoid', center: r.f + 2 } });
+    if (octaves > 1) modes.forEach(({ items, rr }) => b.line(items, { place: { pin: { [rr.midi]: rr.s }, open: 'avoid', center: rr.f + 1 } }));
+    else b.line(modes.flatMap((m) => m.items), { place: { open: 'avoid', center: r.f + 2 } });
     prev = r.midi;
   }
   return b;

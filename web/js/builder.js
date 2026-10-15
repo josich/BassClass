@@ -34,9 +34,20 @@ export function rootOn(ctx, pcv, string = 'E', { minFret = 1, maxFret = 13 } = {
 export const fretOn = (ctx, midi, string) => midi - ctx.tuning[ctx.str(string)];
 
 // chord tones and natural tensions keep their academic spelling even in jazz exercises
-const CORE_DEGREES = new Set(['R', '2', '♭3', '3', '4', '5', '6', '7', '♭7', '8', '9', '♭10', '10', '11', '13']);
-// the ♭5 is a chord tone of half-diminished and diminished chords (an alteration only on a dominant)
+const CORE_DEGREES = new Set(['R', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '13']);
+// a ♭3 (♭10) is a chord tone only on a minor-type chord (over a major or dominant chord it is a
+// blue note), the ♭5 only on half-diminished and diminished chords (on a dominant it is an
+// alteration), and the ♭7 on anything but a major chord (over Cmaj7 or C it is a blue note)
+const MINOR_CHORD = /^[A-G][♭♯]*(?:m(?!aj)|°|ø|min)/;
 const DIM_CHORD = /°|ø|m7?♭5/;
+const MAJOR_CHORD = /^[A-G][♭♯]*(?:maj7?|maj9|maj13|6|add9)?(?:$|\s|\/|\()/;
+function chordTone(deg, sym) {
+  if (CORE_DEGREES.has(deg)) return true;
+  if (deg === '♭3' || deg === '♭10') return MINOR_CHORD.test(sym);
+  if (deg === '♭5') return DIM_CHORD.test(sym);
+  if (deg === '♭7') return !MAJOR_CHORD.test(sym);
+  return false;
+}
 
 export class Builder {
   /**
@@ -66,10 +77,7 @@ export class Builder {
     if (this.plain) {
       for (const n of step.notes) if (n.n && T.awkward(n.n)) n.n = T.readable(n.n);
     } else if (this.jazz) {
-      const dim = DIM_CHORD.test(this.curChord);
-      for (const n of step.notes) {
-        if (n.n && !CORE_DEGREES.has(n.deg) && !(dim && n.deg === '♭5') && T.awkward(n.n)) n.n = T.readable(n.n);
-      }
+      for (const n of step.notes) if (n.n && !chordTone(n.deg, this.curChord) && T.awkward(n.n)) n.n = T.readable(n.n);
     }
     if (this.pendingText) { step.text = this.pendingText; this.pendingText = null; }
     this.steps.push(step);
@@ -183,6 +191,8 @@ export class Builder {
       uniform: true,
       beatsPerBar: 4,
       ...meta,
+      // options a build had to override (shown as "fixed" in the Options sheet)
+      ...(this.fixed ? { fixed: { ...this.fixed, ...(meta.fixed || {}) } } : {}),
       steps: this.steps,
       range: [lo, hi],
       // some keys simply do not fit under a low "Highest fret used" setting: say so on screen
