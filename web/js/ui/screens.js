@@ -215,7 +215,7 @@ function levelSections() {
 export function libraryScreen(main, params = {}) {
   const search = h('input', { class: 'search', type: 'search', placeholder: 'Search: triad, ii-V, 42…', 'aria-label': 'Search exercises' });
   const results = h('div');
-  // jump to a level (the page lists all 169 exercises)
+  // jump to a level (the page lists every exercise)
   const jump = (n) => main.querySelector(`#lv-${n}`)?.scrollIntoView({ block: 'start' });
   const jumps = h('div', { class: 'tabs lv-jump' }, LEVELS.map((L) => h('button', { title: L.name, onClick: () => jump(L.n) }, `L${L.n}`)));
   // "ii-V" must find "ii–V": every kind of dash counts as a hyphen
@@ -246,7 +246,7 @@ export function libraryScreen(main, params = {}) {
 
 // ---------------------------------------------------------------- explorer
 const EXPLORE_SETS = [
-  ...['ionian', 'aeolian', 'majorPent', 'minorPent', 'blues', 'dorian', 'mixolydian', 'lydian', 'phrygian', 'locrian', 'harmonicMinor', 'melodicMinor', 'altered', 'lydianDom', 'phrygianDom', 'bebopDom', 'dimHW', 'dimWH', 'wholeTone', 'chromatic']
+  ...['ionian', 'aeolian', 'majorPent', 'minorPent', 'blues', 'dorian', 'mixolydian', 'lydian', 'phrygian', 'locrian', 'harmonicMinor', 'melodicMinor', 'harmonicMajor', 'altered', 'lydianDom', 'phrygianDom', 'bebopDom', 'dimHW', 'dimWH', 'wholeTone', 'chromatic']
     .map((k) => [`s:${k}`, `Scale · ${T.SCALES[k].name}`]),
   ...['maj', 'min', 'dim', 'aug', 'sus4', 'maj7', 'dom7', 'min7', 'm7b5', 'dim7', 'mMaj7', 'maj6', 'min6', 'dom9', 'maj9', 'min9']
     .map((k) => [`c:${k}`, `Chord · ${T.CHORDS[k].name}`]),

@@ -94,6 +94,14 @@ export const SCALES = {
   lydianS2:     { name: 'Lydian ♯2', iv: ['1', '#2', '3', '#4', '5', '6', '7'] },
   ultraLocrian: { name: 'Ultralocrian', iv: ['1', 'b2', 'b3', 'b4', 'b5', 'b6', 'bb7'] },
 
+  harmonicMajor:{ name: 'Harmonic major', iv: ['1', '2', '3', '4', '5', 'b6', '7'] },
+  dorianB5:     { name: 'Dorian ♭5', iv: ['1', '2', 'b3', '4', 'b5', '6', 'b7'] },
+  phrygianB4:   { name: 'Phrygian ♭4', iv: ['1', 'b2', 'b3', 'b4', '5', 'b6', 'b7'] },
+  lydianB3:     { name: 'Lydian ♭3', iv: ['1', '2', 'b3', '#4', '5', '6', '7'] },
+  mixolydianB2: { name: 'Mixolydian ♭2', iv: ['1', 'b2', '3', '4', '5', '6', 'b7'] },
+  lydianAugS2:  { name: 'Lydian augmented ♯2', iv: ['1', '#2', '3', '#4', '#5', '6', '7'] },
+  locrianBB7:   { name: 'Locrian ♭♭7', iv: ['1', 'b2', 'b3', '4', 'b5', 'b6', 'bb7'] },
+
   melodicMinor: { name: 'Melodic minor (jazz)', iv: ['1', '2', 'b3', '4', '5', '6', '7'] },
   dorianB2:     { name: 'Dorian ♭2', iv: ['1', 'b2', 'b3', '4', '5', '6', 'b7'] },
   lydianAug:    { name: 'Lydian augmented', iv: ['1', '2', '3', '#4', '#5', '6', '7'] },
@@ -120,6 +128,7 @@ export const SCALES = {
 export const MAJOR_MODES = ['ionian', 'dorian', 'phrygian', 'lydian', 'mixolydian', 'aeolian', 'locrian'];
 export const MELODIC_MODES = ['melodicMinor', 'dorianB2', 'lydianAug', 'lydianDom', 'mixolydianB6', 'locrianN2', 'altered'];
 export const HARMONIC_MODES = ['harmonicMinor', 'locrianN6', 'ionianAug', 'dorianS4', 'phrygianDom', 'lydianS2', 'ultraLocrian'];
+export const HARMONIC_MAJOR_MODES = ['harmonicMajor', 'dorianB5', 'phrygianB4', 'lydianB3', 'mixolydianB2', 'lydianAugS2', 'locrianBB7'];
 
 /** Degree label for the k-th note of a scale (uses the scale's display labels when given). */
 export const scaleLabel = (type, k) => fmtDeg((SCALES[type].labels || SCALES[type].iv)[k]);

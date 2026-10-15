@@ -1,4 +1,4 @@
-// Modes: relative and parallel views, mode study, chord-scale playing, melodic/harmonic minor modes.
+// Modes: relative and parallel views, mode study, chord-scale playing, melodic/harmonic minor and harmonic major modes.
 import {
   T, Builder, keysFor, ex, variant, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS,
   progChords, progP, chordRootMidis, emitMixed,
@@ -65,11 +65,11 @@ const parallel = ex({
   },
 });
 
-const ALL_MODES = [...T.MAJOR_MODES, ...T.MELODIC_MODES, ...T.HARMONIC_MODES];
+const ALL_MODES = [...T.MAJOR_MODES, ...T.MELODIC_MODES, ...T.HARMONIC_MODES, ...T.HARMONIC_MAJOR_MODES];
 const study = ex({
   id: 'md-study', module: M, level: 4,
   title: 'Mode study: any mode, any key, any sequence',
-  summary: 'Every mode of major, melodic minor and harmonic minor with sequences and two octaves.',
+  summary: 'Every mode of major, melodic minor, harmonic minor and harmonic major, with sequences and two octaves.',
   about: 'Choose a mode and drill it like a scale: straight, in sequences, over one or two octaves, in one key or all 12. Use this to learn each mode on its own terms, not as "C major starting on D".',
   tips: ['Know the formula: Dorian = 1 2 ♭3 4 5 6 ♭7.', 'Pair it with its chord: Dorian ↔ m7, Lydian ↔ maj7♯11, Mixolydian ↔ 7.'],
   source: 'RSL Grades 6–8; LCM; Tony Grey Bass Academy (fingerboard study of the modes)',
@@ -205,5 +205,16 @@ const alteredChordScale = variant(chordScale, {
   params: { ...chordScale.params, prog: progP(['ii-V7alt-I', 'ii-V7b9-I', 'ii-V7s5-I', 'ii-V7b5-I'], 'ii-V7alt-I') },
 });
 
-export default [relative, parallel, study, chordScale, pitchAxis, melodicModes, harmonicModes, alteredChordScale];
+const harmonicMajorModes = variant(melodicModes, {
+  id: 'md-harmonic-major-modes', level: 6,
+  title: 'Modes of harmonic major',
+  summary: 'Dorian ♭5, Phrygian ♭4, Lydian ♭3, Mixolydian ♭2, Lydian augmented ♯2, Locrian ♭♭7.',
+  about: 'Harmonic major is the major scale with a ♭6 (C D E F G A♭ B). Harmonic minor lowers the 3rd and the 6th, melodic minor only the 3rd, harmonic major only the 6th: together with the major scale these are the four parent scales of tonal harmony. It keeps the major I chord but borrows the minor iv (Fm) and the °7 on the 7th degree, so it sounds major with a dark edge. Play all seven modes from the same parent.',
+  tips: ['Mixolydian ♭2 (5th mode) fits a V7♭9 that resolves to a major chord: G7♭9 → C.', 'Phrygian ♭4 (3rd mode) is the altered scale with a natural 5th: E F G A♭ B C D = R ♭9 ♯9 3 5 ♭13 ♭7.', 'Add a natural 6 and you get Barry Harris\'s major 6th diminished scale.'],
+  source: 'Rimsky-Korsakov "Practical Manual of Harmony" (harmonic major); Dmitri Tymoczko "A Geometry of Music" (the four scale families); Barry Harris',
+  params: { key: keyP(T.SCALES.harmonicMajor.iv), dir: melodicModes.params.dir },
+  build(p, ctx, S) { return relativeBuild(p, ctx, S, T.HARMONIC_MAJOR_MODES).build({ label: 'degree' }); },
+});
+
+export default [relative, parallel, study, chordScale, pitchAxis, melodicModes, harmonicModes, alteredChordScale, harmonicMajorModes];
 void MODE_NAMES;

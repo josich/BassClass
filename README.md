@@ -2,7 +2,7 @@
 
 A landscape app to learn bass from the first open string to mastery. Every exercise is shown **note by note on a fretboard**. Each marker appears as it plays, with the note name, degree or finger, and a dashed arc points to the next note. You hear a **recorded bass**, a metronome counts, and a scrolling tab strip below the neck shows what is coming. A **microphone tuner** is built in.
 
-- **169 exercise families** in 13 modules and 6 levels: fretboard & notes, technique/rudiments, rhythm, intervals, scales, modes, triads, arpeggios & 7ths, chords & harmony, grooves, walking bass, **jazz licks**, slap. See [docs/CATALOGUE.md](docs/CATALOGUE.md).
+- **170 exercise families** in 13 modules and 6 levels: fretboard & notes, technique/rudiments, rhythm, intervals, scales, modes, triads, arpeggios & 7ths, chords & harmony, grooves, walking bass, **jazz licks**, slap. See [docs/CATALOGUE.md](docs/CATALOGUE.md).
 - **Every exercise is generated, not hard-coded.** Any key, or all 12 keys in a row (cycle of 4ths/5ths/chromatic), plus inversions, scales, patterns, positions, zones and rhythms. That adds up to thousands of distinct drills.
 - **Correct fingering.** A fingering engine models the hand position (one finger per fret, stretches, shifts along a string) and adapts to **4, 5 or 6-string** basses.
 - **Correct spelling.** E.g. B♭ vs A♯, D♭maj7 vs C♯maj7. Degree colours: root, 3rd, 5th, 7th.

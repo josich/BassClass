@@ -29,7 +29,7 @@ export function arpBuild(p, ctx, S, { ivs, type, shape = 'updown', octaves = 1, 
 }
 
 const SCALES_DIATONIC = ['ionian', 'aeolian', 'harmonicMinor', 'melodicMinor', 'dorian', 'phrygian', 'lydian', 'mixolydian', 'locrian'];
-const SCALES_ALL7 = [...SCALES_DIATONIC, 'dorianB2', 'lydianAug', 'lydianDom', 'mixolydianB6', 'locrianN2', 'altered', 'phrygianDom', 'dorianS4', 'ionianAug', 'locrianN6', 'lydianS2'];
+const SCALES_ALL7 = [...SCALES_DIATONIC, 'dorianB2', 'lydianAug', 'lydianDom', 'mixolydianB6', 'locrianN2', 'altered', 'phrygianDom', 'dorianS4', 'ionianAug', 'locrianN6', 'lydianS2', 'harmonicMajor'];
 const STACKS = {
   thirds: { name: 'Triads (1-3-5)', off: [0, 2, 4] },
   sus4: { name: 'Sus4 stacks (1-4-5)', off: [0, 3, 4] },
