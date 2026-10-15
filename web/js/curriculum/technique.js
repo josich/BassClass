@@ -561,4 +561,34 @@ const permStrings = ex({
   },
 });
 
-export default [permStrings, altPluck, c1234, raking, climb, perms, spider, diagonal, fingerPairs, octaveRun, dynamics, trills, legato, stringSkip, shifting, simandl, accents, ghost16, stretch, harmonics, endurance, pim];
+const MUTE_PATTERNS = {
+  open: { name: 'Open strings: play, then stop', notes: [[0, 0], [1, 0], [2, 0], [3, 0], [2, 0], [1, 0]] },
+  skip: { name: 'Skip a string (the one between must stay silent)', notes: [[0, 0], [2, 2], [1, 0], [3, 2], [2, 0], [0, 3]] },
+  fretted: { name: 'Fretted notes: release to stop', notes: [[0, 3], [1, 2], [1, 5], [2, 2], [2, 5], [1, 3]] },
+};
+const muting = ex({
+  id: 'tech-muting', module: M, level: 2,
+  title: 'Muting: stop every note, silence every string',
+  summary: 'Play short notes and real rests: nothing may ring through the silence.',
+  about: 'Clean bass playing is as much about the notes you stop as the ones you play. Each note here is followed by a rest that must be silent. Open strings are stopped by the plucking-hand thumb or fingers (the "floating thumb" rests on the strings below the one you play) and fretted notes by lifting the fretting finger just off the fret while it still touches the string. Listen for any ringing string, especially after string skips.',
+  tips: ['Floating thumb: let the plucking thumb lie on the lower strings and move with your hand.', 'Fretted notes: relax the finger, do not lift it off the string.', 'Record yourself: ringing strings are easier to hear afterwards.'],
+  source: 'Floating-thumb muting (Todd Johnson, Gary Willis); common technique teaching',
+  params: { pattern: sel('Pattern', Object.entries(MUTE_PATTERNS).map(([k, v]) => [k, v.name])), length: sel('Note length', [['half', 'Half a beat, half a beat of rest'], ['quarter', 'A quarter beat, then rest']]) },
+  bpm: 72, sub: 1, label: 'note',
+  build(p, ctx, S) {
+    const b = new Builder(ctx, S);
+    const base = ctx.str('E');
+    const on = p.length === 'half' ? 0.5 : 0.25;
+    for (let round = 0; round < 2; round++) {
+      MUTE_PATTERNS[p.pattern].notes.forEach(([ds, f], i) => {
+        const s = base + ds;
+        if (s >= ctx.tuning.length) return;
+        b.frets([{ s, f, n: spellMidi(ctx.tuning[s] + f), deg: '', dur: on, finger: f === 0 ? 0 : Math.min(4, f), chord: i === 0 && round === 0 ? 'Stop each note' : undefined }]);
+        b.rest(1 - on);
+      });
+    }
+    return b.build({ uniform: false, label: 'note' });
+  },
+});
+
+export default [permStrings, altPluck, c1234, raking, muting, climb, perms, spider, diagonal, fingerPairs, octaveRun, dynamics, trills, legato, stringSkip, shifting, simandl, accents, ghost16, stretch, harmonics, endurance, pim];

@@ -3,7 +3,7 @@
 import { midiToFreq } from './theory.js';
 
 let ac = null;
-let bassBus, bassVolume, clickBus, fullPath, phonePath;
+let bassBus, bassVolume, clickBus, fullPath, phonePath, padBus;
 const synthCache = new Map();
 // route: what the Android app reports ('speaker' | 'external'), or null in a browser
 const opts = { bassVol: 2, clickVol: 0.6, route: null };
@@ -111,6 +111,13 @@ export function audioCtx() {
     clickBus = ac.createGain();
     clickBus.gain.value = opts.clickVol;
     clickBus.connect(clip);
+
+    // backing pad (drone or chords): soft, warm and after the limiter, so it never ducks the bass
+    padBus = ac.createGain();
+    padBus.gain.value = 0.5;
+    const padTone = ac.createBiquadFilter();
+    padTone.type = 'lowpass'; padTone.frequency.value = 1500; padTone.Q.value = 0.3;
+    padBus.connect(padTone).connect(clip);
     decodeBank();
   }
   if (ac.state === 'suspended') ac.resume();
@@ -336,6 +343,43 @@ export function click(when = now(), level = 1) {
   o.connect(g).connect(clickBus);
   o.start(when);
   o.stop(when + 0.07);
+}
+
+// ------------------------------------------------------------------ backing pad
+
+let padVoices = [];
+/** Release the pad at `when` (fades out over about half a second). */
+export function padStop(when = now()) {
+  if (!ac) return;
+  for (const v of padVoices) {
+    v.g.gain.cancelScheduledValues(when);
+    v.g.gain.setTargetAtTime(0, when, 0.15);
+    for (const o of v.osc) o.stop(when + 1.2);
+  }
+  padVoices = [];
+}
+/** Sound a pad chord from `when` (crossfading from the previous one). */
+export function padSet(midis, when = now()) {
+  audioCtx();
+  padStop(when);
+  if (!midis?.length) return;
+  const level = 0.16 / Math.sqrt(midis.length);
+  for (const m of midis) {
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0, when);
+    g.gain.setTargetAtTime(level, when, 0.12);
+    const osc = [['sawtooth', -6], ['triangle', 5]].map(([type, cents]) => {
+      const o = ac.createOscillator();
+      o.type = type;
+      o.frequency.value = midiToFreq(m);
+      o.detune.value = cents;
+      o.connect(g);
+      o.start(when);
+      return o;
+    });
+    g.connect(padBus);
+    padVoices.push({ g, osc });
+  }
 }
 
 // ------------------------------------------------------------------ microphone (tuner)

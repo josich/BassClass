@@ -47,7 +47,10 @@
 - Jazz licks are original vocabulary, not transcriptions.
 - The tuner cannot open the microphone on plain `http://` pages (browser rule); it works on https, localhost and in the APK.
 - Scale and pentatonic positions are numbered from the root (Position 1 = the box with the root on the E string); a position that would start above fret 12 is played an octave lower. (QA round 1, user's choice.)
-- Inside a level the path lists hands and time first: technique, rhythm, fretboard, intervals, scales, modes, triads, arpeggios, harmony, grooves, walking, licks, slap. (QA round 1, user's choice.)
+- Inside a level the path lists hands and time first: technique, rhythm, fretboard, reading, intervals, ear training, scales, modes, triads, arpeggios, harmony, grooves, walking, licks, slap. (QA round 1, user's choice; reading and ear training added in round 4.)
+- Notation (round 4): bass guitar is written in the bass clef an octave above its sound (open E on the first ledger line below). Key signatures are drawn; a note shows an accidental only where it differs from the key signature (♮ cancels), with no carrying through the bar. Written notes above E4 are drawn an octave lower under "8va". Rhythm is shown with simple stems and flags (no beams).
+- Backing (round 4): Off / Drone / Chords under ⋯, saved as a setting. It follows the badges: a chord symbol plays its chord (up to the 7th), a scale or mode badge its triad (read from the note labels); badges without a note name ("#3", "Pos 2") fall back to the text or play nothing.
+- Ear training (round 4): each round is heard with its notes hidden (no dots, "?" in the strip), then a silent answer step shows the name and the shape. The next-note preview never shows an answer.
 - Approach and enclosure notes are labelled "→" in every module. Licks label the other notes against the chord under them in jazz terms (9, ♭9, ♯9, 11, ♯11, ♭13, 13); a dominant's ♭9/♯9 always keeps its name.
 - Lick notes are spelled against their chord. Chord tones keep their academic spelling; tensions, blue and passing notes with a double accidental become the plain enharmonic, and the ♯9 uses whichever of ♭3/♯2 reads more easily (B♭ over G7, B over A♭7).
 - When an exercise physically cannot fit under "Highest fret used" (e.g. two octaves of E♭ on a 4-string with 17 frets) it goes over and shows a notice. Intended.

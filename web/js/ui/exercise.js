@@ -10,6 +10,7 @@ import * as A from '../audio.js';
 import * as T from '../theory.js';
 import { moduleOf, LEVELS, defaultParams } from '../curriculum/index.js';
 import { CYCLE_OPTS, PROGS } from '../curriculum/common.js';
+import { harmonyTrack, harmonyAt } from '../harmony.js';
 
 const SUBS = [['0.25', 'Whole'], ['0.5', 'Half'], ['1', '♩ 1/beat'], ['2', '♪ 2/beat'], ['3', '3 triplets'], ['4', '4 16ths'], ['5', '5 quint.'], ['6', '6 sext.']];
 const REVEALS = [['gradual', 'Step'], ['full', 'Shape'], ['quiz', 'Quiz']];
@@ -74,6 +75,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
   let userSub = prog.sub ?? null;
   let labelMode = prog.label || null;
   let reveal = S.reveal;
+  let score = null; // 'tab' | 'staff' (reading exercises open on the staff)
   let segStart = [], segEnd = [], chordAt = [], textAt = [];
   let cur = -1;
   let warnedFret = 0;
@@ -130,12 +132,15 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
   const trainerBtn = btn('trainer', 'Speed trainer (+4 BPM each loop)', () => toggleTrainer());
   const doneBtn = btn('check', 'Mark as mastered', () => toggleDone());
   const revealBtn = h('button', { class: 'lbl-btn', title: 'Reveal mode: step by step / whole shape / quiz', onClick: () => cycleReveal() });
+  const backingBtn = h('button', { class: 'lbl-btn', title: 'Backing: off / a drone on the root / the chords', onClick: () => cycleBacking() });
+  const scoreBtn = h('button', { class: 'lbl-btn', title: 'Under the neck: tab or bass-clef staff', onClick: () => cycleScore() });
   const labelBtn = h('button', { class: 'lbl-btn', title: 'Dot labels: note / degree / finger / none', onClick: () => cycleLabel() });
   // secondary controls: inline on wide screens, in a "⋯" popover on phones (see .more-pop in app.css)
   const item = (el, text) => h('div', { class: 'mi' }, el, h('span', { class: 'mi-l', onClick: () => el.click() }, text));
   const morePop = h('div', { class: 'more-pop' },
     h('div', { class: 'sep' }), item(metroBtn, 'Metronome'), item(soundBtn, 'Bass sound'), item(trainerBtn, 'Speed trainer'),
-    h('div', { class: 'sep' }), item(revealBtn, 'Reveal'), item(labelBtn, 'Dot labels'), h('div', { class: 'grow' }), item(doneBtn, 'Mastered'));
+    item(backingBtn, 'Backing'),
+    h('div', { class: 'sep' }), item(revealBtn, 'Reveal'), item(labelBtn, 'Dot labels'), item(scoreBtn, 'Tab / staff'), h('div', { class: 'grow' }), item(doneBtn, 'Mastered'));
   const moreBtn = btn('more', 'More controls', () => toggleMore(), 'more-btn');
   const ctrl = h('footer', { class: 'exv-ctrl' },
     btn('restart', 'Back to start', () => restart()), btn('prev', 'Previous note (←)', () => manual(-1)), playBtn,
@@ -237,6 +242,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     }
     if (!next?.steps?.length) { toast('No notes for this variation'); return; }
     inst = next;
+    // ear training: the notes of a hidden step show no dot until the answer
+    for (const st of inst.steps) if (st.hide) for (const n of st.notes) n.hidden = true;
     // segments: a chord label starts a new segment (used for the dot trail)
     segStart = []; segEnd = []; chordAt = []; textAt = [];
     let s0 = 0, ch = null, tx = null;
@@ -254,7 +261,9 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     rhythmBtn.hidden = !!inst.uniform;
     if (!labelMode) labelMode = inst.label || tpl.label || S.label;
     if (inst.reveal) reveal = inst.reveal;
+    if (!score) score = inst.view || S.score;
     player.load(inst);
+    applyBacking();
     fb.configure({ strings: ctx.tuning.length, names: ctx.names, tuning: ctx.tuning, lefty: S.lefty, zone: inst.zone || null });
     fb.fit(inst.range[0], inst.range[1], 9);
     beatsEl.replaceChildren(...Array.from({ length: inst.beatsPerBar || 4 }, () => h('i')));
@@ -270,7 +279,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
 
   function renderTab() {
     tab.render(inst, {
-      strings: ctx.tuning.length, beatsOf: (st) => player.beatsOf(st), beatsPerBar: inst.beatsPerBar || 4, sub: player.sub,
+      strings: ctx.tuning.length, beatsOf: (st) => player.beatsOf(st), beatsPerBar: inst.beatsPerBar || 4, sub: player.sub, mode: score,
       label: (n) => (labelMode === 'none' ? '' : noteLabel(n, labelMode === 'finger' ? 'note' : labelMode, S.notation)),
     });
     tab.setCurrent(cur);
@@ -288,6 +297,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     const steps = inst.steps;
     const map = new Map();
     const put = (n, state) => {
+      if (n.hidden) return;
       const k = `${n.s}.${n.f}`;
       const was = map.get(k);
       if (!was || RANK[state] >= RANK[was.state]) map.set(k, mkDot(n, state));
@@ -305,10 +315,11 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     if (reveal === 'full') for (let j = s0; j <= s1; j++) for (const n of steps[j].notes) put(n, 'future');
     if (reveal !== 'quiz') for (let j = Math.max(s0, i - TRAIL); j < i; j++) for (const n of steps[j].notes) put(n, 'past');
     const nx = i + 1 < steps.length ? i + 1 : (player.loop ? 0 : -1);
-    if (nx >= 0 && reveal !== 'quiz') for (const n of steps[nx].notes) put(n, 'next');
+    // (never preview an ear-training answer)
+    if (nx >= 0 && reveal !== 'quiz' && !steps[nx].silent) for (const n of steps[nx].notes) put(n, 'next');
     for (const n of steps[i].notes) put(n, 'current');
     fb.setDots([...map.values()]);
-    for (const n of steps[i].notes) fb.pluck(n.s, n.tag === 'x' ? 'ghost' : degKey(n.deg));
+    if (!steps[i].hide && !steps[i].silent) for (const n of steps[i].notes) fb.pluck(n.s, n.tag === 'x' ? 'ghost' : degKey(n.deg));
     tab.setCurrent(i);
     nowEl.innerHTML = `${chordAt[i] ? `<span class="chord">${esc(chordAt[i])}</span>` : ''}${textAt[i] ? `<span class="txt">${esc(textAt[i])}</span>` : ''}<span class="cnt">${i + 1}/${steps.length}</span>`;
     promptEl.innerHTML = reveal === 'quiz' && nx >= 0 ? promptHtml(nx) : '';
@@ -316,7 +327,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
 
   function promptHtml(j) {
     const st = inst.steps[j];
-    if (!st || !st.notes.length) return '';
+    if (!st || !st.notes.length || st.hide || st.silent) return '';
     return `next <b>${st.notes.map((n) => esc(T.noteName(n.n, S.notation))).join(' + ')}</b>`;
   }
 
@@ -351,6 +362,26 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     syncToggles();
     showStep(cur);
   }
+  function cycleBacking() {
+    const order = ['off', 'drone', 'chords'];
+    saveSettings({ backing: order[(order.indexOf(S.backing) + 1) % order.length] });
+    applyBacking();
+    syncToggles();
+    if (S.backing !== 'off' && !player.harmony?.some(Boolean)) toast('This exercise has no chords or scales to back');
+  }
+  /** Backing pad: the harmony of each part of the exercise (see harmony.js). */
+  function applyBacking() {
+    player.harmony = S.backing === 'off' ? null : harmonyTrack(inst, S.backing);
+    if (!player.playing) return;
+    const hm = player.harmony && harmonyAt(player.harmony, Math.max(0, cur));
+    if (hm) A.padSet(hm, A.now() + 0.02); else A.padStop();
+  }
+  function cycleScore() {
+    score = score === 'staff' ? 'tab' : 'staff';
+    if (!inst.view) saveSettings({ score });
+    syncToggles();
+    renderTab();
+  }
   function cycleLabel() {
     const i = LABELS.findIndex((r) => r[0] === labelMode);
     labelMode = LABELS[(i + 1) % LABELS.length][0];
@@ -384,6 +415,9 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     trainerBtn.classList.toggle('on', player.trainer.on);
     doneBtn.classList.toggle('on', !!(getProgress(tpl.id) || {}).done);
     revealBtn.textContent = (REVEALS.find((r) => r[0] === reveal) || REVEALS[0])[1];
+    backingBtn.textContent = { off: 'Off', drone: 'Drone', chords: 'Chords' }[S.backing] || 'Off';
+    backingBtn.classList.toggle('on', S.backing !== 'off');
+    scoreBtn.textContent = score === 'staff' ? 'Staff' : 'Tab';
     labelBtn.textContent = (LABELS.find((r) => r[0] === labelMode) || LABELS[0])[1];
     syncBpm();
   }

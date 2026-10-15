@@ -18,6 +18,8 @@ export const DEFAULT_SETTINGS = {
   clickVol: 0.6,
   maxFret: 20,
   level: 1,                // preferred level for warm-ups (new players start at Level 1)
+  backing: 'off',          // 'off' | 'drone' | 'chords': a pad under the exercise
+  score: 'tab',            // 'tab' | 'staff': the strip under the neck
   v: 2,                    // settings format (see migrate)
 };
 
@@ -34,6 +36,8 @@ const SETTING_RULES = {
   bassVol: numIn(0, 2), clickVol: numIn(0, 1.5),
   maxFret: oneOf([17, 20, 21, 24]),
   level: oneOf([1, 2, 3, 4, 5, 6]),
+  backing: oneOf(['off', 'drone', 'chords']),
+  score: oneOf(['tab', 'staff']),
   v: numIn(1, 99),
 };
 export const SUB_VALUES = [0.25, 0.5, 1, 2, 3, 4, 5, 6];

@@ -1,5 +1,6 @@
 // Sample-accurate exercise playback (lookahead scheduler) with UI sync callbacks.
 import * as A from './audio.js';
+import { harmonyAt } from './harmony.js';
 
 const LOOKAHEAD = 0.12;   // seconds scheduled ahead
 const TICK_MS = 25;
@@ -125,6 +126,8 @@ export class Player {
     this._starting = false;
     if (!this.playing) return;
     this.playing = false;
+    A.padStop();
+    this.padPrimed = false;
     clearInterval(this._timer);
     cancelAnimationFrame(this._raf);
     this.queue = [];
@@ -201,7 +204,13 @@ export class Player {
       const step = steps[idx];
       const beats = this.beatsOf(step);
       const secs = beats * (60 / this.bpm);
-      if (this.sound && !step.rest) {
+      // backing pad: a new harmony starts with its step (and the first step played sets it up)
+      if (this.harmony) {
+        const hm = this.padPrimed ? this.harmony[idx] : harmonyAt(this.harmony, idx);
+        if (hm) A.padSet(hm, tStep);
+        this.padPrimed = true;
+      }
+      if (this.sound && !step.rest && !step.silent) {
         const rel = this.starts[idx];
         const onBeat = Math.abs(rel - Math.round(rel)) < 1e-6;
         const vel = step.vel ?? (step.accent ? 1 : onBeat ? 0.88 : 0.74);
@@ -231,6 +240,7 @@ export class Player {
           }
         } else {
           this.endAbs = this.loopBase + this.total;
+          if (this.harmony) A.padStop(this._time(this.endAbs));
           this._q({ time: this._time(this.endAbs), type: 'end' });
         }
       } else {

@@ -10,6 +10,8 @@ import arpeggios from './arpeggios.js';
 import harmony from './harmony.js';
 import grooves from './grooves.js';
 import licks from './licks.js';
+import reading from './reading.js';
+import ear from './ear.js';
 
 export const LEVELS = [
   { n: 1, name: 'Foundations', desc: 'Open strings, first notes, steady pulse, first shapes.' },
@@ -24,19 +26,21 @@ export const MODULES = [
   { id: 'fretboard', name: 'Fretboard & Notes', icon: '🧭', desc: 'Know every note on the neck.' },
   { id: 'technique', name: 'Technique & Rudiments', icon: '✋', desc: 'Permutations, spider, shifting, legato, dynamics.' },
   { id: 'rhythm', name: 'Rhythm & Time', icon: '⏱', desc: 'Subdivisions, syncopation, odd groupings, odd meters.' },
+  { id: 'reading', name: 'Reading', icon: '📖', desc: 'Bass clef from the first position to every key, with key signatures.' },
   { id: 'intervals', name: 'Intervals', icon: '↕', desc: 'Every interval shape, diatonic intervals, 10ths.' },
+  { id: 'ear', name: 'Ear training', icon: '👂', desc: 'Hear and name chord qualities, 7th chords and progressions.' },
   { id: 'scales', name: 'Scales', icon: '🎼', desc: 'Major, minor, pentatonic, sequences, positions, symmetric, world scales, Messiaen.' },
   { id: 'modes', name: 'Modes', icon: '🌗', desc: 'Relative and parallel modes; melodic minor, harmonic minor and harmonic major modes.' },
   { id: 'triads', name: 'Triads', icon: '🔺', desc: 'From the first shape to triad pairs and rudiments.' },
   { id: 'arpeggios', name: 'Arpeggios & 7ths', icon: '🪜', desc: '7th chords, broken chords, inversions, ii–V–I, extensions, Giant Steps.' },
   { id: 'harmony', name: 'Chords & Harmony', icon: '🎹', desc: 'How chords work, progressions, double stops, shells.' },
-  { id: 'grooves', name: 'Grooves & Bass Lines', icon: '🥁', desc: 'Rock, blues, Motown, funk, reggae, Latin, odd meters.' },
+  { id: 'grooves', name: 'Grooves & Bass Lines', icon: '🥁', desc: 'Rock, blues, Motown, funk, soul, reggae, Latin, country, afrobeat, pick playing, odd meters.' },
   { id: 'walking', name: 'Walking Bass', icon: '🚶', desc: 'Two-feel to bebop: chord tones, approaches, enclosures.' },
   { id: 'licks', name: 'Jazz Licks', icon: '🎷', desc: 'Advanced vocabulary: ii–V–I, minor, blues, bebop, modern, bass solos.' },
   { id: 'slap', name: 'Slap & Pop', icon: '👍', desc: 'Thumb, pop, hammer, ghost notes, double thumb.' },
 ];
 
-const ALL = [...fretboard, ...technique, ...rhythm, ...intervals, ...scales, ...modes, ...triads, ...arpeggios, ...harmony, ...grooves, ...licks];
+const ALL = [...fretboard, ...reading, ...technique, ...rhythm, ...intervals, ...ear, ...scales, ...modes, ...triads, ...arpeggios, ...harmony, ...grooves, ...licks];
 {
   const seen = new Set();
   for (const t of ALL) {
@@ -49,7 +53,7 @@ export const EXERCISES = ALL;
 export const byId = new Map(ALL.map((e) => [e.id, e]));
 
 /** Topic order inside a level: hands and time first, then the neck, then theory and music. */
-export const PATH_ORDER = ['technique', 'rhythm', 'fretboard', 'intervals', 'scales', 'modes', 'triads', 'arpeggios', 'harmony', 'grooves', 'walking', 'licks', 'slap'];
+export const PATH_ORDER = ['technique', 'rhythm', 'fretboard', 'reading', 'intervals', 'ear', 'scales', 'modes', 'triads', 'arpeggios', 'harmony', 'grooves', 'walking', 'licks', 'slap'];
 export const topicRank = (id) => { const i = PATH_ORDER.indexOf(id); return i < 0 ? PATH_ORDER.length : i; };
 
 // Exercise numbers (t.num) follow the Library: level, then topic (path order), then the order of

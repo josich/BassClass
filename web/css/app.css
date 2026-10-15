@@ -256,6 +256,16 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .tbg { fill: var(--panel); }
 .tcur { fill: rgba(70, 201, 162, 0.18); }
 .tchord { fill: var(--accent); font-weight: 800; font-size: 11px; }
+/* staff (bass clef) view of the strip */
+.staff .shead { fill: var(--text); }
+.staff .shead.open { fill: none; stroke: var(--text); stroke-width: 1.4; }
+.staff .shead.acc { fill: var(--accent); }
+.staff .shead.x { fill: var(--muted); font: 700 11px system-ui, sans-serif; }
+.staff .sstem, .staff .sflag { stroke: var(--text); stroke-width: 1.2; fill: none; }
+.staff .sacc { fill: var(--text); font: 600 11px system-ui, sans-serif; }
+.staff .s8va { fill: var(--muted); font: italic 600 9px system-ui, sans-serif; }
+.staff .clef { stroke: var(--text); stroke-width: 2.4; fill: none; stroke-linecap: round; }
+.staff .clefdot, .staff .srest { fill: var(--text); }
 .tlbl { fill: var(--muted); font-size: 9.5px; font-weight: 600; }
 .trest { fill: var(--muted); font-size: 14px; }
 .hit { fill: transparent; cursor: pointer; }

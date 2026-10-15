@@ -23,6 +23,15 @@ const GROOVES = {
   bossa: { name: 'Bossa nova (R-5 dotted)', bars: [[['R', 1.5], ['5_', 0.5], ['5_', 1.5], ['R', 0.5]]] },
   tumbao: { name: 'Latin tumbao (anticipated)', bars: [[['-', 1.5], ['5', 1.5], ['N', 1]]] },
   funk16: { name: 'Funk 16ths with ghost notes', bars: [[['R', 0.25], ['x', 0.25], ['x', 0.25], ['R', 0.25], ['-', 0.25], ['x', 0.25], ['b7', 0.25], ['8', 0.25], ['R', 0.25], ['x', 0.25], ['5', 0.25], ['x', 0.25], ['b7', 0.25], ['x', 0.25], ['8', 0.25], ['x', 0.25]]] },
+  countryTwo: { name: 'Country two-beat with a walk-up', bars: [[['R', 1], ['5_', 1], ['R', 1], ['5_', 1]], [['R', 1], ['5_', 1], ['2', 1], ['3', 1]]] },
+  samba: { name: 'Samba (R–5 with the anticipated 16th)', bars: [[['R', 0.75], ['R', 0.25], ['5_', 0.75], ['5_', 0.25], ['R', 0.75], ['R', 0.25], ['5_', 0.75], ['5_', 0.25]]] },
+  secondLine: { name: 'New Orleans second line', bars: [[['R', 0.5], ['-', 0.25], ['R', 0.25], ['3', 0.5], ['5', 0.5], ['6', 0.5], ['5', 0.25], ['3', 0.25], ['R', 0.5], ['5_', 0.5]]] },
+  afrobeat: { name: 'Afrobeat (syncopated R–♭7–8)', bars: [[['R', 0.75], ['R', 0.25], ['-', 0.5], ['b7', 0.5], ['8', 0.5], ['-', 0.25], ['5', 0.25], ['b7', 0.5], ['R', 0.5]]] },
+  neoSoul: { name: 'Neo-soul (laid back, ghost notes)', bars: [[['R', 1], ['x', 0.25], ['5', 0.25], ['-', 0.5], ['b7', 0.75], ['8', 0.25], ['-', 0.5], ['5', 0.5]]] },
+  soulBallad: { name: 'Soul ballad (long roots, passing tones)', bars: [[['R', 2], ['3', 1], ['A', 1]]] },
+  pickDown: { name: 'Pick: down-strokes only (punk 8ths)', bars: [e8('R').map(([t, d]) => [t, d, '↓'])] },
+  pickAlt: { name: 'Pick: alternate picking (↓ ↑) with the 5th', bars: [[['R', 0.5, '↓'], ['R', 0.5, '↑'], ['R', 0.5, '↓'], ['R', 0.5, '↑'], ['5', 0.5, '↓'], ['5', 0.5, '↑'], ['8', 0.5, '↓'], ['5', 0.5, '↑']]] },
+  gallop: { name: 'Pick: the metal gallop (8th + two 16ths)', bars: [[['R', 0.5, '↓'], ['R', 0.25, '↓'], ['R', 0.25, '↑'], ['R', 0.5, '↓'], ['R', 0.25, '↓'], ['R', 0.25, '↑'], ['R', 0.5, '↓'], ['R', 0.25, '↓'], ['R', 0.25, '↑'], ['5', 0.5, '↓'], ['b7', 0.25, '↓'], ['5', 0.25, '↑']]] },
   funkOct: { name: 'Octave funk 16ths', bars: [[['R', 0.25], ['x', 0.25], ['8', 0.25], ['x', 0.25], ['x', 0.25], ['R', 0.25], ['8', 0.25], ['x', 0.25], ['R', 0.25], ['x', 0.25], ['8', 0.25], ['b7', 0.25], ['x', 0.25], ['8', 0.25], ['R', 0.25], ['x', 0.25]]] },
   fill: {
     name: '3 bars groove + pentatonic fill',
@@ -37,6 +46,8 @@ const STYLE_PROGS = {
   rock8: 'I-V-vi-IV', pop8: 'I-vi-IV-V', rootFifth: 'I-IV-V-I', r585: 'I-vi-IV-V', octaves: 'vi-IV-I-V', r5b7: 'blues', boogie: 'blues', shuffle: 'blues',
   boogieSwing: 'blues-quick', approach: 'I-vi-IV-V', fifthApproach: 'I-vi-ii-V', motown: 'I-vi-IV-V', reggae: 'I-IV-V-I', bossa: 'ii-V-I', tumbao: 'ii-V-I',
   funk16: 'vamp-dom', funkOct: 'vamp-min', fill: 'vamp-min', riff: 'i-iv-v-min', slowBlues: 'blues',
+  countryTwo: 'I-IV-V-I', samba: 'ii-V-I', secondLine: 'blues', afrobeat: 'vamp-min', neoSoul: 'I-vi-ii-V', soulBallad: 'I-vi-IV-V',
+  pickDown: 'I-V-vi-IV', pickAlt: 'I-IV-V-I', gallop: 'i-bVI-bIII-bVII',
 };
 
 function grooveEx(id, level, styleKeys, def, meta) {
@@ -107,6 +118,30 @@ const funk = grooveEx('gr-funk', 3, ['funk16', 'funkOct', 'fill'], 'funk16', {
   about: 'Funk is a 16th-note conversation between real notes and ghost notes (x). Keep both hands moving in 16ths and choose which notes sound. The "fill" groove plays three bars and then a minor-pentatonic fill in the fourth, the way real bass parts are built.',
   tips: ['Ghost notes: fretting hand touches but does not press.', 'Big accent on beat 1; keep it light elsewhere.'],
   source: 'Rocco Prestia / Jaco-style 16ths; TalkingBass Groove Trainer Vol. 2; LCM fills', bpm: 92,
+});
+
+const genres = grooveEx('gr-genres', 3, ['countryTwo', 'samba', 'secondLine', 'afrobeat'], 'countryTwo', {
+  title: 'Country, samba, second line & afrobeat',
+  summary: 'Four more feels: the country two-beat, samba, the New Orleans second line and afrobeat.',
+  about: 'Every style has its own bass feel. Country alternates root and 5th on beats 1 and 3, with a walk-up into the next chord. Samba is a two-feel with an anticipated 16th before each beat. The New Orleans second line bounces between the root, 3rd, 5th and 6th over a street-parade beat. Afrobeat (Fela Kuti\'s band) repeats a syncopated one-bar figure over a minor vamp.',
+  tips: ['Country: keep beats 2 and 4 empty for the snare.', 'Samba: the short 16th is light; the long note carries the beat.', 'Second line: swing it a little and dig into beat 1.'],
+  source: 'Ed Friedland "Bass Grooves" and "Building Walking Bass Lines" (styles appendix); Chuck Sher; Berklee styles courses', bpm: 96,
+});
+
+const soul = grooveEx('gr-soul', 4, ['neoSoul', 'soulBallad', 'motown'], 'neoSoul', {
+  title: 'Soul and neo-soul: space, ghost notes and passing tones',
+  summary: 'Laid-back neo-soul with ghost notes, and the long-note soul ballad with passing tones.',
+  about: 'Soul bass is about space and feel. The neo-soul line (D\'Angelo, Pino Palladino) sits behind the beat with ghost notes and a lazy ♭7. The soul ballad holds the root for two beats, then walks through the 3rd and a chromatic approach into the next chord. Play them with the metronome on 2 and 4 in your head.',
+  tips: ['Neo-soul: play slightly late, but always land the root on 1.', 'Ballad: let the long notes ring for their full length.'],
+  source: 'Pino Palladino and James Jamerson-style lines; Ed Friedland "R&B Bass Masters"; Berklee', bpm: 76,
+});
+
+const pick = grooveEx('gr-pick', 2, ['pickDown', 'pickAlt', 'gallop'], 'pickDown', {
+  title: 'Playing with a pick: down-strokes, alternate picking & the gallop',
+  summary: '↓ = down-stroke, ↑ = up-stroke: punk 8ths, alternate picking and the metal gallop.',
+  about: 'Many rock, punk and metal bassists play with a pick for a sharp, even attack. Down-strokes only (↓) give the driving punk sound and need a relaxed wrist; alternate picking (↓ ↑) is faster and smoother; the gallop (8th + two 16ths) is the classic metal rhythm. Mute with the side of the picking hand (palm mute) for a tighter sound.',
+  tips: ['Hold the pick between the thumb and the side of the index finger; move from the wrist, not the elbow.', 'Palm mute: rest the edge of the hand lightly on the strings near the bridge.', 'Gallop: ↓ on the 8th, then ↓ ↑ on the two 16ths.'],
+  source: 'Pick technique from rock and metal bass teaching (Hal Leonard Bass Method; TalkingBass "Playing Bass with a Pick")', bpm: 100,
 });
 
 const funkChanges = grooveEx('gr-funk-changes', 5, ['funk16', 'funkOct'], 'funkOct', {
@@ -259,6 +294,8 @@ const SLAPS = {
   tmp: { name: 'Thumb – mute – pop (16ths)', bars: [[['R', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['b7', 0.25, 'P'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['5', 0.25, 'T'], ['x', 0.25, 'T']]] },
   hammer: { name: 'Thumb – hammer – pop – pull-off', bars: [[['R', 0.25, 'T'], ['x', 0.25, 'T'], ['b3', 0.25, 'H'], ['8', 0.25, 'P'], ['b7', 0.25, 'PO'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['5', 0.25, 'T'], ['R', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['b3', 0.25, 'H'], ['4', 0.25, 'H'], ['8', 0.25, 'P'], ['b7', 0.25, 'PO'], ['5', 0.25, 'T']]] },
   triad: { name: 'Slap arpeggio (T R, T 5, P 8, P 10)', bars: [[['R', 0.5, 'T'], ['5', 0.5, 'T'], ['8', 0.5, 'P'], ['10', 0.5, 'P'], ['R', 0.5, 'T'], ['5', 0.5, 'T'], ['8', 0.5, 'P'], ['5', 0.5, 'T']]] },
+  ghostFunk: { name: 'Ghost-note funk: T x x P, hammer and pull-off', bars: [[['R', 0.25, 'T'], ['x', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['R', 0.25, 'T'], ['b7', 0.25, 'H'], ['8', 0.25, 'P'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['5', 0.25, 'T'], ['b7', 0.25, 'H'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['b7', 0.25, 'PO'], ['5', 0.25, 'T']]] },
+  popFill: { name: 'Pop fill down the minor pentatonic (pull-offs)', bars: [[['R', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['b7', 0.25, 'PO'], ['5', 0.25, 'T'], ['4', 0.25, 'H'], ['5', 0.25, 'T'], ['b3', 0.25, 'H'], ['R', 0.25, 'T'], ['x', 0.25, 'T']]] },
   double: { name: 'Double thumb (down ↓ / up ↑) + pop', bars: [[['R', 0.25, 'T↓'], ['R', 0.25, 'T↑'], ['8', 0.25, 'P'], ['x', 0.25, 'T↑'], ['R', 0.25, 'T↓'], ['R', 0.25, 'T↑'], ['8', 0.25, 'P'], ['b7', 0.25, 'P'], ['5', 0.25, 'T↓'], ['5', 0.25, 'T↑'], ['8', 0.25, 'P'], ['x', 0.25, 'T↑'], ['R', 0.25, 'T↓'], ['b3', 0.25, 'T↑'], ['4', 0.25, 'H'], ['8', 0.25, 'P']]] },
 };
 
@@ -295,6 +332,14 @@ const slapGrooves = slapEx('sl-grooves', 4, ['tmp', 'hammer', 'triad'], 'tmp', '
   source: 'TalkingBass Slap Bass Essentials (60 grooves); Berklee Online Slap; RSL Grades 6–8', bpm: 80,
 });
 
+const slapAdvanced = slapEx('sl-advanced', 5, ['ghostFunk', 'popFill'], 'ghostFunk', 'vamp-min', {
+  title: 'Slap: ghost-note funk and pentatonic pop fills',
+  summary: 'Busier 16th slap lines: thumb ghosts, hammer-ons, pops, pull-offs and a pentatonic fill.',
+  about: 'The step between slap grooves and double thumbing: denser 16th patterns where the thumb ghosts (x) keep the grid, the hammer-on (H) and pull-off (PO) make notes without plucking, and pops (P) accent the off-beats. The second pattern ends each bar with a fill down the minor pentatonic, the kind of lick that ends a funk phrase.',
+  tips: ['Keep the thumb bouncing on every ghost: it is your hi-hat.', 'Pull-off (PO): pluck the note by pulling the fretting finger off sideways.', 'Loop one bar slowly before adding the progression.'],
+  source: 'TalkingBass Slap Bass Essentials; Louis Johnson and Marcus Miller-style slap vocabulary; Berklee Online Slap', bpm: 76,
+});
+
 const doubleThumb = slapEx('sl-double-thumb', 6, ['double'], 'double', 'vamp-min', {
   title: 'Double thumbing',
   summary: 'Thumb down (↓) and up (↑) like a pick: Victor Wooten\'s signature technique.',
@@ -303,4 +348,4 @@ const doubleThumb = slapEx('sl-double-thumb', 6, ['double'], 'double', 'vamp-min
   source: 'Victor Wooten; TalkingBass Slap (double thumb); SBL Slap Accelerator', bpm: 60,
 });
 
-export default [roots, octaveDisco, blues, approach, world, funk, funkChanges, oddGroove, twoFeel, chordToneWalk, approachWalk, scalarWalk, mixedWalk, enclosureWalk, twoPerBar, minorWalk, tripletWalk, giantWalk, slapBasics, slapGrooves, doubleThumb];
+export default [roots, pick, octaveDisco, blues, approach, world, genres, funk, soul, funkChanges, oddGroove, twoFeel, chordToneWalk, approachWalk, scalarWalk, mixedWalk, enclosureWalk, twoPerBar, minorWalk, tripletWalk, giantWalk, slapBasics, slapGrooves, slapAdvanced, doubleThumb];
