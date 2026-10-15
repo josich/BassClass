@@ -26,7 +26,7 @@
 - `web/` is the whole app: static ES modules, no build step. `android/` wraps it in a WebView (`assets.srcDirs("../../web")`).
 - This PC has no JDK, Android SDK, Node, Gradle or numpy, so APKs are built only by GitHub Actions. Audio processing runs in the browser (`web/js/dev/sampleprep.js`).
 - Exercises live in `web/js/curriculum/`, one file per module, with shared helpers in `common.js`. See README "Adding an exercise".
-- Exercise numbers are fixed by `web/js/curriculum/numbers.js` (number = position in the list). Never reorder or remove entries; a new exercise is appended at the end. The self-test fails if an exercise has no number.
+- Exercise numbers follow the Library order: level, then topic (PATH_ORDER), then the order of the module's `export default [...]` list (computed in `curriculum/index.js`). Put a new exercise where it belongs in that list; the ones after it move up by one (user's choice, 2026-10-15, replacing the earlier frozen `numbers.js`). Everything stored uses ids, never numbers.
 - Sound: CC0 Karoryfer "darkblack" bass samples in `web/audio/bass/` (B0–E4, plus ghost notes); `web/js/audio.js` falls back to a synth.
 - Design: navy/teal/periwinkle/peach palette (no brown fretboard), real string-gauge proportions, root markers drawn as rounded squares. Keep this look.
 - Downloading anything new (samples, packages, SDKs) needs the user's explicit OK first.
@@ -66,4 +66,6 @@
 - The UI uses British spelling ("favourites", "colours", "practise", "harmonised"); the Library search also finds the American spelling.
 - Sound (user, 2026-10-15): no sound options in Settings. Always the recorded bass (the synth only while samples load), no octave-up layer, phone-speaker profile fixed at +15 dB. The bass volume is shown as 0–100% (internally 0–2 into the limiter; default 100%). The phone-speaker profile plays only in the Android app on the phone's own speaker (Android 13+: the device actually playing media); browsers always get the natural sound, because they cannot see headphones.
 - Broken chords end on the root held to the bar line, so every key starts on beat 1. Two-octave arpeggios always start on the E string ("Root on" shows as fixed).
-- #171 is called "World scales" (not "exotic"); the augmented scale is in it and in Symmetric scales (#124). (QA round 3, user's choice.)
+- "World scales" (not "exotic"); the augmented scale is in it and in Symmetric scales. (QA round 3, user's choice.)
+- Mode study offers every mode family (major, melodic minor, harmonic minor, harmonic major) even though it is Level 4 and the dedicated family exercises come at Levels 5–6: it is a free practice tool. (QA round 3, user's choice.)
+- Every scale-based exercise has a Range option with 2 octaves (user, 2026-10-15). Exceptions, by nature: scales along one string (12 frets per octave), one position or box (all keys in one position, the 7 major and 5 pentatonic positions), scale in octaves (double stops on a string pair) and chord-scale progressions.

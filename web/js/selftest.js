@@ -24,7 +24,7 @@ function combos(params, limit = 60) {
 export function run({ strings = [4, 5, 6], verbose = false } = {}) {
   const problems = [];
   let builds = 0, notes = 0;
-  // every exercise has its own fixed number (curriculum/numbers.js)
+  // every exercise has its own number (its place in the Library: level, topic, module order)
   for (const t of EXERCISES) if (!(t.num > 0) || byNumber.get(t.num) !== t) problems.push(`${t.id}: missing or duplicate number ${t.num}`);
   for (const st of strings) {
     const S = { strings: st, notation: 'letters', maxFret: 20 };
@@ -68,7 +68,7 @@ export async function catalogue() {
   const lines = [
     '# BassClass exercise catalogue', '',
     `${C.EXERCISES.length} exercise families. Each runs in any key (or all 12 keys in a row) and has its own variations (patterns, inversions, scales, positions, rhythms), so the number of distinct drills runs into the thousands.`, '',
-    'Generated from `web/js/curriculum/` (run `saveCatalogue()` from `js/selftest.js` to refresh). # = the exercise number shown in the app (fixed: see `curriculum/numbers.js`). ★ = core exercise.', '',
+    'Generated from `web/js/curriculum/` (run `saveCatalogue()` from `js/selftest.js` to refresh). # = the exercise number shown in the app (its place in the Library: level, then topic, then the order of its module). ★ = core exercise.', '',
     '## By level', '',
   ];
   for (const L of C.LEVELS) {

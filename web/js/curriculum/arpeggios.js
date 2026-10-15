@@ -475,5 +475,6 @@ const broken = ex({
   },
 });
 
-export default [diatonic7AllKeys, qualities, study, zoneCycle7, diatonic7, inversions, twoOct, diatonic7inv, iiVI, voiceLed, guideTones, dimDominants, dimToMinor, extended, upper, perms7, approach7, altered, rhythmChanges, giant, broken];
+// the order inside each level is the order of the exercise numbers
+export default [diatonic7AllKeys, qualities, study, broken, zoneCycle7, diatonic7, inversions, twoOct, diatonic7inv, iiVI, voiceLed, guideTones, dimDominants, dimToMinor, extended, upper, perms7, approach7, altered, rhythmChanges, giant];
 void chordRootMidis;

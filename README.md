@@ -10,7 +10,7 @@ A landscape app to learn bass from the first open string to mastery. Every exerc
 - **Tuner.** Chromatic or per-string, with a cents gauge, adjustable A4 and reference tones. It uses YIN pitch detection, which works down to a 5-string's low B.
 - **Elegant fretboard.** Navy board, nickel round-wound strings drawn at real gauge ratios (.045–.130), and glossy colour-coded markers (root = square).
 - **Built for practice.** Step-by-step mode (◀ ▶), loop, tempo 30–260 BPM, subdivision selector (whole notes to sextuplets; fixed where the rhythm is written in, as in licks and grooves), count-in, speed trainer (+4 BPM per loop), "Shape" and "Quiz" reveal modes, mastered/best-BPM tracking and a neck explorer.
-- **Organised for daily use.** Home holds the daily warm-up (a fresh random routine every day) and your favourites: star any exercise and drag the list into your own order. The Path walks through the topics, and the Library shows every exercise at once, by level, with search. Every exercise has a fixed number (1 = Alternate plucking, 2 = Chromatic 1-2-3-4…), so you can point someone to "exercise 42": type 42 in the search, or open `#/ex/42`.
+- **Organised for daily use.** Home holds the daily warm-up (a fresh random routine every day) and your favourites: star any exercise and drag the list into your own order. The Path walks through the topics, and the Library shows every exercise at once, by level, with search. Every exercise has a number, its place in the Library (1 = Alternate plucking, 2 = Chromatic 1-2-3-4…), so you can point someone to "exercise 42": type 42 in the search, or open `#/ex/42`. Numbers can move up when new exercises are added before them.
 - **Jazz licks for advanced players.** 33 original phrases in real jazz vocabulary (ii–V–I, minor ii–V–i, blues, turnarounds, bebop, modern sounds, bass-solo devices). Each plays over its chord changes in all 12 keys, with swing and colour-coded tensions.
 - **Grounded in real curricula.** Content draws on Scott's Bass Lessons, TalkingBass, StudyBass, BassBuzz, RSL/Trinity/LCM grades, Berklee, MI, Spanish conservatories, Bass Fitness, Willis, Friedland, Barry Harris, Banacos, Gwizdala and others. See [docs/RESEARCH.md](docs/RESEARCH.md).
 
@@ -96,7 +96,7 @@ const myDrill = ex({
 });
 ```
 
-Add it to the module's `export default [...]` list, and add its id at the END of `js/curriculum/numbers.js` so it gets the next exercise number (numbers never change once given). Then check it in the browser console:
+Add it to the module's `export default [...]` list, at the place where it belongs inside its level: exercise numbers follow the Library order (level, then topic, then that list), so the exercises after it move up by one. Progress, favourites and warm-ups are stored by id, so nothing breaks. Then check it in the browser console:
 
 ```js
 (await import('./js/selftest.js')).run()

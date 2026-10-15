@@ -1,6 +1,6 @@
 // Modes: relative and parallel views, mode study, chord-scale playing, melodic/harmonic minor and harmonic major modes.
 import {
-  T, Builder, keysFor, ex, variant, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS,
+  T, Builder, keysFor, ex, variant, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS, octP,
   progChords, progP, chordRootMidis, emitMixed,
 } from './common.js';
 import { scaleBuild } from './scales.js';
@@ -8,22 +8,24 @@ import { scaleBuild } from './scales.js';
 const M = 'modes';
 const MODE_NAMES = ['Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian'];
 
-/** Relative modes of a 7-note parent scale: each degree's scale, one octave, in one area. */
+/** Relative modes of a 7-note parent scale: each degree's scale, one octave in one area (or two octaves). */
 function relativeBuild(p, ctx, S, family) {
   const b = new Builder(ctx, S);
+  const octaves = Number(p.oct || 1);
   let prev = null;
   for (const k of keysFor(p.key)) {
     const parent = family[0];
     const tonic = T.bestRoot(k, T.SCALES[parent].iv);
-    const r = pickRoot(ctx, k, { strings: ['E', 'A'], hi: 7, prev, prefer: 'E' });
-    const items = [];
-    family.forEach((mode, d) => {
+    const r = pickRoot(ctx, k, { strings: ['E', 'A'], hi: octaves > 1 ? 5 : 7, prev, prefer: 'E' });
+    const modes = family.map((mode, d) => {
       // the mode is the parent scale starting on degree d
-      const seq = scaleRun(tonic, parent, r.midi, { dir: p.dir || 'up', startDeg: d });
+      const seq = scaleRun(tonic, parent, r.midi, { dir: p.dir || 'up', startDeg: d, octaves });
       const modeRoot = T.up(tonic, T.SCALES[parent].iv[d]);
-      seq.forEach((x, i) => items.push({ ...x, deg: T.fmtDeg(T.ivBetween(modeRoot, x.n)), chord: i === 0 ? `${nm(modeRoot, S)} ${T.SCALES[mode].name.split(' (')[0]}` : undefined }));
+      return seq.map((x, i) => ({ ...x, deg: T.fmtDeg(T.ivBetween(modeRoot, x.n)), chord: i === 0 ? `${nm(modeRoot, S)} ${T.SCALES[mode].name.split(' (')[0]}` : undefined }));
     });
-    b.line(items, { place: { open: 'avoid', center: r.f + 2 } });
+    // one octave: all seven modes in one hand area; two octaves: each mode is fitted to the neck on its own
+    if (octaves > 1) modes.forEach((items) => b.line(items, { place: { open: 'avoid' } }));
+    else b.line(modes.flat(), { place: { open: 'avoid', center: r.f + 2 } });
     prev = r.midi;
   }
   return b;
@@ -36,7 +38,7 @@ const relative = ex({
   about: 'A mode is a scale started from a different note. Play C major from C (Ionian), from D (Dorian), from E (Phrygian) and so on: same notes, different home. The degree labels are recalculated for each mode so you see what makes it unique: Dorian has a ♭3 and a natural 6, Lydian a ♯4, Mixolydian a ♭7.',
   tips: ['Each mode fits the chord built on its degree: D Dorian over Dm7, G Mixolydian over G7.', 'Listen for the "characteristic note" of each mode.'],
   source: 'Berklee PULSE (relative modes); SBL Fretboard Crash Course; Ariane Cap',
-  params: { key: keyP(T.SCALES.ionian.iv), dir: sel('Direction', [['up', 'Each mode ascending'], ['updown', 'Up & down']]) },
+  params: { key: keyP(T.SCALES.ionian.iv), dir: sel('Direction', [['up', 'Each mode ascending'], ['updown', 'Up & down']]), oct: octP() },
   bpm: 84, sub: 2, label: 'degree',
   build(p, ctx, S) { return relativeBuild(p, ctx, S, T.MAJOR_MODES).build({ label: 'degree' }); },
 });
@@ -57,17 +59,18 @@ const parallel = ex({
   about: 'Keep the root and change the mode. Ordered from brightest to darkest, each mode lowers exactly one note: Lydian (♯4) → Ionian (4) → Mixolydian (♭7) → Dorian (♭3) → Aeolian (♭6) → Phrygian (♭2) → Locrian (♭5). This is the clearest way to hear the colour of each mode.',
   tips: ['Find the one note that changes between neighbouring modes.', 'Play it over a drone of the root (e.g. the open A string).'],
   source: 'Berklee PULSE (parallel modes); RSL Grades 6–7; LCM',
-  params: { key: keyP(T.SCALES.ionian.iv, { def: '9', cycles: false }), dir: sel('Order', [['bright', 'Brightest → darkest'], ['dark', 'Darkest → brightest']]) },
+  params: { key: keyP(T.SCALES.ionian.iv, { def: '9', cycles: false }), dir: sel('Order', [['bright', 'Brightest → darkest'], ['dark', 'Darkest → brightest']]), oct: octP() },
   bpm: 84, sub: 2, label: 'degree',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     const k = Number(p.key);
-    const r = pickRoot(ctx, k, { strings: ['E', 'A'], hi: 9, prefer: 'E' });
+    const octaves = Number(p.oct || 1);
+    const r = pickRoot(ctx, k, { strings: octaves > 1 ? ['E'] : ['E', 'A'], hi: 9, prefer: 'E' });
     const order = p.dir === 'bright' ? BRIGHT : [...BRIGHT].reverse();
     for (const mode of order) {
       const tonic = T.bestRoot(k, T.SCALES[mode].iv);
       b.chord(`${nm(tonic, S)} ${T.SCALES[mode].name.split(' (')[0]}${sameRoot(k, tonic, S)}`);
-      b.line(scaleRun(tonic, mode, r.midi, { dir: 'updown' }), { place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
+      b.line(scaleRun(tonic, mode, r.midi, { dir: 'updown', octaves }), { place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
     }
     return b.build({ label: 'degree' });
   },
@@ -166,7 +169,7 @@ const melodicModes = ex({
   about: 'Melodic minor produces the most important scales of modern jazz: Lydian dominant (4th mode) over 7♯11 chords, Locrian ♮2 (6th mode) over m7♭5, and the altered scale (7th mode) over altered dominants. Play all seven from the same parent and hear how one set of notes creates seven colours.',
   tips: ['Altered scale = melodic minor a half step above the root (G altered = A♭ melodic minor).', 'Lydian dominant = melodic minor from the 5th (G7♯11 = D melodic minor).'],
   source: 'RSL Grade 8; Spanish conservatory year 6; Tony Grey (melodic minor modes); Mark Levine',
-  params: { key: keyP(T.SCALES.melodicMinor.iv), dir: sel('Direction', [['up', 'Each mode ascending'], ['updown', 'Up & down']]) },
+  params: { key: keyP(T.SCALES.melodicMinor.iv), dir: sel('Direction', [['up', 'Each mode ascending'], ['updown', 'Up & down']]), oct: octP() },
   bpm: 84, sub: 2, label: 'degree',
   build(p, ctx, S) { return relativeBuild(p, ctx, S, T.MELODIC_MODES).build({ label: 'degree' }); },
 });
@@ -178,7 +181,7 @@ const harmonicModes = variant(melodicModes, {
   about: 'Harmonic minor\'s modes give Spanish, Middle-Eastern and neo-classical colours. The 5th mode, Phrygian dominant, is the sound of the V7♭9 chord in minor keys and of flamenco. Play all seven from the same parent.',
   tips: ['Phrygian dominant = harmonic minor from its 5th (C Phrygian dominant = F harmonic minor).', 'Listen for the augmented 2nd (three frets): it moves to a different place in every mode.'],
   source: 'RSL Grade 8; Spanish conservatory programmes; flamenco and neo-classical practice (Phrygian dominant); Mark Levine',
-  params: { key: keyP(T.SCALES.harmonicMinor.iv), dir: melodicModes.params.dir },
+  params: { key: keyP(T.SCALES.harmonicMinor.iv), dir: melodicModes.params.dir, oct: octP() },
   build(p, ctx, S) { return relativeBuild(p, ctx, S, T.HARMONIC_MODES).build({ label: 'degree' }); },
 });
 
@@ -189,17 +192,18 @@ const pitchAxis = ex({
   about: 'The "pitch axis" idea keeps one bass note while the mode above it changes. Each bar is a different mode on the same root, so your ear has to follow the colour changes while your hand reorganises around a fixed root. It is a powerful exercise for modal fluency.',
   tips: ['Choose the order: major modes, melodic minor modes, or a dramatic mix.', 'Accent the characteristic note of each mode.'],
   source: 'Pitch-axis theory (Joe Satriani); modal improvisation pedagogy',
-  params: { key: keyP(T.SCALES.ionian.iv, { def: '4', cycles: false }), set: sel('Modes', [['major', 'Major modes (bright → dark)'], ['melodic', 'Melodic minor modes'], ['mix', 'Lydian · Mixolydian · Dorian · Phrygian dominant · Altered']]) },
+  params: { key: keyP(T.SCALES.ionian.iv, { def: '4', cycles: false }), set: sel('Modes', [['major', 'Major modes (bright → dark)'], ['melodic', 'Melodic minor modes'], ['mix', 'Lydian · Mixolydian · Dorian · Phrygian dominant · Altered']]), oct: octP() },
   bpm: 88, sub: 2, label: 'degree',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     const k = Number(p.key);
-    const r = pickRoot(ctx, k, { strings: ['E', 'A'], hi: 9, prefer: 'E' });
+    const octaves = Number(p.oct || 1);
+    const r = pickRoot(ctx, k, { strings: octaves > 1 ? ['E'] : ['E', 'A'], hi: 9, prefer: 'E' });
     const sets = { major: BRIGHT, melodic: T.MELODIC_MODES, mix: ['lydian', 'mixolydian', 'dorian', 'phrygianDom', 'altered'] };
     for (const mode of sets[p.set]) {
       const tonic = T.bestRoot(k, T.SCALES[mode].iv);
       b.chord(`${nm(tonic, S)} ${T.SCALES[mode].name.split(' (')[0]}${sameRoot(k, tonic, S)}`);
-      b.line(scaleRun(tonic, mode, r.midi, { dir: 'up' }), { place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
+      b.line(scaleRun(tonic, mode, r.midi, { dir: 'up', octaves }), { place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
     }
     return b.build({ label: 'degree' });
   },
@@ -220,9 +224,10 @@ const harmonicMajorModes = variant(melodicModes, {
   about: 'Harmonic major is the major scale with a ♭6 (C D E F G A♭ B). Harmonic minor lowers the 3rd and the 6th, melodic minor only the 3rd, harmonic major only the 6th: together with the major scale these are the four parent scales that jazz and modern harmony draw on (Dmitri Tymoczko\'s four scale families). It keeps the major I chord but borrows the minor iv (Fm) and the °7 on the 7th degree, so it sounds major with a dark edge. Play all seven modes from the same parent.',
   tips: ['Mixolydian ♭2 (5th mode) fits a V7♭9 that resolves to a major chord: G7♭9 → C.', 'Phrygian ♭4 (3rd mode) sounds like the altered scale with a natural 5th: read its ♭4 (A♭) as G♯, the 3rd of E, and E F G G♯ B C D = R ♭9 ♯9 3 5 ♭13 ♭7.', 'Add a natural 6 and you get Barry Harris\'s major 6th diminished scale.'],
   source: 'Rimsky-Korsakov "Practical Manual of Harmony" (harmonic major); Dmitri Tymoczko "A Geometry of Music" (the four scale families); Barry Harris',
-  params: { key: keyP(T.SCALES.harmonicMajor.iv), dir: melodicModes.params.dir },
+  params: { key: keyP(T.SCALES.harmonicMajor.iv), dir: melodicModes.params.dir, oct: octP() },
   build(p, ctx, S) { return relativeBuild(p, ctx, S, T.HARMONIC_MAJOR_MODES).build({ label: 'degree' }); },
 });
 
-export default [relative, parallel, study, chordScale, pitchAxis, melodicModes, harmonicModes, alteredChordScale, harmonicMajorModes];
+// the order inside each level is the order of the exercise numbers
+export default [relative, parallel, study, chordScale, pitchAxis, melodicModes, harmonicModes, harmonicMajorModes, alteredChordScale];
 void MODE_NAMES;

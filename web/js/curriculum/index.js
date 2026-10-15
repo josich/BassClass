@@ -10,7 +10,6 @@ import arpeggios from './arpeggios.js';
 import harmony from './harmony.js';
 import grooves from './grooves.js';
 import licks from './licks.js';
-import NUMBERED from './numbers.js';
 
 export const LEVELS = [
   { n: 1, name: 'Foundations', desc: 'Open strings, first notes, steady pulse, first shapes.' },
@@ -53,15 +52,12 @@ export const byId = new Map(ALL.map((e) => [e.id, e]));
 export const PATH_ORDER = ['technique', 'rhythm', 'fretboard', 'intervals', 'scales', 'modes', 'triads', 'arpeggios', 'harmony', 'grooves', 'walking', 'licks', 'slap'];
 export const topicRank = (id) => { const i = PATH_ORDER.indexOf(id); return i < 0 ? PATH_ORDER.length : i; };
 
-// Exercise numbers (t.num), fixed by numbers.js so "exercise 42" always means the same one.
-// An exercise missing from that list still gets a number after the last one (and a warning).
-{
-  let next = NUMBERED.length;
-  NUMBERED.forEach((id, i) => { if (byId.has(id)) byId.get(id).num = i + 1; else console.warn('numbers.js lists an unknown exercise', id); });
-  for (const t of [...ALL].sort((a, b) => a.level - b.level || topicRank(a.module) - topicRank(b.module))) {
-    if (t.num == null) { t.num = ++next; console.warn('exercise without a fixed number (add it to the end of numbers.js):', t.id); }
-  }
-}
+// Exercise numbers (t.num) follow the Library: level, then topic (path order), then the order of
+// the module's export list. A new exercise takes its place and the ones after it move up by one
+// (owner's choice, 2026-10-15); everything stored (progress, favourites, warm-ups) uses ids.
+[...ALL].map((t, i) => ({ t, i }))
+  .sort((a, b) => a.t.level - b.t.level || topicRank(a.t.module) - topicRank(b.t.module) || a.i - b.i)
+  .forEach(({ t }, n) => { t.num = n + 1; });
 export const byNumber = new Map(ALL.map((e) => [e.num, e]));
 export const byModule = (id) => ALL.filter((e) => e.module === id).sort((a, b) => a.level - b.level || a.num - b.num);
 export const byLevel = (n) => ALL.filter((e) => e.level === n);
