@@ -80,7 +80,26 @@ const study = ex({
 
 const MODE_FOR = {
   maj7: 'ionian', dom7: 'mixolydian', min7: 'dorian', m7b5: 'locrianN2', dim7: 'dimWH', mMaj7: 'melodicMinor', maj6: 'ionian', min6: 'melodicMinor',
-  dom7s9: 'altered', dom7b9: 'dimHW', dom7s5: 'wholeTone', dom7b5: 'lydianDom', maj7s5: 'lydianAug',
+  dom7s9: 'altered', dom7b9: 'dimHW', dom7s5: 'wholeTone', dom7b5: 'wholeTone', maj7s5: 'lydianAug',
+};
+const MINOR_TYPES = ['min7', 'min6', 'mMaj7', 'm7b5', 'min'];
+/** Scale for a chord; a dominant resolving down a 5th to a minor chord takes Phrygian dominant (♭9, ♭13). */
+function modeFor(c, next) {
+  const toMinor = next && MINOR_TYPES.includes(next.type) && T.mod(T.pc(next.root) - T.pc(c.root), 12) === 5;
+  if (toMinor && (c.type === 'dom7' || c.type === 'dom7b9')) return 'phrygianDom';
+  return MODE_FOR[c.type] || 'ionian';
+}
+/**
+ * Dominant scales are spelled and labelled the jazz way, by semitones above the root:
+ * G altered = G A♭ B♭ B D♭ E♭ F (R ♭9 ♯9 3 ♭5 ♭13 ♭7), not C♭ "♭4". 7♭5 keeps the ♭5 of its symbol.
+ */
+const DOM_SPELL = {
+  altered: { 0: ['1', '1'], 1: ['b2', 'b9'], 3: ['b3', '#9'], 4: ['3', '3'], 6: ['b5', 'b5'], 8: ['b6', 'b13'], 10: ['b7', 'b7'] },
+  dimHW: { 0: ['1', '1'], 1: ['b2', 'b9'], 3: ['b3', '#9'], 4: ['3', '3'], 6: ['#4', '#11'], 7: ['5', '5'], 9: ['6', '13'], 10: ['b7', 'b7'] },
+  wholeTone: { 0: ['1', '1'], 2: ['2', '9'], 4: ['3', '3'], 6: ['#4', '#11'], 8: ['#5', '#5'], 10: ['b7', 'b7'] },
+  wholeToneB5: { 0: ['1', '1'], 2: ['2', '9'], 4: ['3', '3'], 6: ['b5', 'b5'], 8: ['b6', 'b13'], 10: ['b7', 'b7'] },
+  lydianDom: { 0: ['1', '1'], 2: ['2', '9'], 4: ['3', '3'], 6: ['#4', '#11'], 7: ['5', '5'], 9: ['6', '13'], 10: ['b7', 'b7'] },
+  phrygianDom: { 0: ['1', '1'], 1: ['b2', 'b9'], 4: ['3', '3'], 5: ['4', '11'], 7: ['5', '5'], 8: ['b6', 'b13'], 10: ['b7', 'b7'] },
 };
 /** Mode names for the chord-scale badge ("Ionian", not "Major"). */
 const modeName = (m) => ({ ionian: 'Ionian', aeolian: 'Aeolian' })[m] || T.SCALES[m].name.split(' (')[0];
@@ -89,7 +108,7 @@ const chordScale = ex({
   id: 'md-chord-scale', module: M, level: 4, star: true,
   title: 'Chord-scale: the right mode on every chord',
   summary: 'ii–V–I and real progressions with each chord\'s mode: Dorian, Mixolydian, Ionian…',
-  about: 'Each chord in a progression implies a scale: m7 → Dorian, 7 → Mixolydian, maj7 → Ionian, m7♭5 → Locrian ♮2, mMaj7 → melodic minor. Each chord gets its scale in 8th notes, starting on its root in the octave nearest the last note and alternating up and down, so the line flows. This is the foundation of improvising and of scalar walking lines.',
+  about: 'Each chord in a progression implies a scale: m7 → Dorian, 7 → Mixolydian (Phrygian dominant when it resolves to a minor chord), maj7 → Ionian, m7♭5 → Locrian ♮2, mMaj7 → melodic minor. Each chord gets its scale in 8th notes, starting on its root in the octave nearest the last note and alternating up and down, so the line flows. This is the foundation of improvising and of scalar walking lines.',
   tips: ['Notice how few notes change between neighbouring chords.', 'Then try only chord tones on the beats (1-3-5-7) and scale notes in between.'],
   source: 'Berklee chord-scale theory; Tony Grey Bass Academy; Mark Levine "The Jazz Theory Book"',
   params: { prog: progP(['ii-V-I', 'I-vi-ii-V', 'autumn', 'minor-ii-V-i', 'jazz-blues', 'cycle-251']), key: keyP(T.SCALES.ionian.iv) },
@@ -104,7 +123,8 @@ const chordScale = ex({
       const highest = ctx.tuning[ctx.tuning.length - 1] + ctx.maxFret;
       let pass = 0;
       chords.forEach((c, ci) => {
-        const mode = MODE_FOR[c.type] || 'ionian';
+        const mode = modeFor(c, chords[(ci + 1) % chords.length]);
+        const spell = DOM_SPELL[c.type === 'dom7b5' ? 'wholeToneB5' : mode];
         const total = Math.max(4, c.beats * 2);
         const run = [];
         while (run.length < total) {
@@ -117,7 +137,12 @@ const chordScale = ex({
           const seg = up ? scaleRun(c.root, mode, start, { dir: 'up' }) : scaleRun(c.root, mode, start - 12, { dir: 'down' });
           run.push(...seg.slice(0, Math.min(8, total - run.length)));
         }
-        run.forEach((x, i) => items.push({ ...x, deg: T.fmtDeg(T.ivBetween(c.root, x.n)), dur: 1, chord: i === 0 ? c.sym : undefined, text: i === 0 ? modeName(mode) : undefined }));
+        run.forEach((x, i) => {
+          const sp = spell?.[T.mod(x.midi - T.pc(c.root), 12)];
+          const n = sp ? T.up(c.root, sp[0]) : x.n;
+          const deg = T.fmtDeg(sp ? sp[1] : T.ivBetween(c.root, x.n));
+          items.push({ ...x, n, deg, dur: 1, chord: i === 0 ? c.sym : undefined, text: i === 0 ? modeName(mode) : undefined });
+        });
         prev = items[items.length - 1].midi;
       });
     }
@@ -175,8 +200,8 @@ const pitchAxis = ex({
 const alteredChordScale = variant(chordScale, {
   id: 'md-altered-chord-scale', level: 6,
   title: 'Chord-scale with altered dominants',
-  summary: 'ii – V7alt – I: altered, half-whole diminished, whole-tone and Lydian dominant over the V.',
-  about: 'Modern jazz colours the dominant chord with altered scales: the altered scale over 7♯9, half-whole diminished over 7♭9, whole tone over 7♯5 and Lydian dominant over 7♭5 (or 7♯11). Each progression puts a different altered dominant between ii and I so you hear the tension and the resolution.',
+  summary: 'ii – V7alt – I: altered, half-whole diminished and whole-tone scales over the V.',
+  about: 'Modern jazz colours the dominant chord with altered scales: the altered scale over 7♯9, half-whole diminished over 7♭9, and the whole-tone scale over 7♯5 and 7♭5. Each progression puts a different altered dominant between ii and I so you hear the tension and the resolution. The notes over the V are named as tensions (♭9, ♯9, ♯11, ♭13), the way jazz players say them.',
   params: { ...chordScale.params, prog: progP(['ii-V7alt-I', 'ii-V7b9-I', 'ii-V7s5-I', 'ii-V7b5-I'], 'ii-V7alt-I') },
 });
 

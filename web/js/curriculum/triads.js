@@ -1,6 +1,6 @@
 // Triads: from the first shape to triad pairs, rudiments and upper structures.
 import {
-  T, Builder, keysFor, chordTones, ARP_SHAPES, ex, variant, keyP, sel, nm, chordName, QUALITY_TRIADS,
+  T, Builder, keysFor, chordTones, ARP_SHAPES, ex, variant, keyP, sel, nm, chordName, cycleRoot, QUALITY_TRIADS,
   ZONES, zoneP, rootStrP, orderP, pickRoot, zoneShape, emitShapeF, TRIAD_ORDERS, shapes, voiceLedItems,
   emitMixed, progChords, progP, diatonicStacks, scaleTone, DEG_SEQ, degSeqP, SCALE_TYPE_OPTS, spellMidi,
   shapeFingers,
@@ -12,8 +12,9 @@ const triadOrderP = (keys, def) => sel('Pattern', keys.map((k) => [k, TRIAD_ORDE
 const arpShapeP = (keys, def) => sel('Pattern', keys.map((k) => [k, ARP_SHAPES[k].name]), def);
 
 /** Shared arpeggio builder (also used by the 7th-chord module). */
-export function arpBuild(p, ctx, S, { ivs, type, shape = 'updown', octaves = 1, inversion = 0, rootStr = 'A' }) {
-  const b = new Builder(ctx, S);
+export function arpBuild(p, ctx, S, { ivs, type, shape = 'updown', octaves = 1, inversion = 0, rootStr = 'A', strict = false }) {
+  // strict: chord-construction drills keep textbook spellings (B augmented = B D♯ F𝄪)
+  const b = new Builder(ctx, S, { strict });
   const keys = keysFor(p.key);
   let prev = null;
   for (const k of keys) {
@@ -90,7 +91,7 @@ const triadQualities = ex({
   params: { quality: sel('Triad', QUALITY_TRIADS), key: keyP(), root: rootStrP('A'), shape: arpShapeP(['updown', 'octave', 'up', 'turn', 'r535', 'down']) },
   bpm: 70, sub: 2, label: 'degree',
   build(p, ctx, S) {
-    return arpBuild(p, ctx, S, { ivs: ivsOf(p.quality), type: p.quality, shape: p.shape, rootStr: p.root }).build({ label: 'degree' });
+    return arpBuild(p, ctx, S, { ivs: ivsOf(p.quality), type: p.quality, shape: p.shape, rootStr: p.root, strict: true }).build({ label: 'degree' });
   },
 });
 
@@ -112,7 +113,7 @@ const fourTypes = ex({
   params: { key: keyP(), root: rootStrP('A') },
   bpm: 70, sub: 3, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { strict: true });
     let prev = null;
     for (const k of keysFor(p.key)) {
       const r = pickRoot(ctx, k, { strings: [p.root, 'A', 'E'], hi: 10, prev, prefer: p.root });
@@ -176,7 +177,7 @@ const zoneCycle = ex({
     const zone = ZONES[p.zone];
     let prev = null;
     keysFor(p.order).forEach((k, i) => {
-      const root = T.bestRoot(k, ivs);
+      const root = cycleRoot(k);
       const z = zoneShape(k, ivs, ctx, zone, prev);
       if (!z) return;
       b.chord(chordName(root, p.quality, S));
@@ -443,7 +444,7 @@ const voiceLedCycle = ex({
     const ivs = ivsOf(p.quality);
     const orders = { m3: [0, 3, 6, 9], M3: [0, 4, 8], wholetone: [0, 2, 4, 6, 8, 10] };
     const pcs = orders[p.order] ? [...orders[p.order], ...orders[p.order], 0] : keysFor(p.order);
-    const chords = pcs.map((k) => { const root = T.bestRoot(k, ivs); return { root, ivs, sym: chordName(root, p.quality, S) }; });
+    const chords = pcs.map((k) => { const root = cycleRoot(k); return { root, ivs, sym: chordName(root, p.quality, S) }; });
     const [lo, hi] = REGISTERS[p.register];
     emitMixed(b, voiceLedItems(chords, { order: TRIAD_ORDERS[p.pattern].f, lo, hi, rootOnly: p.voicing === 'root', start: lo + 8 }), { center: 5 });
     return b.build({ label: 'degree' });
@@ -476,14 +477,14 @@ const allInversionsCycle = ex({
   title: 'Every inversion, every key (wave through the cycle)',
   summary: 'Climb three inversions of one key, then descend through the next. All 12 keys, no stopping.',
   about: 'This is a stamina and fluency drill. Play root position, 1st and 2nd inversion climbing in one key, then descend through the inversions of the next key in the cycle, starting from the nearest note. Your eyes and ears have to stay one chord ahead.',
-  tips: ['Start at 60 bpm in triplets; the speed trainer adds 4 bpm per loop.', 'Keep the degree labels on until the shapes are automatic, then switch to "none".'],
+  tips: ['Start at 60 BPM in triplets; the speed trainer adds 4 BPM per loop.', 'Keep the degree labels on until the shapes are automatic, then switch to "none".'],
   source: 'Synthesis of the LCM and Spanish conservatory all-inversions requirements and continuous-line practice (Banacos, Gwizdala)',
   params: { quality: sel('Triad', QUALITY_TRIADS.slice(0, 4)), order: orderP },
   bpm: 60, sub: 3, label: 'degree',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     const ivs = ivsOf(p.quality);
-    const chords = keysFor(p.order).map((k) => { const root = T.bestRoot(k, ivs); return { root, ivs, sym: chordName(root, p.quality, S) }; });
+    const chords = keysFor(p.order).map((k) => { const root = cycleRoot(k); return { root, ivs, sym: chordName(root, p.quality, S) }; });
     const order = (i) => (i % 2 === 0 ? [0, 1, 2, 1, 2, 3, 2, 3, 4] : [4, 3, 2, 3, 2, 1, 2, 1, 0]);
     emitMixed(b, voiceLedItems(chords, { order, lo: 28, hi: 50, start: 36 }), { center: 6 });
     return b.build({ label: 'degree' });
@@ -504,7 +505,7 @@ const approachTriads = ex({
   id: 'tri-approach', module: M, level: 5,
   title: 'Triads with chromatic approach notes',
   summary: 'Target every chord tone from a half step away: the bebop way to outline chords.',
-  about: 'Precede every chord tone with a chromatic neighbour. The approach notes create tension and the chord tones resolve it. This is how bebop players and walking bassists make lines sound "inside" while using all 12 notes.\n\nEvery chord tone lands on a beat, and the approach notes fill the rest of the beat, leading into the next one: 8th notes with a single approach note, triplets with an enclosure or a double approach. Approach notes are labelled →.',
+  about: 'Precede every chord tone with a chromatic neighbour. The approach notes create tension and the chord tones resolve it. This is how bebop players and walking bassists make lines sound "inside" while using all 12 notes.\n\nEvery chord tone lands on a beat, and the approach notes fill the rest of the beat, leading into the next one: 8th notes with a single approach note, triplets with an enclosure or a double approach. Each chord fills one bar of 3/4 (three chord tones, three beats). Approach notes are labelled →; when the usual side would repeat the note you just played, the approach comes from the other side.',
   tips: ['Accent the chord tones, ghost the approach notes.', 'Try the enclosure: it frames each target from both sides.'],
   source: 'TalkingBass Chord Tone Essentials (approach notes & enclosures); Berklee level exams; jazz pedagogy',
   params: { key: keyP(['1', '3', '5']), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'harmonicMinor'])), approach: sel('Approach', Object.entries(APPROACH).filter(([k]) => k !== 'scale').map(([k, v]) => [k, v.name])), order: sel('Chords', [['up', 'I → I'], ['updown', 'Up & back']]) },
@@ -539,11 +540,15 @@ const approachTriads = ex({
       for (const t of sg.targets) {
         items.push({ ...t, accent: true, dur: 1 / per });
         const nx = all[++gi % all.length];
-        for (const m of APPROACH[p.approach].f(nx.midi)) items.push({ midi: m, n: spellMidi(m, m > nx.midi), deg: '→', dur: 1 / per });
+        let apps = APPROACH[p.approach].f(nx.midi);
+        // never "approach" with the note just played: come from the other side of the target
+        if (apps[0] === t.midi || (p.approach === 'double' && apps.includes(t.midi))) apps = apps.map((m) => 2 * nx.midi - m);
+        for (const m of apps) items.push({ midi: m, n: spellMidi(m, m > nx.midi), deg: '→', dur: 1 / per });
       }
       b.line(items, { pattern: false, place: { open: 'avoid', center: sg.center } });
     }
-    return b.build({ label: 'degree', uniform: false, sub: per });
+    // three chord tones per chord, one per beat: a bar of 3/4 per chord, so loops never end on silence
+    return b.build({ label: 'degree', uniform: false, sub: per, beatsPerBar: 3 });
   },
 });
 

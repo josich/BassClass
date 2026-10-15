@@ -34,9 +34,14 @@ export function rootOn(ctx, pcv, string = 'E', { minFret = 1, maxFret = 13 } = {
 export const fretOn = (ctx, midi, string) => midi - ctx.tuning[ctx.str(string)];
 
 export class Builder {
-  constructor(ctx, settings = {}) {
+  /**
+   * strict: keep textbook spellings with double flats/sharps (interval and chord-construction
+   * drills). Otherwise they are written as their plain enharmonic, the way lead sheets do.
+   */
+  constructor(ctx, settings = {}, { strict = false } = {}) {
     this.ctx = ctx;
     this.settings = settings;
+    this.strict = strict;
     this.steps = [];
     this.pendingChord = null;
     this.pendingText = null;
@@ -46,6 +51,7 @@ export class Builder {
   text(t) { this.pendingText = t; return this; }
 
   _push(step) {
+    if (!this.strict) for (const n of step.notes) if (n.n && Math.abs(n.n.a) > 1) n.n = T.plain(n.n);
     if (this.pendingChord) { step.chord = this.pendingChord; this.pendingChord = null; }
     if (this.pendingText) { step.text = this.pendingText; this.pendingText = null; }
     this.steps.push(step);

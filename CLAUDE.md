@@ -52,3 +52,8 @@
 - When an exercise physically cannot fit under "Highest fret used" (e.g. two octaves of E♭ on a 4-string with 17 frets) it goes over and shows a notice. Intended.
 - Double accidentals are drawn as two glyphs (♭♭/♯♯), not 𝄫/𝄪, because Android system fonts may lack those characters.
 - Exercises with a written rhythm (licks, grooves, walking, approach drills) hide the subdivision selector and show "♪ Written rhythm".
+- Library shows every exercise by level (with search and level jump buttons); the Path shows the topics. The user asked for this swap (2026-10-15): do not suggest swapping the names back.
+- Root names follow lead sheets: never B♯, E♯, C♭ or F♭ for a key or a chord chosen on its own; flats on black keys except minor-type chords/scales (C♯m, G♯m, F♯m); cycle drills use the cycle's names (C F B♭ E♭ A♭ D♭ G♭ B E A D G). Double accidentals inside are written as the plain enharmonic. Exceptions on purpose: chords and modes derived inside a key keep that key's spelling (C♭ is the IV of G♭ major, C♭ Lydian its 4th mode), and the interval and chord-construction drills keep textbook spellings (B♭♭, F𝄪). (QA round 2, user's choice.)
+- A favourite stores the exercise only, not its options; it opens with the last options you used. (QA round 2, user's choice.)
+- Over the V7(♭9) of a minor ii–V–i, the chord-scale exercise (and the walking lines) use Phrygian dominant (♭9, ♭13). (QA round 2, user's choice.)
+- The UI uses British spelling ("favourites", "colours", "practise").

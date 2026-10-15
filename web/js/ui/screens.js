@@ -6,7 +6,7 @@ import { makeCtx, MAX_FRET } from '../fretboard.js';
 import { FretboardView, degKey } from '../views/fretboardView.js';
 import * as T from '../theory.js';
 import * as A from '../audio.js';
-import { paramSummary } from './exercise.js';
+import { paramSummary, paramOptions } from './exercise.js';
 import { starButton, dragToReorder } from './favorites.js';
 
 export const go = (hash) => { location.hash = hash; };
@@ -44,10 +44,22 @@ export function homeScreen(main) {
   const prog = allProgress();
   const last = Object.entries(prog).filter(([id]) => byId.has(id)).sort((a, b) => (b[1].last || 0) - (a[1].last || 0))[0];
   const lastT = last ? byId.get(last[0]) : null;
+  const started = Object.values(prog).some((v) => v.plays || v.done);
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('h1', {}, 'BassClass'), h('div', { class: 'grow' }),
       lastT ? h('button', { class: 'btn continue', title: lastT.title, onClick: () => go(exHref(lastT.id)) }, `▶ Continue: ${lastT.title}`) : null),
-    h('div', { class: 'home-cols' }, warmupBlock(), favoritesBlock()));
+    h('div', { class: 'home-cols' }, started ? null : startHere(), warmupBlock(), favoritesBlock()));
+}
+
+/** Shown until the first exercise has been played: where a new player begins. */
+function startHere() {
+  const first = byLevel(1).sort((a, b) => rank(a.module) - rank(b.module))[0];
+  return h('section', { class: 'block start-here' },
+    h('div', { class: 'block-head' }, h('h2', {}, '👋 New here? Start with Level 1')),
+    h('p', { class: 'muted small' }, 'Level 1 builds the basics: plucking and fretting, steady time, the open strings and your first notes, scales and triads. Begin with the first exercise, then let the daily warm-up below (set to Level 1) mix them for you.'),
+    h('div', { class: 'row' },
+      h('button', { class: 'btn primary', onClick: () => go(exHref(first.id)) }, `▶ ${first.title}`),
+      h('button', { class: 'btn', onClick: () => go('#/library?l=1') }, 'See all of Level 1')));
 }
 
 // ---------------------------------------------------------------- warm-up (daily random routine)
@@ -74,7 +86,10 @@ export function buildRoutine(level, seed) {
     const params = defaultParams(t);
     for (const [k, def] of Object.entries(t.params || {})) {
       if (def.kind === 'key') params[k] = String(Math.floor(rand() * 12));
-      else if (k !== 'key' && rand() < 0.5 && def.options.length > 1) params[k] = def.options[Math.floor(rand() * def.options.length)][0];
+      else if (k !== 'key' && rand() < 0.5) {
+        const opts = paramOptions(def, settings);
+        if (opts.length > 1) params[k] = opts[Math.floor(rand() * opts.length)][0];
+      }
     }
     items.push({ slot: slot.label, id: t.id, params });
   }
@@ -87,10 +102,12 @@ function warmupBlock() {
   let level = settings.level || 3;
   const listEl = h('div', { class: 'routine' });
   const lvTabs = h('div', { class: 'tabs' });
+  const lvName = h('span', { class: 'lv-name' });
   const render = () => {
     const items = buildRoutine(level, (shuffled ?? daily) + level * 7);
     currentRoutine = items;
     lvTabs.replaceChildren(...LEVELS.map((L) => h('button', { class: L.n === level ? 'on' : '', title: L.name, onClick: () => { level = L.n; saveSettings({ level }); render(); } }, `L${L.n}`)));
+    lvName.textContent = `Level ${level} · ${LEVELS[level - 1].name}`;
     listEl.replaceChildren(...items.map((it, i) => {
       const t = byId.get(it.id);
       return h('div', { class: 'item', onClick: () => go(exHref(it.id, { ...it.params, wu: i })) },
@@ -105,7 +122,7 @@ function warmupBlock() {
       h('button', { class: 'icon-btn shuffle', title: 'Shuffle: a new random routine', 'aria-label': 'Shuffle', html: icon('dice'), onClick: () => { shuffled = Math.floor(Math.random() * 1e9); render(); } }),
       h('button', { class: 'btn primary', onClick: () => { const it = currentRoutine[0]; go(exHref(it.id, { ...it.params, wu: 0 })); } }, '▶ Start')),
     h('p', { class: 'muted small' }, 'A fresh routine every day: hands, fretboard, scales, triads, arpeggios and groove. About 5 minutes each.'),
-    h('div', { class: 'row lv-row' }, h('span', { class: 'muted small' }, 'Your level'), lvTabs),
+    h('div', { class: 'row lv-row' }, lvTabs, lvName),
     listEl);
 }
 
@@ -113,27 +130,28 @@ function warmupBlock() {
 function favoritesBlock() {
   const listEl = h('div', { class: 'routine favs' });
   const hint = h('span', { class: 'muted small' });
+  const section = h('section', { class: 'block favs-block' });
   const render = () => {
     const list = getFavorites().map((id) => byId.get(id)).filter(Boolean);
     hint.textContent = list.length > 1 ? 'Drag ⠿ to reorder' : '';
+    section.classList.toggle('has-items', list.length > 0);
     if (!list.length) {
       listEl.replaceChildren(h('div', { class: 'empty' },
-        h('b', {}, 'No favorites yet'),
-        h('span', {}, 'Tap the ☆ on any exercise (in the Library, the Path or an exercise\'s header) to pin it here.')));
+        h('b', {}, 'No favourites yet'),
+        h('span', {}, 'Tap the ☆ on an exercise card (in the Library, or inside a topic of the Path) or in an exercise\'s header to pin it here.')));
       return;
     }
     listEl.replaceChildren(...list.map((t) => favRow(t, render)));
   };
   render();
-  return h('section', { class: 'block' },
-    h('div', { class: 'block-head' }, h('h2', {}, '★ Favorites'), h('div', { class: 'grow' }), hint),
-    listEl);
+  section.append(h('div', { class: 'block-head' }, h('h2', {}, '★ Favourites'), h('div', { class: 'grow' }), hint), listEl);
+  return section;
 }
 
 function favRow(t, rerender) {
   const pr = getProgress(t.id) || {};
   const mod = moduleOf(t.module);
-  const grip = h('button', { class: 'grip', title: 'Drag to reorder', 'aria-label': `Move ${t.title}`, html: icon('grip') });
+  const grip = h('button', { class: 'grip', title: 'Drag to reorder (or arrow keys)', 'aria-label': `Move ${t.title} (arrow keys)`, html: icon('grip') });
   const info = [`${mod?.icon ?? ''} ${mod?.name ?? ''}`, pr.done ? '✓ mastered' : '', pr.bestBpm ? `best ${pr.bestBpm} BPM` : ''].filter(Boolean).join(' · ');
   const row = h('div', { class: 'item fav', 'data-id': t.id, onClick: () => go(exHref(t.id)) },
     grip,
@@ -162,13 +180,13 @@ function modulesGrid() {
 
 export function pathScreen(main) {
   main.replaceChildren(
-    h('div', { class: 'page-head' }, h('h1', {}, 'Learning path'), h('span', { class: 'muted' }, 'Pick a topic. Inside each one the exercises climb from level 1 (first steps) to level 6 (mastery); mark them as mastered as you go.')),
+    h('div', { class: 'page-head' }, h('h1', {}, 'Learning path'), h('span', { class: 'muted' }, 'Pick a topic. Each one lists its exercises in order, from its first level to its last; mark them as mastered as you go. The Library shows every exercise by level.')),
     modulesGrid());
 }
 
 export function moduleScreen(main, id) {
   const m = moduleOf(id);
-  if (!m) { go('#/path'); return; }
+  if (!m) { location.replace('#/path'); return; }
   let level = 0;
   const tabs = h('div', { class: 'tabs' });
   const list = h('div');
@@ -190,19 +208,23 @@ function levelSections() {
     if (!list.length) return [];
     const done = list.filter((t) => (getProgress(t.id) || {}).done).length;
     return [
-      h('div', { class: 'section' }, h('span', { class: `chip lv lv${L.n}` }, `Level ${L.n}`), h('h2', {}, L.name), h('span', { class: 'muted small' }, `${L.desc} · ${done}/${list.length} mastered`)),
+      h('div', { class: 'section', id: `lv-${L.n}` }, h('span', { class: `chip lv lv${L.n}` }, `Level ${L.n}`), h('h2', {}, L.name), h('span', { class: 'muted small' }, `${L.desc} · ${done}/${list.length} mastered`)),
       h('div', { class: 'grid' }, list.map(card)),
     ];
   });
 }
 
-export function libraryScreen(main) {
-  const search = h('input', { class: 'search', type: 'search', placeholder: 'Search exercises… (e.g. "triad", "ii-V", "slap")', 'aria-label': 'Search exercises' });
+export function libraryScreen(main, params = {}) {
+  const search = h('input', { class: 'search', type: 'search', placeholder: 'Search: triad, ii-V, slap…', 'aria-label': 'Search exercises' });
   const results = h('div');
+  // jump to a level (the page lists all 169 exercises)
+  const jump = (n) => main.querySelector(`#lv-${n}`)?.scrollIntoView({ block: 'start' });
+  const jumps = h('div', { class: 'tabs lv-jump' }, LEVELS.map((L) => h('button', { title: L.name, onClick: () => jump(L.n) }, `L${L.n}`)));
   // "ii-V" must find "ii–V": every kind of dash counts as a hyphen
   const norm = (x) => x.toLowerCase().replace(/[‐-―−]/g, '-');
   const render = () => {
     const q = norm(search.value.trim());
+    jumps.hidden = !!q;
     if (!q) { results.replaceChildren(...levelSections()); return; }
     const words = q.split(/\s+/);
     const list = EXERCISES.filter((t) => {
@@ -216,8 +238,10 @@ export function libraryScreen(main) {
   search.addEventListener('input', render);
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('h1', {}, 'Library'), h('span', { class: 'muted' }, `All ${EXERCISES.length} exercises, from level 1 to 6.`), h('div', { class: 'grow' }), search),
+    jumps,
     results);
   render();
+  if (params.l) requestAnimationFrame(() => jump(Number(params.l)));
 }
 
 // ---------------------------------------------------------------- explorer
@@ -322,6 +346,11 @@ export function settingsScreen(main) {
       field('Metronome volume', range('clickVol', 0, 1.5, 0.05)),
       field('Progress', h('div', { class: 'row' },
         h('button', { class: 'btn', onClick: () => { if (confirm('Reset all progress?')) { resetProgress(); toast('Progress reset'); } } }, 'Reset progress'),
-        h('button', { class: 'btn', onClick: () => { saveSettings({ ...DEFAULT_SETTINGS }); settingsScreen(main); toast('Settings restored'); } }, 'Restore defaults')))),
-    h('p', { class: 'muted small', style: { marginTop: '18px' } }, 'BassClass works offline once loaded. The bass sound uses recorded CC0 samples (Karoryfer "darkblack"), with a built-in synthesizer as a backup. Install it from your browser menu → "Add to Home screen" for full-screen landscape mode.'));
+        h('button', { class: 'btn', onClick: () => {
+          saveSettings({ ...DEFAULT_SETTINGS });
+          A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol, octaveUp: S.octaveUp, voice: S.voice });
+          settingsScreen(main);
+          toast('Settings restored');
+        } }, 'Restore defaults')))),
+    h('p', { class: 'muted small', style: { marginTop: '18px' } }, `BassClass works offline once loaded. The bass sound uses recorded CC0 samples (Karoryfer "darkblack"), with a built-in synthesizer as a backup.${location.hostname === 'appassets.androidplatform.net' ? '' : ' Install it from your browser menu → "Add to Home screen" for full-screen landscape mode.'}`));
 }

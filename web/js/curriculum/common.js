@@ -29,6 +29,10 @@ export const keyP = (ivs = ['1', '3', '5'], { cycles = true, def = '0', label = 
 export const sel = (label, options, def) => ({ kind: 'select', label, options, default: def ?? options[0][0] });
 
 export const nm = (n, S) => T.noteName(n, S.notation);
+
+/** Roots of drills that travel round the cycle: the names the cycle is taught with (C F B♭ E♭ A♭ D♭ G♭ B E A D G). */
+const CYCLE_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+export const cycleRoot = (pcv) => T.N(CYCLE_NAMES[T.mod(pcv, 12)]);
 export const chordName = (root, type, S) => nm(root, S) + (T.CHORDS[type]?.sym ?? '');
 
 export function keyLabel(v, ivs, S) {
@@ -127,6 +131,29 @@ export function zoneShape(rootPc, ivs, ctx, zone, prev = null, maxSpan = 4) {
   return best;
 }
 
+/**
+ * Like zoneShape, but a chord that does not fit in root position may start on another chord
+ * tone (an inversion). Returns { rootMidi, pos, tones, inv }: pos[j] plays chord tone tones[j],
+ * lowest first. Root position is preferred.
+ */
+export function zoneShapeAny(rootPc, ivs, ctx, zone, prev = null, maxSpan = 4) {
+  let best = null;
+  const top = ctx.tuning[ctx.tuning.length - 1] + zone[1];
+  for (let inv = 0; inv < ivs.length; inv++) {
+    const tones = ivs.map((_, j) => (j + inv) % ivs.length);
+    for (let rm = ctx.tuning[0] - 12; rm <= top; rm++) {
+      if (T.mod(rm, 12) !== rootPc) continue;
+      const midis = tones.map((t) => rm + T.semis(ivs[t]) + (t < inv ? 12 : 0));
+      if (midis[0] < ctx.tuning[0]) continue;
+      const sh = shapes(midis, ctx, { lo: zone[0], hi: zone[1], maxSpan });
+      if (!sh.length) continue;
+      const score = sh[0].cost + inv * 1.5 + (prev == null ? midis[0] * 0.05 : Math.abs(midis[0] - prev) * 0.12);
+      if (!best || score < best.score) best = { score, rootMidi: midis[0], pos: sh[0].pos, tones, inv };
+    }
+  }
+  return best;
+}
+
 /** Emit chord tones at explicit positions in a given order of tone indices. */
 export function emitShape(b, root, ivs, pos, order, extra = {}) {
   b.frets(order.map((i) => ({
@@ -207,7 +234,7 @@ export const PROGS = {
     name: 'Dominant 7ths around the cycle', chords: [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7].map((o) => [o, 'dom7']),
   },
   'cycle-251': {
-    name: 'ii–V–I in all 12 keys', chords: [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7].flatMap((o) => [[o + 2, 'min7', 2], [o + 7, 'dom7', 2], [o, 'maj7']]),
+    name: 'ii–V–I in all 12 keys', chords: [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7].flatMap((o) => [[o + 2, 'min7', 2, o], [o + 7, 'dom7', 2, o], [o, 'maj7', 4, o]]),
   },
   'giant-steps': {
     name: 'Coltrane changes (Giant Steps)', chords: [
@@ -220,7 +247,10 @@ export const PROGS = {
 
 export const progP = (keys, def) => sel('Progression', keys.map((k) => [k, PROGS[k].name]), def || keys[0]);
 
-const TRIAD_OF = { maj7: 'maj', dom7: 'maj', min7: 'min', m7b5: 'dim', dim7: 'dim', mMaj7: 'min', maj6: 'maj', min6: 'min', maj7s5: 'aug' };
+const TRIAD_OF = {
+  maj7: 'maj', dom7: 'maj', min7: 'min', m7b5: 'dim', dim7: 'dim', mMaj7: 'min', maj6: 'maj', min6: 'min', maj7s5: 'aug',
+  dom7b9: 'maj', dom7s9: 'maj', dom9: 'maj', dom13: 'maj', maj9: 'maj', min9: 'min', dom7s5: 'aug', dom7sus4: 'sus4',
+};
 export const toTriad = (type) => TRIAD_OF[type] || type;
 
 /**
@@ -230,12 +260,18 @@ export const toTriad = (type) => TRIAD_OF[type] || type;
 export function progChords(progKey, tonicPc, { triads = false, S = {} } = {}) {
   const prog = PROGS[progKey];
   const tonic = T.bestRoot(tonicPc, prog.minor ? T.SCALES.aeolian.iv : T.SCALES.ionian.iv);
-  return prog.chords.map(([where, type0, beats = 4]) => {
+  return prog.chords.map(([where, type0, beats = 4, keyOff]) => {
     const type = triads ? toTriad(type0) : type0;
     const ivs = T.CHORDS[type].iv;
-    const root = typeof where === 'number'
-      ? T.bestRoot(T.mod(tonicPc + where, 12), ivs)
-      : T.up(tonic, where);
+    let root;
+    if (typeof where !== 'number') root = T.up(tonic, where);
+    else if (keyOff != null) {
+      // a chord of a local key (e.g. each ii–V–I of the cycle) is spelled from that key: A♭m7 in G♭
+      const local = T.bestRoot(T.mod(tonicPc + keyOff, 12), T.SCALES.ionian.iv);
+      root = T.up(local, T.IV_OF_SEMIS[T.mod(where - keyOff, 12)]);
+    } else root = T.bestRoot(T.mod(tonicPc + where, 12), ivs);
+    // lead-sheet names: B7, not C♭7 (IV of G♭), and never a double accidental
+    if (T.awkward(root)) root = T.bestRoot(T.pc(root), ivs);
     return { root, type, beats, ivs, sym: chordName(root, type, S) };
   });
 }
@@ -294,7 +330,7 @@ export function resolveToken(tok, chord, rootMidi, nextRoot, nextMidi) {
   if (tok === 'N') return { midi: nextMidi, n: nextRoot, deg: 'R' };
   if (tok === 'D') {
     const m = nextMidi + 7 > rootMidi + 9 ? nextMidi - 5 : nextMidi + 7;
-    return { midi: m, n: T.up(nextRoot, '5'), deg: '5→' };
+    return { midi: m, n: T.up(nextRoot, '5'), deg: '→' };
   }
   if (tok === 'x') return { midi: rootMidi, n: chord.root, deg: 'x', tag: 'x' };
   if (!iv) return null;
@@ -383,20 +419,40 @@ export function walkLine(b, chords, roots, formula = 'mixed', { triplets = false
   chords.forEach((c, ci) => {
     const next = chords[(ci + 1) % chords.length];
     const nextMidi = roots[(ci + 1) % chords.length];
+    // a dominant with ♭9, or one resolving down a 5th to a minor chord, walks with ♭9 and ♭13
+    const toMinor = ['min7', 'min6', 'mMaj7', 'm7b5', 'min'].includes(next.type) && T.mod(T.pc(next.root) - T.pc(c.root), 12) === 5;
+    const flatTensions = c.type === 'm7b5' || c.ivs.includes('b9') || (c.type.startsWith('dom') && toMinor);
     const scaleIv = (tok) => {
       // scale steps for walking: 2 and 6 from the chord's parent mode, 7 follows chord
-      if (tok === '2') return c.type === 'm7b5' ? 'b2' : '2';
-      if (tok === '6') return c.type === 'm7b5' ? 'b6' : '6';
+      if (tok === '2') return flatTensions ? 'b2' : '2';
+      if (tok === '6') return flatTensions ? 'b6' : '6';
       return null;
     };
     const res = (tok) => {
       const special = scaleIv(tok);
       if (special) {
         const m = roots[ci] + T.semis(special);
-        return { midi: m, n: T.up(c.root, special), deg: T.fmtDeg(special) };
+        // on a dominant the altered steps are named as tensions (♭9, ♭13)
+        const deg = c.type.startsWith('dom') && (special === 'b2' || special === 'b6') ? (special === 'b2' ? '♭9' : '♭13') : T.fmtDeg(special);
+        return { midi: m, n: T.up(c.root, special), deg };
       }
       if (tok === '7' && !c.ivs.find((x) => /7$/.test(x))) tok = 'b7';
-      return resolveToken(tok, c, roots[ci], next.root, nextMidi);
+      let r = resolveToken(tok, c, roots[ci], next.root, nextMidi);
+      if (r && (tok === 'A' || tok === 'Ab')) {
+        // never "approach" with the note just played: take the other side of the target
+        const prevMidi = items.length ? items[items.length - 1].midi : null;
+        // (nor with the current chord's root, which the bar has already stated)
+        if (r.midi === prevMidi || T.mod(r.midi - roots[ci], 12) === 0) {
+          // from above (the first note of an enclosure): a whole step above instead, so the
+          // enclosure still closes in from both sides; from below: the half step above
+          if (tok === 'Ab') r = { midi: nextMidi + 2, n: spellMidi(nextMidi + 2, true), deg: '→' };
+          else r = resolveToken('Ab', c, roots[ci], next.root, nextMidi);
+        }
+        // an approach note that is also a chord tone is spelled as that chord tone (B♭ under B♭7)
+        const ct = c.ivs.find((iv) => T.mod(T.semis(iv), 12) === T.mod(r.midi - roots[ci], 12));
+        if (ct) r = { ...r, n: T.up(c.root, ct === '8' ? '1' : ct) };
+      }
+      return r;
     };
     if (formula === 'twofeel') {
       const cell = cells[ci % cells.length];
@@ -538,5 +594,5 @@ export const DEG_SEQ = {
 };
 export const degSeqP = sel('Chord order', [
   ['up', 'I → I (ascending)'], ['down', 'I → I (descending)'], ['updown', 'Up & back'],
-  ['fourths', 'In 4ths (I-IV-vii°-iii-vi-ii-V-I)'], ['fifths', 'In 5ths (I-V-ii-vi-iii-vii°-IV-I)'],
+  ['fourths', 'In 4ths (degrees 1-4-7-3-6-2-5-1)'], ['fifths', 'In 5ths (degrees 1-5-2-6-3-7-4-1)'],
 ]);

@@ -19,7 +19,7 @@ export const DEFAULT_SETTINGS = {
   bassVol: 1,              // 0..2; above 1 the output is pushed into the limiter
   clickVol: 0.6,
   maxFret: 20,
-  level: 3,                // preferred level for warm-ups
+  level: 1,                // preferred level for warm-ups (new players start at Level 1)
 };
 
 const oneOf = (list) => (v) => list.includes(v);

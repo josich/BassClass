@@ -1,7 +1,7 @@
 // Arpeggios & 7th chords: qualities, diatonic 7ths, inversions, ii–V–I, voice leading, extensions.
 import {
-  T, Builder, keysFor, chordTones, ARP_SHAPES, ex, variant, keyP, sel, nm, chordName, QUALITY_7THS,
-  ZONES, zoneP, orderP, rootStrP, pickRoot, zoneShape, emitShapeF, SEVENTH_ORDERS, voiceLedItems, emitMixed,
+  T, Builder, keysFor, chordTones, ARP_SHAPES, ex, variant, keyP, sel, nm, chordName, cycleRoot, QUALITY_7THS,
+  ZONES, zoneP, orderP, rootStrP, pickRoot, zoneShape, zoneShapeAny, shapeFingers, emitShapeF, SEVENTH_ORDERS, voiceLedItems, emitMixed,
   progChords, progP, diatonicStacks, scaleTone, DEG_SEQ, degSeqP, SCALE_TYPE_OPTS, spellMidi, chordRootMidis,
 } from './common.js';
 import { arpBuild, diatonicBuild } from './triads.js';
@@ -49,7 +49,7 @@ const study = ex({
   params: { quality: sel('Chord', QUALITY_7THS), key: keyP(['1', '3', '5', '7']), shape: shapeP(['updown', 'up', 'down', 'downup', 'doubled'], 'updown'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]), root: rootStrP('A') },
   bpm: 72, sub: 4, label: 'degree',
   build(p, ctx, S) {
-    return arpBuild(p, ctx, S, { ivs: ivsOf(p.quality), type: p.quality, shape: p.shape, octaves: Number(p.oct), rootStr: Number(p.oct) > 1 ? 'E' : p.root }).build({ label: 'degree' });
+    return arpBuild(p, ctx, S, { ivs: ivsOf(p.quality), type: p.quality, shape: p.shape, octaves: Number(p.oct), rootStr: Number(p.oct) > 1 ? 'E' : p.root, strict: true }).build({ label: 'degree' });
   },
 });
 
@@ -103,11 +103,22 @@ const zoneCycle7 = ex({
     const zone = ZONES[p.zone];
     let prev = null;
     keysFor(p.order).forEach((k, i) => {
-      const root = T.bestRoot(k, ivs);
-      const z = zoneShape(k, ivs, ctx, zone, prev, 4) || zoneShape(k, ivs, ctx, [zone[0] - 1, zone[1] + 1], prev, 5);
+      const root = cycleRoot(k);
+      // root position in the zone if it fits; otherwise start on another chord tone (inversion),
+      // then allow one fret outside the zone. Every key is played.
+      let z = zoneShapeAny(k, ivs, ctx, zone, prev, 4);
+      let note = '';
+      for (let w = 1; !z && w <= 3; w++) {
+        z = zoneShapeAny(k, ivs, ctx, [Math.max(1, zone[0] - w), zone[1] + w], prev, 4 + w);
+        note = `${w} fret${w > 1 ? 's' : ''} outside the zone`;
+      }
       if (!z) return;
-      b.chord(chordName(root, p.quality, S));
-      emitShapeF(b, root, ivs, z.pos, SEVENTH_ORDERS[p.pattern].f(i));
+      const from = z.inv ? `from the ${['', '3rd', '5th', '7th'][z.inv]}` : '';
+      b.chord(chordName(root, p.quality, S), [from, note].filter(Boolean).join(' · ') || undefined);
+      const fingers = shapeFingers(z.pos);
+      b.frets(SEVENTH_ORDERS[p.pattern].f(i).map((j) => ({
+        s: z.pos[j].s, f: z.pos[j].f, finger: fingers[j], n: T.up(root, ivs[z.tones[j]]), deg: T.fmtDeg(ivs[z.tones[j]]),
+      })));
       prev = z.rootMidi;
     });
     return b.build({ label: 'degree', zone });
@@ -284,12 +295,12 @@ const dimToMinor = ex({
     let prev = null;
     for (const k of keysFor(p.key)) {
       const minor = T.bestRoot(k, ivsOf('min'));
-      // the leading tone; G♯ minor's F𝄪 is written as G so the chord stays readable
-      let lt = T.up(minor, '7');
-      if (Math.abs(lt.a) > 1) lt = T.bestRoot(T.pc(lt), ivsOf('dim7'));
+      // the leading tone, spelled in the key (F𝄪 in G♯ minor; its notes print as G A♯ C♯ E and the
+      // chord is named G°7, so the line stays in sharps and every resolution is visible)
+      const lt = T.up(minor, '7');
       const r = pickRoot(ctx, k, { strings: ['E', 'A'], hi: 8, prev, prefer: 'A' });
       const ltMidi = r.midi - 1;
-      chordTones(lt, ivsOf('dim7'), ltMidi, [0, 1, 2, 3]).forEach((t, j) => items.push({ ...t, chord: j === 0 ? chordName(lt, 'dim7', S) : undefined }));
+      chordTones(lt, ivsOf('dim7'), ltMidi, [0, 1, 2, 3]).forEach((t, j) => items.push({ ...t, chord: j === 0 ? chordName(T.plain(lt), 'dim7', S) : undefined }));
       chordTones(minor, ivsOf('min'), r.midi, [3, 2, 1, 0]).forEach((t, j) => items.push({ ...t, chord: j === 0 ? chordName(minor, 'min', S) : undefined }));
       prev = r.midi;
     }
@@ -406,7 +417,10 @@ const approach7 = ex({
     base.forEach((t, i) => {
       items.push({ ...t, accent: true, dur: 1 / per });
       const nx = base[(i + 1) % base.length];
-      for (const m of apps(nx.midi)) items.push({ midi: m, n: spellMidi(m, m > nx.midi), deg: '→', dur: 1 / per });
+      let a = apps(nx.midi);
+      // never "approach" with the note just played: come from the other side of the target
+      if (a[0] === t.midi) a = a.map((m) => 2 * nx.midi - m);
+      for (const m of a) items.push({ midi: m, n: spellMidi(m, m > nx.midi), deg: '→', dur: 1 / per });
     });
     emitMixed(b, items, { center: 5, open: 'avoid' });
     return b.build({ label: 'degree', uniform: false, sub: per });

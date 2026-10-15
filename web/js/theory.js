@@ -210,9 +210,34 @@ export const CYCLE4_PC = [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7];
 export const CYCLE5_PC = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5];
 export const CHROMATIC_PC = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 
-const TIE_PREF = { 1: 'Db', 3: 'Eb', 6: 'Gb', 8: 'Ab', 10: 'Bb' };
 
 /** Best spelling of a root pitch class for a given set of intervals (fewest accidentals). */
+/** Roots no lead sheet uses: B♯, E♯, C♭, F♭ (and any double accidental). */
+export const awkward = (n) => Math.abs(n.a) > 1 || (n.a === 1 && (n.l === 2 || n.l === 6)) || (n.a === -1 && (n.l === 0 || n.l === 3));
+
+/** Plain enharmonic of a double-flat/sharp note (B♭♭ -> A, F𝄪 -> G); other notes are returned as they are. */
+export function plain(n) {
+  if (Math.abs(n.a) < 2) return n;
+  const pcv = pc(n);
+  let best = null;
+  for (let l = 0; l < 7; l++) {
+    let a = mod(pcv - LETTER_PC[l], 12);
+    if (a > 6) a -= 12;
+    if (Math.abs(a) > 1) continue;
+    const score = Math.abs(a) * 2 + (a !== 0 && Math.sign(a) !== Math.sign(n.a) ? 1 : 0);
+    if (!best || score < best.score) best = { score, n: { l, a } };
+  }
+  return best.n;
+}
+
+/** Interval names by semitones above a root (how a chromatic chord is spelled from its key). */
+export const IV_OF_SEMIS = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
+
+/**
+ * Lead-sheet root for pitch class `pcv`: the spelling that keeps `ivs` simplest, never B♯, E♯,
+ * C♭ or F♭ (C°, not B♯°; B Lydian, not C♭ Lydian). On black keys flats win (D♭7, B♭°, G♭maj7)
+ * unless the sharp spelling is clearly simpler or the chord/scale is minor (C♯m, G♯m, F♯m).
+ */
 export function bestRoot(pcv, ivs = ['1', '3', '5']) {
   let best = null;
   for (let l = 0; l < 7; l++) {
@@ -220,14 +245,15 @@ export function bestRoot(pcv, ivs = ['1', '3', '5']) {
     if (a > 6) a -= 12;
     if (Math.abs(a) > 1) continue;
     const root = { l, a };
+    if (awkward(root)) continue;
     let score = 0;
     for (const iv of ivs) {
       const t = up(root, iv);
       score += Math.abs(t.a) + (Math.abs(t.a) > 1 ? 4 : 0);
     }
-    const pref = TIE_PREF[pcv] && noteName(root).replace('♭', 'b').replace('♯', '#') === TIE_PREF[pcv] ? -0.1 : 0;
-    score += pref;
-    if (!best || score < best.score) best = { root, score };
+    const minor = ivs.includes('b3') && ivs.includes('5');
+    if (root.a === 1) score += minor ? 0.1 : 2;
+    if (!best || score < best.score - 1e-9 || (Math.abs(score - best.score) < 1e-9 && root.a < best.root.a)) best = { root, score };
   }
   return best.root;
 }

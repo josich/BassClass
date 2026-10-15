@@ -2,7 +2,8 @@
 import { h, icon, toast } from './ui/dom.js';
 import { byId } from './curriculum/index.js';
 import { renderExercise } from './ui/exercise.js';
-import { loadBank } from './audio.js';
+import { loadBank, setAudioOptions } from './audio.js';
+import { settings } from './store.js';
 import { tunerScreen } from './ui/tuner.js';
 import {
   homeScreen, pathScreen, libraryScreen, moduleScreen, explorerScreen, settingsScreen,
@@ -65,8 +66,10 @@ function route() {
         total: currentRoutine.length,
         next: () => {
           const nx = currentRoutine[wu + 1];
+          // the routine replaces one exercise with the next; Finish steps back to where it started
+          if (!nx) { back(); return; }
           replacing = true;
-          location.replace(nx ? exHref(nx.id, { ...nx.params, wu: wu + 1 }) : '#/');
+          location.replace(exHref(nx.id, { ...nx.params, wu: wu + 1 }));
         },
       };
     }
@@ -85,7 +88,7 @@ function route() {
   const key = { '': 'home', path: 'path', library: 'library', m: 'path', explorer: 'explorer', tuner: 'tuner', settings: 'settings' }[parts[0] || ''] || 'home';
   const main = shell(key);
   if (parts[0] === 'path') pathScreen(main);
-  else if (parts[0] === 'library') libraryScreen(main);
+  else if (parts[0] === 'library') libraryScreen(main, params);
   else if (parts[0] === 'm') moduleScreen(main, parts[1]);
   else if (parts[0] === 'explorer') active = explorerScreen(main);
   else if (parts[0] === 'tuner') active = tunerScreen(main);
@@ -95,6 +98,8 @@ function route() {
 
 window.addEventListener('hashchange', route);
 route();
+// saved sound settings apply everywhere (Neck, tuner reference notes), not only in exercises
+setAudioOptions({ bassVol: settings.bassVol, clickVol: settings.clickVol, octaveUp: settings.octaveUp, voice: settings.voice });
 // fetch the recorded bass samples in the background (decoded on first sound)
 loadBank();
 

@@ -3,7 +3,8 @@ import { T, Builder, keysFor, ex, sel, keyP, nm, spellMidi, place, ZONES, zoneP,
 
 const M = 'fretboard';
 const NAT = new Set([0, 2, 4, 5, 7, 9, 11]);
-const stringP = (def = 'E') => sel('String', [['E', 'E string'], ['A', 'A string'], ['D', 'D string'], ['G', 'G string'], ['B', 'Low B (5/6-string)'], ['C', 'High C (6-string)']], def);
+// the third element hides an option on basses with fewer strings
+const stringP = (def = 'E') => sel('String', [['E', 'E string'], ['A', 'A string'], ['D', 'D string'], ['G', 'G string'], ['B', 'Low B string', { minStrings: 5 }], ['C', 'High C string', { minStrings: 6 }]], def);
 const strIdx = (ctx, name) => { const s = ctx.str(name); return s < 0 ? Math.max(0, ctx.str('E')) : s; };
 const sName = (ctx, s) => `${ctx.names[s]} string`;
 
@@ -11,7 +12,7 @@ const openStrings = ex({
   id: 'fb-open-strings', module: M, level: 1,
   title: 'Open strings',
   summary: 'Name and play the open strings: E-A-D-G (B and C on 5/6-string basses).',
-  about: 'Every journey starts here. Play each open string four times, from the lowest (thickest) to the highest and back, saying its name. Use alternate plucking (index, middle) and let the other strings stay silent.',
+  about: 'The first exercise for the plucking hand. Play each open string four times, from the lowest (thickest) to the highest and back, saying its name. Use alternate plucking (index, middle) and let the other strings stay silent.',
   tips: ['Mnemonic for E-A-D-G: "Eat All Day, Good!"', 'Rest your thumb on the pickup or the E string and keep the plucking hand relaxed.'],
   source: 'Hal Leonard Bass Method, RSL Debut, BassBuzz, StudyBass',
   params: { reps: sel('Notes per string', [['4', '4'], ['2', '2'], ['1', '1 (string crossing)']]) },
@@ -44,7 +45,7 @@ const naturals = ex({
     const frets = [];
     for (let f = lo; f <= hi; f++) if (NAT.has(T.mod(ctx.tuning[s] + f, 12))) frets.push(f);
     const seq = [...frets, ...frets.slice(0, -1).reverse()];
-    b.chord(sName(ctx, s));
+    b.chord(sName(ctx, s), lo + 12 > ctx.maxFret ? `frets ${lo}–${hi}: stops at your highest fret` : undefined);
     b.frets(seq.map((f) => ({ s, f })));
     return b.build({ label: 'note' });
   },

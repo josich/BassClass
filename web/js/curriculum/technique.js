@@ -75,7 +75,8 @@ const c1234 = ex({
   about: 'Place one finger per fret (index on the first fret of the position, pinky on the fourth). Play 1-2-3-4 on each string going up, then 4-3-2-1 coming back down. Keep fingers close to the frets and leave each finger down until you need it.',
   tips: ['Press just behind the fret with the minimum pressure that stops the buzz.', 'Fingers hover, they do not fly away from the strings.'],
   source: 'Bass Fitness (Josquin des Prés); Berklee Online Bass 101 L1; universal',
-  params: { pos: posP('1', 'Position') },
+  // fret 5: frets are closer than at fret 1, so the one-finger-per-fret stretch is comfortable to start
+  params: { pos: posP('5', 'Position') },
   bpm: 70, sub: 2, label: 'finger',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);

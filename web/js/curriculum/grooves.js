@@ -44,7 +44,7 @@ function grooveEx(id, level, styleKeys, def, meta) {
     id, module: G, level,
     params: {
       style: sel('Groove', styleKeys.map((k) => [k, GROOVES[k].name]), def),
-      prog: sel('Progression', [['auto', 'Style default'], ...[...new Set(Object.values(STYLE_PROGS))].map((k) => [k, PROGS[k].name])], 'auto'),
+      prog: sel('Progression', [['auto', 'The style\'s usual progression'], ...[...new Set(Object.values(STYLE_PROGS))].map((k) => [k, PROGS[k].name])], 'auto'),
       key: keyP(['1', '3', '5'], { def: '9' }),
     },
     sub: 1, label: 'degree',
@@ -193,7 +193,7 @@ const scalarWalk = walkEx('wk-scalar', 4, 'scalar', 'autumn', {
   title: 'Scalar walking lines',
   summary: 'R-2-3-5, R-2-3-approach, 8-7-6-5: stepwise lines between chord tones.',
   about: 'Scale steps connect chord tones smoothly. Lines like R-2-3-5 or descending 8-7-6-5 are the melodic side of walking, and they balance the jumps of arpeggio lines.',
-  tips: ['Use the scale of each chord (Dorian on m7, Mixolydian on 7).', 'Land chord tones on beats 1 and 3.'],
+  tips: ['Use the scale of each chord (Dorian on m7, Mixolydian on 7). A 7 that resolves to a minor chord takes ♭9 and ♭13 instead (Phrygian dominant), and the line follows that.', 'Land chord tones on beats 1 and 3.'],
   source: 'Ed Friedland; Chuck Sher "The Improviser\'s Bass Method"', bpm: 108,
 });
 

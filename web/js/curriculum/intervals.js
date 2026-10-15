@@ -16,7 +16,7 @@ const shapes = ex({
   params: { iv: ivP('5'), key: keyP(['1'], { def: '0' }), dir: sel('Direction', [['up', 'Ascending'], ['down', 'Descending'], ['both', 'Up then down']]) },
   bpm: 66, sub: 1, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { strict: true });
     let prev = null;
     for (const k of keysFor(p.key)) {
       const root = T.bestRoot(k, ['1', p.iv]);
@@ -44,7 +44,7 @@ const allFromRoot = ex({
   params: { key: keyP(['1'], { def: '0', cycles: false }), root: rootStrP('E') },
   bpm: 72, sub: 2, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { strict: true });
     const k = Number(p.key);
     const root = T.bestRoot(k, ['1', '3', '5']);
     const r = pickRoot(ctx, k, { strings: [p.root], hi: 10 });
@@ -72,7 +72,7 @@ const diatonic = ex({
   params: { pattern: sel('Interval', Object.entries(DIA)), key: keyP(T.SCALES.ionian.iv), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'harmonicMinor', 'melodicMinor', 'dorian', 'mixolydian'])), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]), root: rootStrP('A') },
   bpm: 72, sub: 2, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { strict: true });
     let prev = null;
     for (const k of keysFor(p.key)) {
       const tonic = T.bestRoot(k, T.SCALES[p.scale].iv);
@@ -96,7 +96,7 @@ const moving = ex({
   params: { iv: ivP('3'), string: sel('Root on', [['E', 'E string'], ['A', 'A string']]) },
   bpm: 76, sub: 2, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { strict: true });
     const s = Math.max(0, ctx.str(p.string));
     const frets = [1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2];
     for (const f of frets) {
@@ -119,7 +119,7 @@ const tenths = ex({
   params: { key: keyP(T.SCALES.ionian.iv, { cycles: false }), mode: sel('Style', [['broken', 'Broken (R then 10th)'], ['stop', 'Double stops']]), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'mixolydian', 'dorian'])) },
   bpm: 66, sub: 2, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { strict: true });
     const e = Math.max(0, ctx.str('E'));
     const g = e + 3;
     const k = Number(p.key);
@@ -156,7 +156,7 @@ const octavesScale = ex({
   params: { key: keyP(T.SCALES.ionian.iv, { cycles: false }), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'minorPent', 'majorPent', 'blues'])), root: sel('Root on', [['E', 'E string'], ['A', 'A string']]) },
   bpm: 66, sub: 1, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { strict: true });
     const k = Number(p.key);
     const tonic = T.bestRoot(k, T.SCALES[p.scale].iv);
     // the octave sits 2 frets above and the scale climbs 12 more: use the string pair where it
@@ -191,15 +191,24 @@ const cycles = ex({
   params: { iv: sel('Interval', Object.entries(CYC).map(([k, v]) => [k, v[1]])), key: keyP(['1'], { cycles: false }) },
   bpm: 72, sub: 4, label: 'note',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { strict: true });
     const k = Number(p.key);
     const r = pickRoot(ctx, k, { strings: ['E'], hi: 7 });
-    let n = T.bestRoot(k, ['1', '3', '5']);
+    const root = T.bestRoot(k, ['1', '3', '5']);
+    let n = root;
     const step = T.semis(CYC[p.iv][0]);
     const items = [];
     let m = r.midi;
     const top = r.midi + 24;
-    while (m <= top) { items.push({ midi: m, n, deg: m === r.midi ? 'R' : '·' }); m += step; n = T.up(n, CYC[p.iv][0]); if (Math.abs(n.a) > 1) n = spellMidi(m, step === 5 || step === 10 || step === 3); }
+    while (m <= top) {
+      // every return to the starting note is spelled and labelled as the root (C, not B♯)
+      const isRoot = T.mod(m - r.midi, 12) === 0;
+      if (isRoot) n = root;
+      items.push({ midi: m, n, deg: isRoot ? 'R' : '·' });
+      m += step;
+      n = T.up(n, CYC[p.iv][0]);
+      if (Math.abs(n.a) > 1) n = spellMidi(m, step === 5 || step === 10 || step === 3);
+    }
     const down = items.slice(0, -1).reverse();
     b.chord(CYC[p.iv][1]);
     b.line([...items, ...down], { pattern: false, place: { open: 'avoid', center: r.f + 3 } });
@@ -217,7 +226,7 @@ const earQuiz = ex({
   params: { key: keyP(['1'], { cycles: false }), set: sel('Intervals', [['basic', '3rds, 4ths, 5ths, octave'], ['all', 'All within an octave']]) },
   bpm: 60, sub: 1, label: 'degree', reveal: 'quiz',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { strict: true });
     const k = Number(p.key);
     const root = T.bestRoot(k, ['1', '3', '5']);
     const r = pickRoot(ctx, k, { strings: ['E', 'A'], hi: 7, prefer: 'E' });

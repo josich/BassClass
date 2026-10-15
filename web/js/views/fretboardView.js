@@ -203,7 +203,8 @@ export class FretboardView {
     // fret numbers
     for (let f = this.first; f <= this.hi; f++) {
       const strong = INLAYS.includes(f) || DOUBLE_INLAYS.includes(f);
-      p.push(`<text x="${this.fretX(f)}" y="${H - 5}" class="fretnum${strong ? ' strong' : ''}" data-f="${f}">${f}</text>`);
+      // right under the neck (on tall tablets the board is centred and shorter than the view)
+      p.push(`<text x="${this.fretX(f)}" y="${Math.min(H - 5, bot + 15)}" class="fretnum${strong ? ' strong' : ''}" data-f="${f}">${f}</text>`);
     }
     // strings: shadow, cylinder, winding
     // from the open-string column (when shown) to the end of the board, on either side for left-handers

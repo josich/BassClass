@@ -365,6 +365,7 @@ const intervallic = variant(sequences, {
   title: 'Alternating 3rds through all keys',
   summary: '1-3, 4-2, 3-5, 6-4… zig-zag 3rds in every key around the cycle.',
   about: 'Alternating-direction intervals produce wide, melodic lines that are hard to play cleanly. Taking them around all 12 keys without stopping is a mastery-level drill for ears, eyes and hands.',
+  tips: ['Name each 3rd as you play it: in major they run M m m M M m m.', 'Keep the hand still and let the zig-zag cross strings; shift only where the key forces you to.'],
   source: 'Classic intervallic scale drills (3rds in alternating directions) from conservatory and jazz teaching',
   defaults: { pattern: 'thirdsAlt', key: 'cycle4' }, sub: 2, bpm: 76,
 });

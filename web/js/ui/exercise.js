@@ -42,11 +42,12 @@ export function paramOptions(def, S, p = {}) {
     const opts = T.CHROMATIC_PC.map((pcv) => [String(pcv), T.noteName(T.bestRoot(pcv, ivs), S.notation) + suffix]);
     return def.cycles ? [...opts, ...CYCLE_OPTS] : opts;
   }
-  return def.options;
+  // options marked { minStrings } only exist on basses with that many strings
+  return def.options.filter((o) => !o[2]?.minStrings || (S.strings || 4) >= o[2].minStrings);
 }
 
 /** "Label: value" when the value alone does not say what it is (short or numeric values). */
-const optText = (def, label) => (label.length <= 3 || /^\d/.test(label) ? `${def.label}: ${label}` : label);
+const optText = (def, label) => ((label.length <= 3 || /^\d/.test(label)) && !label.toLowerCase().includes(def.label.toLowerCase()) ? `${def.label}: ${label}` : label);
 
 /** One-line summary of an exercise's options (header button, warm-up list). */
 export function paramSummary(tpl, p, S, fixed = {}) {
@@ -60,10 +61,13 @@ export function paramSummary(tpl, p, S, fixed = {}) {
 export function renderExercise(root, tpl, { params = {}, onBack, routine = null }) {
   const S = settings;
   const prog = getProgress(tpl.id) || {};
+  // a warm-up opens exercises with random options: they must not replace the player's own choices
+  const keep = () => (routine ? {} : { params: p });
+  // "Continue" on Home reopens the last exercise opened
+  updateProgress(tpl.id, {});
   const p = { ...defaultParams(tpl), ...(prog.params || {}), ...params };
   for (const [k, def] of Object.entries(tpl.params || {})) {
-    if (def.kind === 'key') { if (!paramOptions(def, S).some((o) => o[0] === p[k])) p[k] = def.default; }
-    else if (!def.options.some((o) => o[0] === p[k])) p[k] = def.default;
+    if (!paramOptions(def, S, p).some((o) => o[0] === p[k])) p[k] = def.default;
   }
   let ctx = makeCtx(S);
   let inst = null;
@@ -153,7 +157,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
       syncBpm();
       const pr = getProgress(tpl.id) || {};
       // credit the tempo of the loop just played, not the speed trainer's next step
-      updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, bestBpm: Math.max(pr.bestBpm || 0, done ?? bpm), params: p, lastBpm: player.bpm });
+      updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, bestBpm: Math.max(pr.bestBpm || 0, done ?? bpm), ...keep(), lastBpm: player.bpm });
     },
     onEnd: () => showStep(-1),
   });
@@ -183,7 +187,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
           rebuild();
           renderParams();
           renderOptions();
-          updateProgress(tpl.id, { params: p });
+          updateProgress(tpl.id, keep());
         } }, l));
       }
       return h('div', { class: `opt-group${fixed[k] ? ' fixed' : ''}` }, h('h4', {}, def.label),
@@ -200,7 +204,9 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
   function openOptions() {
     closeMore();
     renderOptions();
-    sheet.classList.add('open');
+    // slide in only when opening, not each time a chip re-renders the panel
+    sheet.classList.add('open', 'opening');
+    setTimeout(() => sheet.classList.remove('opening'), 260);
   }
 
   function closeOptions() { sheet.classList.remove('open'); }
@@ -388,7 +394,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     const pr = getProgress(tpl.id) || {};
     const legend = [['root', 'Root (square)'], ['third', '3rd'], ['fifth', '5th'], ['seventh', '7th'], ['sixth', '6th'], ['other', 'Other / passing']].map(([k, n]) => [k, n, PALETTE[k]]);
     const varyTip = inst?.uniform
-      ? 'Change the subdivision (♩ → 8ths → triplets → 16ths), switch to "Quiz" to test yourself, and finish with labels off.'
+      ? 'Change the subdivision (♩ → 8ths → triplets → 16ths), switch the Reveal button to "Quiz" to test yourself (under ⋯ on phones), and finish with labels off.'
       : 'The rhythm is written into this exercise, so keep the subdivision and work the tempo. Switch to "Quiz" to test yourself, and finish with labels off.';
     drawer.innerHTML = `
       <header><h2>${esc(tpl.title)}</h2><button class="icon-btn" data-close aria-label="Close">${icon('close')}</button></header>
@@ -404,6 +410,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
         </ul>
         <h4>Colours</h4>
         <div class="legend">${legend.map(([k, n, c]) => `<span><i style="background:${c}${k === 'root' ? ';border-radius:3px' : ''}"></i>${n}</span>`).join('')}</div>
+        <p class="muted small" style="margin-top:8px">A dot labelled → is an approach note: a passing note that leads into the next chord tone.</p>
         ${tpl.source ? `<h4>Based on</h4><p class="muted small">${esc(tpl.source)}</p>` : ''}
         <h4>Your progress</h4>
         <p class="muted">${pr.plays ? `${pr.plays} loops played · best ${pr.bestBpm || '–'} BPM` : 'Not played yet.'}${pr.done ? ' · <b style="color:var(--good)">mastered</b>' : ''}</p>

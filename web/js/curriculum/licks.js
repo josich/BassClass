@@ -81,13 +81,15 @@ function lickItems(lick, k, S, ctx, swing, { keyPcs, blue }) {
   let shift = 0;
   while (Math.min(...mids) + shift < lowest) shift += 12;
   while (Math.max(...mids) + shift > highest && Math.min(...mids) + shift - 12 >= lowest) shift -= 12;
-  // chords: spelled from the key like the C version, unless that gives an awkward root (E♭♭7 -> D7)
+  // chords: spelled from the key like the C version. A chromatic chord whose root or tones would be
+  // awkward gets its lead-sheet name (E♭♭7 -> D7); a diatonic chord keeps the key's spelling (D♯7 in
+  // G♯ minor, its F𝄪 written as G like every other double accidental)
   let at = 0;
   const chords = lick.prog.map(([where, type, beats]) => {
     const ivs = T.CHORDS[type].iv;
     const civ = typeof where === 'number' ? OFFSET_IV[T.mod(where, 12)] : where;
     let root = T.up(tonic, civ);
-    if (awkward(root) || ivs.some((iv) => Math.abs(T.up(root, iv).a) > 1)) root = T.bestRoot(T.pc(root), ivs);
+    if (awkward(root) || (typeof where === 'number' && ivs.some((iv) => Math.abs(T.up(root, iv).a) > 1))) root = T.bestRoot(T.pc(root), ivs);
     const semis = new Map(ivs.map((iv) => [T.semis(iv) % 12, iv]));
     const c = { root, cRoot: T.up(C, civ), type, fam: family(type), semis, start: at, end: at + beats, sym: chordName(root, type, S) };
     at += beats;
@@ -145,8 +147,11 @@ function lickItems(lick, k, S, ctx, swing, { keyPcs, blue }) {
     if (a.ct) deg = T.fmtDeg(c.semis.get(a.s));
     else if (appr[i]) deg = '→';
     else if (blue && a.c.fam === 'dom' && a.s === 3) deg = '♭3';
+    else if (blue && a.c.fam === 'dom' && a.s === 6) deg = '♭5';
     else deg = FAMILY_NAME[c.fam]?.[a.s] || SEMI_NAME[a.s];
-    return { ...item, midi: x.midi + d + shift, n, deg, tag: x.tag };
+    // for the loop-around check in the template: can this note approach the next chord tone?
+    const canApproach = !a.ct && !a.inKey && !NATURAL[a.c.fam].includes(a.s) && !(a.c.fam === 'dom' && (a.s === 1 || a.s === 3));
+    return { ...item, midi: x.midi + d + shift, n, deg, tag: x.tag, ct: a.ct, canApproach };
   });
 }
 
@@ -172,8 +177,15 @@ function lickTemplate(def) {
       const lick = licks[Number(p.lick)] || licks[0];
       const swingable = canSwing(lick);
       const swing = p.feel === 'swing' && swingable;
-      const items = [];
-      for (const k of keysFor(p.key)) items.push(...lickItems({ ...lick, minor }, k, S, ctx, swing, { keyPcs: KEY_PCS[keys], blue }));
+      const segs = keysFor(p.key).map((k) => lickItems({ ...lick, minor }, k, S, ctx, swing, { keyPcs: KEY_PCS[keys], blue }));
+      // the last note of a lick leads into the first note of the next one (or of itself when it
+      // loops): a half step into a chord tone makes it an approach note
+      segs.forEach((seg, i) => {
+        const last = [...seg].reverse().find((x) => !x.rest);
+        const first = segs[(i + 1) % segs.length].find((x) => !x.rest);
+        if (last && first && last.canApproach && first.ct && Math.abs(first.midi - last.midi) === 1 && last !== first) last.deg = '→';
+      });
+      const items = segs.flat();
       // the phrase keeps its shape: it is moved as a whole, never note by note
       emitMixed(b, items, { center: 6, open: 'avoid', fold: false });
       const fixed = swingable ? {} : { feel: lick.feel === 'straight' ? 'Straight 8ths' : 'Triplets (swing does not apply)' };
@@ -198,7 +210,7 @@ const majorIIVI = lickTemplate({
   licks: [
     { name: 'Arpeggio up, ♭9 down', prog: II_V_I, notes: 'D2 F2 A2 C3 E3 D3 C3 A2 | B2 D3 F3 Ab3 G3 F3 D3 B2 | C3:q E3 D3 B2 G2 A2:q | E2:h r:h' },
     { name: 'Enclosure into the 3rd', prog: II_V_I, notes: 'A2 G2 F2 E2 D2 F2 A2 C3 | B2 D3 F3 A3 Ab3 G3 F3 D#3 | E3:q C3 G2 A2 B2 C3:q | B1:h r:h' },
-    { name: 'Guide tones with triplets', prog: II_V_I, notes: 'F2:q E2:t F2:t G2:t A2:h | B2:q A2:t B2:t C3:t D3:q F3:q | E3:h D3 C3 B2 G2 | A2:q B2:q C3:h' },
+    { name: 'Guide tones with triplets', prog: II_V_I, notes: 'F2:q E2:t F2:t G2:t A2:q C3:q | B2:q A2:t B2:t C3:t D3:q F3:q | E3:h D3 C3 B2 G2 | A2:q B2:q C3:h' },
     { name: '1-2-3-5 cells + tritone sub', prog: II_V_I, notes: 'D2 E2 F2 A2 F2 G2 A2 C3 | G2 A2 B2 D3 Db3 Eb3 F3 Ab3 | G3:q E3 D3 C3 B2 G2:q | C2:h r:h' },
     { name: 'Bebop scale descent', prog: II_V_I, notes: 'D3 E3 F3 G3 A3 G3 F3 F#3 | G3 F#3 F3 E3 D3 C3 B2 A2 | G2:q E2 G2 B2 D3 C3:q | B2:h r:h' },
     { name: 'Triad pairs, then altered triads', prog: II_V_I, notes: 'F2:t A2:t C3:t G2:t B2:t D3:t A2:t C3:t F3:t B2:t D3:t G3:t | Ab3:t F3:t Db3:t G3:t Eb3:t Bb2:t F3:t Db3:t Ab2:t Eb3:t Bb2:t G2:t | E2:q B2 D3 G3:q E3:q | C3:h r:h' },
@@ -216,7 +228,7 @@ const minorIIVI = lickTemplate({
   licks: [
     { name: 'Locrian ♮2 to melodic minor', prog: MINOR_II_V_I, notes: 'D2 F2 Ab2 C3 E3 C3 Ab2 F2 | Ab2 G2 F2 D2 B1 D2 F2 Ab2 | G2:q Eb2 F2 G2 A2 B2 C3 | Eb3:h r:h' },
     { name: 'Harmonic minor descent', prog: MINOR_II_V_I, notes: 'Ab2 G2 F2 Eb2 D2 F2 Ab2 C3 | B2 Ab2 G2 F2 Eb2 D2 C2 B1 | C2:q Eb2 G2 A2 C3 Eb3 G3 | Eb3:q D3:q C3:h' },
-    { name: 'Diminished arpeggios (Barry Harris)', prog: MINOR_II_V_I, notes: 'F2 Ab2 B2 D3 C3 Ab2 F2 D2 | B1 D2 F2 Ab2 B2 Ab2 F2 D2 | Eb2:q G2 C3 Eb3 D3 C3 A2 | B2 C3:dq r:h' },
+    { name: 'Diminished arpeggios (Barry Harris)', prog: MINOR_II_V_I, notes: 'F2 Ab2 B2 D3 C3 Ab2 F2 D2 | B1 D2 F2 Ab2 B2 Ab2 F2 D2 | Eb2:q G2 C3 Eb3 D3 C3 B2 | C3:h r:h' },
     { name: 'Altered scale into the 5th', prog: MINOR_II_V_I, notes: 'D2 E2 F2 G2 Ab2 C3 Bb2 Ab2 | G2 F2 Eb2 Db2 B1 Db2 F2 Ab2 | G2:q A2 B2 C3 D3 Eb3 F3 | G3:q Eb3:q C3:h' },
   ],
 });
@@ -231,7 +243,7 @@ const blues = lickTemplate({
   bpm: 104,
   licks: [
     { name: 'Major-blues riff to the IV', prog: [['1', 'dom7', 4], ['4', 'dom7', 4]], notes: 'C3 Eb3 E3 G3 A3 G3 Eb3 C3 | A2:q C3 Eb3 F3:q Eb3 C3' },
-    { name: 'Blue-note triplet fill', prog: [['1', 'dom7', 4], ['4', 'dom7', 4]], notes: 'G2:t Bb2:t B2:t C3:q Bb2 G2 E2:q | F2 A2 C3 Eb3 D3 C3 A2 F2' },
+    { name: 'Blue-note triplet fill', prog: [['1', 'dom7', 4], ['4', 'dom7', 4]], notes: 'C3:t Eb3:t E3:t G3:q Gb3 F3 Eb3:q | F2 A2 C3 Eb3 D3 C3 A2 F2' },
     { name: 'Chromatic double approach', prog: [['1', 'dom7', 4], ['4', 'dom7', 4]], notes: 'C3 Bb2 A2 Ab2 G2 E2 G2 G#2 | A2:q C3 Eb3 D3 C3 A2:q' },
     { name: 'Blue third (♭3 → 3)', prog: [['1', 'dom7', 8]], notes: 'Eb2 E2:e:H G2 Bb2 C3 Bb2 G2 E2 | Eb2 E2:e:H C2:q r:h' },
   ],
@@ -263,11 +275,11 @@ const bebop = lickTemplate({
   bpm: 120,
   licks: [
     { name: 'The Lick', prog: [['2', 'min7', 4], ['5', 'dom7', 4]], notes: 'D3 E3 F3 G3 E3:q C3 D3 | r:q B2 D3 F3 Ab3 G3:q' },
-    { name: 'Enclosure chain on G7', prog: V_I, notes: 'G2:t C3:t A#2:t B2:t Eb3:t C#3:t D3:t Gb3:t E3:t F3:t D3:t D#3:t | E3:q C3 G2 A2 B2 C3:q' },
+    { name: 'Enclosure chain on the V7', prog: V_I, notes: 'G2:t C3:t A#2:t B2:t Eb3:t C#3:t D3:t Gb3:t E3:t F3:t D3:t D#3:t | E3:q C3 G2 A2 B2 C3:q' },
     { name: 'Bebop dominant scale from the 3rd', prog: V_I, notes: 'B2 A2 G2 F#2 F2 E2 D2 Db2 | C2:q E2 G2 B2 D3 C3:q' },
     { name: 'Upper structure to altered', prog: V_I, notes: 'F2 A2 C3 E3 Eb3 Db3 B2 Ab2 | G2:q E2 G2 C3 E3 D3:q' },
     { name: 'Chromatic approach to every chord tone', prog: [['1', 'maj7', 8]], notes: 'C2 D#2 E2 F#2 G2 A#2 B2 C#3 | C3:q B2 G2 E2 C2 r:q' },
-    { name: 'Tritone-sub line (D♭7 over G7)', prog: V_I, notes: 'Ab2 Db3 F3 Ab3 G3 F3 Db3 B2 | C3:q E3 G3 B2 A2 G2:q' },
+    { name: 'Tritone-sub line (♭II7 over V7)', prog: V_I, notes: 'Ab2 Db3 F3 Ab3 G3 F3 Db3 B2 | C3:q E3 G3 B2 A2 G2:q' },
   ],
 });
 
@@ -276,12 +288,12 @@ const modern = lickTemplate({
   title: 'Jazz licks: modern sounds',
   summary: 'Pentatonic superimposition, triad pairs, the altered scale, Coltrane changes, side-slipping, 16th-note runs.',
   about: 'Post-bop and fusion players stretch the harmony. They superimpose pentatonic scales a step apart over one chord (Coltrane, McCoy Tyner), alternate two triads (triad pairs), play the altered scale over dominants, move through Coltrane\'s major-3rd key centres, "side-slip" a half step outside and back, and run fast 16th-note arpeggios across the neck in the style of Jaco Pastorius.',
-  tips: ['Side-slipping only works if you come back in clearly: land the resolution on a strong beat. The badge shows the chord the line slips to (E♭m7 over Dm7).', 'The 16th-note licks are played straight (no swing).'],
+  tips: ['Side-slipping only works if you come back in clearly: land the resolution on a strong beat. The badge shows the chord the line slips to (in C: E♭m7 over Dm7).', 'The 16th-note licks are played straight (no swing).'],
   source: 'Original licks inspired by John Coltrane, McCoy Tyner, triad-pair studies (Gary Campbell) and Jaco Pastorius\' 16th-note style.',
   bpm: 96,
   licks: [
-    { name: 'Pentatonic superimposition (Dm7)', prog: [['2', 'min7', 8]], feel: 'straight', notes: 'D2:s F2:s G2:s A2:s C3:s A2:s G2:s F2:s E2:s G2:s A2:s B2:s D3:s B2:s A2:s G2:s | A2:s C3:s D3:s E3:s G3:s E3:s D3:s C3:s D3:h' },
-    { name: 'Triad pairs C & D (Lydian)', prog: [['1', 'maj7', 8]], notes: 'C2:t E2:t G2:t D2:t F#2:t A2:t E2:t G2:t C3:t F#2:t A2:t D3:t | G2:t C3:t E3:t A2:t D3:t F#3:t E3:t C3:t G2:t D3:t A2:t F#2:t' },
+    { name: 'Pentatonic superimposition (over the ii)', prog: [['2', 'min7', 8]], feel: 'straight', notes: 'D2:s F2:s G2:s A2:s C3:s A2:s G2:s F2:s E2:s G2:s A2:s B2:s D3:s B2:s A2:s G2:s | A2:s C3:s D3:s E3:s G3:s E3:s D3:s C3:s D3:h' },
+    { name: 'Triad pairs I & II (Lydian)', prog: [['1', 'maj7', 8]], notes: 'C2:t E2:t G2:t D2:t F#2:t A2:t E2:t G2:t C3:t F#2:t A2:t D3:t | G2:t C3:t E3:t A2:t D3:t F#3:t E3:t C3:t G2:t D3:t A2:t F#2:t' },
     { name: 'Altered scale run', prog: V_I, notes: 'Ab2 Bb2 B2 Db3 Eb3 F3 G3 Ab3 | G3:q E3 C3 B2 G2 E2:q' },
     { name: '16th-note arpeggio run (Jaco-inspired)', prog: [['1', 'dom7', 8]], feel: 'straight', notes: 'C2:s E2:s G2:s Bb2:s C3:s E3:s G3:s Bb3:s A3:s G3:s E3:s C3:s Bb2:s G2:s E2:s C2:s | Db2:s D2:s Eb2:s E2:s G2:s A2:s Bb2:s C3:s Bb2 G2 C2:q' },
     { name: 'Coltrane major-3rd cycle', prog: [['1', 'maj7', 2], [3, 'dom7', 2], [8, 'maj7', 4]], notes: 'C2 D2 E2 G2 | Eb2 F2 G2 Bb2 | Ab2 Bb2 C3 Eb3 G3:q Eb3:q' },
@@ -294,7 +306,7 @@ const soloDevices = lickTemplate({
   title: 'Jazz licks: bass solo devices',
   summary: 'Two-feel pickups, walking lines with triplet skips and pedal-point fills: how bassists solo.',
   about: 'Bass solos often grow out of the bass line itself: a two-feel that breaks into a walking pickup, a walking line decorated with triplet "skips", or a low pedal note alternating with the chord tones above it so the harmony stays clear. These devices make a solo sound like a bassist rather than a horn player.',
-  tips: ['Keep the time feel of a walking line even when soloing.', 'Pedal-point fill: keep the hand in one position, the pedal on the A string and the upper notes on the D and G strings. Mute the open strings.'],
+  tips: ['Keep the time feel of a walking line even when soloing.', 'Pedal-point fill: one hand position. The pedal stays on the A string, the notes above it sit on the D and G strings, and the last three notes dip below it. Mute the open strings.'],
   source: 'Original phrases inspired by the walking-solo language of Ray Brown and Paul Chambers.',
   bpm: 116,
   licks: [

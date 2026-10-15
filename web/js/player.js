@@ -70,6 +70,7 @@ export class Player {
       this.anchorTime = this._time(b);
       this.anchorBeat = b;
     }
+    this.pendingBpm = null; // a manual change overrides a speed-trainer step not yet applied
     this.bpm = bpm;
   }
 
@@ -100,6 +101,7 @@ export class Player {
     this.nextClickAbs = Math.ceil(startBeat - pre - 1e-9);
     this.countInEnd = startBeat;
     this.endAbs = null;
+    this.pendingBpm = null;
     this.queue = [];
     this._timer = setInterval(() => this._tick(), TICK_MS);
     this._tick();
@@ -146,6 +148,17 @@ export class Player {
     const bpb = this.inst.beatsPerBar || 4;
     const clickInc = this.clickSubs && this.inst.uniform ? 1 / this.sub : 1;
     for (let guard = 0; guard < 512; guard++) {
+      // a speed-trainer step takes effect at the loop point, once every click before it is scheduled
+      if (this.pendingBpm) {
+        const clicking = this.metro || this.nextClickAbs < this.countInEnd;
+        const nextAbs = Math.min(this.nextStepAbs, clicking ? this.nextClickAbs : Infinity);
+        if (nextAbs >= this.pendingBpm.at - 1e-9) {
+          this.anchorTime = this._time(this.pendingBpm.at);
+          this.anchorBeat = this.pendingBpm.at;
+          this.bpm = this.pendingBpm.bpm;
+          this.pendingBpm = null;
+        }
+      }
       const tStep = this.endAbs == null ? this._time(this.nextStepAbs) : Infinity;
       const clickOk = (this.metro || this.nextClickAbs < this.countInEnd) && (this.endAbs == null || this.nextClickAbs < this.endAbs - 1e-9);
       const tClick = clickOk ? this._time(this.nextClickAbs) : Infinity;
@@ -199,11 +212,9 @@ export class Player {
           const done = this.bpm;
           if (this.trainer.on && this.bpm < this.trainer.target) {
             const nb = Math.min(this.trainer.target, this.bpm + this.trainer.inc);
-            const at = this.loopBase;
-            this.anchorTime = this._time(at);
-            this.anchorBeat = at;
-            this.bpm = nb;
-            this._q({ time: this.anchorTime, type: 'loop', n: this.loopN, bpm: nb, done });
+            // the rest of this loop (clicks after the last note) keeps the old tempo
+            this.pendingBpm = { at: this.loopBase, bpm: nb };
+            this._q({ time: this._time(this.loopBase), type: 'loop', n: this.loopN, bpm: nb, done });
           } else {
             this._q({ time: this._time(this.loopBase), type: 'loop', n: this.loopN, bpm: this.bpm, done });
           }
