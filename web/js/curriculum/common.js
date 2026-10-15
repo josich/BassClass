@@ -32,7 +32,10 @@ export const nm = (n, S) => T.noteName(n, S.notation);
 
 /** Roots of drills that travel round the cycle: the names the cycle is taught with (C F B♭ E♭ A♭ D♭ G♭ B E A D G). */
 const CYCLE_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
-export const cycleRoot = (pcv) => T.N(CYCLE_NAMES[T.mod(pcv, 12)]);
+export function cycleRoot(pcv, ivs = ['1', '3', '5']) {
+  const r = T.N(CYCLE_NAMES[T.mod(pcv, 12)]);
+  return ivs.some((iv) => Math.abs(T.up(r, iv).a) > 1) ? T.bestRoot(pcv, ivs) : r;
+}
 export const chordName = (root, type, S) => nm(root, S) + (T.CHORDS[type]?.sym ?? '');
 
 export function keyLabel(v, ivs, S) {
@@ -448,9 +451,11 @@ export function walkLine(b, chords, roots, formula = 'mixed', { triplets = false
           if (tok === 'Ab') r = { midi: nextMidi + 2, n: spellMidi(nextMidi + 2, true), deg: '→' };
           else r = resolveToken('Ab', c, roots[ci], next.root, nextMidi);
         }
-        // an approach note that is also a chord tone is spelled as that chord tone (B♭ under B♭7)
+        // an approach note that is also a chord tone is spelled as that chord tone (B♭ under B♭7),
+        // unless that needs a double sharp/flat (then the plain name reads better)
         const ct = c.ivs.find((iv) => T.mod(T.semis(iv), 12) === T.mod(r.midi - roots[ci], 12));
-        if (ct) r = { ...r, n: T.up(c.root, ct === '8' ? '1' : ct) };
+        const asCt = ct && T.up(c.root, ct === '8' ? '1' : ct);
+        if (asCt && Math.abs(asCt.a) < 2) r = { ...r, n: asCt };
       }
       return r;
     };

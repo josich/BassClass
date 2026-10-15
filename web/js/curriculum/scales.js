@@ -9,8 +9,8 @@ const patP = (keys, def) => sel('Sequence', keys.map((k) => [k, SCALE_PATTERNS[k
 const typeP = (keys, def) => sel('Scale', SCALE_TYPE_OPTS(keys), def || keys[0]);
 
 /** Generic scale exercise: one key or all keys, any pattern, 1–2 octaves. */
-export function scaleBuild(p, ctx, S, { type = p.type, pattern = p.pattern || 'straight', octaves = Number(p.oct || 1), dir = p.dir || 'updown', rootStr = p.root || 'A', open = p.open === 'yes' } = {}) {
-  const b = new Builder(ctx, S);
+export function scaleBuild(p, ctx, S, { type = p.type, pattern = p.pattern || 'straight', octaves = Number(p.oct || 1), dir = p.dir || 'updown', rootStr = p.root || 'A', open = p.open === 'yes', jazz = false } = {}) {
+  const b = new Builder(ctx, S, { jazz });
   const keys = keysFor(p.key);
   const many = keys.length > 1;
   let prev = null;
@@ -307,7 +307,8 @@ const symmetric = ex({
   source: 'RSL Grade 8; LCM Grade 7; Spanish conservatory year 5; Berklee PULSE',
   params: { type: typeP(['dimHW', 'dimWH', 'wholeTone']), key: keyP(T.SCALES.dimHW.iv), pattern: patP(['straight', 'thirds', 'g3', 'g4', 'fourths'], 'straight'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]) },
   bpm: 72, sub: 4, label: 'degree',
-  build(p, ctx, S) { return scaleBuild({ ...p, root: 'E' }, ctx, S).build({ label: 'degree' }); },
+  // symmetric scales have more notes than letters, so they are spelled the jazz way (D♭ half-whole: D, not E𝄫)
+  build(p, ctx, S) { return scaleBuild({ ...p, root: 'E' }, ctx, S, { jazz: true }).build({ label: 'degree' }); },
 });
 
 const sixthDim = ex({

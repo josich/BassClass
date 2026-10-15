@@ -12,9 +12,8 @@ const triadOrderP = (keys, def) => sel('Pattern', keys.map((k) => [k, TRIAD_ORDE
 const arpShapeP = (keys, def) => sel('Pattern', keys.map((k) => [k, ARP_SHAPES[k].name]), def);
 
 /** Shared arpeggio builder (also used by the 7th-chord module). */
-export function arpBuild(p, ctx, S, { ivs, type, shape = 'updown', octaves = 1, inversion = 0, rootStr = 'A', strict = false }) {
-  // strict: chord-construction drills keep textbook spellings (B augmented = B D♯ F𝄪)
-  const b = new Builder(ctx, S, { strict });
+export function arpBuild(p, ctx, S, { ivs, type, shape = 'updown', octaves = 1, inversion = 0, rootStr = 'A' }) {
+  const b = new Builder(ctx, S);
   const keys = keysFor(p.key);
   let prev = null;
   for (const k of keys) {
@@ -91,7 +90,7 @@ const triadQualities = ex({
   params: { quality: sel('Triad', QUALITY_TRIADS), key: keyP(), root: rootStrP('A'), shape: arpShapeP(['updown', 'octave', 'up', 'turn', 'r535', 'down']) },
   bpm: 70, sub: 2, label: 'degree',
   build(p, ctx, S) {
-    return arpBuild(p, ctx, S, { ivs: ivsOf(p.quality), type: p.quality, shape: p.shape, rootStr: p.root, strict: true }).build({ label: 'degree' });
+    return arpBuild(p, ctx, S, { ivs: ivsOf(p.quality), type: p.quality, shape: p.shape, rootStr: p.root }).build({ label: 'degree' });
   },
 });
 
@@ -110,17 +109,18 @@ const fourTypes = ex({
   about: 'Keep the root fixed and change only the 3rd and 5th. Major to minor lowers the 3rd; minor to diminished lowers the 5th; augmented raises the 5th of the major triad. Each one is played twice, so you feel the shape before moving on.',
   tips: ['Sing the 3rd before you play it.', 'Notice which finger moves when the quality changes: major → minor and minor → diminished move one note each; diminished → augmented moves both the 3rd and the 5th.'],
   source: 'TalkingBass free lesson "The four triad types"; RSL/LCM grades 3–5',
-  params: { key: keyP(), root: rootStrP('A') },
+  // one root for all four chords, named to keep their spelling simplest
+  params: { key: keyP(['1', '3', 'b3', '5', 'b5', '#5']), root: rootStrP('A') },
   bpm: 70, sub: 3, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S, { strict: true });
+    const b = new Builder(ctx, S);
     let prev = null;
     for (const k of keysFor(p.key)) {
       const r = pickRoot(ctx, k, { strings: [p.root, 'A', 'E'], hi: 10, prev, prefer: p.root });
       const items = [];
       for (const q of ['maj', 'min', 'dim', 'aug']) {
         const ivs = ivsOf(q);
-        const root = T.bestRoot(k, ['1', '3', '5']);
+        const root = T.bestRoot(k, ['1', '3', 'b3', '5', 'b5', '#5']);
         for (let rep = 0; rep < 2; rep++) {
           chordTones(root, ivs, r.midi, [0, 1, 2, 3, 2, 1]).forEach((t, j) =>
             items.push({ ...t, chord: j === 0 && rep === 0 ? chordName(root, q, S) : undefined }));
@@ -140,14 +140,15 @@ const majVsMin = ex({
   about: 'The 3rd is the note that makes a chord sound happy (major) or sad (minor). Play the major triad, then move only the 3rd down one fret for the minor. Listen for the colour change.',
   tips: ['Watch the blue dot: it is the only one that moves.', 'Try it with your eyes closed after a few rounds.'],
   source: 'Common to all methods (StudyBass, BassBuzz, Hal Leonard)',
-  params: { key: keyP(), root: rootStrP('A') },
+  // one root for both chords, named so neither needs a double flat (F♯ and F♯m, not G♭m)
+  params: { key: keyP(['1', '3', 'b3', '5']), root: rootStrP('A') },
   bpm: 66, sub: 1, label: 'degree',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     let prev = null;
     for (const k of keysFor(p.key)) {
       const r = pickRoot(ctx, k, { strings: [p.root], hi: 10, prev, prefer: p.root });
-      const root = T.bestRoot(k, ['1', '3', '5']);
+      const root = T.bestRoot(k, ['1', '3', 'b3', '5']);
       const items = [];
       for (const q of ['maj', 'min']) {
         chordTones(root, ivsOf(q), r.midi, [0, 1, 2, 1]).forEach((t, j) => items.push({ ...t, chord: j === 0 ? chordName(root, q, S) : undefined }));
@@ -165,7 +166,7 @@ const zoneCycle = ex({
   id: 'tri-zone-cycle', module: M, level: 2, star: true,
   title: 'Triads around the cycle in one zone',
   summary: 'All 12 triads without leaving a 5-fret zone. The zone decides the shape.',
-  about: 'This is the "Circle of 5ths + Zones" warm-up. The neck is split into zones (frets 1–5, 5–9, 8–12). Play the triad of every key around the cycle of 4ths (C F B♭ E♭ A♭ D♭ G♭ B E A D G) and never leave the zone. To stay inside the zone you have to use different fingerings, so you learn where every chord lives in that area of the neck. Spend a couple of weeks on Zone 1 before moving to Zone 2, then Zone 3.',
+  about: 'This is the "Circle of 5ths + Zones" warm-up. The neck is split into zones (frets 1–5, 5–9, 8–12). Play the triad of every key around the cycle of 4ths (C F B♭ E♭ A♭ D♭ G♭ B E A D G) and never leave the zone. A minor or diminished chord whose cycle name would need a double flat takes its simpler name (F♯m, not G♭m; D♯°, not E♭°). To stay inside the zone you have to use different fingerings, so you learn where every chord lives in that area of the neck. Spend a couple of weeks on Zone 1 before moving to Zone 2, then Zone 3.',
   tips: ['No open strings: every shape must be movable.', 'Say the chord name before you play it, then find the root inside the zone first.',
     'Then switch to minor, diminished and augmented in the same zone.', 'Gary Willis\' advice: the notes are already under your fingers, so do not move the hand.'],
   source: 'Scott Devine (Scott\'s Bass Lessons), "The Circle of 5ths + ZONES" and "3 Rule Fretboard Formula"',
@@ -177,7 +178,7 @@ const zoneCycle = ex({
     const zone = ZONES[p.zone];
     let prev = null;
     keysFor(p.order).forEach((k, i) => {
-      const root = cycleRoot(k);
+      const root = cycleRoot(k, ivs);
       const z = zoneShape(k, ivs, ctx, zone, prev);
       if (!z) return;
       b.chord(chordName(root, p.quality, S));
@@ -444,7 +445,7 @@ const voiceLedCycle = ex({
     const ivs = ivsOf(p.quality);
     const orders = { m3: [0, 3, 6, 9], M3: [0, 4, 8], wholetone: [0, 2, 4, 6, 8, 10] };
     const pcs = orders[p.order] ? [...orders[p.order], ...orders[p.order], 0] : keysFor(p.order);
-    const chords = pcs.map((k) => { const root = cycleRoot(k); return { root, ivs, sym: chordName(root, p.quality, S) }; });
+    const chords = pcs.map((k) => { const root = cycleRoot(k, ivs); return { root, ivs, sym: chordName(root, p.quality, S) }; });
     const [lo, hi] = REGISTERS[p.register];
     emitMixed(b, voiceLedItems(chords, { order: TRIAD_ORDERS[p.pattern].f, lo, hi, rootOnly: p.voicing === 'root', start: lo + 8 }), { center: 5 });
     return b.build({ label: 'degree' });
@@ -484,7 +485,7 @@ const allInversionsCycle = ex({
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     const ivs = ivsOf(p.quality);
-    const chords = keysFor(p.order).map((k) => { const root = cycleRoot(k); return { root, ivs, sym: chordName(root, p.quality, S) }; });
+    const chords = keysFor(p.order).map((k) => { const root = cycleRoot(k, ivs); return { root, ivs, sym: chordName(root, p.quality, S) }; });
     const order = (i) => (i % 2 === 0 ? [0, 1, 2, 1, 2, 3, 2, 3, 4] : [4, 3, 2, 3, 2, 1, 2, 1, 0]);
     emitMixed(b, voiceLedItems(chords, { order, lo: 28, hi: 50, start: 36 }), { center: 6 });
     return b.build({ label: 'degree' });

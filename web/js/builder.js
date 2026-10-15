@@ -33,15 +33,20 @@ export function rootOn(ctx, pcv, string = 'E', { minFret = 1, maxFret = 13 } = {
 /** Fret of a midi on a named string. */
 export const fretOn = (ctx, midi, string) => midi - ctx.tuning[ctx.str(string)];
 
+// chord tones and natural tensions keep their academic spelling even in jazz exercises
+const CORE_DEGREES = new Set(['R', '2', '3', '4', '5', '6', '7', '♭7', '8', '9', '10', '11', '13']);
+
 export class Builder {
   /**
-   * strict: keep textbook spellings with double flats/sharps (interval and chord-construction
-   * drills). Otherwise they are written as their plain enharmonic, the way lead sheets do.
+   * Notes keep their academic spelling (G♯ harmonic minor has F𝄪, the 3rd of D♯7 is F𝄪).
+   * jazz: in chord-progression exercises, a double sharp/flat on an altered note (♭9, ♯9, ♭5, ♯5,
+   * ♭13, ♯11), on a diminished 7th, a blue note or a passing note is written as its plain
+   * enharmonic, the way jazz players write it (A♭7♭9: A, not B𝄫; C°7: C E♭ G♭ A; E♭7's ♭13: B, not C♭).
    */
-  constructor(ctx, settings = {}, { strict = false } = {}) {
+  constructor(ctx, settings = {}, { jazz = false } = {}) {
     this.ctx = ctx;
     this.settings = settings;
-    this.strict = strict;
+    this.jazz = jazz;
     this.steps = [];
     this.pendingChord = null;
     this.pendingText = null;
@@ -51,7 +56,7 @@ export class Builder {
   text(t) { this.pendingText = t; return this; }
 
   _push(step) {
-    if (!this.strict) for (const n of step.notes) if (n.n && Math.abs(n.n.a) > 1) n.n = T.plain(n.n);
+    if (this.jazz) for (const n of step.notes) if (n.n && !CORE_DEGREES.has(n.deg) && T.awkward(n.n)) n.n = T.readable(n.n);
     if (this.pendingChord) { step.chord = this.pendingChord; this.pendingChord = null; }
     if (this.pendingText) { step.text = this.pendingText; this.pendingText = null; }
     this.steps.push(step);

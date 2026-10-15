@@ -138,7 +138,8 @@ function lickItems(lick, k, S, ctx, swing, { keyPcs, blue }) {
     // approach notes) get the plain enharmonic, and the ♯9 takes whichever of ♭3/♯2 reads easier
     const iv = T.ivBetween(c.cRoot, x.n);
     let n = iv !== '?' ? T.up(c.root, iv) : plainSpelling(T.mod(T.pc(c.root) + a.s, 12), Math.sign(x.n.a) || -1);
-    if (Math.abs(n.a) > 1 || (appr[i] && awkward(n))) n = plain(n);
+    const core = a.ct && ['1', '3', 'b3', '5', '7', 'b7', '6'].includes(c.semis.get(a.s));
+    if ((Math.abs(n.a) > 1 && !core) || (appr[i] && awkward(n))) n = plain(n);
     else if (!a.ct && !appr[i] && !blue && c.fam === 'dom' && a.s === 3) {
       const alt = T.up(c.root, iv === 'b3' ? '#2' : 'b3');
       if (!awkward(alt) && (awkward(n) || Math.abs(alt.a) < Math.abs(n.a))) n = alt;

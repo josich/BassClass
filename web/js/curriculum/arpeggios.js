@@ -23,7 +23,7 @@ const qualities = ex({
   params: { key: keyP(['1', '3', '5', '7']), root: rootStrP('A') },
   bpm: 70, sub: 4, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     let prev = null;
     for (const k of keysFor(p.key)) {
       const root = T.bestRoot(k, ['1', '3', '5', '7']);
@@ -49,7 +49,7 @@ const study = ex({
   params: { quality: sel('Chord', QUALITY_7THS), key: keyP(['1', '3', '5', '7']), shape: shapeP(['updown', 'up', 'down', 'downup', 'doubled'], 'updown'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]), root: rootStrP('A') },
   bpm: 72, sub: 4, label: 'degree',
   build(p, ctx, S) {
-    return arpBuild(p, ctx, S, { ivs: ivsOf(p.quality), type: p.quality, shape: p.shape, octaves: Number(p.oct), rootStr: Number(p.oct) > 1 ? 'E' : p.root, strict: true }).build({ label: 'degree' });
+    return arpBuild(p, ctx, S, { ivs: ivsOf(p.quality), type: p.quality, shape: p.shape, octaves: Number(p.oct), rootStr: Number(p.oct) > 1 ? 'E' : p.root }).build({ label: 'degree' });
   },
 });
 
@@ -98,12 +98,12 @@ const zoneCycle7 = ex({
   params: { quality: sel('Chord', QUALITY_7THS.slice(0, 5)), zone: zoneP, order: orderP, pattern: orderP7(['up', 'alt', 'updown'], 'up') },
   bpm: 76, sub: 4, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     const ivs = ivsOf(p.quality);
     const zone = ZONES[p.zone];
     let prev = null;
     keysFor(p.order).forEach((k, i) => {
-      const root = cycleRoot(k);
+      const root = cycleRoot(k, ivs);
       // root position in the zone if it fits; otherwise start on another chord tone (inversion),
       // then allow one fret outside the zone. Every key is played.
       let z = zoneShapeAny(k, ivs, ctx, zone, prev, 4);
@@ -135,7 +135,7 @@ const inversions = ex({
   params: { quality: sel('Chord', QUALITY_7THS.slice(0, 5)), key: keyP(['1', '3', '5', '7']) },
   bpm: 72, sub: 4, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     const ivs = ivsOf(p.quality);
     let prev = null;
     for (const k of keysFor(p.key)) {
@@ -162,7 +162,7 @@ const iiVI = ex({
   params: { type: sel('Type', [['major', 'Major ii–V–I'], ['minor', 'Minor iiø–V–i']]), key: keyP(['1', '3', '5', '7'], { def: 'cycle4' }), pattern: orderP7(['up', 'alt', 'down'], 'alt'), voicing: sel('Voicing', [['nearest', 'Nearest chord tone'], ['root', 'Root position']]), register: regP },
   bpm: 84, sub: 2, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     const chords = [];
     for (const k of keysFor(p.key)) chords.push(...progChords(p.type === 'major' ? 'ii-V-I' : 'minor-ii-V-i', k, { S }).slice(0, 3));
     const [lo, hi] = REG[p.register];
@@ -182,7 +182,7 @@ const voiceLed = ex({
   params: { prog: progP(PROGS7), key: keyP(['1', '3', '5', '7']), pattern: orderP7(['alt', 'up', 'down', 'updown'], 'alt'), register: regP },
   bpm: 88, sub: 2, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     const keys = PROGS7.slice(0, 2).includes(p.prog) ? [0] : keysFor(p.key);
     const chords = [];
     for (const k of keys) chords.push(...progChords(p.prog, k, { S }));
@@ -218,7 +218,7 @@ const guideTones = ex({
   params: { prog: progP(['ii-V-I', 'cycle-dom7', 'autumn', 'jazz-blues', 'I-vi-ii-V', 'minor-ii-V-i']), key: keyP(['1', '3', '5', '7']), start: sel('Start on', [['3', 'the 3rd'], ['7', 'the 7th']]) },
   bpm: 80, sub: 1, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     const items = [];
     let prev = null;
     for (const k of keysFor(p.key)) {
@@ -257,7 +257,7 @@ const dimDominants = ex({
   params: { key: keyP(['1', 'b3', 'b5', 'bb7'], { cycles: false, def: '11' }) },
   bpm: 72, sub: 4, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     const k = Number(p.key);
     const r = pickRoot(ctx, k, { strings: ['E', 'A'], hi: 9, prefer: 'A' });
     const dimRoot = T.bestRoot(k, ivsOf('dim7'));
@@ -290,17 +290,16 @@ const dimToMinor = ex({
   params: { key: keyP(['1', 'b3', '5'], { def: 'cycle4', suffix: 'm' }) },
   bpm: 80, sub: 4, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     const items = [];
     let prev = null;
     for (const k of keysFor(p.key)) {
       const minor = T.bestRoot(k, ivsOf('min'));
-      // the leading tone, spelled in the key (F𝄪 in G♯ minor; its notes print as G A♯ C♯ E and the
-      // chord is named G°7, so the line stays in sharps and every resolution is visible)
+      // the leading tone, spelled in the key (F𝄪 in G♯ minor), so every resolution is visible
       const lt = T.up(minor, '7');
       const r = pickRoot(ctx, k, { strings: ['E', 'A'], hi: 8, prev, prefer: 'A' });
       const ltMidi = r.midi - 1;
-      chordTones(lt, ivsOf('dim7'), ltMidi, [0, 1, 2, 3]).forEach((t, j) => items.push({ ...t, chord: j === 0 ? chordName(T.plain(lt), 'dim7', S) : undefined }));
+      chordTones(lt, ivsOf('dim7'), ltMidi, [0, 1, 2, 3]).forEach((t, j) => items.push({ ...t, chord: j === 0 ? chordName(lt, 'dim7', S) : undefined }));
       chordTones(minor, ivsOf('min'), r.midi, [3, 2, 1, 0]).forEach((t, j) => items.push({ ...t, chord: j === 0 ? chordName(minor, 'min', S) : undefined }));
       prev = r.midi;
     }
@@ -321,7 +320,7 @@ const extended = ex({
   params: { key: keyP(T.SCALES.ionian.iv), ext: sel('Up to', [['9', '9ths'], ['11', '11ths'], ['13', '13ths']]), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'dorian', 'melodicMinor'])), order: sel('Chords', [['up', 'I → I'], ['fourths', 'In 4ths']]) },
   bpm: 72, sub: 4, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     let prev = null;
     for (const k of keysFor(p.key)) {
       const tonic = T.bestRoot(k, T.SCALES[p.scale].iv);
@@ -359,7 +358,7 @@ const upper = ex({
   params: { key: keyP(T.SCALES.ionian.iv), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'dorian'])), pattern: orderP7(['up', 'alt'], 'alt') },
   bpm: 76, sub: 4, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     for (const k of keysFor(p.key)) {
       const tonic = T.bestRoot(k, T.SCALES[p.scale].iv);
       const r = pickRoot(ctx, k, { strings: ['E', 'A'], hi: 7, prefer: 'E' });
@@ -406,7 +405,7 @@ const approach7 = ex({
   params: { key: keyP(['1', '3', '5', '7'], { def: 'cycle4' }), approach: sel('Approach', [['below', 'Half step below'], ['above', 'Half step above'], ['enclosure', 'Enclosure']]), prog: progP(['ii-V-I', 'minor-ii-V-i', 'I-vi-ii-V']) },
   bpm: 84, sub: 2, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     const chords = [];
     for (const k of keysFor(p.key)) chords.push(...progChords(p.prog, k, { S }));
     const base = voiceLedItems(chords, { order: SEVENTH_ORDERS.alt.f, lo: 33, hi: 57, start: 40 });
@@ -437,7 +436,7 @@ const altered = ex({
   params: { alt: sel('Dominant', [['dom7s5', '7♯5'], ['dom7b5', '7♭5'], ['dom7b9', '7♭9'], ['dom7s9', '7♯9']]), key: keyP(['1', '3', '5', '7']) },
   bpm: 72, sub: 4, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     const chords = [];
     for (const k of keysFor(p.key)) {
       const I = T.bestRoot(k, ivsOf('maj7'));

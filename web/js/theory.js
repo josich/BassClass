@@ -230,6 +230,21 @@ export function plain(n) {
   return best.n;
 }
 
+/** The easiest-to-read spelling of an awkward note (F♭ -> E, C♭ -> B, B𝄫 -> A); others unchanged. */
+export function readable(n) {
+  if (!awkward(n)) return n;
+  const pcv = pc(n);
+  let best = null;
+  for (let l = 0; l < 7; l++) {
+    let a = mod(pcv - LETTER_PC[l], 12);
+    if (a > 6) a -= 12;
+    if (Math.abs(a) > 1 || awkward({ l, a })) continue;
+    const score = Math.abs(a) * 2 + (a !== 0 && Math.sign(a) !== Math.sign(n.a) ? 1 : 0);
+    if (!best || score < best.score) best = { score, n: { l, a } };
+  }
+  return best ? best.n : plain(n);
+}
+
 /** Interval names by semitones above a root (how a chromatic chord is spelled from its key). */
 export const IV_OF_SEMIS = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'];
 
@@ -239,6 +254,9 @@ export const IV_OF_SEMIS = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6'
  * unless the sharp spelling is clearly simpler or the chord/scale is minor (C♯m, G♯m, F♯m).
  */
 export function bestRoot(pcv, ivs = ['1', '3', '5']) {
+  // a minor scale or chord with a raised 6th/7th is named after its key signature (natural minor):
+  // G♯ harmonic minor (with F𝄪), not A♭ harmonic minor
+  if (ivs.includes('b3') && ivs.includes('5') && ivs.includes('7')) ivs = ivs.map((iv) => (iv === '7' ? 'b7' : iv === '6' ? 'b6' : iv));
   let best = null;
   for (let l = 0; l < 7; l++) {
     let a = mod(pcv - LETTER_PC[l], 12);

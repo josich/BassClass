@@ -17,7 +17,7 @@ const buildChord = ex({
   params: { key: keyP(T.SCALES.ionian.iv), scale: sel('Scale', [['ionian', 'Major'], ['aeolian', 'Natural minor']]), root: rootStrP('A') },
   bpm: 66, sub: 2, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     for (const k of keysFor(p.key)) {
       const tonic = T.bestRoot(k, T.SCALES[p.scale].iv);
       const r = pickRoot(ctx, k, { strings: [p.root, 'A', 'E'], hi: 9, prefer: p.root });
@@ -42,7 +42,7 @@ const thirdQuality = ex({
   params: { key: keyP(T.SCALES.ionian.iv), scale: sel('Scale', [['ionian', 'Major'], ['aeolian', 'Natural minor'], ['harmonicMinor', 'Harmonic minor']]) },
   bpm: 72, sub: 2, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     for (const k of keysFor(p.key)) {
       const tonic = T.bestRoot(k, T.SCALES[p.scale].iv);
       const r = pickRoot(ctx, k, { strings: ['A', 'E'], hi: 8, prefer: 'A' });
@@ -73,7 +73,7 @@ const progRoots = ex({
   params: { prog: progP(ALL_PROGS, 'I-V-vi-IV'), key: keyP(T.SCALES.ionian.iv), rhythm: sel('Rhythm', [['4', 'Whole notes'], ['2', 'Half notes'], ['1', 'Quarter notes'], ['0.5', '8th notes']], '1') },
   bpm: 84, sub: 1, label: 'note',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     for (const k of keysFor(p.key)) {
       const chords = progChords(p.prog, k, { S });
       const roots = chordRootMidis(chords);
@@ -109,7 +109,7 @@ const chordTonesProg = ex({
   params: { prog: progP(ALL_PROGS, 'I-vi-IV-V'), key: keyP(T.SCALES.ionian.iv), pattern: sel('Pattern', Object.entries(PATTERNS).map(([k, v]) => [k, v.name]), 'r353') },
   bpm: 88, sub: 1, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     for (const k of keysFor(p.key)) {
       const chords = progChords(p.prog, k, { S, triads: !['r357', 'r3575'].includes(p.pattern) });
       grooveLine(b, chords, chordRootMidis(chords), PATTERNS[p.pattern].bars, { place: { open: 'allow' } });
@@ -135,7 +135,7 @@ const doubleStops = ex({
   params: { type: sel('Interval', Object.entries(DS).map(([k, v]) => [k, v.name]), 'tenth'), prog: progP(['I-V-vi-IV', 'I-vi-IV-V', 'I-IV-V-I', 'ii-V-I', 'I-vi-ii-V', 'i-bVII-bVI-V']), key: keyP(T.SCALES.ionian.iv) },
   bpm: 76, sub: 1, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     const e = Math.max(0, ctx.str('E'));
     for (const k of keysFor(p.key)) {
       const chords = progChords(p.prog, k, { S });
@@ -177,7 +177,7 @@ const shells = ex({
   params: { prog: progP(['ii-V-I', 'I-vi-ii-V', 'autumn', 'jazz-blues', 'minor-ii-V-i']), key: keyP(['1', '3', '5', '7']) },
   bpm: 70, sub: 1, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     const e = Math.max(0, ctx.str('E'));
     for (const k of keysFor(p.key)) {
       const chords = progChords(p.prog, k, { S });
@@ -212,7 +212,7 @@ const minorHarmony = ex({
   params: { prog: progP(['i-iv-V-i', 'i-bVII-bVI-V', 'minor-ii-V-i', 'i-bVI-bIII-bVII', 'minor-blues', 'i-iv-v-min']), key: keyP(T.SCALES.aeolian.iv, { def: '9' }), pattern: sel('Pattern', [['r357', 'R-3-5-7'], ['r353', 'R-3-5-3'], ['r3575', 'R-3-5-7-8-7-5-3 (8ths)']]) },
   bpm: 84, sub: 1, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     for (const k of keysFor(p.key)) {
       const chords = progChords(p.prog, k, { S, triads: p.pattern === 'r353' });
       grooveLine(b, chords, chordRootMidis(chords), PATTERNS[p.pattern].bars, { place: { open: 'allow' } });
@@ -231,7 +231,7 @@ const colour = ex({
   params: { prog: progP(['I-VI7-ii-V', 'I-III7-vi', 'I-bVI-bVII-I', 'I-iv-I', 'ii-bII7-I']), key: keyP(T.SCALES.ionian.iv), pattern: sel('Pattern', [['r357', 'R-3-5-7'], ['r3575', 'R-3-5-7-8-7-5-3 (8ths)']]) },
   bpm: 84, sub: 1, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     for (const k of keysFor(p.key)) {
       const chords = progChords(p.prog, k, { S });
       grooveLine(b, chords, chordRootMidis(chords), PATTERNS[p.pattern].bars, { place: { open: 'allow' } });
@@ -250,7 +250,7 @@ const blues = ex({
   params: { prog: progP(['blues', 'blues-quick', 'minor-blues', 'jazz-blues']), key: keyP(['1', '3', '5', 'b7'], { def: '9' }), pattern: sel('Pattern', [['r357', 'R-3-5-♭7'], ['r585', 'R-5-8-5'], ['r3575', 'R-3-5-7-8-7-5-3 (8ths)']]) },
   bpm: 92, sub: 1, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     for (const k of keysFor(p.key)) {
       const chords = progChords(p.prog, k, { S });
       grooveLine(b, chords, chordRootMidis(chords), PATTERNS[p.pattern].bars, { place: { open: 'allow' } });
@@ -269,7 +269,7 @@ const chordal10ths = ex({
   params: { voicing: sel('Voicing', [['5', 'R-5-10'], ['7', 'R-7-10']]), prog: progP(['I-vi-IV-V', 'I-V-vi-IV', 'ii-V-I', 'I-vi-ii-V', 'autumn']), key: keyP(['1', '3', '5', '7']) },
   bpm: 70, sub: 1, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     const e = Math.max(0, ctx.str('E'));
     for (const k of keysFor(p.key)) {
       const chords = progChords(p.prog, k, { S });

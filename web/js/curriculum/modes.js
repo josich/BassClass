@@ -114,7 +114,7 @@ const chordScale = ex({
   params: { prog: progP(['ii-V-I', 'I-vi-ii-V', 'autumn', 'minor-ii-V-i', 'jazz-blues', 'cycle-251']), key: keyP(T.SCALES.ionian.iv) },
   bpm: 92, sub: 2, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     const items = [];
     let prev = null;
     for (const k of keysFor(p.key)) {

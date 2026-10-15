@@ -49,7 +49,7 @@ function grooveEx(id, level, styleKeys, def, meta) {
     },
     sub: 1, label: 'degree',
     build(p, ctx, S) {
-      const b = new Builder(ctx, S);
+      const b = new Builder(ctx, S, { jazz: true });
       const progKey = p.prog === 'auto' ? STYLE_PROGS[p.style] : p.prog;
       for (const k of keysFor(p.key)) {
         const chords = progChords(progKey, k, { S });
@@ -134,7 +134,7 @@ const oddGroove = ex({
   params: { meter: sel('Meter', Object.entries(ODD).map(([k, v]) => [k, v.name])), key: keyP(['1', 'b3', '5'], { def: '4', cycles: false }) },
   bpm: 110, sub: 1, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S);
+    const b = new Builder(ctx, S, { jazz: true });
     const o = ODD[p.meter];
     const chords = progChords('vamp-min', Number(p.key), { S }).map((c) => ({ ...c, beats: o.bpb * 4 }));
     grooveLine(b, chords, chordRootMidis(chords), [o.bar], { place: { open: 'allow' } });
@@ -153,7 +153,7 @@ function walkEx(id, level, formula, def, meta) {
     params: { prog: progP(WALK_PROGS, def), key: keyP(['1', '3', '5', '7'], { def: '5' }) },
     bpm: 100, sub: 1, label: 'degree',
     build(p, ctx, S) {
-      const b = new Builder(ctx, S);
+      const b = new Builder(ctx, S, { jazz: true });
       const keys = p.prog === 'cycle-251' ? [0] : keysFor(p.key);
       for (const k of keys) {
         const chords = progChords(p.prog, k, { S });
@@ -266,7 +266,7 @@ function slapEx(id, level, styles, def, prog, meta) {
     params: { style: sel('Pattern', styles.map((k) => [k, SLAPS[k].name]), def), prog: progP([prog, 'vamp-min', 'vamp-dom', 'i-iv-v-min', 'I-IV-V-I', 'blues'].filter((v, i, a) => a.indexOf(v) === i), prog), key: keyP(['1', '3', '5'], { def: '4' }) },
     sub: 1, label: 'degree',
     build(p, ctx, S) {
-      const b = new Builder(ctx, S);
+      const b = new Builder(ctx, S, { jazz: true });
       for (const k of keysFor(p.key)) {
         const chords = progChords(p.prog, k, { S });
         grooveLine(b, chords, chordRootMidis(chords, { lo: 28, hi: 38, firstLo: 28, firstHi: 36 }), SLAPS[p.style].bars, { place: { open: 'allow', center: 3 } });
