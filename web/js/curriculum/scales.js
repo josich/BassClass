@@ -371,5 +371,36 @@ const intervallic = variant(sequences, {
   defaults: { pattern: 'thirdsAlt', key: 'cycle4' }, sub: 2, bpm: 76,
 });
 
-export default [oneOctave, openPosition, blues, chromatic, twoOctaves, sequences, oneString, allKeysPosition, threeNps, positions, pentPositions, minorFamily, bebop, symmetric, sixthDim, sidestep, oddGroups, intervallic];
+const EXOTIC = [
+  ['doubleHarmonic', 'Double harmonic major'], ['hungarianMinor', 'Hungarian minor'], ['hungarianMajor', 'Hungarian major'],
+  ['dorianS4', 'Ukrainian Dorian (Dorian ♯4)'], ['phrygianDom', 'Phrygian dominant (Spanish)'], ['augmented', 'Augmented (1 ♭3 3 5 ♯5 7)'],
+];
+const exotic = ex({
+  id: 'sc-exotic', module: M, level: 5,
+  title: 'Exotic scales: double harmonic, Hungarian & more',
+  summary: 'Double harmonic major, Hungarian minor and major, Ukrainian Dorian, Phrygian dominant, augmented.',
+  about: 'Scales from outside the major and minor system, full of augmented 2nds (gaps of three frets). Double harmonic major (1 ♭2 3 4 5 ♭6 7, also called Byzantine or Arabic) has two of them; started from its 4th note it becomes the Hungarian minor (1 2 ♭3 ♯4 5 ♭6 7). The Hungarian major (1 ♯2 3 ♯4 5 6 ♭7) is a dominant 7 sound with a ♯9 and ♯11. Ukrainian Dorian (1 2 ♭3 ♯4 5 6 ♭7) is the 4th mode of harmonic minor, common in klezmer. The augmented scale (1 ♭3 3 5 ♯5 7) is symmetric: two augmented triads a half step apart (C+ and B+), so its shape repeats every 4 frets.',
+  tips: ['Find the augmented 2nds first: they give each scale its colour.', 'Play each one over a drone of the root (an open string) to hear its character.'],
+  source: 'Nicolas Slonimsky "Thesaurus of Scales and Melodic Patterns"; Béla Bartók (Hungarian folk scales); klezmer modes (Ukrainian Dorian)',
+  params: { type: sel('Scale', EXOTIC), key: keyP(T.SCALES.doubleHarmonic.iv), pattern: patP(['straight', 'thirds', 'g3', 'g4'], 'straight'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]) },
+  bpm: 72, sub: 2, label: 'degree',
+  // the augmented scale has fewer notes than letters, so it is spelled the plain way (like the symmetric scales)
+  build(p, ctx, S) { return scaleBuild({ ...p, root: 'E' }, ctx, S, { jazz: p.type === 'augmented' }).build({ label: 'degree' }); },
+});
+
+const MESSIAEN = [1, 2, 3, 4, 5, 6, 7].map((i) => `messiaen${i}`);
+const messiaen = ex({
+  id: 'sc-messiaen', module: M, level: 6,
+  title: 'Messiaen\'s modes of limited transposition',
+  summary: 'Seven symmetric scales: whole tone, diminished, and five richer ones with 6 to 10 notes.',
+  about: 'The composer Olivier Messiaen used seven scales built from a cell that repeats inside the octave. Because of that they can be transposed only a few times before the same notes come back: the whole-tone scale (mode 1) has just 2 versions, the diminished scale (mode 2) 3, mode 3 has 4 and modes 4 to 7 have 6. Modes 1 and 2 are the whole-tone and diminished scales of jazz; modes 3 to 7 give the floating, colourful harmony of Messiaen\'s music. Find the repeating cell on the neck and the whole scale follows.',
+  tips: ['Mode 3 repeats every 4 frets (1 2 ♭3 | 3 ♯4 5 | ♭6 ♭7 7); modes 4 to 7 repeat every 6 frets.', 'Mode 5 is the smallest: the cell 1 ♭2 4, then the same cell a tritone higher (♯4 5 7).'],
+  source: 'Olivier Messiaen "The Technique of My Musical Language" (1944)',
+  params: { type: typeP(MESSIAEN, 'messiaen3'), key: keyP(T.SCALES.messiaen3.iv, { cycles: false }), pattern: patP(['straight', 'thirds', 'g3', 'g4'], 'straight'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]) },
+  bpm: 72, sub: 4, label: 'degree',
+  // more notes than letters: spelled the plain way, like the symmetric scales
+  build(p, ctx, S) { return scaleBuild({ ...p, root: 'E' }, ctx, S, { jazz: true }).build({ label: 'degree' }); },
+});
+
+export default [oneOctave, openPosition, blues, chromatic, twoOctaves, sequences, oneString, allKeysPosition, threeNps, positions, pentPositions, minorFamily, bebop, symmetric, sixthDim, sidestep, oddGroups, intervallic, exotic, messiaen];
 void MANY;

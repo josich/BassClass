@@ -34,5 +34,5 @@ export default [
   'sc-odd-groupings', 'sc-alternating-all-keys', 'md-altered-chord-scale', 'tri-major-thirds', 'tri-cycle-all-inversions', 'tri-diatonic-all-keys', 'tri-rudiments-all-keys', 'arp-diatonic-all-keys',
   'arp-rhythm-changes', 'arp-giant-steps', 'hm-chordal-bass', 'wk-giant-steps', 'lk-bebop', 'lk-modern', 'sl-double-thumb',
   // 170-: added later (any level)
-  'md-harmonic-major-modes',
+  'md-harmonic-major-modes', 'sc-exotic', 'arp-broken', 'sc-messiaen',
 ];

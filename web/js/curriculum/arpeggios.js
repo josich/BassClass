@@ -1,6 +1,6 @@
 // Arpeggios & 7th chords: qualities, diatonic 7ths, inversions, ii–V–I, voice leading, extensions.
 import {
-  T, Builder, keysFor, chordTones, ARP_SHAPES, ex, variant, keyP, sel, nm, chordName, cycleRoot, QUALITY_7THS,
+  T, Builder, keysFor, chordTones, ARP_SHAPES, ex, variant, keyP, sel, nm, chordName, cycleRoot, QUALITY_7THS, QUALITY_TRIADS,
   ZONES, zoneP, orderP, rootStrP, pickRoot, zoneShape, zoneShapeAny, shapeFingers, emitShapeF, SEVENTH_ORDERS, voiceLedItems, emitMixed,
   progChords, progP, diatonicStacks, scaleTone, DEG_SEQ, degSeqP, SCALE_TYPE_OPTS, spellMidi, chordRootMidis,
 } from './common.js';
@@ -46,7 +46,7 @@ const study = ex({
   about: 'Drill one chord type at a time: maj7 (R-3-5-7), dominant 7 (R-3-5-♭7), minor 7 (R-♭3-5-♭7), half-diminished (R-♭3-♭5-♭7), diminished 7 (R-♭3-♭5-♭♭7) and more. The "doubled notes" pattern plays every chord tone twice, a warm-up made popular by Janek Gwizdala, which gives the ear time to lock each sound.',
   tips: ['Maj7 with root on finger 2: 3rd (1) and 5th (4) on the next string, 7th one string up with finger 3.', 'Use "All 12 · cycle of 4ths" when one key is solid.'],
   source: 'RSL Grades 3–6, LCM Grades 2–6, Berklee PULSE, Janek Gwizdala (doubled-note arpeggios)',
-  params: { quality: sel('Chord', QUALITY_7THS), key: keyP(['1', '3', '5', '7']), shape: shapeP(['updown', 'up', 'down', 'downup', 'doubled'], 'updown'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]), root: rootStrP('A') },
+  params: { quality: sel('Chord', QUALITY_7THS), key: keyP(['1', '3', '5', '7']), shape: shapeP(['updown', 'up', 'down', 'downup', 'doubled', 'broken'], 'updown'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]), root: rootStrP('A') },
   bpm: 72, sub: 4, label: 'degree',
   build(p, ctx, S) {
     return arpBuild(p, ctx, S, { ivs: ivsOf(p.quality), type: p.quality, shape: p.shape, octaves: Number(p.oct), rootStr: Number(p.oct) > 1 ? 'E' : p.root }).build({ label: 'degree' });
@@ -456,5 +456,23 @@ const diatonic7AllKeys = variant(diatonic7, {
   defaults: { key: 'cycle4', pattern: 'alt' }, bpm: 66,
 });
 
-export default [diatonic7AllKeys, qualities, study, zoneCycle7, diatonic7, inversions, twoOct, diatonic7inv, iiVI, voiceLed, guideTones, dimDominants, dimToMinor, extended, upper, perms7, approach7, altered, rhythmChanges, giant];
+const BROKEN_CHORDS = [
+  ...QUALITY_TRIADS.slice(0, 4).map(([k, n]) => [k, `${n} triad`]),
+  ...QUALITY_7THS.filter(([k]) => k !== 'maj6' && k !== 'min6'),
+];
+const broken = ex({
+  id: 'arp-broken', module: M, level: 3,
+  title: 'Broken chords: every triad and 7th',
+  summary: '1-3-5-3, 3-5-8-5, 5-8-10-8…: the chord climbs through its inversions in small cells.',
+  about: 'A broken chord plays the chord tones in small cells instead of straight up and down: 1-3-5-3, then the same cell from the 3rd (3-5-8-5), from the 5th, and so on to the top, then back down. It is the classical form of the arpeggio and teaches you to start a chord from any of its notes. Choose any triad or 7th: major, minor, diminished, augmented, maj7, dominant 7, m7, m7♭5, °7, m(maj7), maj7♯5 and 7♯5.',
+  tips: ['Say the degree of the first note of each cell: R, 3, 5, 7…', 'Keep the cells even: the turn back (the 4th note) is the one that tends to rush.'],
+  source: 'Classical broken-chord studies (ABRSM piano grades); RSL and LCM arpeggio requirements',
+  params: { quality: sel('Chord', BROKEN_CHORDS), key: keyP(['1', '3', '5']), shape: shapeP(['broken', 'broken535', 'broken4'], 'broken'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]), root: rootStrP('A') },
+  bpm: 66, sub: 4, label: 'degree',
+  build(p, ctx, S) {
+    return arpBuild(p, ctx, S, { ivs: ivsOf(p.quality), type: p.quality, shape: p.shape, octaves: Number(p.oct), rootStr: Number(p.oct) > 1 ? 'E' : p.root }).build({ label: 'degree' });
+  },
+});
+
+export default [diatonic7AllKeys, qualities, study, zoneCycle7, diatonic7, inversions, twoOct, diatonic7inv, iiVI, voiceLed, guideTones, dimDominants, dimToMinor, extended, upper, perms7, approach7, altered, rhythmChanges, giant, broken];
 void chordRootMidis;

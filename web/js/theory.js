@@ -89,7 +89,7 @@ export const SCALES = {
   harmonicMinor:{ name: 'Harmonic minor', iv: ['1', '2', 'b3', '4', '5', 'b6', '7'] },
   locrianN6:    { name: 'Locrian ♮6', iv: ['1', 'b2', 'b3', '4', 'b5', '6', 'b7'] },
   ionianAug:    { name: 'Ionian ♯5', iv: ['1', '2', '3', '4', '#5', '6', '7'] },
-  dorianS4:     { name: 'Dorian ♯4', iv: ['1', '2', 'b3', '#4', '5', '6', 'b7'] },
+  dorianS4:     { name: 'Dorian ♯4 (Ukrainian Dorian)', iv: ['1', '2', 'b3', '#4', '5', '6', 'b7'] },
   phrygianDom:  { name: 'Phrygian dominant', iv: ['1', 'b2', '3', '4', '5', 'b6', 'b7'] },
   lydianS2:     { name: 'Lydian ♯2', iv: ['1', '#2', '3', '#4', '5', '6', '7'] },
   ultraLocrian: { name: 'Ultralocrian', iv: ['1', 'b2', 'b3', 'b4', 'b5', 'b6', 'bb7'] },
@@ -101,6 +101,11 @@ export const SCALES = {
   mixolydianB2: { name: 'Mixolydian ♭2', iv: ['1', 'b2', '3', '4', '5', '6', 'b7'] },
   lydianAugS2:  { name: 'Lydian augmented ♯2', iv: ['1', '#2', '3', '#4', '#5', '6', '7'] },
   locrianBB7:   { name: 'Locrian ♭♭7', iv: ['1', 'b2', 'b3', '4', 'b5', 'b6', 'bb7'] },
+
+  doubleHarmonic: { name: 'Double harmonic major', iv: ['1', 'b2', '3', '4', '5', 'b6', '7'] },
+  hungarianMinor: { name: 'Hungarian minor', iv: ['1', '2', 'b3', '#4', '5', 'b6', '7'] },
+  hungarianMajor: { name: 'Hungarian major', iv: ['1', '#2', '3', '#4', '5', '6', 'b7'] },
+  augmented:    { name: 'Augmented', iv: ['1', 'b3', '3', '5', '#5', '7'] },
 
   melodicMinor: { name: 'Melodic minor (jazz)', iv: ['1', '2', 'b3', '4', '5', '6', '7'] },
   dorianB2:     { name: 'Dorian ♭2', iv: ['1', 'b2', 'b3', '4', '5', '6', 'b7'] },
@@ -122,6 +127,14 @@ export const SCALES = {
   dimHW:        { name: 'Diminished half-whole', iv: ['1', 'b2', '#2', '3', '#4', '5', '6', 'b7'] },
   dimWH:        { name: 'Diminished whole-half', iv: ['1', '2', 'b3', '4', 'b5', 'b6', '6', '7'] },
   wholeTone:    { name: 'Whole tone', iv: ['1', '2', '3', '#4', '#5', 'b7'] },
+  // Olivier Messiaen's modes of limited transposition (1 = whole tone, 2 = half-whole diminished)
+  messiaen1:    { name: 'Messiaen mode 1 (whole tone)', iv: ['1', '2', '3', '#4', '#5', 'b7'] },
+  messiaen2:    { name: 'Messiaen mode 2 (diminished)', iv: ['1', 'b2', '#2', '3', '#4', '5', '6', 'b7'] },
+  messiaen3:    { name: 'Messiaen mode 3 (9 notes)', iv: ['1', '2', 'b3', '3', '#4', '5', 'b6', 'b7', '7'] },
+  messiaen4:    { name: 'Messiaen mode 4 (8 notes)', iv: ['1', 'b2', '2', '4', '#4', '5', 'b6', '7'] },
+  messiaen5:    { name: 'Messiaen mode 5 (6 notes)', iv: ['1', 'b2', '4', '#4', '5', '7'] },
+  messiaen6:    { name: 'Messiaen mode 6 (8 notes)', iv: ['1', '2', '3', '4', '#4', '#5', 'b7', '7'] },
+  messiaen7:    { name: 'Messiaen mode 7 (10 notes)', iv: ['1', 'b2', '2', 'b3', '4', '#4', '5', 'b6', '6', '7'] },
   chromatic:    { name: 'Chromatic', iv: ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7'] },
 };
 

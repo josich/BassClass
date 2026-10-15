@@ -217,7 +217,7 @@ export const SCALE_PATTERNS = {
 
 /** Index sequence over a scale spanning `top` steps (len * octaves). */
 export function scaleSeq(top, patternKey = 'straight', dir = 'updown') {
-  const pat = SCALE_PATTERNS[patternKey] || SCALE_PATTERNS.straight;
+  const pat = typeof patternKey === 'object' ? patternKey : SCALE_PATTERNS[patternKey] || SCALE_PATTERNS.straight;
   const off = pat.off;
   const maxOff = Math.max(...off), minOff = Math.min(...off);
   const upSeq = [], downSeq = [];
@@ -263,7 +263,16 @@ export const ARP_SHAPES = {
   r535: { name: '1-5-3-5', f: (n) => [0, 2, 1, 2] },
   octave: { name: '1-3-5-8-5-3', f: (n) => [...range(0, n), ...range(n - 1, 1, -1)] },
   doubled: { name: 'Doubled notes (1-1-3-3-5-5…)', f: (n, oct) => [...range(0, n * oct), ...range(n * oct - 1, 1, -1)].flatMap((i) => [i, i]) },
+  // broken chords: one small cell started from every chord tone up to the top and back, ending on the root
+  broken: { name: 'Broken: 1-3-5-3, 3-5-8-5…', f: (n, oct) => brokenSeq(n * oct, [0, 1, 2, 1]) },
+  broken535: { name: 'Broken: 1-5-3-5, 3-8-5-8…', f: (n, oct) => brokenSeq(n * oct, [0, 2, 1, 2]) },
+  broken4: { name: 'Broken: groups of 4 (1-3-5-8, 3-5-8-10…)', f: (n, oct) => brokenSeq(n * oct, [0, 1, 2, 3]) },
 };
+
+function brokenSeq(top, off) {
+  const seq = scaleSeq(top, { off });
+  return seq[seq.length - 1] === 0 ? seq : [...seq, 0];
+}
 
 function range(a, b, step = 1) {
   const out = [];

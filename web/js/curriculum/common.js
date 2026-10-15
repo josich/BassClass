@@ -69,7 +69,7 @@ export const QUALITY_TRIADS = [
 ];
 export const QUALITY_7THS = [
   ['maj7', 'Major 7'], ['dom7', 'Dominant 7'], ['min7', 'Minor 7'], ['m7b5', 'Half-dim m7♭5'],
-  ['dim7', 'Diminished 7'], ['mMaj7', 'Minor-major 7'], ['maj7s5', 'Maj7♯5'], ['maj6', 'Major 6'], ['min6', 'Minor 6'],
+  ['dim7', 'Diminished 7'], ['mMaj7', 'Minor-major 7'], ['maj7s5', 'Maj7♯5'], ['maj6', 'Major 6'], ['min6', 'Minor 6'], ['dom7s5', 'Augmented 7 (7♯5)'],
 ];
 export const ZONES = { '1': [1, 5], '2': [5, 9], '3': [8, 12], '4': [12, 16] };
 export const zoneP = sel('Zone', [
@@ -84,6 +84,8 @@ export const SCALE_TYPE_OPTS = (list) => list.map((k) => [k, T.SCALES[k].name]);
 export const SHORT = {
   ionian: 'major', aeolian: 'minor', harmonicMinor: 'harm. minor', melodicMinor: 'mel. minor',
   majorPent: 'maj. pent', minorPent: 'min. pent', blues: 'blues', majorBlues: 'maj. blues',
+  dorianS4: 'Ukrainian Dorian', hungarianMinor: 'Hungarian minor', hungarianMajor: 'Hungarian major',
+  ...Object.fromEntries([1, 2, 3, 4, 5, 6, 7].map((i) => [`messiaen${i}`, `Messiaen mode ${i}`])),
 };
 export const scaleShort = (type) => SHORT[type] || T.SCALES[type].name.split(' (')[0].toLowerCase();
 
