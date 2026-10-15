@@ -165,7 +165,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
   player.metro = S.metro;
   player.countIn = S.countIn;
   player.clickSubs = S.clickSubs;
-  A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol, voice: S.voice, speaker: S.speaker, octaveLayer: S.octaveLayer });
+  A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol, voice: S.voice, speaker: S.speaker, octaveLayer: S.octaveLayer, phoneBoost: S.phoneBoost });
 
   // ------------------------------------------------------------ params
   /** Summary of the current options on the header button. */

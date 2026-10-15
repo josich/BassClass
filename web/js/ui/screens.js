@@ -345,6 +345,16 @@ export function settingsScreen(main) {
     return h('div', { class: 'range-row' }, el, pct);
   };
   const field = (label, control, hint) => h('div', { class: 'field' }, h('label', {}, label), control, hint ? h('div', { class: 'hint' }, hint) : null);
+  const boostControl = () => {
+    const el = h('input', { type: 'range', min: 0, max: 15, step: 1, value: S.phoneBoost, 'aria-label': 'Phone-speaker boost' });
+    const val = h('b', { class: 'pct' }, `+${S.phoneBoost} dB`);
+    el.addEventListener('input', () => {
+      saveSettings({ phoneBoost: Number(el.value) });
+      val.textContent = `+${S.phoneBoost} dB`;
+      A.setAudioOptions({ phoneBoost: S.phoneBoost });
+    });
+    return h('div', { class: 'range-row' }, el, val);
+  };
   const speakerHint = h('span', {}, speakerStatus(A.audioRoute()));
   const off = A.onProfileChange((r) => { speakerHint.textContent = speakerStatus(r); });
   settingsCleanup = () => { off(); settingsCleanup = null; };
@@ -357,11 +367,12 @@ export function settingsScreen(main) {
       field('Highest fret used', seg('maxFret', [[17, '17'], [20, '20'], [21, '21'], [24, '24']])),
       field('Bass sound', seg('voice', [['auto', 'Recorded bass'], ['synth', 'Synth']], () => A.setAudioOptions({ voice: S.voice })), A.samplesReady() ? `Recorded: ${A.sampleInfo()?.name || 'sampled bass'}.` : 'Recorded samples load in the background; the synth plays until they are ready.'),
       field('Speaker', seg('speaker', [['auto', 'Auto'], ['phone', 'Phone speaker'], ['full', 'Headphones / amp']], () => A.setAudioOptions({ speaker: S.speaker })), speakerHint),
+      field('Phone-speaker boost', boostControl(), 'How much the phone-speaker sound lifts the bass\'s own overtones (around 850 Hz). More is louder on the phone speaker but less round. Try it with the speaker test below.'),
       field('Octave-up layer', seg('octaveLayer', [[false, 'Off'], [true, 'On']], () => A.setAudioOptions({ octaveLayer: S.octaveLayer })), 'Phone-speaker sound only: adds every note an octave higher for even more presence. The octave you hear changes, so it is off by default.'),
       field('Speaker test', h('div', { class: 'row' },
         h('button', { class: 'btn', onClick: () => A.speakerTest(false) }, '▶ Natural sound'),
         h('button', { class: 'btn', onClick: () => A.speakerTest(true) }, '▶ Phone-speaker sound')),
-        'The same low phrase both ways: try them on your phone\'s speaker. Phone speakers cannot play a bass\'s low notes (they start around 500 Hz; the open E is 41 Hz), so the phone-speaker sound cuts those lows, lifts the presence and adds harmonics from which your ear rebuilds the real pitch.'),
+        'The same low phrase both ways: try them on your phone\'s speaker. Phone speakers cannot play a bass\'s low notes (they start around 500 Hz; the open E is 41 Hz), so the phone-speaker sound cuts those lows and lifts the string\'s own overtones, which your ear uses to hear the low notes.'),
       field('Count-in', seg('countIn', [[true, 'One bar'], [false, 'Off']])),
       field('Metronome clicks', seg('clickSubs', [[false, 'Beats only'], [true, 'Beats + subdivisions']])),
       field('Bass volume', range('bassVol', 0, 2, 0.05), 'Above 100% the bass is pushed into a limiter, for the loudest sound without distortion.'),
@@ -370,7 +381,7 @@ export function settingsScreen(main) {
         h('button', { class: 'btn', onClick: () => { if (confirm('Reset all progress?')) { resetProgress(); toast('Progress reset'); } } }, 'Reset progress'),
         h('button', { class: 'btn', onClick: () => {
           saveSettings({ ...DEFAULT_SETTINGS });
-          A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol, voice: S.voice, speaker: S.speaker, octaveLayer: S.octaveLayer });
+          A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol, voice: S.voice, speaker: S.speaker, octaveLayer: S.octaveLayer, phoneBoost: S.phoneBoost });
           settingsScreen(main);
           toast('Settings restored');
         } }, 'Restore defaults')))),

@@ -12,6 +12,7 @@ export const DEFAULT_SETTINGS = {
   lefty: false,
   speaker: 'auto',         // 'auto' (Android app: by headphones; browser: phone -> phone speaker) | 'phone' | 'full'
   octaveLayer: false,      // phone speaker only: add each note an octave higher
+  phoneBoost: 12,          // phone speaker only: dB lifted around 850 Hz (0-15)
   voice: 'auto',           // 'auto' (recorded samples when installed) | 'synth'
   a4: 440,                 // tuner reference
   countIn: true,
@@ -33,6 +34,7 @@ const SETTING_RULES = {
   reveal: oneOf(['gradual', 'full', 'quiz']),
   lefty: isBool, octaveLayer: isBool, countIn: isBool, metro: isBool, clickSubs: isBool,
   speaker: oneOf(['auto', 'phone', 'full']),
+  phoneBoost: numIn(0, 15),
   voice: oneOf(['auto', 'synth']),
   a4: numIn(425, 455),
   bassVol: numIn(0, 2), clickVol: numIn(0, 1.5),
