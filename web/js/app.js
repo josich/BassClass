@@ -26,15 +26,23 @@ let active = null; // { dispose }
 // (history.length also counts pages from before the app was opened).
 let depth = -1;
 let replacing = false;
+/** Returns true when we came back to an existing history entry (Back/Forward). */
 function trackDepth() {
   const st = history.state;
-  if (st && typeof st.depth === 'number') depth = st.depth;
+  const returning = !!(st && typeof st.depth === 'number');
+  if (returning) depth = st.depth;
   else {
     depth = replacing ? Math.max(depth, 0) : depth + 1;
     try { history.replaceState({ ...(st || {}), depth }, ''); } catch { /* ignore */ }
   }
   replacing = false;
+  return returning;
 }
+
+// How far each screen was scrolled, per history entry: Back returns to the same place
+// (e.g. Level 3 of the Library after opening an exercise from there).
+const scrollMem = new Map();
+let scrollKey = null;
 const back = () => (depth > 0 ? history.back() : go('#/'));
 
 function shell(navKey) {
@@ -42,12 +50,14 @@ function shell(navKey) {
     h('img', { class: 'logo', src: 'icons/icon.svg', alt: '' }),
     NAV.map(([k, href, label]) => h('a', { href, class: k === navKey ? 'on' : '', html: `${icon(k)}<span>${label}</span>` })));
   const main = h('main', { class: 'main' });
+  main.addEventListener('scroll', () => { if (scrollKey) scrollMem.set(scrollKey, main.scrollTop); }, { passive: true });
   app.replaceChildren(rail, main);
   return main;
 }
 
 function route() {
-  trackDepth();
+  const returning = trackDepth();
+  scrollKey = null;
   active?.dispose?.();
   active = null;
   const hash = location.hash || '#/';
@@ -94,14 +104,17 @@ function route() {
   else if (parts[0] === 'm') moduleScreen(main, parts[1]);
   else if (parts[0] === 'explorer') active = explorerScreen(main);
   else if (parts[0] === 'tuner') active = tunerScreen(main);
-  else if (parts[0] === 'settings') settingsScreen(main);
+  else if (parts[0] === 'settings') active = settingsScreen(main);
   else homeScreen(main);
+  scrollKey = `${depth}|${hash}`;
+  const y = returning ? scrollMem.get(scrollKey) : 0;
+  if (y) requestAnimationFrame(() => { main.scrollTop = y; });
 }
 
 window.addEventListener('hashchange', route);
 route();
 // saved sound settings apply everywhere (Neck, tuner reference notes), not only in exercises
-setAudioOptions({ bassVol: settings.bassVol, clickVol: settings.clickVol, octaveUp: settings.octaveUp, voice: settings.voice });
+setAudioOptions({ bassVol: settings.bassVol, clickVol: settings.clickVol, voice: settings.voice, speaker: settings.speaker, octaveLayer: settings.octaveLayer });
 // fetch the recorded bass samples in the background (decoded on first sound)
 loadBank();
 

@@ -10,7 +10,8 @@ export const DEFAULT_SETTINGS = {
   label: 'note',           // 'note' | 'degree' | 'finger' | 'none'
   reveal: 'gradual',       // 'gradual' | 'full' | 'quiz'
   lefty: false,
-  octaveUp: false,         // small-speaker boost (harmonic exciter)
+  speaker: 'auto',         // 'auto' (Android app: by headphones; browser: phone -> phone speaker) | 'phone' | 'full'
+  octaveLayer: false,      // phone speaker only: add each note an octave higher
   voice: 'auto',           // 'auto' (recorded samples when installed) | 'synth'
   a4: 440,                 // tuner reference
   countIn: true,
@@ -30,7 +31,8 @@ const SETTING_RULES = {
   notation: oneOf(['letters', 'solfege']),
   label: oneOf(['note', 'degree', 'finger', 'none']),
   reveal: oneOf(['gradual', 'full', 'quiz']),
-  lefty: isBool, octaveUp: isBool, countIn: isBool, metro: isBool, clickSubs: isBool,
+  lefty: isBool, octaveLayer: isBool, countIn: isBool, metro: isBool, clickSubs: isBool,
+  speaker: oneOf(['auto', 'phone', 'full']),
   voice: oneOf(['auto', 'synth']),
   a4: numIn(425, 455),
   bassVol: numIn(0, 2), clickVol: numIn(0, 1.5),
