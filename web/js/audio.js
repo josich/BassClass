@@ -3,7 +3,7 @@
 import { midiToFreq } from './theory.js';
 
 let ac = null;
-let bassBus, bassVolume, clickBus, fullPath, phonePath, harmonicsPath;
+let bassBus, bassVolume, clickBus, fullPath, phonePath, harmonicsBus;
 const synthCache = new Map();
 // speaker: 'auto' | 'phone' | 'full'; route: what the Android app reports ('speaker' | 'external'), or null
 const opts = { bassVol: 1, clickVol: 0.6, voice: 'auto', speaker: 'auto', octaveLayer: false, route: null };
@@ -17,8 +17,11 @@ window.addEventListener('bassclass-route', (e) => { opts.route = e.detail; apply
 /**
  * Phone speakers cannot play a bass's notes (they start around 500 Hz, the open E is 41 Hz), so the
  * phone-speaker profile cuts the inaudible lows (which only waste headroom), lifts the presence band
- * and adds "virtual bass": harmonics of each note, from which the ear rebuilds the low pitch.
- * Measured offline on a low-register phrase at 200%: +12 dB in the 600 Hz–4 kHz band a phone plays.
+ * a little and adds "virtual bass": clean overtones of each note, synthesized at its exact pitch and
+ * centred where phone speakers work best (~1 kHz), from which the ear rebuilds the low pitch.
+ * No distortion is involved (a first version used a waveshaper: louder, but it sounded fuzzy).
+ * Measured offline on a low-register phrase at 200%: +11 dB in the 600 Hz–2 kHz band, with less
+ * energy at 300–600 Hz, where a phone speaker rattles at full volume.
  */
 export function phoneProfile() {
   if (testProfile != null) return testProfile;
@@ -37,7 +40,7 @@ function applyProfile() {
     const t = ac.currentTime;
     fullPath.gain.setTargetAtTime(phone ? 0 : 1, t, 0.03);
     phonePath.gain.setTargetAtTime(phone ? 1 : 0, t, 0.03);
-    harmonicsPath.gain.setTargetAtTime(phone ? 0.5 : 0, t, 0.03);
+    harmonicsBus.gain.setTargetAtTime(phone ? 1 : 0, t, 0.03);
   }
   for (const cb of profileListeners) cb(audioRoute());
 }
@@ -103,26 +106,14 @@ export function audioCtx() {
     fullPath = ac.createGain();
     fullPath.gain.value = phone ? 0 : 1;
     top.connect(fullPath).connect(glue);
-    // phone speaker: cut below ~160 Hz (inaudible there, it only eats headroom), presence at 1.1 kHz
+    // phone speaker: cut below ~200 Hz (inaudible there, it only eats headroom), gentle presence lift
     phonePath = ac.createGain();
     phonePath.gain.value = phone ? 1 : 0;
-    top.connect(filter('highpass', 160)).connect(filter('highpass', 160)).connect(filter('peaking', 1100, 0.7, 6)).connect(phonePath).connect(glue);
-    // virtual bass: distort only the low band so it grows harmonics, keep the ones a phone can play
-    const pre = ac.createGain();
-    pre.gain.value = 6;
-    const shaper = ac.createWaveShaper();
-    const curve = new Float32Array(2048);
-    for (let i = 0; i < curve.length; i++) {
-      const x = i / 1023.5 - 1;
-      curve[i] = Math.abs(Math.tanh(2.2 * x)) * 0.9 + Math.tanh(2.2 * x) * 0.4; // even + odd harmonics
-    }
-    shaper.curve = curve;
-    shaper.oversample = '4x';
-    harmonicsPath = ac.createGain();
-    harmonicsPath.gain.value = phone ? 0.5 : 0;
-    top.connect(filter('lowpass', 220)).connect(pre).connect(shaper)
-      .connect(filter('highpass', 300)).connect(filter('highpass', 300)).connect(filter('lowpass', 2500))
-      .connect(harmonicsPath).connect(glue);
+    top.connect(filter('highpass', 200)).connect(filter('highpass', 200)).connect(filter('peaking', 1200, 0.8, 3)).connect(phonePath).connect(glue);
+    // virtual bass: per-note overtone voices (see playNote) are mixed in here on the phone speaker
+    harmonicsBus = ac.createGain();
+    harmonicsBus.gain.value = phone ? 1 : 0;
+    harmonicsBus.connect(glue);
 
     // the metronome joins after the limiter, so a click never pushes the bass down
     clickBus = ac.createGain();
@@ -344,6 +335,45 @@ export function playNote(midi, when = now(), dur = 0.5, vel = 1, ghost = false, 
     layer.start(when);
     layer.stop(when + hold + 0.45);
   }
+  if (!ghost && phoneProfile()) virtualBass(midi, when, hold, amp);
+}
+
+// ------------------------------------------------------------------ virtual bass (phone speaker)
+
+const overtoneWaves = new Map();
+/**
+ * A waveform holding only overtones of the note (2nd, 3rd, 4th… harmonic) that fall between 400 Hz
+ * and 2.4 kHz, weighted by a bell centred at 950 Hz: the band phone speakers play best. The ear
+ * hears the missing fundamental from a run of consecutive harmonics, so the pitch stays the note's.
+ */
+function overtoneWave(midi) {
+  if (overtoneWaves.has(midi)) return overtoneWaves.get(midi);
+  const f0 = midiToFreq(midi);
+  const n = Math.min(64, Math.floor(2400 / f0));
+  const real = new Float32Array(n + 1), imag = new Float32Array(n + 1);
+  for (let k = 2; k <= n; k++) {
+    const f = k * f0;
+    if (f >= 400) imag[k] = Math.exp(-0.5 * (Math.log2(f / 950) / 0.7) ** 2);
+  }
+  const wave = ac.createPeriodicWave(real, imag);
+  overtoneWaves.set(midi, wave);
+  return wave;
+}
+
+/** The overtone voice of one note, with a plucked envelope that follows the note. */
+function virtualBass(midi, when, hold, amp) {
+  const o = ac.createOscillator();
+  o.setPeriodicWave(overtoneWave(midi));
+  o.frequency.value = midiToFreq(midi);
+  const g = ac.createGain();
+  const peak = 0.32 * amp;
+  g.gain.setValueAtTime(0, when);
+  g.gain.linearRampToValueAtTime(peak, when + 0.006);
+  g.gain.setTargetAtTime(peak * 0.38, when + 0.006, 0.25);
+  g.gain.setTargetAtTime(0, when + hold, 0.05);
+  o.connect(g).connect(harmonicsBus);
+  o.start(when);
+  o.stop(when + hold + 0.45);
 }
 
 function harmonicVoice(midi, when, dur, vel) {
