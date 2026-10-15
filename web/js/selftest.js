@@ -1,7 +1,7 @@
 // Dev self-test: builds every exercise across its parameter space on 4/5/6-string
 // basses and checks that every note is playable and correctly spelled.
 // Run in the browser console:  (await import('./js/selftest.js')).run()
-import { EXERCISES } from './curriculum/index.js';
+import { EXERCISES, byNumber } from './curriculum/index.js';
 import { makeCtx } from './fretboard.js';
 import * as T from './theory.js';
 
@@ -24,6 +24,8 @@ function combos(params, limit = 60) {
 export function run({ strings = [4, 5, 6], verbose = false } = {}) {
   const problems = [];
   let builds = 0, notes = 0;
+  // every exercise has its own fixed number (curriculum/numbers.js)
+  for (const t of EXERCISES) if (!(t.num > 0) || byNumber.get(t.num) !== t) problems.push(`${t.id}: missing or duplicate number ${t.num}`);
   for (const st of strings) {
     const S = { strings: st, notation: 'letters', maxFret: 20 };
     const ctx = makeCtx(S);
@@ -66,14 +68,13 @@ export async function catalogue() {
   const lines = [
     '# BassClass exercise catalogue', '',
     `${C.EXERCISES.length} exercise families. Each runs in any key (or all 12 keys in a row) and has its own variations (patterns, inversions, scales, positions, rhythms), so the number of distinct drills runs into the thousands.`, '',
-    'Generated from `web/js/curriculum/` (run `saveCatalogue()` from `js/selftest.js` to refresh). ★ = core exercise.', '',
+    'Generated from `web/js/curriculum/` (run `saveCatalogue()` from `js/selftest.js` to refresh). # = the exercise number shown in the app (fixed: see `curriculum/numbers.js`). ★ = core exercise.', '',
     '## By level', '',
   ];
   for (const L of C.LEVELS) {
-    const order = (e) => C.MODULES.findIndex((m) => m.id === e.module);
-    const list = C.EXERCISES.filter((e) => e.level === L.n).sort((a, b) => order(a) - order(b));
-    lines.push(`### Level ${L.n}: ${L.name}`, '', `_${L.desc}_`, '', '| Exercise | Module | What it trains | Based on |', '|---|---|---|---|');
-    for (const e of list) lines.push(`| ${e.star ? '★ ' : ''}${cell(e.title)} | ${C.moduleOf(e.module).name} | ${cell(e.summary)} | ${cell(e.source)} |`);
+    const list = C.EXERCISES.filter((e) => e.level === L.n).sort((a, b) => a.num - b.num);
+    lines.push(`### Level ${L.n}: ${L.name}`, '', `_${L.desc}_`, '', '| # | Exercise | Module | What it trains | Based on |', '|---|---|---|---|---|');
+    for (const e of list) lines.push(`| ${e.num} | ${e.star ? '★ ' : ''}${cell(e.title)} | ${C.moduleOf(e.module).name} | ${cell(e.summary)} | ${cell(e.source)} |`);
     lines.push('');
   }
   lines.push('## Variation options per exercise', '');
@@ -83,7 +84,7 @@ export async function catalogue() {
     lines.push(`### ${m.name}`, '');
     for (const e of list) {
       const ps = Object.values(e.params || {}).map((d) => (d.kind === 'key' ? `${d.label}: 12 keys${d.cycles ? ' + all-keys cycles' : ''}` : `${d.label}: ${d.options.map((o) => o[1]).join(' / ')}`)).join(' · ');
-      lines.push(`- **${e.title}** (L${e.level}, \`${e.id}\`): ${ps || 'no options'}`);
+      lines.push(`- **${e.num} · ${e.title}** (L${e.level}, \`${e.id}\`): ${ps || 'no options'}`);
     }
     lines.push('');
   }

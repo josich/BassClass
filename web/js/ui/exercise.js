@@ -92,7 +92,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     h('span', { class: 'opts-ico', html: icon('sliders') }),
     h('span', { class: 'opts-txt' }, h('small', {}, 'Options · tap to change'), optsSum)) : h('div', { class: 'grow' });
   const sheet = h('div', { class: 'sheet', onClick: (e) => { if (e.target === sheet) closeOptions(); } });
-  const titleEl = h('div', { class: 'exv-title' }, h('b', {}, tpl.title), h('span', {}, `${mod?.name ?? ''} · Level ${tpl.level} ${lvl ? lvl.name : ''}`));
+  const titleEl = h('div', { class: 'exv-title' }, h('b', {}, h('span', { class: 'ex-num' }, tpl.num), tpl.title), h('span', {}, `${mod?.name ?? ''} · Level ${tpl.level} ${lvl ? lvl.name : ''}`));
   let nextBtn = null;
   if (routine) {
     const last = routine.index + 1 >= routine.total;
@@ -397,9 +397,9 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
       ? 'Change the subdivision (♩ → 8ths → triplets → 16ths), switch the Reveal button to "Quiz" to test yourself (under ⋯ on phones), and finish with labels off.'
       : 'The rhythm is written into this exercise, so keep the subdivision and work the tempo. Switch to "Quiz" to test yourself, and finish with labels off.';
     drawer.innerHTML = `
-      <header><h2>${esc(tpl.title)}</h2><button class="icon-btn" data-close aria-label="Close">${icon('close')}</button></header>
+      <header><h2>${tpl.num} · ${esc(tpl.title)}</h2><button class="icon-btn" data-close aria-label="Close">${icon('close')}</button></header>
       <div class="body">
-        <div class="row" style="margin-bottom:10px"><span class="chip lv lv${tpl.level}">Level ${tpl.level} · ${esc(lvl?.name ?? '')}</span><span class="chip">${esc(mod?.name ?? '')}</span></div>
+        <div class="row" style="margin-bottom:10px"><span class="chip">Exercise ${tpl.num}</span><span class="chip lv lv${tpl.level}">Level ${tpl.level} · ${esc(lvl?.name ?? '')}</span><span class="chip">${esc(mod?.name ?? '')}</span></div>
         ${(tpl.about || '').split('\n\n').map((para) => `<p>${esc(para)}</p>`).join('')}
         ${tpl.tips?.length ? `<h4>Focus points</h4><ul>${tpl.tips.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
         <h4>How to practise it</h4>

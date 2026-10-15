@@ -370,3 +370,6 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .routine .item.dragging { position: relative; z-index: 5; border-color: var(--accent); box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45); cursor: grabbing; }
 .routine .empty { display: flex; flex-direction: column; gap: 4px; padding: 14px; border: 1px dashed var(--line); border-radius: var(--radius); color: var(--muted); }
 .routine .empty b { color: var(--text); }
+
+/* ---------------------------------------------------------------- exercise numbers */
+.ex-num { display: inline-block; min-width: 1.6em; margin-right: 6px; padding: 0 5px; border-radius: 6px; background: rgba(70, 201, 162, 0.16); color: var(--accent); font-size: 0.82em; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; vertical-align: 1px; }

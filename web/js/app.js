@@ -1,6 +1,6 @@
 // App bootstrap: navigation rail + hash router.
 import { h, icon, toast } from './ui/dom.js';
-import { byId } from './curriculum/index.js';
+import { byId, byNumber } from './curriculum/index.js';
 import { renderExercise } from './ui/exercise.js';
 import { loadBank, setAudioOptions } from './audio.js';
 import { settings } from './store.js';
@@ -55,8 +55,10 @@ function route() {
   const parts = path.split('/').filter(Boolean);
   const params = Object.fromEntries(new URLSearchParams(query || ''));
 
-  if (parts[0] === 'ex' && byId.has(parts[1])) {
-    const tpl = byId.get(parts[1]);
+  // #/ex/<id>, or #/ex/<number> ("open exercise 42")
+  const exTpl = parts[0] === 'ex' ? (byId.get(parts[1]) || (/^\d+$/.test(parts[1] || '') ? byNumber.get(Number(parts[1])) : null)) : null;
+  if (exTpl) {
+    const tpl = exTpl;
     const wu = params.wu != null ? Number(params.wu) : null;
     delete params.wu;
     let routine = null;

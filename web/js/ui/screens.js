@@ -1,7 +1,7 @@
 // Browsing screens: home (daily warm-up + favorites), learning path (topics), library (every exercise), module list, explorer, settings.
 import { h, icon, toast, rng, esc } from './dom.js';
 import { settings, saveSettings, getProgress, allProgress, resetProgress, DEFAULT_SETTINGS, getFavorites } from '../store.js';
-import { EXERCISES, MODULES, LEVELS, byModule, byLevel, moduleOf, byId, defaultParams } from '../curriculum/index.js';
+import { EXERCISES, MODULES, LEVELS, byModule, byLevel, moduleOf, byId, byNumber, defaultParams, topicRank as rank } from '../curriculum/index.js';
 import { makeCtx, MAX_FRET } from '../fretboard.js';
 import { FretboardView, degKey } from '../views/fretboardView.js';
 import * as T from '../theory.js';
@@ -20,7 +20,7 @@ function card(t) {
   const mod = moduleOf(t.module);
   return h('div', { class: `card${pr.done ? ' done' : ''}`, onClick: () => go(exHref(t.id)) },
     starButton(t.id),
-    h('h3', {}, t.title),
+    h('h3', {}, h('span', { class: 'ex-num' }, t.num), t.title),
     h('p', {}, t.summary || ''),
     h('div', { class: 'meta' },
       h('span', { class: `chip lv lv${t.level}` }, `L${t.level}`),
@@ -53,7 +53,7 @@ export function homeScreen(main) {
 
 /** Shown until the first exercise has been played: where a new player begins. */
 function startHere() {
-  const first = byLevel(1).sort((a, b) => rank(a.module) - rank(b.module))[0];
+  const first = byNumber.get(1);
   return h('section', { class: 'block start-here' },
     h('div', { class: 'block-head' }, h('h2', {}, '👋 New here? Start with Level 1')),
     h('p', { class: 'muted small' }, 'Level 1 builds the basics: plucking and fretting, steady time, the open strings and your first notes, scales and triads. Begin with the first exercise, then let the daily warm-up below (set to Level 1) mix them for you.'),
@@ -112,7 +112,7 @@ function warmupBlock() {
       const t = byId.get(it.id);
       return h('div', { class: 'item', onClick: () => go(exHref(it.id, { ...it.params, wu: i })) },
         h('div', { class: 'n' }, i + 1),
-        h('div', { class: 't' }, h('b', {}, `${it.slot}: ${t.title}`), h('span', {}, paramSummary(t, it.params, settings))),
+        h('div', { class: 't' }, h('b', {}, `${it.slot}: `, h('span', { class: 'ex-num' }, t.num), t.title), h('span', {}, paramSummary(t, it.params, settings))),
         h('span', { class: `chip lv lv${t.level}` }, `L${t.level}`));
     }));
   };
@@ -155,7 +155,7 @@ function favRow(t, rerender) {
   const info = [`${mod?.icon ?? ''} ${mod?.name ?? ''}`, pr.done ? '✓ mastered' : '', pr.bestBpm ? `best ${pr.bestBpm} BPM` : ''].filter(Boolean).join(' · ');
   const row = h('div', { class: 'item fav', 'data-id': t.id, onClick: () => go(exHref(t.id)) },
     grip,
-    h('div', { class: 't' }, h('b', {}, t.title), h('span', {}, info)),
+    h('div', { class: 't' }, h('b', {}, h('span', { class: 'ex-num' }, t.num), t.title), h('span', {}, info)),
     h('span', { class: `chip lv lv${t.level}` }, `L${t.level}`),
     starButton(t.id, { onChange: () => rerender() }));
   dragToReorder(grip, row);
@@ -164,8 +164,6 @@ function favRow(t, rerender) {
 
 // ---------------------------------------------------------------- path: the topics, each from level 1 to 6
 // hands and time first, then the neck, then theory and music
-const PATH_ORDER = ['technique', 'rhythm', 'fretboard', 'intervals', 'scales', 'modes', 'triads', 'arpeggios', 'harmony', 'grooves', 'walking', 'licks', 'slap'];
-const rank = (id) => { const i = PATH_ORDER.indexOf(id); return i < 0 ? PATH_ORDER.length : i; };
 
 function modulesGrid() {
   const mods = MODULES.filter((m) => byModule(m.id).length).sort((a, b) => rank(a.id) - rank(b.id));
@@ -204,7 +202,7 @@ export function moduleScreen(main, id) {
 // ---------------------------------------------------------------- library: every exercise at one sight, with search
 function levelSections() {
   return LEVELS.flatMap((L) => {
-    const list = byLevel(L.n).sort((a, b) => rank(a.module) - rank(b.module));
+    const list = byLevel(L.n).sort((a, b) => a.num - b.num);
     if (!list.length) return [];
     const done = list.filter((t) => (getProgress(t.id) || {}).done).length;
     return [
@@ -215,22 +213,24 @@ function levelSections() {
 }
 
 export function libraryScreen(main, params = {}) {
-  const search = h('input', { class: 'search', type: 'search', placeholder: 'Search: triad, ii-V, slap…', 'aria-label': 'Search exercises' });
+  const search = h('input', { class: 'search', type: 'search', placeholder: 'Search: triad, ii-V, 42…', 'aria-label': 'Search exercises' });
   const results = h('div');
   // jump to a level (the page lists all 169 exercises)
   const jump = (n) => main.querySelector(`#lv-${n}`)?.scrollIntoView({ block: 'start' });
   const jumps = h('div', { class: 'tabs lv-jump' }, LEVELS.map((L) => h('button', { title: L.name, onClick: () => jump(L.n) }, `L${L.n}`)));
   // "ii-V" must find "ii–V": every kind of dash counts as a hyphen
-  const norm = (x) => x.toLowerCase().replace(/[‐-―−]/g, '-');
+  const norm = (x) => x.toLowerCase().replace(/[\u2010-\u2015\u2212]/g, '-');
   const render = () => {
     const q = norm(search.value.trim());
     jumps.hidden = !!q;
     if (!q) { results.replaceChildren(...levelSections()); return; }
+    // a number ("42" or "#42") finds that exercise
+    const num = q.match(/^#?(\d+)$/);
     const words = q.split(/\s+/);
-    const list = EXERCISES.filter((t) => {
+    const list = num ? [byNumber.get(Number(num[1]))].filter(Boolean) : EXERCISES.filter((t) => {
       const hay = norm(`${t.title} ${t.summary} ${t.about} ${t.module}`);
       return words.every((w) => hay.includes(w));
-    }).sort((a, b) => a.level - b.level);
+    }).sort((a, b) => a.num - b.num);
     results.replaceChildren(list.length
       ? h('div', {}, h('p', { class: 'muted small' }, `${list.length} exercise${list.length > 1 ? 's' : ''} found`), h('div', { class: 'grid' }, list.map(card)))
       : h('p', { class: 'muted' }, 'Nothing found.'));

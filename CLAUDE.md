@@ -26,6 +26,7 @@
 - `web/` is the whole app: static ES modules, no build step. `android/` wraps it in a WebView (`assets.srcDirs("../../web")`).
 - This PC has no JDK, Android SDK, Node, Gradle or numpy, so APKs are built only by GitHub Actions. Audio processing runs in the browser (`web/js/dev/sampleprep.js`).
 - Exercises live in `web/js/curriculum/`, one file per module, with shared helpers in `common.js`. See README "Adding an exercise".
+- Exercise numbers are fixed by `web/js/curriculum/numbers.js` (number = position in the list). Never reorder or remove entries; a new exercise is appended at the end. The self-test fails if an exercise has no number.
 - Sound: CC0 Karoryfer "darkblack" bass samples in `web/audio/bass/` (B0–E4, plus ghost notes); `web/js/audio.js` falls back to a synth.
 - Design: navy/teal/periwinkle/peach palette (no brown fretboard), real string-gauge proportions, root markers drawn as rounded squares. Keep this look.
 - Downloading anything new (samples, packages, SDKs) needs the user's explicit OK first.
