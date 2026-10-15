@@ -1,5 +1,6 @@
 // Exercise player screen: fretboard with step-by-step dots, tab strip and transport.
 import { h, icon, toast, esc } from './dom.js';
+import { starButton } from './favorites.js';
 import { settings, saveSettings, getProgress, updateProgress } from '../store.js';
 import { makeCtx } from '../fretboard.js';
 import { FretboardView, degKey, PALETTE } from '../views/fretboardView.js';
@@ -96,6 +97,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
   }
   const top = h('header', { class: 'exv-top' },
     btn('back', 'Back', () => close()), titleEl, optsBtn, nextBtn,
+    starButton(tpl.id, { cls: 'icon-btn' }),
     btn('tuner', 'Tuner', () => { location.hash = '#/tuner'; }), btn('info', 'About this exercise', () => openDrawer()));
 
   const boardEl = h('div', { class: 'exv-board' });

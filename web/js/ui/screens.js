@@ -1,12 +1,13 @@
-// Browsing screens: home, learning path, library, module list, warm-up, explorer, settings.
+// Browsing screens: home (daily warm-up + favorites), learning path (topics), library (every exercise), module list, explorer, settings.
 import { h, icon, toast, rng, esc } from './dom.js';
-import { settings, saveSettings, getProgress, allProgress, resetProgress, DEFAULT_SETTINGS } from '../store.js';
+import { settings, saveSettings, getProgress, allProgress, resetProgress, DEFAULT_SETTINGS, getFavorites } from '../store.js';
 import { EXERCISES, MODULES, LEVELS, byModule, byLevel, moduleOf, byId, defaultParams } from '../curriculum/index.js';
 import { makeCtx, MAX_FRET } from '../fretboard.js';
 import { FretboardView, degKey } from '../views/fretboardView.js';
 import * as T from '../theory.js';
 import * as A from '../audio.js';
 import { paramSummary } from './exercise.js';
+import { starButton, dragToReorder } from './favorites.js';
 
 export const go = (hash) => { location.hash = hash; };
 export const exHref = (id, params) => {
@@ -18,13 +19,14 @@ function card(t) {
   const pr = getProgress(t.id) || {};
   const mod = moduleOf(t.module);
   return h('div', { class: `card${pr.done ? ' done' : ''}`, onClick: () => go(exHref(t.id)) },
-    pr.done ? h('span', { class: 'check', html: icon('check'), style: { width: '20px' } }) : null,
+    starButton(t.id),
     h('h3', {}, t.title),
     h('p', {}, t.summary || ''),
     h('div', { class: 'meta' },
       h('span', { class: `chip lv lv${t.level}` }, `L${t.level}`),
       h('span', { class: 'chip' }, `${mod?.icon ?? ''} ${mod?.name ?? ''}`),
-      t.star ? h('span', { class: 'chip star' }, '★ core') : null,
+      t.star ? h('span', { class: 'chip core' }, 'core') : null,
+      pr.done ? h('span', { class: 'chip mastered' }, '✓ mastered') : null,
       pr.bestBpm ? h('span', { class: 'chip' }, `${pr.bestBpm} BPM`) : null));
 }
 
@@ -34,99 +36,21 @@ function moduleStats(id) {
   return { total: list.length, done };
 }
 
-// ---------------------------------------------------------------- home
+/** In-app back: one step back when we came from inside the app, otherwise to `fallback`. */
+const back = (fallback) => (history.state?.depth > 0 ? history.back() : go(fallback));
+
+// ---------------------------------------------------------------- home: daily warm-up + favorites
 export function homeScreen(main) {
   const prog = allProgress();
-  const played = Object.entries(prog).filter(([, v]) => v.plays || v.done);
   const last = Object.entries(prog).filter(([id]) => byId.has(id)).sort((a, b) => (b[1].last || 0) - (a[1].last || 0))[0];
-  const mastered = played.filter(([, v]) => v.done).length;
   const lastT = last ? byId.get(last[0]) : null;
   main.replaceChildren(
-    h('div', { class: 'hero' },
-      h('div', { class: 'big' },
-        h('h1', {}, 'BassClass'),
-        h('p', { class: 'muted' }, 'Everything you practise, in one place: from your first notes to triad pairs, Giant Steps and beyond. Every exercise is shown note by note on the fretboard, with sound, in all 12 keys.'),
-        h('div', { class: 'row' },
-          lastT ? h('button', { class: 'btn primary', onClick: () => go(exHref(lastT.id)) }, `▶ Continue: ${lastT.title}`) : h('button', { class: 'btn primary', onClick: () => go('#/path') }, '▶ Start the learning path'),
-          h('button', { class: 'btn', onClick: () => go('#/warmup') }, '🔥 Today\'s warm-up'))),
-      h('div', { class: 'stats' },
-        h('div', { class: 'stat' }, h('b', {}, EXERCISES.length), h('span', {}, 'exercise families')),
-        h('div', { class: 'stat' }, h('b', {}, played.length), h('span', {}, 'practised')),
-        h('div', { class: 'stat' }, h('b', {}, mastered), h('span', {}, 'mastered')))),
-    h('div', { class: 'section' }, h('h2', {}, 'Core exercises'), h('span', { class: 'muted small' }, 'the backbone of the method')),
-    h('div', { class: 'grid' }, EXERCISES.filter((t) => t.star).sort((a, b) => a.level - b.level).map(card)),
-    h('div', { class: 'section' }, h('h2', {}, 'Library')),
-    modulesGrid());
+    h('div', { class: 'page-head' }, h('h1', {}, 'BassClass'), h('div', { class: 'grow' }),
+      lastT ? h('button', { class: 'btn continue', title: lastT.title, onClick: () => go(exHref(lastT.id)) }, `▶ Continue: ${lastT.title}`) : null),
+    h('div', { class: 'home-cols' }, warmupBlock(), favoritesBlock()));
 }
 
-function modulesGrid() {
-  return h('div', { class: 'grid' }, MODULES.filter((m) => byModule(m.id).length).map((m) => {
-    const st = moduleStats(m.id);
-    return h('div', { class: 'card mod-card', onClick: () => go(`#/m/${m.id}`) },
-      h('div', { class: 'ico' }, m.icon), h('h3', {}, m.name), h('p', {}, m.desc),
-      h('div', { class: 'meta' }, h('span', { class: 'chip' }, `${st.total} exercises`), st.done ? h('span', { class: 'chip' }, `${st.done} mastered`) : null),
-      h('div', { class: 'bar' }, h('i', { style: { width: `${st.total ? (st.done / st.total) * 100 : 0}%` } })));
-  }));
-}
-
-// ---------------------------------------------------------------- path
-// inside a level: hands and time first, then the neck, then theory and music
-const PATH_ORDER = ['technique', 'rhythm', 'fretboard', 'intervals', 'scales', 'modes', 'triads', 'arpeggios', 'harmony', 'grooves', 'walking', 'licks', 'slap'];
-
-export function pathScreen(main) {
-  const rank = (id) => { const i = PATH_ORDER.indexOf(id); return i < 0 ? PATH_ORDER.length : i; };
-  main.replaceChildren(
-    h('div', { class: 'page-head' }, h('h1', {}, 'Learning path'), h('span', { class: 'muted' }, 'Six levels, from absolute beginner to mastery. Work top to bottom; mark exercises as mastered when they feel easy at tempo.')),
-    ...LEVELS.flatMap((L) => {
-      const list = byLevel(L.n).sort((a, b) => rank(a.module) - rank(b.module));
-      if (!list.length) return [];
-      const done = list.filter((t) => (getProgress(t.id) || {}).done).length;
-      return [
-        h('div', { class: 'section' }, h('span', { class: `chip lv lv${L.n}` }, `Level ${L.n}`), h('h2', {}, L.name), h('span', { class: 'muted small' }, `${L.desc} · ${done}/${list.length} mastered`)),
-        h('div', { class: 'grid' }, list.map(card)),
-      ];
-    }));
-}
-
-// ---------------------------------------------------------------- library
-export function libraryScreen(main) {
-  const search = h('input', { class: 'search', type: 'search', placeholder: 'Search exercises… (e.g. "triad", "ii-V", "slap")' });
-  const results = h('div');
-  // "ii-V" must find "ii–V": every kind of dash counts as a hyphen
-  const norm = (x) => x.toLowerCase().replace(/[\u2010-\u2015\u2212]/g, '-');
-  const render = () => {
-    const q = norm(search.value.trim());
-    if (!q) { results.replaceChildren(modulesGrid()); return; }
-    const words = q.split(/\s+/);
-    const list = EXERCISES.filter((t) => {
-      const hay = norm(`${t.title} ${t.summary} ${t.about} ${t.module}`);
-      return words.every((w) => hay.includes(w));
-    }).sort((a, b) => a.level - b.level);
-    results.replaceChildren(list.length ? h('div', { class: 'grid' }, list.map(card)) : h('p', { class: 'muted' }, 'Nothing found.'));
-  };
-  search.addEventListener('input', render);
-  main.replaceChildren(h('div', { class: 'page-head' }, h('h1', {}, 'Library'), h('div', { class: 'grow' }), search), results);
-  render();
-}
-
-export function moduleScreen(main, id) {
-  const m = moduleOf(id);
-  if (!m) { go('#/library'); return; }
-  let level = 0;
-  const tabs = h('div', { class: 'tabs' });
-  const list = h('div');
-  const render = () => {
-    tabs.replaceChildren(...[0, 1, 2, 3, 4, 5, 6].map((n) => h('button', { class: level === n ? 'on' : '', onClick: () => { level = n; render(); } }, n ? `L${n}` : 'All')));
-    const items = byModule(id).filter((t) => !level || t.level === level);
-    list.replaceChildren(items.length ? h('div', { class: 'grid' }, items.map(card)) : h('p', { class: 'muted' }, 'No exercises at this level yet.'));
-  };
-  main.replaceChildren(
-    h('div', { class: 'page-head' }, h('button', { class: 'icon-btn', html: icon('back'), onClick: () => history.back() }), h('h1', {}, `${m.icon} ${m.name}`), h('span', { class: 'muted' }, m.desc), h('div', { class: 'grow' }), tabs),
-    list);
-  render();
-}
-
-// ---------------------------------------------------------------- warm-up
+// ---------------------------------------------------------------- warm-up (daily random routine)
 const WARMUP_SLOTS = [
   { label: 'Hands', modules: ['technique', 'slap'] },
   { label: 'Fretboard', modules: ['fretboard', 'intervals'] },
@@ -137,6 +61,7 @@ const WARMUP_SLOTS = [
 ];
 
 export let currentRoutine = null;
+let shuffled = null; // a shuffle lasts until the app is closed
 
 export function buildRoutine(level, seed) {
   const rand = rng(seed);
@@ -156,31 +81,142 @@ export function buildRoutine(level, seed) {
   return items;
 }
 
-export function warmupScreen(main) {
+function warmupBlock() {
   const today = new Date();
-  let seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+  const daily = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
   let level = settings.level || 3;
   const listEl = h('div', { class: 'routine' });
   const lvTabs = h('div', { class: 'tabs' });
   const render = () => {
-    const items = buildRoutine(level, seed + level * 7);
+    const items = buildRoutine(level, (shuffled ?? daily) + level * 7);
     currentRoutine = items;
-    lvTabs.replaceChildren(...LEVELS.map((L) => h('button', { class: L.n === level ? 'on' : '', onClick: () => { level = L.n; saveSettings({ level }); render(); } }, `L${L.n}`)));
+    lvTabs.replaceChildren(...LEVELS.map((L) => h('button', { class: L.n === level ? 'on' : '', title: L.name, onClick: () => { level = L.n; saveSettings({ level }); render(); } }, `L${L.n}`)));
     listEl.replaceChildren(...items.map((it, i) => {
       const t = byId.get(it.id);
-      const desc = paramSummary(t, it.params, settings);
       return h('div', { class: 'item', onClick: () => go(exHref(it.id, { ...it.params, wu: i })) },
         h('div', { class: 'n' }, i + 1),
-        h('div', { class: 't' }, h('b', {}, `${it.slot}: ${t.title}`), h('span', {}, desc)),
+        h('div', { class: 't' }, h('b', {}, `${it.slot}: ${t.title}`), h('span', {}, paramSummary(t, it.params, settings))),
         h('span', { class: `chip lv lv${t.level}` }, `L${t.level}`));
     }));
   };
-  main.replaceChildren(
-    h('div', { class: 'page-head' }, h('h1', {}, '🔥 Daily warm-up'), h('span', { class: 'muted' }, 'A fresh routine every day: hands, fretboard, scales, triads, arpeggios and groove. About 5 minutes each.'),
-      h('div', { class: 'grow' }), lvTabs,
-      h('button', { class: 'btn', html: `${icon('dice')} Shuffle`, onClick: () => { seed = Math.floor(Math.random() * 1e9); render(); } }),
+  render();
+  return h('section', { class: 'block' },
+    h('div', { class: 'block-head' }, h('h2', {}, '🔥 Daily warm-up'), h('div', { class: 'grow' }),
+      h('button', { class: 'icon-btn shuffle', title: 'Shuffle: a new random routine', 'aria-label': 'Shuffle', html: icon('dice'), onClick: () => { shuffled = Math.floor(Math.random() * 1e9); render(); } }),
       h('button', { class: 'btn primary', onClick: () => { const it = currentRoutine[0]; go(exHref(it.id, { ...it.params, wu: 0 })); } }, '▶ Start')),
+    h('p', { class: 'muted small' }, 'A fresh routine every day: hands, fretboard, scales, triads, arpeggios and groove. About 5 minutes each.'),
+    h('div', { class: 'row lv-row' }, h('span', { class: 'muted small' }, 'Your level'), lvTabs),
     listEl);
+}
+
+// ---------------------------------------------------------------- favorites (starred exercises, drag to reorder)
+function favoritesBlock() {
+  const listEl = h('div', { class: 'routine favs' });
+  const hint = h('span', { class: 'muted small' });
+  const render = () => {
+    const list = getFavorites().map((id) => byId.get(id)).filter(Boolean);
+    hint.textContent = list.length > 1 ? 'Drag ⠿ to reorder' : '';
+    if (!list.length) {
+      listEl.replaceChildren(h('div', { class: 'empty' },
+        h('b', {}, 'No favorites yet'),
+        h('span', {}, 'Tap the ☆ on any exercise (in the Library, the Path or an exercise\'s header) to pin it here.')));
+      return;
+    }
+    listEl.replaceChildren(...list.map((t) => favRow(t, render)));
+  };
+  render();
+  return h('section', { class: 'block' },
+    h('div', { class: 'block-head' }, h('h2', {}, '★ Favorites'), h('div', { class: 'grow' }), hint),
+    listEl);
+}
+
+function favRow(t, rerender) {
+  const pr = getProgress(t.id) || {};
+  const mod = moduleOf(t.module);
+  const grip = h('button', { class: 'grip', title: 'Drag to reorder', 'aria-label': `Move ${t.title}`, html: icon('grip') });
+  const info = [`${mod?.icon ?? ''} ${mod?.name ?? ''}`, pr.done ? '✓ mastered' : '', pr.bestBpm ? `best ${pr.bestBpm} BPM` : ''].filter(Boolean).join(' · ');
+  const row = h('div', { class: 'item fav', 'data-id': t.id, onClick: () => go(exHref(t.id)) },
+    grip,
+    h('div', { class: 't' }, h('b', {}, t.title), h('span', {}, info)),
+    h('span', { class: `chip lv lv${t.level}` }, `L${t.level}`),
+    starButton(t.id, { onChange: () => rerender() }));
+  dragToReorder(grip, row);
+  return row;
+}
+
+// ---------------------------------------------------------------- path: the topics, each from level 1 to 6
+// hands and time first, then the neck, then theory and music
+const PATH_ORDER = ['technique', 'rhythm', 'fretboard', 'intervals', 'scales', 'modes', 'triads', 'arpeggios', 'harmony', 'grooves', 'walking', 'licks', 'slap'];
+const rank = (id) => { const i = PATH_ORDER.indexOf(id); return i < 0 ? PATH_ORDER.length : i; };
+
+function modulesGrid() {
+  const mods = MODULES.filter((m) => byModule(m.id).length).sort((a, b) => rank(a.id) - rank(b.id));
+  return h('div', { class: 'grid' }, mods.map((m) => {
+    const st = moduleStats(m.id);
+    return h('div', { class: 'card mod-card', onClick: () => go(`#/m/${m.id}`) },
+      h('div', { class: 'ico' }, m.icon), h('h3', {}, m.name), h('p', {}, m.desc),
+      h('div', { class: 'meta' }, h('span', { class: 'chip' }, `${st.total} exercises`), st.done ? h('span', { class: 'chip' }, `${st.done} mastered`) : null),
+      h('div', { class: 'bar' }, h('i', { style: { width: `${st.total ? (st.done / st.total) * 100 : 0}%` } })));
+  }));
+}
+
+export function pathScreen(main) {
+  main.replaceChildren(
+    h('div', { class: 'page-head' }, h('h1', {}, 'Learning path'), h('span', { class: 'muted' }, 'Pick a topic. Inside each one the exercises climb from level 1 (first steps) to level 6 (mastery); mark them as mastered as you go.')),
+    modulesGrid());
+}
+
+export function moduleScreen(main, id) {
+  const m = moduleOf(id);
+  if (!m) { go('#/path'); return; }
+  let level = 0;
+  const tabs = h('div', { class: 'tabs' });
+  const list = h('div');
+  const render = () => {
+    tabs.replaceChildren(...[0, 1, 2, 3, 4, 5, 6].map((n) => h('button', { class: level === n ? 'on' : '', onClick: () => { level = n; render(); } }, n ? `L${n}` : 'All')));
+    const items = byModule(id).filter((t) => !level || t.level === level);
+    list.replaceChildren(items.length ? h('div', { class: 'grid' }, items.map(card)) : h('p', { class: 'muted' }, 'No exercises at this level yet.'));
+  };
+  main.replaceChildren(
+    h('div', { class: 'page-head' }, h('button', { class: 'icon-btn', 'aria-label': 'Back', html: icon('back'), onClick: () => back('#/path') }), h('h1', {}, `${m.icon} ${m.name}`), h('span', { class: 'muted' }, m.desc), h('div', { class: 'grow' }), tabs),
+    list);
+  render();
+}
+
+// ---------------------------------------------------------------- library: every exercise at one sight, with search
+function levelSections() {
+  return LEVELS.flatMap((L) => {
+    const list = byLevel(L.n).sort((a, b) => rank(a.module) - rank(b.module));
+    if (!list.length) return [];
+    const done = list.filter((t) => (getProgress(t.id) || {}).done).length;
+    return [
+      h('div', { class: 'section' }, h('span', { class: `chip lv lv${L.n}` }, `Level ${L.n}`), h('h2', {}, L.name), h('span', { class: 'muted small' }, `${L.desc} · ${done}/${list.length} mastered`)),
+      h('div', { class: 'grid' }, list.map(card)),
+    ];
+  });
+}
+
+export function libraryScreen(main) {
+  const search = h('input', { class: 'search', type: 'search', placeholder: 'Search exercises… (e.g. "triad", "ii-V", "slap")', 'aria-label': 'Search exercises' });
+  const results = h('div');
+  // "ii-V" must find "ii–V": every kind of dash counts as a hyphen
+  const norm = (x) => x.toLowerCase().replace(/[‐-―−]/g, '-');
+  const render = () => {
+    const q = norm(search.value.trim());
+    if (!q) { results.replaceChildren(...levelSections()); return; }
+    const words = q.split(/\s+/);
+    const list = EXERCISES.filter((t) => {
+      const hay = norm(`${t.title} ${t.summary} ${t.about} ${t.module}`);
+      return words.every((w) => hay.includes(w));
+    }).sort((a, b) => a.level - b.level);
+    results.replaceChildren(list.length
+      ? h('div', {}, h('p', { class: 'muted small' }, `${list.length} exercise${list.length > 1 ? 's' : ''} found`), h('div', { class: 'grid' }, list.map(card)))
+      : h('p', { class: 'muted' }, 'Nothing found.'));
+  };
+  search.addEventListener('input', render);
+  main.replaceChildren(
+    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), h('span', { class: 'muted' }, `All ${EXERCISES.length} exercises, from level 1 to 6.`), h('div', { class: 'grow' }), search),
+    results);
   render();
 }
 
@@ -262,8 +298,13 @@ export function settingsScreen(main) {
   };
   const range = (key, min, max, step) => {
     const el = h('input', { type: 'range', min, max, step, value: S[key] });
-    el.addEventListener('input', () => { saveSettings({ [key]: Number(el.value) }); A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol }); });
-    return el;
+    const pct = h('b', { class: 'pct' }, `${Math.round(S[key] * 100)}%`);
+    el.addEventListener('input', () => {
+      saveSettings({ [key]: Number(el.value) });
+      pct.textContent = `${Math.round(S[key] * 100)}%`;
+      A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol });
+    });
+    return h('div', { class: 'range-row' }, el, pct);
   };
   const field = (label, control, hint) => h('div', { class: 'field' }, h('label', {}, label), control, hint ? h('div', { class: 'hint' }, hint) : null);
   main.replaceChildren(
@@ -277,7 +318,7 @@ export function settingsScreen(main) {
       field('Small speaker boost', seg('octaveUp', [[false, 'Off'], [true, 'On']], () => A.setAudioOptions({ octaveUp: S.octaveUp })), 'Phone speakers barely reproduce a low E (41 Hz). The boost adds harmonics so you hear the real pitch clearly without changing octave.'),
       field('Count-in', seg('countIn', [[true, 'One bar'], [false, 'Off']])),
       field('Metronome clicks', seg('clickSubs', [[false, 'Beats only'], [true, 'Beats + subdivisions']])),
-      field('Bass volume', range('bassVol', 0, 1.5, 0.05)),
+      field('Bass volume', range('bassVol', 0, 2, 0.05), 'Above 100% the bass is pushed into a limiter: the loudest setting for phone speakers.'),
       field('Metronome volume', range('clickVol', 0, 1.5, 0.05)),
       field('Progress', h('div', { class: 'row' },
         h('button', { class: 'btn', onClick: () => { if (confirm('Reset all progress?')) { resetProgress(); toast('Progress reset'); } } }, 'Reset progress'),

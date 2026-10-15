@@ -2,6 +2,7 @@
 // Everything read back is validated: corrupt or old values fall back to defaults.
 const KEY_SETTINGS = 'bassclass.settings.v1';
 const KEY_PROGRESS = 'bassclass.progress.v1';
+const KEY_FAVORITES = 'bassclass.favorites.v1';
 
 export const DEFAULT_SETTINGS = {
   strings: 4,
@@ -15,7 +16,7 @@ export const DEFAULT_SETTINGS = {
   countIn: true,
   metro: true,
   clickSubs: false,
-  bassVol: 0.9,
+  bassVol: 1,              // 0..2; above 1 the output is pushed into the limiter
   clickVol: 0.6,
   maxFret: 20,
   level: 3,                // preferred level for warm-ups
@@ -32,7 +33,7 @@ const SETTING_RULES = {
   lefty: isBool, octaveUp: isBool, countIn: isBool, metro: isBool, clickSubs: isBool,
   voice: oneOf(['auto', 'synth']),
   a4: numIn(425, 455),
-  bassVol: numIn(0, 1.5), clickVol: numIn(0, 1.5),
+  bassVol: numIn(0, 2), clickVol: numIn(0, 1.5),
   maxFret: oneOf([17, 20, 21, 24]),
   level: oneOf([1, 2, 3, 4, 5, 6]),
 };
@@ -96,6 +97,30 @@ export function updateProgress(id, patch) {
   return progress[id];
 }
 export const allProgress = () => progress;
+
+// ---------------------------------------------------------------- favorites (ordered exercise ids)
+function readList(key) {
+  try {
+    const v = JSON.parse(localStorage.getItem(key) || '[]');
+    return Array.isArray(v) ? [...new Set(v.filter((x) => typeof x === 'string' && x.length < 80))] : [];
+  } catch {
+    return [];
+  }
+}
+let favorites = readList(KEY_FAVORITES);
+export const getFavorites = () => [...favorites];
+export const isFavorite = (id) => favorites.includes(id);
+/** Star or unstar an exercise; new favorites go to the end. Returns the new state. */
+export function toggleFavorite(id) {
+  favorites = isFavorite(id) ? favorites.filter((x) => x !== id) : [...favorites, id];
+  write(KEY_FAVORITES, favorites);
+  return isFavorite(id);
+}
+/** Save a new order (from drag and drop); ids not in the list are ignored. */
+export function setFavoritesOrder(ids) {
+  favorites = [...new Set(ids.filter((x) => favorites.includes(x))), ...favorites.filter((x) => !ids.includes(x))];
+  write(KEY_FAVORITES, favorites);
+}
 export function resetProgress() {
   for (const k of Object.keys(progress)) delete progress[k];
   write(KEY_PROGRESS, progress);

@@ -6,10 +6,11 @@ A landscape app to learn bass from the first open string to mastery. Every exerc
 - **Every exercise is generated, not hard-coded.** Any key, or all 12 keys in a row (cycle of 4ths/5ths/chromatic), plus inversions, scales, patterns, positions, zones and rhythms. That adds up to thousands of distinct drills.
 - **Correct fingering.** A fingering engine models the hand position (one finger per fret, stretches, shifts along a string) and adapts to **4, 5 or 6-string** basses.
 - **Correct spelling.** E.g. B♭ vs A♯, D♭maj7 vs C♯maj7. Degree colours: root, 3rd, 5th, 7th.
-- **Real bass sound.** A finger-style 5-string bass recorded note by note (B0–E4, CC0 samples from Karoryfer). It has real ghost notes, velocity-dependent tone and natural string damping. A physical-model synth is the fallback, and a "small speaker boost" keeps low notes audible on phones.
+- **Real bass sound.** A finger-style 5-string bass recorded note by note (B0–E4, CC0 samples from Karoryfer). It has real ghost notes, velocity-dependent tone and natural string damping. A physical-model synth is the fallback. The output runs through a compressor and limiter so it stays loud on phone speakers (bass volume up to 200%), and a "small speaker boost" keeps low notes audible.
 - **Tuner.** Chromatic or per-string, with a cents gauge, adjustable A4 and reference tones. It uses YIN pitch detection, which works down to a 5-string's low B.
 - **Elegant fretboard.** Navy board, nickel round-wound strings drawn at real gauge ratios (.045–.130), and glossy colour-coded markers (root = square).
-- **Built for practice.** Step-by-step mode (◀ ▶), loop, tempo 30–260 BPM, subdivision selector (whole notes to sextuplets; fixed where the rhythm is written in, as in licks and grooves), count-in, speed trainer (+4 BPM per loop), "Shape" and "Quiz" reveal modes, mastered/best-BPM tracking, daily warm-up generator and a neck explorer.
+- **Built for practice.** Step-by-step mode (◀ ▶), loop, tempo 30–260 BPM, subdivision selector (whole notes to sextuplets; fixed where the rhythm is written in, as in licks and grooves), count-in, speed trainer (+4 BPM per loop), "Shape" and "Quiz" reveal modes, mastered/best-BPM tracking and a neck explorer.
+- **Organised for daily use.** Home holds the daily warm-up (a fresh random routine every day) and your favorites: star any exercise and drag the list into your own order. The Path walks through the topics, and the Library shows every exercise at once, by level, with search.
 - **Jazz licks for advanced players.** 33 original phrases in real jazz vocabulary (ii–V–I, minor ii–V–i, blues, turnarounds, bebop, modern sounds, bass-solo devices). Each plays over its chord changes in all 12 keys, with swing and colour-coded tensions.
 - **Grounded in real curricula.** Content draws on Scott's Bass Lessons, TalkingBass, StudyBass, BassBuzz, RSL/Trinity/LCM grades, Berklee, MI, Spanish conservatories, Bass Fitness, Willis, Friedland, Barry Harris, Banacos, Gwizdala and others. See [docs/RESEARCH.md](docs/RESEARCH.md).
 
@@ -66,12 +67,14 @@ web/                    the app (static HTML/CSS/JS, no build step)
   audio/bass/           recorded bass samples (CC0), see audio/bass/LICENSE.txt
   js/player.js          sample-accurate scheduler, loop, speed trainer
   js/views/             SVG fretboard and tab strip
-  js/ui/                screens (home, path, library, warm-up, explorer, settings, player)
+  js/ui/                screens (home with warm-up + favorites, path, library, explorer, settings, player)
   js/curriculum/        all exercise generators, one file per module
   js/selftest.js        builds every exercise on 4/5/6-string and checks every note
   js/dev/sampleprep.js  dev tool that converted the raw samples (trim, retune, level-match, 22 kHz)
 android/                Android Studio WebView wrapper (Kotlin)
-tools/serve.py          local dev server; tools/make_icons.py renders the icons
+tools/serve.py          local dev server (also saves files for the dev tools in web/js/dev/:
+                        sampleprep.js processes the bass samples, iconprep.js renders the PNG icons
+                        from web/icons/icon.svg)
 .claude/agents/         the two QA agents (qa-reviewer, qa-user); reports go to qa/reports/
 docs/                   research summary and generated exercise catalogue
 ```

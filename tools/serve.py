@@ -34,8 +34,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
     def do_PUT(self):
-        """Dev helper (localhost only): the app can regenerate docs/CATALOGUE.md and the
-        processed bass samples under web/audio/bass/. Paths are strictly whitelisted."""
+        """Dev helper (localhost only): the app can regenerate docs/CATALOGUE.md, the
+        processed bass samples under web/audio/bass/ and the PNG icons (web/js/dev/iconprep.js).
+        Paths are strictly whitelisted."""
         if self.client_address[0] not in ('127.0.0.1', '::1'):
             self.send_error(403)
             return
@@ -43,6 +44,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             out = os.path.join(ROOT, '..', 'docs', 'CATALOGUE.md')
         elif re.fullmatch(r'/__write/audio/bass/(?:(?:reg|ghost)/\d{2}\.wav|manifest\.json|LICENSE\.txt)', self.path):
             out = os.path.join(ROOT, *self.path[len('/__write/'):].split('/'))
+        elif re.fullmatch(r'/__write/icons/icon-(?:192|512|maskable-512)\.png', self.path):
+            out = os.path.join(ROOT, *self.path[len('/__write/'):].split('/'))
+        elif re.fullmatch(r'/__write/android/mipmap-(?:mdpi|hdpi|xhdpi|xxhdpi|xxxhdpi)/ic_launcher(?:_foreground)?\.png', self.path):
+            out = os.path.join(ROOT, '..', 'android', 'app', 'src', 'main', 'res', *self.path[len('/__write/android/'):].split('/'))
         else:
             self.send_error(403)
             return

@@ -5,7 +5,7 @@ import { renderExercise } from './ui/exercise.js';
 import { loadBank } from './audio.js';
 import { tunerScreen } from './ui/tuner.js';
 import {
-  homeScreen, pathScreen, libraryScreen, moduleScreen, warmupScreen, explorerScreen, settingsScreen,
+  homeScreen, pathScreen, libraryScreen, moduleScreen, explorerScreen, settingsScreen,
   currentRoutine, exHref, go,
 } from './ui/screens.js';
 
@@ -14,7 +14,6 @@ const NAV = [
   ['home', '#/', 'Home'],
   ['path', '#/path', 'Path'],
   ['library', '#/library', 'Library'],
-  ['warmup', '#/warmup', 'Warm-up'],
   ['explorer', '#/explorer', 'Neck'],
   ['tuner', '#/tuner', 'Tuner'],
   ['settings', '#/settings', 'Settings'],
@@ -67,7 +66,7 @@ function route() {
         next: () => {
           const nx = currentRoutine[wu + 1];
           replacing = true;
-          location.replace(nx ? exHref(nx.id, { ...nx.params, wu: wu + 1 }) : '#/warmup');
+          location.replace(nx ? exHref(nx.id, { ...nx.params, wu: wu + 1 }) : '#/');
         },
       };
     }
@@ -82,12 +81,12 @@ function route() {
     }
     return;
   }
-  const key = { '': 'home', path: 'path', library: 'library', m: 'library', warmup: 'warmup', explorer: 'explorer', tuner: 'tuner', settings: 'settings' }[parts[0] || ''] || 'home';
+  // the daily warm-up lives on Home; topics (#/m/...) belong to the Path
+  const key = { '': 'home', path: 'path', library: 'library', m: 'path', explorer: 'explorer', tuner: 'tuner', settings: 'settings' }[parts[0] || ''] || 'home';
   const main = shell(key);
   if (parts[0] === 'path') pathScreen(main);
   else if (parts[0] === 'library') libraryScreen(main);
   else if (parts[0] === 'm') moduleScreen(main, parts[1]);
-  else if (parts[0] === 'warmup') warmupScreen(main);
   else if (parts[0] === 'explorer') active = explorerScreen(main);
   else if (parts[0] === 'tuner') active = tunerScreen(main);
   else if (parts[0] === 'settings') settingsScreen(main);

@@ -206,9 +206,9 @@ export class FretboardView {
       p.push(`<text x="${this.fretX(f)}" y="${H - 5}" class="fretnum${strong ? ' strong' : ''}" data-f="${f}">${f}</text>`);
     }
     // strings: shadow, cylinder, winding
-    const x0 = this.showOpen ? this._x(this.padL + 4) : Math.min(xa, xb);
-    const x1 = Math.max(xa, xb);
-    const left = Math.min(x0, x1), right = Math.max(x0, x1, xb);
+    // from the open-string column (when shown) to the end of the board, on either side for left-handers
+    const x0 = this.showOpen ? this._x(this.padL + 4) : xa;
+    const left = Math.min(x0, xa, xb), right = Math.max(x0, xa, xb);
     for (let s = 0; s < this.strings; s++) {
       const y = this.stringY(s);
       const th = this.gaugePx(s);
