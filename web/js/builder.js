@@ -34,7 +34,9 @@ export function rootOn(ctx, pcv, string = 'E', { minFret = 1, maxFret = 13 } = {
 export const fretOn = (ctx, midi, string) => midi - ctx.tuning[ctx.str(string)];
 
 // chord tones and natural tensions keep their academic spelling even in jazz exercises
-const CORE_DEGREES = new Set(['R', '2', '3', '4', '5', '6', '7', '♭7', '8', '9', '10', '11', '13']);
+const CORE_DEGREES = new Set(['R', '2', '♭3', '3', '4', '5', '6', '7', '♭7', '8', '9', '♭10', '10', '11', '13']);
+// the ♭5 is a chord tone of half-diminished and diminished chords (an alteration only on a dominant)
+const DIM_CHORD = /°|ø|m7?♭5/;
 
 export class Builder {
   /**
@@ -42,11 +44,15 @@ export class Builder {
    * jazz: in chord-progression exercises, a double sharp/flat on an altered note (♭9, ♯9, ♭5, ♯5,
    * ♭13, ♯11), on a diminished 7th, a blue note or a passing note is written as its plain
    * enharmonic, the way jazz players write it (A♭7♭9: A, not B𝄫; C°7: C E♭ G♭ A; E♭7's ♭13: B, not C♭).
+   * plain: scales with more or fewer notes than letters (symmetric, Messiaen, augmented): every
+   * double accidental and C♭ F♭ E♯ B♯ is written plainly (D♭ whole tone: D♭ E♭ F G A B).
    */
-  constructor(ctx, settings = {}, { jazz = false } = {}) {
+  constructor(ctx, settings = {}, { jazz = false, plain = false } = {}) {
     this.ctx = ctx;
     this.settings = settings;
     this.jazz = jazz;
+    this.plain = plain;
+    this.curChord = '';
     this.steps = [];
     this.pendingChord = null;
     this.pendingText = null;
@@ -56,8 +62,15 @@ export class Builder {
   text(t) { this.pendingText = t; return this; }
 
   _push(step) {
-    if (this.jazz) for (const n of step.notes) if (n.n && !CORE_DEGREES.has(n.deg) && T.awkward(n.n)) n.n = T.readable(n.n);
-    if (this.pendingChord) { step.chord = this.pendingChord; this.pendingChord = null; }
+    if (this.pendingChord) { step.chord = this.pendingChord; this.pendingChord = null; this.curChord = String(step.chord); }
+    if (this.plain) {
+      for (const n of step.notes) if (n.n && T.awkward(n.n)) n.n = T.readable(n.n);
+    } else if (this.jazz) {
+      const dim = DIM_CHORD.test(this.curChord);
+      for (const n of step.notes) {
+        if (n.n && !CORE_DEGREES.has(n.deg) && !(dim && n.deg === '♭5') && T.awkward(n.n)) n.n = T.readable(n.n);
+      }
+    }
     if (this.pendingText) { step.text = this.pendingText; this.pendingText = null; }
     this.steps.push(step);
   }
@@ -92,6 +105,7 @@ export class Builder {
       if (p.play != null) note.play = p.play;
       const step = { notes: [note], dur: p.dur ?? dur };
       if (p.accent) step.accent = true;
+      if (p.fill) step.fill = true;
       if (p.vel != null) step.vel = p.vel;
       if (p.chord) this.pendingChord = p.chord;
       if (p.text) this.pendingText = p.text;
@@ -213,6 +227,7 @@ export const SCALE_PATTERNS = {
   turn: { name: '1-2-3-1 turns', off: [0, 1, 2, 0] },
   up3down1: { name: 'Up 3, down 1 (1-2-3-2)', off: [0, 1, 2, 1] },
   thirdsAlt: { name: '3rds alternating (1-3, 4-2…)', alt: true, off: [0, 2] },
+  skip: { name: 'Skip one note', off: [0, 2] }, // "in 3rds" only on 7-note scales
 };
 
 /** Index sequence over a scale spanning `top` steps (len * octaves). */
@@ -264,10 +279,13 @@ export const ARP_SHAPES = {
   octave: { name: '1-3-5-8-5-3', f: (n) => [...range(0, n), ...range(n - 1, 1, -1)] },
   doubled: { name: 'Doubled notes (1-1-3-3-5-5…)', f: (n, oct) => [...range(0, n * oct), ...range(n * oct - 1, 1, -1)].flatMap((i) => [i, i]) },
   // broken chords: one small cell started from every chord tone up to the top and back, ending on the root
-  broken: { name: 'Broken: 1-3-5-3, 3-5-8-5…', f: (n, oct) => brokenSeq(n * oct, [0, 1, 2, 1]) },
-  broken535: { name: 'Broken: 1-5-3-5, 3-8-5-8…', f: (n, oct) => brokenSeq(n * oct, [0, 2, 1, 2]) },
-  broken4: { name: 'Broken: groups of 4 (1-3-5-8, 3-5-8-10…)', f: (n, oct) => brokenSeq(n * oct, [0, 1, 2, 3]) },
+  broken: { name: 'Broken: 1-3-5-3, then from each chord tone', f: (n, oct) => brokenSeq(n * oct, [0, 1, 2, 1]) },
+  broken535: { name: 'Broken: 1-5-3-5, then from each chord tone', f: (n, oct) => brokenSeq(n * oct, [0, 2, 1, 2]) },
+  // groups of 4 need room for a second cell: a one-octave chord climbs to the 10th
+  broken4: { name: 'Broken: groups of 4 chord tones, from each one', f: (n, oct) => brokenSeq(Math.max(n * oct, n + 1), [0, 1, 2, 3]) },
 };
+/** Shapes whose closing root is held to the bar line (see Player: step.fill). */
+export const BROKEN_SHAPES = new Set(['broken', 'broken535', 'broken4']);
 
 function brokenSeq(top, off) {
   const seq = scaleSeq(top, { off });

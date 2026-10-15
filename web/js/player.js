@@ -38,17 +38,28 @@ export class Player {
 
   _layout() {
     const inst = this.inst;
+    const bpb = inst.beatsPerBar || 4;
+    this.fillLen = new WeakMap();
     let b = 0;
     this.starts = inst.steps.map((s) => {
       const st = b;
-      b += this.beatsOf(s);
+      let len = this.beatsOf(s);
+      if (s.fill) {
+        // a closing note held to the next bar line (a whole bar when it starts on one),
+        // so the loop and the next key start on beat 1 at any subdivision
+        const toBar = Math.ceil(st / bpb - 1e-9) * bpb - st;
+        len = Math.max(len, toBar > 1e-9 ? toBar : bpb);
+        this.fillLen.set(s, len);
+      }
+      b += len;
       return st;
     });
-    const bpb = inst.beatsPerBar || 4;
     this.total = Math.max(bpb, Math.ceil(b / bpb - 1e-9) * bpb);
   }
 
   beatsOf(step) {
+    const fill = this.fillLen?.get(step);
+    if (fill != null) return fill;
     return this.inst.uniform ? step.dur / this.sub : step.dur;
   }
 

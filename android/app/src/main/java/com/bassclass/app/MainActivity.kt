@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.pm.PackageManager
+import android.media.AudioAttributes
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
@@ -35,16 +36,35 @@ class MainActivity : Activity() {
     private var pendingMic: PermissionRequest? = null
     private val audio by lazy { getSystemService(AUDIO_SERVICE) as AudioManager }
 
+    private val mainHandler = Handler(Looper.getMainLooper())
+
     /** "external" when headphones or an external speaker play the sound, else "speaker" (the phone's own). */
     private fun audioRoute(): String {
+        // Android 13+: the devices that actually play media now (a connected but idle device does not count)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val media = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build()
+            val playing = try { audio.getAudioDevicesForAttributes(media) } catch (e: Exception) { emptyList() }
+            if (playing.isNotEmpty()) return if (playing.any { it.type in EXTERNAL_OUTPUTS }) "external" else "speaker"
+        }
+        // older Android: headphones or an external speaker take over media output as soon as they connect
         val external = audio.getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { it.type in EXTERNAL_OUTPUTS }
         return if (external) "external" else "speaker"
     }
 
     /** Tells the web app when headphones or a speaker are connected or disconnected. */
     private val routeCallback = object : AudioDeviceCallback() {
-        override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) = pushRoute()
-        override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>?) = pushRoute()
+        override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) = routeChanged()
+        override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>?) = routeChanged()
+    }
+
+    /** Media may switch to a new device a moment after it connects: report now and again shortly after. */
+    private fun routeChanged() {
+        pushRoute()
+        mainHandler.postDelayed({ pushRoute() }, 700)
+        mainHandler.postDelayed({ pushRoute() }, 2000)
     }
 
     private fun pushRoute() {
@@ -132,6 +152,7 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        mainHandler.removeCallbacksAndMessages(null)
         audio.unregisterAudioDeviceCallback(routeCallback)
         super.onDestroy()
     }

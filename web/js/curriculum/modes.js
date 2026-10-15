@@ -42,6 +42,14 @@ const relative = ex({
 });
 
 const BRIGHT = ['lydian', 'ionian', 'mixolydian', 'dorian', 'aeolian', 'phrygian', 'locrian'];
+/**
+ * One root, several modes: each mode takes its most readable name (C♯ Dorian, not D♭ Dorian with
+ * F♭ and C♭), and when that differs from the key chosen, the badge says it is the same note.
+ */
+const sameRoot = (k, tonic, S) => {
+  const key = T.bestRoot(k, T.SCALES.ionian.iv);
+  return T.noteName(key) === T.noteName(tonic) ? '' : ` (= ${nm(key, S)})`;
+};
 const parallel = ex({
   id: 'md-parallel', module: M, level: 3, star: true,
   title: 'Parallel modes: brightest to darkest',
@@ -58,7 +66,7 @@ const parallel = ex({
     const order = p.dir === 'bright' ? BRIGHT : [...BRIGHT].reverse();
     for (const mode of order) {
       const tonic = T.bestRoot(k, T.SCALES[mode].iv);
-      b.chord(`${nm(tonic, S)} ${T.SCALES[mode].name.split(' (')[0]}`);
+      b.chord(`${nm(tonic, S)} ${T.SCALES[mode].name.split(' (')[0]}${sameRoot(k, tonic, S)}`);
       b.line(scaleRun(tonic, mode, r.midi, { dir: 'updown' }), { place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
     }
     return b.build({ label: 'degree' });
@@ -166,7 +174,7 @@ const melodicModes = ex({
 const harmonicModes = variant(melodicModes, {
   id: 'md-harmonic-modes', level: 5,
   title: 'Modes of harmonic minor',
-  summary: 'Locrian ♮6, Ionian ♯5, Dorian ♯4, Phrygian dominant, Lydian ♯2, ultralocrian.',
+  summary: 'Locrian ♮6, Ionian ♯5, Ukrainian Dorian (Dorian ♯4), Phrygian dominant, Lydian ♯2, ultralocrian.',
   about: 'Harmonic minor\'s modes give Spanish, Middle-Eastern and neo-classical colours. The 5th mode, Phrygian dominant, is the sound of the V7♭9 chord in minor keys and of flamenco. Play all seven from the same parent.',
   tips: ['Phrygian dominant = harmonic minor from its 5th (C Phrygian dominant = F harmonic minor).', 'Listen for the augmented 2nd (three frets): it moves to a different place in every mode.'],
   source: 'RSL Grade 8; Spanish conservatory programmes; flamenco and neo-classical practice (Phrygian dominant); Mark Levine',
@@ -190,7 +198,7 @@ const pitchAxis = ex({
     const sets = { major: BRIGHT, melodic: T.MELODIC_MODES, mix: ['lydian', 'mixolydian', 'dorian', 'phrygianDom', 'altered'] };
     for (const mode of sets[p.set]) {
       const tonic = T.bestRoot(k, T.SCALES[mode].iv);
-      b.chord(`${nm(tonic, S)} ${T.SCALES[mode].name.split(' (')[0]}`);
+      b.chord(`${nm(tonic, S)} ${T.SCALES[mode].name.split(' (')[0]}${sameRoot(k, tonic, S)}`);
       b.line(scaleRun(tonic, mode, r.midi, { dir: 'up' }), { place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
     }
     return b.build({ label: 'degree' });
@@ -209,8 +217,8 @@ const harmonicMajorModes = variant(melodicModes, {
   id: 'md-harmonic-major-modes', level: 6,
   title: 'Modes of harmonic major',
   summary: 'Dorian ♭5, Phrygian ♭4, Lydian ♭3, Mixolydian ♭2, Lydian augmented ♯2, Locrian ♭♭7.',
-  about: 'Harmonic major is the major scale with a ♭6 (C D E F G A♭ B). Harmonic minor lowers the 3rd and the 6th, melodic minor only the 3rd, harmonic major only the 6th: together with the major scale these are the four parent scales of tonal harmony. It keeps the major I chord but borrows the minor iv (Fm) and the °7 on the 7th degree, so it sounds major with a dark edge. Play all seven modes from the same parent.',
-  tips: ['Mixolydian ♭2 (5th mode) fits a V7♭9 that resolves to a major chord: G7♭9 → C.', 'Phrygian ♭4 (3rd mode) is the altered scale with a natural 5th: E F G A♭ B C D = R ♭9 ♯9 3 5 ♭13 ♭7.', 'Add a natural 6 and you get Barry Harris\'s major 6th diminished scale.'],
+  about: 'Harmonic major is the major scale with a ♭6 (C D E F G A♭ B). Harmonic minor lowers the 3rd and the 6th, melodic minor only the 3rd, harmonic major only the 6th: together with the major scale these are the four parent scales that jazz and modern harmony draw on (Dmitri Tymoczko\'s four scale families). It keeps the major I chord but borrows the minor iv (Fm) and the °7 on the 7th degree, so it sounds major with a dark edge. Play all seven modes from the same parent.',
+  tips: ['Mixolydian ♭2 (5th mode) fits a V7♭9 that resolves to a major chord: G7♭9 → C.', 'Phrygian ♭4 (3rd mode) sounds like the altered scale with a natural 5th: read its ♭4 (A♭) as G♯, the 3rd of E, and E F G G♯ B C D = R ♭9 ♯9 3 5 ♭13 ♭7.', 'Add a natural 6 and you get Barry Harris\'s major 6th diminished scale.'],
   source: 'Rimsky-Korsakov "Practical Manual of Harmony" (harmonic major); Dmitri Tymoczko "A Geometry of Music" (the four scale families); Barry Harris',
   params: { key: keyP(T.SCALES.harmonicMajor.iv), dir: melodicModes.params.dir },
   build(p, ctx, S) { return relativeBuild(p, ctx, S, T.HARMONIC_MAJOR_MODES).build({ label: 'degree' }); },

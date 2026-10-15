@@ -3,13 +3,13 @@
 import * as T from '../theory.js';
 import { shapes, place } from '../fretboard.js';
 import {
-  Builder, keysFor, rootOn, scaleRun, scaleSeq, chordTones, ARP_SHAPES, SCALE_PATTERNS,
+  Builder, keysFor, rootOn, scaleRun, scaleSeq, chordTones, ARP_SHAPES, BROKEN_SHAPES, SCALE_PATTERNS,
   diatonicChords, nearestVoicing, pitchIn, spellMidi, P, fitShift,
 } from '../builder.js';
 
 export {
   fitShift,
-  T, Builder, keysFor, rootOn, scaleRun, scaleSeq, chordTones, ARP_SHAPES, SCALE_PATTERNS,
+  T, Builder, keysFor, rootOn, scaleRun, scaleSeq, chordTones, ARP_SHAPES, BROKEN_SHAPES, SCALE_PATTERNS,
   diatonicChords, nearestVoicing, pitchIn, spellMidi, P, shapes, place,
 };
 
@@ -69,7 +69,8 @@ export const QUALITY_TRIADS = [
 ];
 export const QUALITY_7THS = [
   ['maj7', 'Major 7'], ['dom7', 'Dominant 7'], ['min7', 'Minor 7'], ['m7b5', 'Half-dim m7♭5'],
-  ['dim7', 'Diminished 7'], ['mMaj7', 'Minor-major 7'], ['maj7s5', 'Maj7♯5'], ['maj6', 'Major 6'], ['min6', 'Minor 6'], ['dom7s5', 'Augmented 7 (7♯5)'],
+  ['dim7', 'Diminished 7'], ['mMaj7', 'Minor-major 7'], ['maj7s5', 'Augmented major 7 (maj7♯5)'], ['dom7s5', 'Augmented 7 (7♯5)'],
+  ['maj6', 'Major 6'], ['min6', 'Minor 6'],
 ];
 export const ZONES = { '1': [1, 5], '2': [5, 9], '3': [8, 12], '4': [12, 16] };
 export const zoneP = sel('Zone', [
@@ -81,13 +82,17 @@ export const dirP = sel('Direction', [['updown', 'Up & down'], ['up', 'Up'], ['d
 export const orderP = sel('Key order', [['cycle4', 'Cycle of 4ths'], ['cycle5', 'Cycle of 5ths'], ['chromatic', 'Chromatic']]);
 
 export const SCALE_TYPE_OPTS = (list) => list.map((k) => [k, T.SCALES[k].name]);
+// scale names on badges: common nouns in lower case ("C major", "C whole tone"), names of modes
+// and of peoples/places capitalised ("C Dorian", "C Phrygian dominant", "C Hungarian minor")
 export const SHORT = {
-  ionian: 'major', aeolian: 'minor', harmonicMinor: 'harm. minor', melodicMinor: 'mel. minor',
+  ionian: 'major', aeolian: 'minor', harmonicMinor: 'harm. minor', melodicMinor: 'mel. minor', harmonicMajor: 'harm. major',
   majorPent: 'maj. pent', minorPent: 'min. pent', blues: 'blues', majorBlues: 'maj. blues',
-  dorianS4: 'Ukrainian Dorian', hungarianMinor: 'Hungarian minor', hungarianMajor: 'Hungarian major',
+  bebopDom: 'bebop dominant', bebopMajor: 'bebop major', bebopDorian: 'bebop Dorian', sixthDim: '6th diminished',
+  dimHW: 'diminished half-whole', dimWH: 'diminished whole-half', wholeTone: 'whole tone', chromatic: 'chromatic',
+  altered: 'altered', augmented: 'augmented scale', doubleHarmonic: 'double harmonic major',
   ...Object.fromEntries([1, 2, 3, 4, 5, 6, 7].map((i) => [`messiaen${i}`, `Messiaen mode ${i}`])),
 };
-export const scaleShort = (type) => SHORT[type] || T.SCALES[type].name.split(' (')[0].toLowerCase();
+export const scaleShort = (type) => SHORT[type] || T.SCALES[type].name.split(' (')[0];
 
 // ------------------------------------------------------------------ roots & zones
 
@@ -444,13 +449,17 @@ export function walkLine(b, chords, roots, formula = 'mixed', { triplets = false
       if (tok === '7' && !c.ivs.find((x) => /7$/.test(x))) tok = 'b7';
       let r = resolveToken(tok, c, roots[ci], next.root, nextMidi);
       if (r && (tok === 'A' || tok === 'Ab')) {
-        // never "approach" with the note just played: take the other side of the target
+        // never "approach" with the note just played (in any octave): take the other side of the target
         const prevMidi = items.length ? items[items.length - 1].midi : null;
         // (nor with the current chord's root, which the bar has already stated)
-        if (r.midi === prevMidi || T.mod(r.midi - roots[ci], 12) === 0) {
+        // (nor below the lowest string: then it comes from above)
+        const lowest = b.ctx.tuning[0];
+        if ((prevMidi != null && T.mod(r.midi - prevMidi, 12) === 0) || T.mod(r.midi - roots[ci], 12) === 0 || r.midi < lowest) {
           // from above (the first note of an enclosure): a whole step above instead, so the
-          // enclosure still closes in from both sides; from below: the half step above
+          // enclosure still closes in from both sides; from below: the whole step below when the
+          // note before came from above (the end of an enclosure), else the half step above
           if (tok === 'Ab') r = { midi: nextMidi + 2, n: spellMidi(nextMidi + 2, true), deg: '→' };
+          else if (prevMidi != null && prevMidi > nextMidi && nextMidi - 2 >= lowest) r = { midi: nextMidi - 2, n: spellMidi(nextMidi - 2, false), deg: '→' };
           else r = resolveToken('Ab', c, roots[ci], next.root, nextMidi);
         }
         // an approach note that is also a chord tone is spelled as that chord tone (B♭ under B♭7),

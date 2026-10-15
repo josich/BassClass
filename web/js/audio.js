@@ -22,12 +22,12 @@ window.addEventListener('bassclass-route', (e) => { opts.route = e.detail; apply
  * with the treble unchanged. Two earlier versions added synthetic harmonics instead (a waveshaper,
  * then per-note overtone voices): louder, but on a phone they sounded distorted, then harsh/synthetic.
  * The owner tuned it on a real phone and fixed it at +15 dB, the maximum (2026-10-15).
- * The Android app switches profiles when headphones or a speaker are connected; a browser
- * cannot see headphones, so there a phone or tablet always gets the phone-speaker profile.
+ * Only the Android app uses it: it knows when the phone's own speaker plays and switches when
+ * headphones or a speaker take over. A browser cannot see headphones, so there the natural sound
+ * always plays (owner's choice, 2026-10-15).
  */
 export function phoneProfile() {
-  if (opts.route) return opts.route === 'speaker';
-  return /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+  return opts.route === 'speaker';
 }
 
 function applyProfile() {

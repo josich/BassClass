@@ -134,12 +134,15 @@ function lickItems(lick, k, S, ctx, swing, { keyPcs, blue }) {
     const item = { dur: end - start, chord, text: i === 0 ? lick.name : undefined };
     if (x.rest) return { ...item, rest: true };
     const a = info[i];
-    // spell the note against its chord as in the C version; double accidentals (and awkward
-    // approach notes) get the plain enharmonic, and the ♯9 takes whichever of ♭3/♯2 reads easier
+    // spell the note against its chord as in the C version; double accidentals get the plain
+    // enharmonic, and so do C♭ F♭ E♯ B♯ on altered tensions (♭9 ♯9 ♯11 ♭13 of a dominant), blue
+    // and approach notes; the ♯9 takes whichever of ♭3/♯2 reads easier
     const iv = T.ivBetween(c.cRoot, x.n);
     let n = iv !== '?' ? T.up(c.root, iv) : plainSpelling(T.mod(T.pc(c.root) + a.s, 12), Math.sign(x.n.a) || -1);
     const core = a.ct && ['1', '3', 'b3', '5', '7', 'b7', '6'].includes(c.semis.get(a.s));
-    if ((Math.abs(n.a) > 1 && !core) || (appr[i] && awkward(n))) n = plain(n);
+    const altered = !a.ct && (appr[i] || blue || (c.fam === 'dom' && [1, 3, 6, 8].includes(a.s)));
+    const written = n;
+    if ((Math.abs(n.a) > 1 && !core) || (altered && awkward(n))) n = plain(n);
     else if (!a.ct && !appr[i] && !blue && c.fam === 'dom' && a.s === 3) {
       const alt = T.up(c.root, iv === 'b3' ? '#2' : 'b3');
       if (!awkward(alt) && (awkward(n) || Math.abs(alt.a) < Math.abs(n.a))) n = alt;
@@ -150,6 +153,13 @@ function lickItems(lick, k, S, ctx, swing, { keyPcs, blue }) {
     else if (blue && a.c.fam === 'dom' && a.s === 3) deg = '♭3';
     else if (blue && a.c.fam === 'dom' && a.s === 6) deg = '♭5';
     else deg = FAMILY_NAME[c.fam]?.[a.s] || SEMI_NAME[a.s];
+    // the tritone and the minor 6th are named the way they are spelled (D♭ over G7 is a ♭5, C♯ a ♯11);
+    // a note respelled plainly keeps its jazz name (E♭7's ♭13 written B)
+    if (n === written && !a.ct && !appr[i] && (a.s === 6 || a.s === 8)) {
+      const asWritten = T.ivBetween(c.root, n);
+      if (asWritten === 'b5') deg = '♭5';
+      else if (asWritten === '#5') deg = '♯5';
+    }
     // for the loop-around check in the template: can this note approach the next chord tone?
     const canApproach = !a.ct && !a.inKey && !NATURAL[a.c.fam].includes(a.s) && !(a.c.fam === 'dom' && (a.s === 1 || a.s === 3));
     return { ...item, midi: x.midi + d + shift, n, deg, tag: x.tag, ct: a.ct, canApproach };

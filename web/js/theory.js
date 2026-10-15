@@ -89,7 +89,7 @@ export const SCALES = {
   harmonicMinor:{ name: 'Harmonic minor', iv: ['1', '2', 'b3', '4', '5', 'b6', '7'] },
   locrianN6:    { name: 'Locrian ♮6', iv: ['1', 'b2', 'b3', '4', 'b5', '6', 'b7'] },
   ionianAug:    { name: 'Ionian ♯5', iv: ['1', '2', '3', '4', '#5', '6', '7'] },
-  dorianS4:     { name: 'Dorian ♯4 (Ukrainian Dorian)', iv: ['1', '2', 'b3', '#4', '5', '6', 'b7'] },
+  dorianS4:     { name: 'Ukrainian Dorian (Dorian ♯4)', iv: ['1', '2', 'b3', '#4', '5', '6', 'b7'] },
   phrygianDom:  { name: 'Phrygian dominant', iv: ['1', 'b2', '3', '4', '5', 'b6', 'b7'] },
   lydianS2:     { name: 'Lydian ♯2', iv: ['1', '#2', '3', '#4', '5', '6', '7'] },
   ultraLocrian: { name: 'Ultralocrian', iv: ['1', 'b2', 'b3', 'b4', 'b5', 'b6', 'bb7'] },
@@ -278,7 +278,11 @@ export const IV_OF_SEMIS = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6'
 export function bestRoot(pcv, ivs = ['1', '3', '5']) {
   // a minor scale or chord with a raised 6th/7th is named after its key signature (natural minor):
   // G♯ harmonic minor (with F𝄪), not A♭ harmonic minor
-  if (ivs.includes('b3') && ivs.includes('5') && ivs.includes('7')) ivs = ivs.map((iv) => (iv === '7' ? 'b7' : iv === '6' ? 'b6' : iv));
+  // (the augmented scale, with both 3rds, and Messiaen's 9- and 10-note modes are not minor scales;
+  // bebop Dorian, with its passing 3 and a ♭7, is)
+  const both3 = ivs.includes('3') && ivs.includes('b3');
+  const minor = ivs.includes('b3') && ivs.includes('5') && ivs.length <= 8 && (!both3 || (ivs.includes('b7') && !ivs.includes('7')));
+  if (minor && ivs.includes('7')) ivs = ivs.map((iv) => (iv === '7' ? 'b7' : iv === '6' ? 'b6' : iv));
   let best = null;
   for (let l = 0; l < 7; l++) {
     let a = mod(pcv - LETTER_PC[l], 12);
@@ -291,7 +295,6 @@ export function bestRoot(pcv, ivs = ['1', '3', '5']) {
       const t = up(root, iv);
       score += Math.abs(t.a) + (Math.abs(t.a) > 1 ? 4 : 0);
     }
-    const minor = ivs.includes('b3') && ivs.includes('5');
     if (root.a === 1) score += minor ? 0.1 : 2;
     if (!best || score < best.score - 1e-9 || (Math.abs(score - best.score) < 1e-9 && root.a < best.root.a)) best = { root, score };
   }

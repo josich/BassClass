@@ -157,7 +157,9 @@ function walkEx(id, level, formula, def, meta) {
       const keys = p.prog === 'cycle-251' ? [0] : keysFor(p.key);
       for (const k of keys) {
         const chords = progChords(p.prog, k, { S });
-        walkLine(b, chords, chordRootMidis(chords, { lo: 28, hi: 43 }), formula, { triplets: meta.triplets });
+        // enclosures need a note below every target: no target on the lowest note of the bass
+        const lo = formula === 'enclosure' ? ctx.tuning[0] + 2 : 28;
+        walkLine(b, chords, chordRootMidis(chords, { lo, hi: 43, firstLo: Math.max(28, lo) }), formula, { triplets: meta.triplets });
       }
       return b.build({ uniform: false, label: 'degree' });
     },

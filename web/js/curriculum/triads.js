@@ -1,6 +1,6 @@
 // Triads: from the first shape to triad pairs, rudiments and upper structures.
 import {
-  T, Builder, keysFor, chordTones, ARP_SHAPES, ex, variant, keyP, sel, nm, chordName, cycleRoot, QUALITY_TRIADS,
+  T, Builder, keysFor, chordTones, ARP_SHAPES, BROKEN_SHAPES, ex, variant, keyP, sel, nm, chordName, cycleRoot, QUALITY_TRIADS,
   ZONES, zoneP, rootStrP, orderP, pickRoot, zoneShape, emitShapeF, TRIAD_ORDERS, shapes, voiceLedItems,
   emitMixed, progChords, progP, diatonicStacks, scaleTone, DEG_SEQ, degSeqP, SCALE_TYPE_OPTS, spellMidi,
   shapeFingers,
@@ -22,7 +22,10 @@ export function arpBuild(p, ctx, S, { ivs, type, shape = 'updown', octaves = 1, 
     const r = pickRoot(ctx, k, { strings: many ? ['E', 'A'] : [rootStr], hi: many ? 8 : 12, prev, prefer: rootStr });
     const idxs = ARP_SHAPES[shape].f(ivs.length, octaves);
     b.chord(chordName(root, type, S));
-    b.line(chordTones(root, ivs, r.midi, idxs, inversion), { place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f } });
+    const tones = chordTones(root, ivs, r.midi, idxs, inversion);
+    // a broken chord ends on the root, held to the bar line so the next key starts on beat 1
+    if (BROKEN_SHAPES.has(shape)) tones[tones.length - 1] = { ...tones[tones.length - 1], fill: true };
+    b.line(tones, { place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f } });
     prev = r.midi;
   }
   return b;
@@ -355,9 +358,9 @@ const stringSets = ex({
 
 const diatonic = ex({
   id: 'tri-diatonic', module: M, level: 3, star: true,
-  title: 'Harmonized triads: I ii iii IV V vi vii°',
+  title: 'Harmonised triads: I ii iii IV V vi vii°',
   summary: 'Build a triad on every note of the scale. The core of harmony on the bass.',
-  about: 'Stack a 3rd and a 5th on every degree of a scale, using only notes from that scale. In major you get I (major), ii (minor), iii (minor), IV (major), V (major), vi (minor) and vii° (diminished). Play them in one position and hear how each chord sounds inside the key. Change the scale to harmonize natural minor, harmonic minor, melodic minor or any mode.',
+  about: 'Stack a 3rd and a 5th on every degree of a scale, using only notes from that scale. In major you get I (major), ii (minor), iii (minor), IV (major), V (major), vi (minor) and vii° (diminished). Play them in one position and hear how each chord sounds inside the key. Change the scale to harmonise natural minor, harmonic minor, melodic minor or any mode.',
   tips: ['Say the Roman numeral of each chord as you play it.', 'The "up one, down the next" pattern keeps the hand in one place. Try it.',
     'Then turn on 1st or 2nd inversion: same chords, new shapes.'],
   source: 'Berklee PULSE, Berklee Online Bass 101, StudyBass Fundamentals 3, Ariane Cap Music Theory for the Bass Player',
@@ -375,15 +378,15 @@ const diatonic = ex({
 
 const diatonicMinor = variant(diatonic, {
   id: 'tri-diatonic-minor', level: 4,
-  title: 'Harmonized triads in minor scales',
+  title: 'Harmonised triads in minor scales',
   summary: 'Natural, harmonic and melodic minor: where the V chord becomes major and the augmented triad appears.',
-  about: 'Harmonize the three minor scales. Natural minor gives i ii° III iv v VI VII. Harmonic minor raises the 7th, so V becomes major and III becomes augmented. Melodic minor also raises the 6th, giving i ii III+ IV V vi° vii°. These chords are behind most minor-key music and jazz.',
+  about: 'Harmonise the three minor scales. Natural minor gives i ii° III iv v VI VII. Harmonic minor raises the 7th, so V becomes major and III becomes augmented. Melodic minor also raises the 6th, giving i ii III+ IV V vi° vii°. These chords are behind most minor-key music and jazz.',
   defaults: { scale: 'harmonicMinor' }, only: { scale: ['aeolian', 'harmonicMinor', 'melodicMinor'] },
 });
 
 const diatonicInv = variant(diatonic, {
   id: 'tri-diatonic-inversions', level: 4,
-  title: 'Harmonized triads in inversions',
+  title: 'Harmonised triads in inversions',
   summary: 'The same diatonic chords starting from the 3rd or the 5th.',
   about: 'Play every diatonic triad in 1st inversion (3-5-R) or 2nd inversion (5-R-3). You get new shapes and new lines, and these are the inversions that make bass lines move smoothly.',
   defaults: { inversion: '1', pattern: 'turn' },
@@ -399,9 +402,9 @@ const diatonic4ths = variant(diatonic, {
 
 const diatonicModes = variant(diatonic, {
   id: 'tri-diatonic-modes', level: 5,
-  title: 'Harmonized triads in all scales & modes',
+  title: 'Harmonised triads in all scales & modes',
   summary: 'Melodic and harmonic minor modes, Phrygian dominant, Lydian dominant, altered…',
-  about: 'Any 7-note scale can be harmonized. Exotic scales produce exotic chord sets: Lydian dominant contains a major II, the altered scale is full of diminished and augmented triads, and Phrygian dominant has a major I with a major ♭II above it. Use this to hear and own the chords behind modern jazz and film-music colours.',
+  about: 'Any 7-note scale can be harmonised. Unusual scales produce unusual chord sets: Lydian dominant contains a major II, the altered scale is full of diminished and augmented triads, and Phrygian dominant has a major I with a major ♭II above it. Use this to hear and own the chords behind modern jazz and film-music colours.',
   params: { ...diatonic.params, scale: sel('Scale', SCALE_TYPE_OPTS(SCALES_ALL7), 'lydianDom') },
 });
 
@@ -418,7 +421,7 @@ const openTriads = variant(diatonic, {
   id: 'tri-open-spread', level: 4,
   title: 'Open (spread) triads R-5-10',
   summary: 'Root, 5th and 10th: the big, open sound of piano left hands and chordal bass.',
-  about: 'Move the 3rd up an octave and you get the open voicing R-5-10. It spans a wide interval and crosses strings, so your hand learns to leap. Play it through the harmonized scale for a full, orchestral sound.',
+  about: 'Move the 3rd up an octave and you get the open voicing R-5-10. It spans a wide interval and crosses strings, so your hand learns to leap. Play it through the harmonised scale for a full, orchestral sound.',
   defaults: { stack: 'spread', pattern: 'up', root: 'E' },
 });
 
@@ -557,7 +560,7 @@ const PERMS = { '012': '1-3-5', '021': '1-5-3', '102': '3-1-5', '120': '3-5-1', 
 const permutations = ex({
   id: 'tri-permutations', module: M, level: 5,
   title: 'Triad permutations (all 6 orders)',
-  summary: '1-3-5, 1-5-3, 3-1-5, 3-5-1, 5-1-3, 5-3-1 through the harmonized scale.',
+  summary: '1-3-5, 1-5-3, 3-1-5, 3-5-1, 5-1-3, 5-3-1 through the harmonised scale.',
   about: 'Three notes can be played in six orders. Each order is a different melodic shape and a different fingering challenge. Running them through the diatonic chords breaks the habit of always going up from the root, and gives you a stock of melodic cells for fills and solos.',
   tips: ['"Rotate" uses a new permutation on every chord: hard and very musical.', 'Group the 3-note cells in 16ths to get a built-in rhythmic displacement.'],
   source: 'Common mastery practice (Bass Fitness / Nitti permutation approach applied to triads)',
@@ -725,7 +728,7 @@ const coltrane = ex({
 
 const diatonicAllKeys = variant(diatonic, {
   id: 'tri-diatonic-all-keys', level: 6,
-  title: 'Harmonized triads in all 12 keys, in inversions',
+  title: 'Harmonised triads in all 12 keys, in inversions',
   summary: 'Diatonic triads, alternating directions, in 1st inversion, around the cycle without stopping.',
   about: 'The full diatonic-triad drill as a mastery test: every key around the cycle of 4ths, chords alternating up and down, in inversion. Change the inversion and scale to multiply it: 3 inversions × 9 scales × 12 keys. When this flows at 100 BPM in 8th-note triplets, you know triads on the bass.',
   defaults: { key: 'cycle4', pattern: 'alt', inversion: '1' }, bpm: 66,
@@ -734,7 +737,7 @@ const diatonicAllKeys = variant(diatonic, {
 const rudimentsAllKeys = variant(rudiments, {
   id: 'tri-rudiments-all-keys', level: 6,
   title: 'Triad rudiments in all 12 keys',
-  summary: 'Paradiddles, doubles and rolls on the harmonized scale of every key.',
+  summary: 'Paradiddles, doubles and rolls on the harmonised scale of every key.',
   about: 'Take the triad rudiments around the cycle of 4ths. Technique, rhythm and harmony are all stressed at once and you cannot coast on muscle memory. Use the speed trainer and aim for 16ths at 90 BPM.',
   defaults: { key: 'cycle4', rudiment: 'paradiddle' }, bpm: 60,
 });

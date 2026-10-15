@@ -17,7 +17,7 @@ const buildChord = ex({
   params: { key: keyP(T.SCALES.ionian.iv), scale: sel('Scale', [['ionian', 'Major'], ['aeolian', 'Natural minor']]), root: rootStrP('A') },
   bpm: 66, sub: 2, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S, { jazz: true });
+    const b = new Builder(ctx, S);
     for (const k of keysFor(p.key)) {
       const tonic = T.bestRoot(k, T.SCALES[p.scale].iv);
       const r = pickRoot(ctx, k, { strings: [p.root, 'A', 'E'], hi: 9, prefer: p.root });
@@ -42,7 +42,7 @@ const thirdQuality = ex({
   params: { key: keyP(T.SCALES.ionian.iv), scale: sel('Scale', [['ionian', 'Major'], ['aeolian', 'Natural minor'], ['harmonicMinor', 'Harmonic minor']]) },
   bpm: 72, sub: 2, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S, { jazz: true });
+    const b = new Builder(ctx, S);
     for (const k of keysFor(p.key)) {
       const tonic = T.bestRoot(k, T.SCALES[p.scale].iv);
       const r = pickRoot(ctx, k, { strings: ['A', 'E'], hi: 8, prefer: 'A' });

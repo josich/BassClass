@@ -202,7 +202,8 @@ export function moduleScreen(main, id) {
 // ---------------------------------------------------------------- library: every exercise at one sight, with search
 function levelSections() {
   return LEVELS.flatMap((L) => {
-    const list = byLevel(L.n).sort((a, b) => a.num - b.num);
+    // inside a level: the path's topic order (hands and time first), then by number
+    const list = byLevel(L.n).sort((a, b) => rank(a.module) - rank(b.module) || a.num - b.num);
     if (!list.length) return [];
     const done = list.filter((t) => (getProgress(t.id) || {}).done).length;
     return [
@@ -213,13 +214,17 @@ function levelSections() {
 }
 
 export function libraryScreen(main, params = {}) {
-  const search = h('input', { class: 'search', type: 'search', placeholder: 'Search: triad, ii-V, 42…', 'aria-label': 'Search exercises' });
+  // the search text belongs to this history entry, so Back from an exercise finds it again
+  const search = h('input', { class: 'search', type: 'search', placeholder: 'Search: triad, ii-V, 42…', 'aria-label': 'Search exercises', value: history.state?.q || '' });
   const results = h('div');
   // jump to a level (the page lists every exercise)
   const jump = (n) => main.querySelector(`#lv-${n}`)?.scrollIntoView({ block: 'start' });
   const jumps = h('div', { class: 'tabs lv-jump' }, LEVELS.map((L) => h('button', { title: L.name, onClick: () => jump(L.n) }, `L${L.n}`)));
-  // "ii-V" must find "ii–V": every kind of dash counts as a hyphen
-  const norm = (x) => x.toLowerCase().replace(/[\u2010-\u2015\u2212]/g, '-');
+  // "ii-V" must find "ii–V" (every kind of dash counts as a hyphen), "7#5" and "dorian b5" find
+  // 7♯5 and Dorian ♭5 (phone keyboards have no ♯ or ♭), "harmonized" finds "harmonised"
+  const norm = (x) => x.toLowerCase().replace(/[\u2010-\u2015\u2212]/g, '-').replace(/♯/g, '#').replace(/♭/g, 'b').replace(/iz(e|ed|es|ing)\b/g, 'is$1');
+  // option names count too ("spanish" finds the world scales, "augmented 7" the arpeggio study)
+  const optionText = (t) => Object.values(t.params || {}).flatMap((d) => (d.kind === 'select' ? d.options.map((o) => o[1]) : [])).join(' ');
   const render = () => {
     const q = norm(search.value.trim());
     jumps.hidden = !!q;
@@ -228,14 +233,17 @@ export function libraryScreen(main, params = {}) {
     const num = q.match(/^#?(\d+)$/);
     const words = q.split(/\s+/);
     const list = num ? [byNumber.get(Number(num[1]))].filter(Boolean) : EXERCISES.filter((t) => {
-      const hay = norm(`${t.title} ${t.summary} ${t.about} ${t.module}`);
+      const hay = norm(`${t.title} ${t.summary} ${t.about} ${t.module} ${optionText(t)}`);
       return words.every((w) => hay.includes(w));
     }).sort((a, b) => a.num - b.num);
     results.replaceChildren(list.length
       ? h('div', {}, h('p', { class: 'muted small' }, `${list.length} exercise${list.length > 1 ? 's' : ''} found`), h('div', { class: 'grid' }, list.map(card)))
       : h('p', { class: 'muted' }, 'Nothing found.'));
   };
-  search.addEventListener('input', render);
+  search.addEventListener('input', () => {
+    try { history.replaceState({ ...(history.state || {}), q: search.value }, ''); } catch { /* ignore */ }
+    render();
+  });
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('h1', {}, 'Library'), h('span', { class: 'muted' }, `All ${EXERCISES.length} exercises, from level 1 to 6.`), h('div', { class: 'grow' }), search),
     jumps,

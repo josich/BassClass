@@ -399,7 +399,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     drawer.innerHTML = `
       <header><h2>${tpl.num} · ${esc(tpl.title)}</h2><button class="icon-btn" data-close aria-label="Close">${icon('close')}</button></header>
       <div class="body">
-        <div class="row" style="margin-bottom:10px"><span class="chip">Exercise ${tpl.num}</span><span class="chip lv lv${tpl.level}">Level ${tpl.level} · ${esc(lvl?.name ?? '')}</span><span class="chip">${esc(mod?.name ?? '')}</span></div>
+        <div class="row" style="margin-bottom:10px"><span class="chip lv lv${tpl.level}">Level ${tpl.level} · ${esc(lvl?.name ?? '')}</span><span class="chip">${esc(mod?.name ?? '')}</span></div>
         ${(tpl.about || '').split('\n\n').map((para) => `<p>${esc(para)}</p>`).join('')}
         ${tpl.tips?.length ? `<h4>Focus points</h4><ul>${tpl.tips.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
         <h4>How to practise it</h4>

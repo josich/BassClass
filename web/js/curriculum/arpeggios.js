@@ -23,7 +23,7 @@ const qualities = ex({
   params: { key: keyP(['1', '3', '5', '7']), root: rootStrP('A') },
   bpm: 70, sub: 4, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S, { jazz: true });
+    const b = new Builder(ctx, S);
     let prev = null;
     for (const k of keysFor(p.key)) {
       const root = T.bestRoot(k, ['1', '3', '5', '7']);
@@ -49,7 +49,8 @@ const study = ex({
   params: { quality: sel('Chord', QUALITY_7THS), key: keyP(['1', '3', '5', '7']), shape: shapeP(['updown', 'up', 'down', 'downup', 'doubled', 'broken'], 'updown'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]), root: rootStrP('A') },
   bpm: 72, sub: 4, label: 'degree',
   build(p, ctx, S) {
-    return arpBuild(p, ctx, S, { ivs: ivsOf(p.quality), type: p.quality, shape: p.shape, octaves: Number(p.oct), rootStr: Number(p.oct) > 1 ? 'E' : p.root }).build({ label: 'degree' });
+    // two octaves always start on the E string (the "Root on" choice applies to one octave)
+    return arpBuild(p, ctx, S, { ivs: ivsOf(p.quality), type: p.quality, shape: p.shape, octaves: Number(p.oct), rootStr: Number(p.oct) > 1 ? 'E' : p.root }).build({ label: 'degree', fixed: Number(p.oct) > 1 ? { root: 'E string (2 octaves start low)' } : {} });
   },
 });
 
@@ -65,7 +66,7 @@ const SCALES7 = ['ionian', 'aeolian', 'harmonicMinor', 'melodicMinor', 'dorian',
 const diatonic7 = ex({
   id: 'arp-diatonic-7ths', module: M, level: 3, star: true,
   title: 'Diatonic 7th arpeggios: Imaj7 ii7 iii7 IVmaj7 V7 vi7 viiø7',
-  summary: 'The harmonized scale in 7th chords: the vocabulary of jazz, soul and pop.',
+  summary: 'The harmonised scale in 7th chords: the vocabulary of jazz, soul and pop.',
   about: 'Stack four notes in thirds on each degree of the scale. In major you get Imaj7, iim7, iiim7, IVmaj7, V7, vim7 and viiø7. Every jazz standard and most soul and pop songs use these chords. Learn them in one position first, then in inversions and in every key.',
   tips: ['"Up one, down the next" keeps you in position and sounds musical.', 'Inversions: start each chord from its 3rd, 5th or 7th (Berklee level exams).'],
   source: 'Berklee PULSE & "Chord Studies for Electric Bass"; MI; LCM; StudyBass',
@@ -98,7 +99,7 @@ const zoneCycle7 = ex({
   params: { quality: sel('Chord', QUALITY_7THS.slice(0, 5)), zone: zoneP, order: orderP, pattern: orderP7(['up', 'alt', 'updown'], 'up') },
   bpm: 76, sub: 4, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S, { jazz: true });
+    const b = new Builder(ctx, S);
     const ivs = ivsOf(p.quality);
     const zone = ZONES[p.zone];
     let prev = null;
@@ -135,7 +136,7 @@ const inversions = ex({
   params: { quality: sel('Chord', QUALITY_7THS.slice(0, 5)), key: keyP(['1', '3', '5', '7']) },
   bpm: 72, sub: 4, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S, { jazz: true });
+    const b = new Builder(ctx, S);
     const ivs = ivsOf(p.quality);
     let prev = null;
     for (const k of keysFor(p.key)) {
@@ -313,14 +314,14 @@ const COMPOUND = { '2': '9', 'b2': '♭9', '#2': '♯9', '4': '11', '#4': '♯11
 const extended = ex({
   id: 'arp-extended', module: M, level: 5,
   title: 'Extended arpeggios: 9ths, 11ths, 13ths',
-  summary: 'Keep stacking 3rds past the 7th, through the harmonized scale.',
-  about: 'Above the 7th the stack continues: 9, 11, 13. Through the harmonized scale this gives maj9, m9, m11, dominant 13 and other colours. These arpeggios cover two octaves and are a great reach and shifting workout, and they reveal the tensions behind jazz and neo-soul chords.',
+  summary: 'Keep stacking 3rds past the 7th, through the harmonised scale.',
+  about: 'Above the 7th the stack continues: 9, 11, 13. Through the harmonised scale this gives maj9, m9, m11, dominant 13 and other colours. These arpeggios cover two octaves and are a great reach and shifting workout, and they reveal the tensions behind jazz and neo-soul chords.',
   tips: ['The 9 is the 2nd an octave up, the 11 is the 4th, the 13 is the 6th.', 'Watch out for the "avoid note" 11 on major chords: hear the clash.'],
   source: 'RSL Grade 7 (9ths), LCM Grade 8 (11ths/13ths); TalkingBass Chord Tone Essentials',
   params: { key: keyP(T.SCALES.ionian.iv), ext: sel('Up to', [['9', '9ths'], ['11', '11ths'], ['13', '13ths']]), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'dorian', 'melodicMinor'])), order: sel('Chords', [['up', 'I → I'], ['fourths', 'In 4ths']]) },
   bpm: 72, sub: 4, label: 'degree',
   build(p, ctx, S) {
-    const b = new Builder(ctx, S, { jazz: true });
+    const b = new Builder(ctx, S);
     let prev = null;
     for (const k of keysFor(p.key)) {
       const tonic = T.bestRoot(k, T.SCALES[p.scale].iv);
@@ -352,7 +353,7 @@ const upper = ex({
   id: 'arp-upper-structure', module: M, level: 5,
   title: 'Upper-structure arpeggios (3-5-7-9)',
   summary: 'Start each chord on its 3rd: Em7 over Cmaj7 gives Cmaj9. Instant sophistication.',
-  about: 'Playing the arpeggio that starts on the 3rd of a chord (3-5-7-9) gives you its upper structure: over Cmaj7 you play Em7 and hear Cmaj9. Through the harmonized scale this is a quick way to sound modern, and it trains you to think of chords as layers.',
+  about: 'Playing the arpeggio that starts on the 3rd of a chord (3-5-7-9) gives you its upper structure: over Cmaj7 you play Em7 and hear Cmaj9. Through the harmonised scale this is a quick way to sound modern, and it trains you to think of chords as layers.',
   tips: ['Compare: play R-3-5-7, then 3-5-7-9 on the same chord.', 'Works great over a pedal note (open string).'],
   source: 'Jazz superimposition (Mark Levine, Berklee); Gwizdala',
   params: { key: keyP(T.SCALES.ionian.iv), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'dorian'])), pattern: orderP7(['up', 'alt'], 'alt') },
@@ -382,7 +383,7 @@ const PERM7 = { '0213': '1-5-3-7', '1032': '3-1-7-5', '3210': '7-5-3-1', '2031':
 const perms7 = ex({
   id: 'arp-permutations', module: M, level: 5,
   title: '7th chord permutations',
-  summary: '1-5-3-7, 3-1-7-5, 7-5-3-1… through the harmonized scale.',
+  summary: '1-5-3-7, 3-1-7-5, 7-5-3-1… through the harmonised scale.',
   about: 'Reordering the four chord tones creates new melodic shapes with wider intervals. Run them through the diatonic 7th chords to break out of "always up from the root" and to build the vocabulary that makes lines sound composed.',
   tips: ['"Rotate" changes the permutation on every chord.', 'These cells are great as 16th-note fills.'],
   source: 'Common mastery practice; bebop vocabulary',
@@ -451,7 +452,7 @@ const altered = ex({
 const diatonic7AllKeys = variant(diatonic7, {
   id: 'arp-diatonic-all-keys', level: 6,
   title: 'Diatonic 7ths in all 12 keys (up one, down the next)',
-  summary: 'The harmonized scale in 7th chords through the whole cycle, alternating directions.',
+  summary: 'The harmonised scale in 7th chords through the whole cycle, alternating directions.',
   about: 'Every diatonic 7th chord of every key, without stopping: Imaj7 up, iim7 down, iiim7 up… then the next key in the cycle. Switch inversions and scales (harmonic and melodic minor) for a complete conservatory-level workout.',
   defaults: { key: 'cycle4', pattern: 'alt' }, bpm: 66,
 });
@@ -463,14 +464,14 @@ const BROKEN_CHORDS = [
 const broken = ex({
   id: 'arp-broken', module: M, level: 3,
   title: 'Broken chords: every triad and 7th',
-  summary: '1-3-5-3, 3-5-8-5, 5-8-10-8…: the chord climbs through its inversions in small cells.',
-  about: 'A broken chord plays the chord tones in small cells instead of straight up and down: 1-3-5-3, then the same cell from the 3rd (3-5-8-5), from the 5th, and so on to the top, then back down. It is the classical form of the arpeggio and teaches you to start a chord from any of its notes. Choose any triad or 7th: major, minor, diminished, augmented, maj7, dominant 7, m7, m7♭5, °7, m(maj7), maj7♯5 and 7♯5.',
+  summary: 'The chord climbs through its inversions in small cells: 1-3-5-3, 3-5-8-5… (triads), 1-3-5-3, 3-5-7-5… (7ths).',
+  about: 'A broken chord plays the chord tones in small cells instead of straight up and down: 1-3-5-3, then the same cell from the next chord tone (3-5-8-5 on a triad, 3-5-7-5 on a 7th chord), and so on up to the top note, then back down to the root. It is a classic arpeggio study and teaches you to start a chord from any of its notes. Choose any triad or 7th: major, minor, diminished, augmented, major 7, dominant 7, minor 7, half-diminished, diminished 7, minor-major 7, augmented major 7 and augmented 7.',
   tips: ['Say the degree of the first note of each cell: R, 3, 5, 7…', 'Keep the cells even: the turn back (the 4th note) is the one that tends to rush.'],
   source: 'Classical broken-chord studies (ABRSM piano grades); RSL and LCM arpeggio requirements',
   params: { quality: sel('Chord', BROKEN_CHORDS), key: keyP(['1', '3', '5']), shape: shapeP(['broken', 'broken535', 'broken4'], 'broken'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]), root: rootStrP('A') },
   bpm: 66, sub: 4, label: 'degree',
   build(p, ctx, S) {
-    return arpBuild(p, ctx, S, { ivs: ivsOf(p.quality), type: p.quality, shape: p.shape, octaves: Number(p.oct), rootStr: Number(p.oct) > 1 ? 'E' : p.root }).build({ label: 'degree' });
+    return arpBuild(p, ctx, S, { ivs: ivsOf(p.quality), type: p.quality, shape: p.shape, octaves: Number(p.oct), rootStr: Number(p.oct) > 1 ? 'E' : p.root }).build({ label: 'degree', fixed: Number(p.oct) > 1 ? { root: 'E string (2 octaves start low)' } : {} });
   },
 });
 

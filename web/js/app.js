@@ -43,6 +43,7 @@ function trackDepth() {
 // (e.g. Level 3 of the Library after opening an exercise from there).
 const scrollMem = new Map();
 let scrollKey = null;
+let curMain = null;
 const back = () => (depth > 0 ? history.back() : go('#/'));
 
 function shell(navKey) {
@@ -51,11 +52,14 @@ function shell(navKey) {
     NAV.map(([k, href, label]) => h('a', { href, class: k === navKey ? 'on' : '', html: `${icon(k)}<span>${label}</span>` })));
   const main = h('main', { class: 'main' });
   main.addEventListener('scroll', () => { if (scrollKey) scrollMem.set(scrollKey, main.scrollTop); }, { passive: true });
+  curMain = main;
   app.replaceChildren(rail, main);
   return main;
 }
 
 function route() {
+  // remember where the screen being left was scrolled (scroll events can lag behind)
+  if (scrollKey && curMain?.isConnected) scrollMem.set(scrollKey, curMain.scrollTop);
   const returning = trackDepth();
   scrollKey = null;
   active?.dispose?.();
@@ -96,6 +100,13 @@ function route() {
     }
     return;
   }
+  // an exercise number this version does not have (e.g. a link from a newer version)
+  if (parts[0] === 'ex') {
+    toast(/^\d+$/.test(parts[1] || '') ? `Exercise ${Number(parts[1])} is not in this version of BassClass` : 'This exercise does not exist');
+    replacing = true;
+    location.replace('#/');
+    return;
+  }
   // the daily warm-up lives on Home; topics (#/m/...) belong to the Path
   const key = { '': 'home', path: 'path', library: 'library', m: 'path', explorer: 'explorer', tuner: 'tuner', settings: 'settings' }[parts[0] || ''] || 'home';
   const main = shell(key);
@@ -108,7 +119,9 @@ function route() {
   else homeScreen(main);
   scrollKey = `${depth}|${hash}`;
   const y = returning ? scrollMem.get(scrollKey) : 0;
-  if (y) requestAnimationFrame(() => { main.scrollTop = y; });
+  // restore at once (the page is already rendered), and again after the first frame in case
+  // something still changes the height
+  if (y) { main.scrollTop = y; requestAnimationFrame(() => { main.scrollTop = y; }); }
 }
 
 window.addEventListener('hashchange', route);
