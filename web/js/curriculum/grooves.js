@@ -154,10 +154,10 @@ const funkChanges = grooveEx('gr-funk-changes', 5, ['funk16', 'funkOct'], 'funkO
 funkChanges.params.prog.default = 'blues';
 
 const ODD = {
-  54: { name: '5/4 (3+2)', bpb: 5, bar: [['R', 1.5], ['5', 0.5], ['8', 1], ['R', 1], ['b7', 1]] },
-  78: { name: '7/8 (2+2+3)', bpb: 7, bar: [['R', 2], ['5', 1], ['8', 1], ['R', 1], ['b7', 1], ['5', 1]] },
-  74: { name: '7/4 (4+3)', bpb: 7, bar: [['R', 1], ['R', 1], ['5', 1], ['8', 1], ['R', 1], ['b7', 1], ['5', 1]] },
-  68: { name: '6/8 (two groups of 3)', bpb: 6, bar: [['R', 1], ['5', 1], ['8', 1], ['R', 1], ['5', 1], ['b3', 1]] },
+  54: { name: '5/4 (3+2)', bpb: 5, ts: [5, 4], bar: [['R', 1.5], ['5', 0.5], ['8', 1], ['R', 1], ['b7', 1]] },
+  78: { name: '7/8 (2+2+3)', bpb: 7, ts: [7, 8], groups: [2, 2, 3], bar: [['R', 2], ['5', 1], ['8', 1], ['R', 1], ['b7', 1], ['5', 1]] },
+  74: { name: '7/4 (4+3)', bpb: 7, ts: [7, 4], bar: [['R', 1], ['R', 1], ['5', 1], ['8', 1], ['R', 1], ['b7', 1], ['5', 1]] },
+  68: { name: '6/8 (two groups of 3)', bpb: 6, ts: [6, 8], bar: [['R', 1], ['5', 1], ['8', 1], ['R', 1], ['5', 1], ['b3', 1]] },
 };
 const oddGroove = ex({
   id: 'gr-odd-meters', module: G, level: 4,
@@ -174,7 +174,7 @@ const oddGroove = ex({
     const chords = progChords('vamp-min', Number(p.key), { S }).map((c) => ({ ...c, beats: o.bpb * 4 }));
     grooveLine(b, chords, chordRootMidis(chords), [o.bar], { place: { open: 'allow' } });
     b.steps.forEach((st, i) => { if (i % o.bar.length === 0) st.accent = true; });
-    return b.build({ uniform: false, label: 'degree', beatsPerBar: o.bpb });
+    return b.build({ uniform: false, label: 'degree', beatsPerBar: o.bpb, timeSig: o.ts, groups: o.groups || null });
   },
 });
 

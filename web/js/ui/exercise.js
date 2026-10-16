@@ -303,7 +303,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
       if (!was || RANK[state] >= RANK[was.state]) map.set(k, mkDot(n, state));
     };
     if (i < 0) {
-      if (reveal === 'full') for (let j = 0; j <= (segEnd[0] ?? 0); j++) for (const n of steps[j].notes) put(n, 'future');
+      if (reveal === 'full') for (let j = 0; j <= (segEnd[0] ?? 0); j++) if (!steps[j].silent) for (const n of steps[j].notes) put(n, 'future');
       if (reveal !== 'quiz') for (const n of steps[0].notes) put(n, 'next');
       nowEl.innerHTML = chordAt[0] ? `<span class="chord">${esc(chordAt[0])}</span>${textAt[0] ? `<span class="txt">${esc(textAt[0])}</span>` : ''}<span class="cnt">ready · ${steps.length} notes</span>` : `<span class="cnt">ready · ${steps.length} notes</span>`;
       promptEl.innerHTML = reveal === 'quiz' ? promptHtml(0) : '';
@@ -312,7 +312,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
       return;
     }
     const s0 = segStart[i], s1 = segEnd[i];
-    if (reveal === 'full') for (let j = s0; j <= s1; j++) for (const n of steps[j].notes) put(n, 'future');
+    // (an ear-training answer is never part of the shown shape before its turn)
+    if (reveal === 'full') for (let j = s0; j <= s1; j++) if (!steps[j].silent || j === i) for (const n of steps[j].notes) put(n, 'future');
     if (reveal !== 'quiz') for (let j = Math.max(s0, i - TRAIL); j < i; j++) for (const n of steps[j].notes) put(n, 'past');
     const nx = i + 1 < steps.length ? i + 1 : (player.loop ? 0 : -1);
     // (never preview an ear-training answer)
@@ -327,7 +328,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
 
   function promptHtml(j) {
     const st = inst.steps[j];
-    if (!st || !st.notes.length || st.hide || st.silent) return '';
+    // (Reading: the staff is the only clue; ear training: never the answer)
+    if (!st || !st.notes.length || st.hide || st.silent || inst.noPrompt) return '';
     return `next <b>${st.notes.map((n) => esc(T.noteName(n.n, S.notation))).join(' + ')}</b>`;
   }
 
@@ -367,11 +369,13 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     saveSettings({ backing: order[(order.indexOf(S.backing) + 1) % order.length] });
     applyBacking();
     syncToggles();
-    if (S.backing !== 'off' && !player.harmony?.some(Boolean)) toast('This exercise has no chords or scales to back');
+    if (S.backing !== 'off' && !player.harmony?.some(Boolean)) toast('This exercise has no chords or scales to back: the backing plays where there are');
   }
   /** Backing pad: the harmony of each part of the exercise (see harmony.js). */
+  // backing belongs to music with harmony: not to hand, time, note-finding, interval or ear drills
+  const BACKS = !['technique', 'rhythm', 'fretboard', 'intervals', 'ear'].includes(tpl.module);
   function applyBacking() {
-    player.harmony = S.backing === 'off' ? null : harmonyTrack(inst, S.backing);
+    player.harmony = S.backing === 'off' || !BACKS ? null : harmonyTrack(inst, S.backing);
     if (!player.playing) return;
     const hm = player.harmony && harmonyAt(player.harmony, Math.max(0, cur));
     if (hm) A.padSet(hm, A.now() + 0.02); else A.padStop();

@@ -68,8 +68,9 @@ export function keySignature(tonic, minor = false) {
   return notes.reduce((s, n) => s + Math.sign(n.a), 0);
 }
 
+// no note names on screen: the staff is the only clue (the dot shows its name once it sounds)
 const common = {
-  module: M, reveal: 'quiz', view: 'staff', label: 'note', sub: 1,
+  module: M, reveal: 'quiz', view: 'staff', label: 'none', sub: 1,
 };
 
 const naturals = ex({
@@ -88,7 +89,7 @@ const naturals = ex({
     const notes = pool(ctx, 0, 3, (m) => (m >= lo && m <= hi && NAT[T.mod(m, 12)] ? T.N(NAT[T.mod(m, 12)]) : null));
     b.chord('First position');
     b.line(randomNotes(notes, 16).map((q) => ({ midi: q.midi, n: q.n, deg: '' })), { place: { region: [0, 3], open: 'allow' } });
-    return b.build({ uniform: false, label: 'note', reveal: 'quiz', view: 'staff' });
+    return b.build({ uniform: false, label: 'none', reveal: 'quiz', view: 'staff', noPrompt: true });
   },
 });
 
@@ -108,7 +109,7 @@ const accidentals = ex({
     const notes = pool(ctx, 0, 4, (m) => (m >= lo && m <= hi ? (NAT[T.mod(m, 12)] ? T.N(NAT[T.mod(m, 12)]) : spellMidi(m, Math.random() < 0.5)) : null));
     b.chord('First position');
     b.line(randomNotes(notes, 16).map((q) => ({ midi: q.midi, n: q.n, deg: '' })), { place: { region: [0, 4], open: 'allow' } });
-    return b.build({ uniform: false, label: 'note', reveal: 'quiz', view: 'staff' });
+    return b.build({ uniform: false, label: 'none', reveal: 'quiz', view: 'staff', noPrompt: true });
   },
 });
 
@@ -123,7 +124,7 @@ function keyMelody(ctx, S, tonicPc, lo, hi, { minor = false } = {}) {
   const line = melody(notes, tonicPc).map((q) => ({ midi: q.midi, n: q.n, deg: T.fmtDeg(T.ivBetween(tonic, q.n)), dur: q.dur }));
   b.chord(`${nm(tonic, S)} ${minor ? 'minor' : 'major'}`);
   b.line(line, { place: { region: [lo, hi], open: lo === 0 ? 'allow' : 'avoid' } });
-  return b.build({ uniform: false, label: 'note', reveal: 'quiz', view: 'staff', keySig: keySignature(tonic, minor) });
+  return b.build({ uniform: false, label: 'none', reveal: 'quiz', view: 'staff', noPrompt: true, keySig: keySignature(tonic, minor) });
 }
 
 const melodies = ex({

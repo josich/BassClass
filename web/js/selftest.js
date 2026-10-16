@@ -50,6 +50,8 @@ export function run({ strings = [4, 5, 6], verbose = false } = {}) {
         if (!inst.steps?.length) { problems.push(`${t.id} [${st}str] ${JSON.stringify(p)} empty`); continue; }
         inst.steps.forEach((step, i) => {
           if (!(step.dur > 0)) problems.push(`${t.id} step ${i} bad dur ${step.dur}`);
+          // a chord can only be played with one note per string
+          if (step.notes.length > 1 && new Set(step.notes.map((n) => n.s)).size < step.notes.length) problems.push(`${t.id} [${st}str] ${JSON.stringify(p)} step ${i}: two notes on one string`);
           for (const n of step.notes) {
             notes++;
             const where = `${t.id} [${st}str] ${JSON.stringify(p)} step ${i}`;

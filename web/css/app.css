@@ -151,6 +151,8 @@ input[type=range] { accent-color: var(--accent); width: 100%; }
 .exv > * { min-width: 0; }
 .exv-stage { position: relative; min-height: 0; display: flex; flex-direction: column; }
 .exv-board { flex: 1; min-height: 120px; position: relative; }
+/* short landscape phones: the neck gives way so the strip (tab or staff) stays above the controls */
+@media (max-height: 330px) { .exv-board { min-height: 78px; } }
 .fb-host { position: absolute; inset: 24px 6px 0 6px; }
 .exv-now { position: absolute; left: 40px; top: 2px; display: flex; gap: 8px; align-items: center; pointer-events: none; z-index: 2; }
 .exv-now .chord { font-size: 20px; font-weight: 800; color: var(--text); text-shadow: 0 1px 4px #000; }
@@ -256,16 +258,22 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .tbg { fill: var(--panel); }
 .tcur { fill: rgba(70, 201, 162, 0.18); }
 .tchord { fill: var(--accent); font-weight: 800; font-size: 11px; }
-/* staff (bass clef) view of the strip */
-.staff .shead { fill: var(--text); }
-.staff .shead.open { fill: none; stroke: var(--text); stroke-width: 1.4; }
-.staff .shead.acc { fill: var(--accent); }
-.staff .shead.x { fill: var(--muted); font: 700 11px system-ui, sans-serif; }
-.staff .sstem, .staff .sflag { stroke: var(--text); stroke-width: 1.2; fill: none; }
-.staff .sacc { fill: var(--text); font: 600 11px system-ui, sans-serif; }
-.staff .s8va { fill: var(--muted); font: italic 600 9px system-ui, sans-serif; }
-.staff .clef { stroke: var(--text); stroke-width: 2.4; fill: none; stroke-linecap: round; }
-.staff .clefdot, .staff .srest { fill: var(--text); }
+/* staff (bass clef) view of the strip: engraved like the Polyrhythm app's notation (see views/staff.js) */
+.staff .sln { stroke: #59607a; stroke-width: 1; }
+.staff .sld, .staff .sbl { stroke: #59607a; stroke-width: 1.1; }
+.staff .shf, .staff .sfl, .staff .sbm, .staff .srf, .staff .sclf, .staff .sacf { fill: var(--text); }
+.staff .sho { fill: none; stroke: var(--text); }
+.staff .sst, .staff .sac { stroke: var(--text); fill: none; }
+.staff .sx { stroke: var(--text); stroke-width: 1.4; stroke-linecap: round; }
+.staff .sdia { fill: none; stroke: var(--text); stroke-width: 1.4; }
+.staff .sq { fill: none; stroke: var(--text); stroke-linejoin: round; stroke-linecap: round; }
+.staff .stie { fill: none; stroke: var(--text); stroke-width: 1.2; }
+.staff .stn { font: italic 700 10px Georgia, 'Times New Roman', serif; fill: var(--text); text-anchor: middle; }
+.staff .stb { fill: none; stroke: var(--muted); stroke-width: 1; }
+.staff .sts { font-family: Georgia, 'Times New Roman', serif; font-weight: 800; fill: var(--text); text-anchor: middle; }
+.staff .s8 { font: italic 700 9px Georgia, 'Times New Roman', serif; fill: var(--muted); }
+.staff .s8l { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.staff .sswing { font: italic 700 10px Georgia, 'Times New Roman', serif; fill: var(--muted); }
 .tlbl { fill: var(--muted); font-size: 9.5px; font-weight: 600; }
 .trest { fill: var(--muted); font-size: 14px; }
 .hit { fill: transparent; cursor: pointer; }

@@ -205,7 +205,8 @@ function lickTemplate(def) {
       // the phrase keeps its shape: it is moved as a whole, never note by note
       emitMixed(b, items, { center: 6, open: 'avoid', fold: false });
       const fixed = swingable ? {} : { feel: lick.feel === 'straight' ? 'Straight 8ths' : 'Triplets (swing does not apply)' };
-      return b.build({ uniform: false, label: 'degree', fixed });
+      // swing is written as straight 8ths under "Swing" on the staff
+      return b.build({ uniform: false, label: 'degree', fixed, swing });
     },
   });
 }

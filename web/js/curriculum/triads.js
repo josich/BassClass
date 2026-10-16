@@ -658,13 +658,14 @@ const triadPairs = ex({
       for (let inv = 0; inv < 4; inv++) {
         const g = [];
         for (const [X, xm] of [[A, base], [B, bBase]]) {
-          chordTones(X.root, X.ivs, xm, [inv, inv + 1, inv + 2]).forEach((t, j) => g.push({ ...t, chord: j === 0 ? chordName(X.root, X.type, S) : undefined }));
+          const tri = chordName(X.root, X.type, S);
+          chordTones(X.root, X.ivs, xm, [inv, inv + 1, inv + 2]).forEach((t, j) => g.push({ ...t, tri, chord: j === 0 ? tri : undefined }));
         }
         groups.push(g);
       }
       const all = groups.flat();
       if (p.dir === 'updown') {
-        const down = all.slice(0, -3).reverse().map((it) => ({ ...it, chord: undefined }));
+        const down = all.slice(0, -3).reverse().map((it, j, arr) => ({ ...it, chord: j === 0 || arr[j - 1].tri !== it.tri ? it.tri : undefined }));
         for (let i = 0; i < down.length; i += 6) groups.push(down.slice(i, i + 6));
       }
       const posOf = (m) => {

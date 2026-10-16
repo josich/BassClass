@@ -352,7 +352,9 @@ let padVoices = [];
 export function padStop(when = now()) {
   if (!ac) return;
   for (const v of padVoices) {
-    v.g.gain.cancelScheduledValues(when);
+    // hold the level reached at `when` (a voice not started yet holds 0), then fade out
+    if (v.g.gain.cancelAndHoldAtTime) v.g.gain.cancelAndHoldAtTime(when);
+    else v.g.gain.cancelScheduledValues(when);
     v.g.gain.setTargetAtTime(0, when, 0.15);
     for (const o of v.osc) o.stop(when + 1.2);
   }
@@ -366,6 +368,8 @@ export function padSet(midis, when = now()) {
   const level = 0.16 / Math.sqrt(midis.length);
   for (const m of midis) {
     const g = ac.createGain();
+    // silent from creation: cancelling its fade-in can never leave it at the default gain of 1
+    g.gain.value = 0;
     g.gain.setValueAtTime(0, when);
     g.gain.setTargetAtTime(level, when, 0.12);
     const osc = [['sawtooth', -6], ['triangle', 5]].map(([type, cents]) => {

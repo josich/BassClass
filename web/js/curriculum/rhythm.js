@@ -319,7 +319,9 @@ const oddMeter = ex({
         for (let i = 0; i < g; i++) events(b, base, [[1, true, i === 0, bar === 0 && gi === 0 && i === 0 ? groups.join('+') : null]]);
       });
     }
-    return b.build({ uniform: false, label: 'note', beatsPerBar: bpb });
+    // 7/8 counts in 8th notes, beamed by its groups; 5/4 and 7/4 in quarters
+    const timeSig = { 5: [5, 4], 78: [7, 8], '78b': [7, 8], 74: [7, 4] }[p.meter];
+    return b.build({ uniform: false, label: 'note', beatsPerBar: bpb, timeSig, groups: timeSig[1] === 8 ? groups : null });
   },
 });
 
