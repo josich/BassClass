@@ -1,5 +1,5 @@
 // Grooves & bass lines, walking bass and slap: applying everything musically.
-import { T, Builder, keysFor, ex, sel, keyP, progChords, progP, PROGS, chordRootMidis, grooveLine, walkLine , keyLines } from './common.js';
+import { T, Builder, keysFor, ex, sel, keyP, progChords, progP, PROGS, chordRootMidis, grooveLine, walkLine , keyLines , octavesOf } from './common.js';
 
 // ---------------------------------------------------------------- grooves
 const G = 'grooves';
@@ -193,9 +193,16 @@ function walkEx(id, level, formula, def, meta) {
       const keys = p.prog === 'cycle-251' ? [0] : keysFor(p.key);
       // enclosures need a note below every target: no target on the lowest note of the bass
       const lo = formula === 'enclosure' ? ctx.tuning[0] + 2 : 28;
-      for (const L of keyLines(keys, (k) => progChords(p.prog, k, { S }), (c) => chordRootMidis(c, { lo, hi: 43, firstLo: Math.max(28, lo) }))) {
-        walkLine(b, L.chords, L.roots, formula, { triplets: meta.triplets, next: L.next, firstFixed: !!L.next });
-      }
+      const lines = keys.map((k) => { const chords = progChords(p.prog, k, { S }); return { chords, roots: chordRootMidis(chords, { lo, hi: 43, firstLo: Math.max(28, lo) }) }; });
+      // in a cycle each key starts in the octave the key before chose for it (the loop returns to the first)
+      let first = null;
+      lines.forEach((L, i) => {
+        const multi = lines.length > 1;
+        if (multi && first != null) L.roots[0] = first;
+        const N = lines[(i + 1) % lines.length];
+        const cands = i === lines.length - 1 ? [lines[0].roots[0]] : octavesOf(N.roots[0], Math.max(28, lo), 45);
+        first = walkLine(b, L.chords, L.roots, formula, { triplets: meta.triplets, ...(multi ? { next: { chord: N.chords[0], midi: N.roots[0], cands }, firstFixed: true } : {}) });
+      });
       return b.build({ uniform: false, label: 'degree' });
     },
     ...meta,
@@ -306,7 +313,7 @@ function slapEx(id, level, styles, def, prog, meta) {
     sub: 1, label: 'degree',
     build(p, ctx, S) {
       const b = new Builder(ctx, S, { jazz: true });
-      for (const L of keyLines(keysFor(p.key), (k) => progChords(p.prog, k, { S }), (c) => chordRootMidis(c, { lo: 28, hi: 38, firstLo: 28, firstHi: 36 }))) {
+      for (const L of keyLines(keysFor(p.key), (k) => progChords(p.prog, k, { S }), (c, near) => chordRootMidis(c, { lo: 28, hi: 38, firstLo: 28, firstHi: 36, near }))) {
         grooveLine(b, L.chords, L.roots, SLAPS[p.style].bars, { place: { open: 'allow', center: 3 }, next: L.next });
       }
       return b.build({ uniform: false, label: 'degree' });

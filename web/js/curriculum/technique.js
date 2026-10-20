@@ -597,4 +597,23 @@ const muting = ex({
   },
 });
 
+// chromatic finger drills name their black keys by direction: sharps going up, flats coming down
+const BLACK = new Set([1, 3, 6, 8, 10]);
+function chromaticSpell(inst) {
+  // the direction a note is moving: towards the next different note (or from the one before, at the end)
+  const ns = inst.steps.filter((st) => st.notes.length === 1).map((st) => st.notes[0]);
+  ns.forEach((n, i) => {
+    if (!BLACK.has(T.mod(n.midi, 12))) return;
+    const after = ns.slice(i + 1).find((x) => x.midi !== n.midi);
+    const before = [...ns.slice(0, i)].reverse().find((x) => x.midi !== n.midi);
+    const down = after ? after.midi < n.midi : before ? before.midi > n.midi : false;
+    n.n = spellMidi(n.midi, down);
+  });
+  return inst;
+}
+for (const t of [c1234, climb, perms, spider, diagonal, fingerPairs, dynamics, legato, shifting, stretch]) {
+  const build = t.build;
+  t.build = (p, ctx, S) => chromaticSpell(build(p, ctx, S));
+}
+
 export default [permStrings, altPluck, c1234, raking, muting, climb, perms, spider, diagonal, fingerPairs, octaveRun, dynamics, trills, legato, stringSkip, shifting, simandl, accents, ghost16, stretch, harmonics, endurance, pim];

@@ -4,6 +4,7 @@ import {
   ZONES, zoneP, rootStrP, orderP, pickRoot, zoneShape, emitShapeF, TRIAD_ORDERS, shapes, voiceLedItems,
   emitMixed, progChords, progP, diatonicStacks, scaleTone, DEG_SEQ, degSeqP, SCALE_TYPE_OPTS, spellMidi,
   shapeFingers, scaleRun, rootStrLowP, dirP, keySigFor,
+  stepSpell, placeRoot,
 } from './common.js';
 
 const M = 'triads';
@@ -99,6 +100,8 @@ export function diatonicBuild(p, ctx, S, { offsets, order, inversion = 0, sizeLa
       let cands = shapes(uniq, ctx, { lo: 1, hi: ctx.maxFret, maxSpan: 4 }).filter((c) => perString(c) <= 2);
       // a chord too wide for four frets (high on a short neck) may stretch a fret, never three notes on a string
       if (!cands.length) cands = shapes(uniq, ctx, { lo: 1, hi: ctx.maxFret, maxSpan: 5 }).filter((c) => perString(c) <= 2);
+      // a bass note on the open string (low E in F or G major, 2nd inversion): the open string
+      if (!cands.length) cands = shapes(uniq, ctx, { lo: 1, hi: ctx.maxFret, maxSpan: 4, open: true }).filter((c) => perString(c) <= 2);
       if (!cands.length) { b.line(g, { pattern: true, place: { open: 'avoid', center } }); continue; }
       const mid = (c) => c.pos.reduce((a, q) => a + q.f, 0) / c.pos.length;
       const spanOf = (c) => { const fr = c.pos.map((q) => q.f); return Math.max(...fr) - Math.min(...fr); };
@@ -108,8 +111,11 @@ export function diatonicBuild(p, ctx, S, { offsets, order, inversion = 0, sizeLa
       const best = cands.reduce((A, c) => (score(c) < score(A) ? c : A));
       const at = new Map(uniq.map((m, j) => [m, best.pos[j]]));
       // one finger per fret from the lowest fret; a four-fret span puts the little finger on the top
-      const lo = Math.min(...best.pos.map((q) => q.f)), span = Math.max(...best.pos.map((q) => q.f)) - lo;
-      const finger = (f) => (span <= 3 ? f - lo + 1 : 1 + Math.round(((f - lo) * 3) / span));
+      const fretted = best.pos.map((q) => q.f).filter((f) => f > 0);
+      const lo = Math.min(...fretted), span = Math.max(...fretted) - lo;
+      // one finger per fret; a four-fret span gives each fret its own finger in order (1-2-3-4, 1-3-4, 1-4)
+      const frs = [...new Set(fretted)].sort((a, c) => a - c);
+      const finger = (f) => (f === 0 ? 0 : span <= 3 ? f - lo + 1 : frs.length === 1 ? 1 : 1 + Math.round((frs.indexOf(f) * 3) / (frs.length - 1)));
       b.frets(g.map((x) => { const q = at.get(x.midi); return { ...x, s: q.s, f: q.f, finger: finger(q.f) }; }));
       center = mid(best);
       firstChord = false;
@@ -159,8 +165,10 @@ const fourTypes = ex({
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     let prev = null;
-    for (const k of keysFor(p.key)) {
-      const r = pickRoot(ctx, k, { strings: [p.root, 'A', 'E'], hi: 10, prev, prefer: p.root });
+    const keys = keysFor(p.key);
+    for (const k of keys) {
+      let r = pickRoot(ctx, k, { strings: keys.length > 1 ? [p.root, 'A', 'E'] : [p.root], hi: keys.length > 1 ? 10 : 12, prev, prefer: p.root });
+      if (keys.length === 1) { const pl = placeRoot(ctx, k, p.root, r); r = pl.r; if (pl.note) b.fixed = { root: pl.note }; }
       const items = [];
       for (const q of ['maj', 'min', 'dim', 'aug']) {
         const ivs = ivsOf(q);
@@ -190,8 +198,10 @@ const majVsMin = ex({
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     let prev = null;
-    for (const k of keysFor(p.key)) {
-      const r = pickRoot(ctx, k, { strings: [p.root], hi: 10, prev, prefer: p.root });
+    const keys = keysFor(p.key);
+    for (const k of keys) {
+      let r = pickRoot(ctx, k, { strings: [p.root], hi: keys.length > 1 ? 10 : 12, prev, prefer: p.root });
+      if (keys.length === 1) { const pl = placeRoot(ctx, k, p.root, r); r = pl.r; if (pl.note) b.fixed = { root: pl.note }; }
       const root = T.bestRoot(k, ['1', '3', 'b3', '5']);
       const items = [];
       for (const q of ['maj', 'min']) {
@@ -420,9 +430,11 @@ const inversions = ex({
     const b = new Builder(ctx, S);
     const ivs = ivsOf(p.quality);
     let prev = null;
-    for (const k of keysFor(p.key)) {
+    const keys = keysFor(p.key);
+    for (const k of keys) {
       const root = T.bestRoot(k, ivs);
-      const r = pickRoot(ctx, k, { strings: [p.root, 'E', 'A'], hi: p.mode === 'climb' ? 7 : 10, prev, prefer: p.root });
+      let r = pickRoot(ctx, k, { strings: keys.length > 1 || p.mode === 'climb' ? [p.root, 'E', 'A'] : [p.root], hi: p.mode === 'climb' ? 7 : keys.length > 1 ? 10 : 12, prev, prefer: p.root });
+      if (keys.length === 1 && p.mode !== 'climb') { const pl = placeRoot(ctx, k, p.root, r); r = pl.r; if (pl.note) b.fixed = { root: pl.note }; }
       const groups = p.mode === 'climb'
         ? [[0, 1, 2], [1, 2, 3], [2, 3, 4], [3, 4, 5], [5, 4, 3], [4, 3, 2], [3, 2, 1], [2, 1, 0]]
         : [[0, 1, 2], [1, 2, 3], [-1, 0, 1], [1, 0, -1], [3, 2, 1], [2, 1, 0]];
@@ -689,7 +701,7 @@ const approachTriads = ex({
         let apps = APPROACH[p.approach].f(nx.midi);
         // never "approach" with the note just played: come from the other side of the target
         if (apps[0] === t.midi || (p.approach === 'double' && apps.includes(t.midi))) apps = apps.map((m) => 2 * nx.midi - m);
-        for (const m of apps) items.push({ midi: m, n: spellMidi(m, m > nx.midi), deg: '→', dur: 1 / per });
+        for (const m of apps) items.push({ midi: m, n: stepSpell(m, nx.n, nx.midi), deg: '→', dur: 1 / per });
       }
       b.line(items, { pattern: false, place: { open: 'avoid', center: sg.center } });
     }
