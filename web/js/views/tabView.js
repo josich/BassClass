@@ -51,6 +51,7 @@ export class TabView {
     this.mode = opts.mode === 'staff' ? 'staff' : 'tab';
     this.win = null;
     this.cols = null;
+    this.staffSize = null; // chosen once per exercise, not on every redraw
     this.paint(this.cur >= 0 ? this.cur : 0);
   }
 
@@ -63,13 +64,15 @@ export class TabView {
     if (this.mode === 'staff') {
       const compact = (typeof window !== 'undefined' && window.innerHeight < 340);
       // a wide-range staff (many ledger lines) gets smaller so the neck keeps its room
+      // (never below a readable size: 6)
       const maxH = typeof window !== 'undefined' ? Math.max(72, Math.round(window.innerHeight * 0.3)) : 999;
-      let size = compact ? 7 : 8;
+      let size = this.staffSize ?? (compact ? 7 : 8);
       let r = engraveStaff(inst, { beatsOf: o.beatsOf, label: o.label, beatsPerBar: o.beatsPerBar, compact, size, window: win });
-      while (r.height > maxH && size > 5) {
+      while (this.staffSize == null && r.height > maxH && size > 6) {
         size -= 1;
         r = engraveStaff(inst, { beatsOf: o.beatsOf, label: o.label, beatsPerBar: o.beatsPerBar, compact, size, window: win });
       }
+      this.staffSize = size;
       ({ width, cols } = r);
       h = r.height;
       svgBody = r.svg;
