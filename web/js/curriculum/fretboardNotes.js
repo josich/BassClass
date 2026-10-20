@@ -4,7 +4,7 @@ import { T, Builder, keysFor, ex, sel, keyP, nm, spellMidi, place, ZONES, zoneP,
 const M = 'fretboard';
 const NAT = new Set([0, 2, 4, 5, 7, 9, 11]);
 // the third element hides an option on basses with fewer strings
-const stringP = (def = 'E') => sel('String', [['E', 'E string'], ['A', 'A string'], ['D', 'D string'], ['G', 'G string'], ['B', 'Low B string', { minStrings: 5 }], ['C', 'High C string', { minStrings: 6 }]], def);
+const stringP = (def = 'E') => sel('String', [['B', 'Low B string', { minStrings: 5 }], ['E', 'E string'], ['A', 'A string'], ['D', 'D string'], ['G', 'G string'], ['C', 'High C string', { minStrings: 6 }]], def);
 const strIdx = (ctx, name) => { const s = ctx.str(name); return s < 0 ? Math.max(0, ctx.str('E')) : s; };
 const sName = (ctx, s) => `${ctx.names[s]} string`;
 

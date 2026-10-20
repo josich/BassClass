@@ -29,14 +29,14 @@ export const MODULES = [
   { id: 'reading', name: 'Reading', icon: '📖', desc: 'Bass clef from the first position to every key, with key signatures.' },
   { id: 'intervals', name: 'Intervals', icon: '↕', desc: 'Every interval shape, diatonic intervals, 10ths.' },
   { id: 'ear', name: 'Ear training', icon: '👂', desc: 'Hear and name chord qualities, 7th chords and progressions.' },
-  { id: 'scales', name: 'Scales', icon: '🎼', desc: 'Major, minor, pentatonic, sequences, positions, symmetric, world scales, Messiaen.' },
-  { id: 'modes', name: 'Modes', icon: '🌗', desc: 'Relative and parallel modes; melodic minor, harmonic minor and harmonic major modes.' },
-  { id: 'triads', name: 'Triads', icon: '🔺', desc: 'From the first shape to triad pairs and rudiments.' },
+  { id: 'scales', name: 'Scales', icon: '🎼', desc: 'Major, minor, pentatonic, the 3 fingerings, sequences, positions, symmetric, world scales, Messiaen.' },
+  { id: 'modes', name: 'Modes', icon: '🌗', desc: 'Relative and parallel modes, chord-scales, superimposition; melodic minor, harmonic minor and harmonic major modes.' },
+  { id: 'triads', name: 'Triads', icon: '🔺', desc: 'From the first shape to triad pairs, rudiments and upper structures.' },
   { id: 'arpeggios', name: 'Arpeggios & 7ths', icon: '🪜', desc: '7th chords, broken chords, inversions, ii–V–I, extensions, Giant Steps.' },
   { id: 'harmony', name: 'Chords & Harmony', icon: '🎹', desc: 'How chords work, progressions, double stops, shells.' },
   { id: 'grooves', name: 'Grooves & Bass Lines', icon: '🥁', desc: 'Rock, blues, Motown, funk, soul, reggae, Latin, country, afrobeat, pick playing, odd meters.' },
   { id: 'walking', name: 'Walking Bass', icon: '🚶', desc: 'Two-feel to bebop: chord tones, approaches, enclosures.' },
-  { id: 'licks', name: 'Jazz Licks', icon: '🎷', desc: 'Advanced vocabulary: ii–V–I, minor, blues, bebop, modern, bass solos.' },
+  { id: 'licks', name: 'Jazz Licks', icon: '🎷', desc: 'Advanced vocabulary: ii–V–I, minor, blues, bebop, modern, bass solos, motifs, implied changes.' },
   { id: 'slap', name: 'Slap & Pop', icon: '👍', desc: 'Thumb, pop, hammer, ghost notes, double thumb.' },
 ];
 

@@ -497,7 +497,7 @@ export function emitMixed(b, items, popts = {}) {
       const f = midis[j] - T0[prev.s];
       const fr = [...pos.slice(run, j).map((q) => q.f), f].filter((x) => x > 0);
       // one hand position: the whole run fits in four frets
-      const ok = (tag === 'H' ? f > prev.f : f < prev.f && f >= 0) && Math.max(...fr) - Math.min(...fr) <= 4;
+      const ok = (tag === 'H' ? f > prev.f : f < prev.f && f >= 0) && Math.max(...fr) - Math.min(...fr) <= 3;
       if (ok) { pos[j] = { s: prev.s, f }; continue; }
       tags[j] = pos[j].s <= 1 ? 'T' : 'P';   // not playable as written: plucked instead
     }

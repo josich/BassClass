@@ -30,6 +30,14 @@ export function scaleBuild(p, ctx, S, { type = p.type, pattern = p.pattern || 's
       const r2 = pickRoot(ctx, k, { strings: [below], lo: 1, hi: 9, span });
       if (r2.f >= 1 && r2.f <= 9) { b.fixed = { root: `${below} string (on the ${single} string the root is at fret ${r.f})` }; r = r2; }
     }
+    // a root at fret 1 would leave the scale no room in one position: the string below (or, from the
+    // lowest string, the one above) puts it in the middle of a position
+    if (!many && octaves === 1 && !open && r.f === 1) {
+      const si = ctx.str(single);
+      const alt = si > 0 ? ctx.names[si - 1] : ctx.names[si + 1];
+      const r2 = pickRoot(ctx, k, { strings: [alt], lo: 2, hi: 9, span });
+      if (r2.f >= 2 && r2.f <= 9) { b.fixed = { root: `${alt} string (on the ${single} string the root is at fret 1)` }; r = r2; }
+    }
     b.chord(`${nm(tonic, S)} ${scaleShort(type)}`);
     b.line(jazzAltered(type, tonic, scaleRun(tonic, type, r.midi, { octaves, pattern, dir })), { place: { pin: { [r.midi]: r.s }, open: open ? 'allow' : 'avoid', center: r.f + 1 } });
     prev = r.midi;

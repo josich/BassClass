@@ -244,11 +244,11 @@ _All keys, all inversions, Coltrane changes, pro-level stamina._
 ### Fretboard & Notes
 
 - **6 · Open strings** (L1, `fb-open-strings`): Notes per string: 4 / 2 / 1 (string crossing)
-- **7 · Natural notes on one string** (L1, `fb-naturals`): String: E string / A string / D string / G string / Low B string (5-string) / High C string (6-string) · Range: Frets 0–12 / Frets 12–24 (upper octave)
-- **8 · All 12 notes on one string** (L1, `fb-chromatic-string`): String: E string / A string / D string / G string / Low B string (5-string) / High C string (6-string)
+- **7 · Natural notes on one string** (L1, `fb-naturals`): String: Low B string (5-string) / E string / A string / D string / G string / High C string (6-string) · Range: Frets 0–12 / Frets 12–24 (upper octave)
+- **8 · All 12 notes on one string** (L1, `fb-chromatic-string`): String: Low B string (5-string) / E string / A string / D string / G string / High C string (6-string)
 - **9 · Landmark frets: 3, 5, 7, 9, 12** (L1, `fb-landmarks`): Order: String by string / Fret by fret (across strings)
 - **10 · The octave shape** (L1, `fb-octaves`): Strings: B → A (5-string) / E → D / A → G / D → C (6-string)
-- **31 · Unisons: the same pitch on two strings** (L2, `fb-unison`): String: E string / A string / D string / G string / Low B string (5-string) / High C string (6-string)
+- **31 · Unisons: the same pitch on two strings** (L2, `fb-unison`): String: Low B string (5-string) / E string / A string / D string / G string / High C string (6-string)
 - **32 · Find every C (or any note)** (L2, `fb-find-note`): Key: 12 keys + all-keys cycles · Range: Frets 0–12 / Frets 0–17 / Whole neck
 - **33 · Note sweep across the strings** (L2, `fb-note-sweep`): Key: 12 keys + all-keys cycles
 - **34 · Root notes around the cycle in one zone** (L2, `fb-cycle-zone`): Zone: Zone 1 · frets 1–5 / Zone 2 · frets 5–9 / Zone 3 · frets 8–12 / Zone 4 · frets 12–16 · Key order: Cycle of 4ths / Cycle of 5ths / Chromatic

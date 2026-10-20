@@ -28,7 +28,7 @@ function randomNotes(notes, count) {
   const out = [];
   while (out.length < count) {
     const q = pick(notes);
-    if (out.length && q.midi === out[out.length - 1].midi) continue;
+    if (out.length && (q.midi === out[out.length - 1].midi || T.mod(q.midi - out[out.length - 1].midi, 12) === 6)) continue;
     out.push(q);
   }
   return out;

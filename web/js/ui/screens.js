@@ -86,7 +86,8 @@ export function buildRoutine(level, seed) {
     const t = pool[Math.floor(rand() * pool.length)];
     const params = defaultParams(t);
     for (const [k, def] of Object.entries(t.params || {})) {
-      if (def.kind === 'key') params[k] = String(Math.floor(rand() * 12));
+      // Levels 1–2 warm-ups stay in the first grades' keys (C G F D A E); later any key
+      if (def.kind === 'key') params[k] = String(level <= 2 ? [0, 7, 5, 2, 9, 4][Math.floor(rand() * 6)] : Math.floor(rand() * 12));
       // Levels 1–2: keep the range, position and string at their defaults (no surprise 2-octave run)
       else if (level <= 2 && ['oct', 'range', 'pos', 'zone', 'root', 'string', 'layout'].includes(k)) continue;
       else if (k !== 'key' && rand() < 0.5) {
@@ -346,7 +347,7 @@ export function settingsScreen(main) {
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('h1', {}, 'Settings')),
     h('div', { class: 'form' },
-      field('Strings', seg('strings', [[4, '4-string'], [5, '5-string (low B)'], [6, '6-string']]), 'Exercises adapt their fingerings to your instrument.'),
+      field('Strings', seg('strings', [[4, '4-string'], [5, '5-string (low B)'], [6, '6-string (low B, high C)']]), 'Exercises adapt their fingerings to your instrument.'),
       field('Note names', seg('notation', [['letters', 'C D E'], ['solfege', 'Do Re Mi']])),
       field('Handedness', seg('lefty', [[false, 'Right-handed'], [true, 'Left-handed']]), 'Mirrors the fretboard.'),
       field('Highest fret used', seg('maxFret', [[17, '17'], [20, '20'], [21, '21'], [24, '24']])),

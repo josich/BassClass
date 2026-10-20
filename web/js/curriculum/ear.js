@@ -7,9 +7,9 @@ const M = 'ear';
 const pick = (xs) => xs[Math.floor(Math.random() * xs.length)];
 
 /** A playable chord shape: one note per string, strings ascending, or null. */
-function shapeFor(ctx, tones) {
-  // the smallest stretch that works: 4 frets, then 5 or 6 (four-note chords span more on a 4-string)
-  for (const maxSpan of [4, 5, 6]) {
+function shapeFor(ctx, tones, spans = [4, 5, 6]) {
+  // the smallest stretch that works
+  for (const maxSpan of spans) {
     const sh = shapes(tones.map((t) => t.midi), ctx, { lo: 1, hi: 15, maxSpan })
       .find((c) => c.pos.every((q, j) => j === 0 || q.s > c.pos[j - 1].s));
     if (sh) return tones.map((t, j) => ({ ...t, s: sh.pos[j].s, f: sh.pos[j].f }));
@@ -20,21 +20,28 @@ function shapeFor(ctx, tones) {
 /** One round: arpeggio (hidden), block chord (hidden), then the answer (silent, shown). */
 function chordRound(b, ctx, S, type, i) {
   const ivs = T.CHORDS[type].iv;
+  // triads close, as high as they fit (close chords low on the bass are muddy); four-note chords
+  // the way bassists voice them: root, 5th, 7th and the 3rd on top (R-5-7-10), in one hand position
+  const spread = ivs.length === 4;
+  const order = spread ? [0, 2, 3, 1] : ivs.map((_, j) => j);
+  const tonesAt = (rm) => order.map((j, k) => {
+    const iv = ivs[j], top = spread && k === 3;
+    const deg = top ? ({ 3: '10', b3: 'b10' }[iv] || iv) : iv;
+    return { midi: rm + T.semis(iv) + (top ? 12 : 0), n: T.up(root, iv), deg: T.fmtDeg(deg) };
+  });
   let pcv, root, placed = null;
-  // a random root whose chord has a playable one-note-per-string shape, as high as it fits
-  // (close chords low on the bass are muddy and harder to hear)
   for (let tries = 0; tries < 24 && !placed; tries++) {
     pcv = Math.floor(Math.random() * 12);
     root = T.bestRoot(pcv, ivs);
-    const base = 33 + T.mod(pcv - 33, 12);
-    for (const rm of [base + 12, base]) {
+    const base = 33 + T.mod(pcv - 33, 12), low = 28 + T.mod(pcv - 28, 12);
+    for (const rm of spread ? [low, low + 12] : [base + 12, base]) {
       if (placed) break;
-      placed = shapeFor(ctx, ivs.map((iv) => ({ midi: rm + T.semis(iv), n: T.up(root, iv), deg: T.fmtDeg(iv) })));
+      placed = shapeFor(ctx, tonesAt(rm), spread ? [3, 4] : [4, 5, 6]);
     }
   }
   if (!placed) return;
   const arp = placed.length === 3 ? [...placed, placed[1]] : placed;
-  b.chord(`#${i + 1}`, 'Listen: what chord is it?');
+  b.chord(`Round ${i + 1}`, 'Listen: what chord is it?');
   b.frets(arp.map((t) => ({ ...t, dur: 0.5, hide: true })));
   b.stack(placed, { dur: 2, hide: true });
   b.text(`${chordName(root, type, S)} · ${T.CHORDS[type].name}`);
@@ -63,7 +70,7 @@ const sevenths = ex({
   id: 'ear-sevenths', module: M, level: 3,
   title: 'Hear the 7th chord: maj7, 7, m7, m7♭5, °7',
   summary: 'The five main 7th chords, broken and then together: name the quality.',
-  about: 'Seventh chords add a fourth colour on top of the triad. Major 7 is soft and dreamy, dominant 7 wants to move, minor 7 is mellow, half-diminished is dark and searching, diminished 7 is tense and symmetrical. Each round plays one on a random root, notes hidden, and shows the answer right after the chord.',
+  about: 'Seventh chords add a fourth colour on top of the triad. Major 7 is soft and dreamy, dominant 7 wants to move, minor 7 is mellow, half-diminished is dark and searching, diminished 7 is tense and symmetrical. Each round plays one on a random root, notes hidden, and shows the answer right after the chord. The chords are voiced the way bassists play them: root, 5th, 7th and the 3rd on top (R-5-7-10), in one hand position.',
   tips: ['First decide the triad (major or minor or diminished), then the 7th (major 7th, a half step under the octave, or minor 7th, a whole step under it).', 'Dominant 7 = major triad + minor 7th: the "unfinished" sound.'],
   source: 'RSL and LCM aural tests; Berklee ear training; jazz ear-training practice',
   params: { set: sel('Chords', [['basic', 'maj7, 7, m7'], ['five', 'maj7, 7, m7, m7♭5, °7'], ['all', '…plus m(maj7), 6 and m6']], 'five') },

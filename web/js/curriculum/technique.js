@@ -324,11 +324,13 @@ const octaveRun = ex({
     const b = new Builder(ctx, S);
     const s = Math.max(0, ctx.str(p.pair));
     const frets = [1, 2, 3, 4, 5, 6, 7, 8, 7, 6, 5, 4, 3, 2];
-    for (const f of frets) {
-      const n = spellMidi(ctx.tuning[s] + f);
+    frets.forEach((f, i) => {
+      // sharps going up, flats coming down (as in the chromatic drills)
+      const n = spellMidi(ctx.tuning[s] + f, i > 7);
+      const n8 = spellMidi(ctx.tuning[s + 2] + f + 2, i > 7);
       b.chord(nm(n, S));
-      b.frets([F(ctx, s, f, 1, { deg: 'R', tag: 'i' }), F(ctx, s + 2, f + 2, 3, { deg: 'R', tag: 'm' }), F(ctx, s, f, 1, { deg: 'R', tag: 'i' }), F(ctx, s + 2, f + 2, 3, { deg: 'R', tag: 'm' })]);
-    }
+      b.frets([F(ctx, s, f, 1, { deg: 'R', tag: 'i', n }), F(ctx, s + 2, f + 2, 3, { deg: 'R', tag: 'm', n: n8 }), F(ctx, s, f, 1, { deg: 'R', tag: 'i', n }), F(ctx, s + 2, f + 2, 3, { deg: 'R', tag: 'm', n: n8 })]);
+    });
     return b.build({ label: 'note' });
   },
 });

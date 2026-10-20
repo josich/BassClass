@@ -26,6 +26,13 @@ export function arpBuild(p, ctx, S, { ivs, type, shape = 'updown', octaves = 1, 
       const r2 = pickRoot(ctx, k, { strings: [below], lo: 1, hi: 9 });
       if (r2.f >= 1 && r2.f <= 9) { b.fixed = { root: `${below} string (on the ${rootStr} string the root is at fret ${r.f})` }; r = r2; }
     }
+    // a root at fret 1: the neighbouring string puts the shape in the middle of a position
+    if (!many && octaves === 1 && r.f === 1) {
+      const si = ctx.str(rootStr);
+      const alt = si > 0 ? ctx.names[si - 1] : ctx.names[si + 1];
+      const r2 = pickRoot(ctx, k, { strings: [alt], lo: 2, hi: 9 });
+      if (r2.f >= 2 && r2.f <= 9) { b.fixed = { root: `${alt} string (on the ${rootStr} string the root is at fret 1)` }; r = r2; }
+    }
     const idxs = ARP_SHAPES[shape].f(ivs.length, octaves);
     b.chord(chordName(root, type, S));
     const tones = chordTones(root, ivs, r.midi, idxs, inversion);
@@ -89,11 +96,15 @@ export function diatonicBuild(p, ctx, S, { offsets, order, inversion = 0, sizeLa
     for (const g of groups) {
       const uniq = [...new Set(g.map((x) => x.midi))].sort((a, c) => a - c);
       const perString = (c) => Math.max(...[...new Set(c.pos.map((q) => q.s))].map((sv) => c.pos.filter((q) => q.s === sv).length));
-      const cands = shapes(uniq, ctx, { lo: 1, hi: ctx.maxFret, maxSpan: 4 }).filter((c) => perString(c) <= 2);
+      let cands = shapes(uniq, ctx, { lo: 1, hi: ctx.maxFret, maxSpan: 4 }).filter((c) => perString(c) <= 2);
+      // a chord too wide for four frets (high on a short neck) may stretch a fret, never three notes on a string
+      if (!cands.length) cands = shapes(uniq, ctx, { lo: 1, hi: ctx.maxFret, maxSpan: 5 }).filter((c) => perString(c) <= 2);
       if (!cands.length) { b.line(g, { pattern: true, place: { open: 'avoid', center } }); continue; }
       const mid = (c) => c.pos.reduce((a, q) => a + q.f, 0) / c.pos.length;
-      const score = (c) => c.cost + Math.abs(mid(c) - home) * 0.6 + Math.abs(mid(c) - center) * 0.4
-        + (perString(c) > 1 ? 0.3 : 0) + (firstChord && c.pos[0].s !== r.s ? 4 : 0);
+      const spanOf = (c) => { const fr = c.pos.map((q) => q.f); return Math.max(...fr) - Math.min(...fr); };
+      // a compact shape beats a four-fret stretch; the hand stays near where it started
+      const score = (c) => c.cost + Math.abs(mid(c) - home) * 0.8 + Math.abs(mid(c) - center) * 0.4
+        + (spanOf(c) >= 4 ? 1.5 : 0) + (perString(c) > 1 ? 0.3 : 0) + (firstChord && c.pos[0].s !== r.s ? 4 : 0);
       const best = cands.reduce((A, c) => (score(c) < score(A) ? c : A));
       const at = new Map(uniq.map((m, j) => [m, best.pos[j]]));
       // one finger per fret from the lowest fret; a four-fret span puts the little finger on the top
@@ -541,7 +552,7 @@ const susQuartal = variant(diatonic, {
   id: 'tri-sus-quartal', level: 5,
   title: 'Sus and quartal stacks through the scale',
   summary: 'Replace the 3rds with 4ths: modern, open sounds (McCoy Tyner, modal jazz, fusion).',
-  about: 'Replace the 3rd of each chord and you get sus chords: sus4 (1-4-5) and sus2 (1-2-5). Stack two 4ths instead and you get quartal chords (1-4-7). None of them has a major/minor colour, which makes them ideal for modal music and fusion. A stack of perfect 4ths lies flat across neighbouring strings (the same fret); where the scale gives an augmented 4th (F–B in C major) the top note moves up one fret.',
+  about: 'Replace the 3rd of each chord and you get sus chords: sus4 (1-4-5) and sus2 (1-2-5). Stack two perfect 4ths instead and you get quartal chords (1-4-♭7). None of them has a major/minor colour, which makes them ideal for modal music and fusion. A stack of perfect 4ths lies flat across neighbouring strings (the same fret); where the scale gives an augmented 4th (F–B in C major) the top note moves up one fret.',
   source: 'McCoy Tyner and modal-jazz quartal voicings; Mark Levine "The Jazz Theory Book" (sus and fourth chords); fusion bass practice',
   params: { stack: sel('Stack', ['sus4', 'sus2', 'quartal'].map((k) => [k, STACKS[k].name]), 'quartal') },
   defaults: { pattern: 'up' },

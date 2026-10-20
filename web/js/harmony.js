@@ -11,7 +11,8 @@ for (const [type, c] of Object.entries(T.CHORDS)) if (!SYM_TO_TYPE.has(c.sym)) S
 
 // scale and mode names as they appear on badges -> scale key
 const SCALE_NAMES = new Map([['ionian', 'ionian'], ['aeolian', 'aeolian'], ['major', 'ionian'], ['minor', 'aeolian'],
-  ['natural minor', 'aeolian'], ['augmented scale', 'augmented']]);
+  ['natural minor', 'aeolian'], ['augmented scale', 'augmented'], ['major scale', 'ionian'], ['minor scale', 'aeolian'],
+  ['pent', 'majorPent'], ['major pentatonic', 'majorPent'], ['minor pentatonic', 'minorPent']]);
 for (const [k, v] of Object.entries(T.SCALES)) {
   SCALE_NAMES.set(v.name.toLowerCase(), k);
   SCALE_NAMES.set(v.name.split(' (')[0].toLowerCase(), k);
@@ -29,6 +30,8 @@ export function parseBadge(label) {
   if (!m) return null;
   const root = noteOf(m[1], m[2]);
   const rest = s.slice(m[0].length);
+  // "Am pent", "B♭m pent": the minor pentatonic
+  if (/^m pent$/i.test(rest)) return { root, scale: 'minorPent' };
   if (rest.startsWith(' ')) {
     const scale = SCALE_NAMES.get(rest.trim().toLowerCase());
     return scale ? { root, scale } : null;

@@ -154,13 +154,14 @@ const chordScale = ex({
           const sp = spell?.[T.mod(x.midi - T.pc(c.root), 12)];
           const n = sp ? T.up(c.root, sp[0]) : x.n;
           const deg = T.fmtDeg(sp ? sp[1] : T.ivBetween(c.root, x.n));
-          items.push({ ...x, n, deg, dur: 1, chord: i === 0 ? c.sym : undefined, text: i === 0 ? modeName(mode) : undefined });
+          items.push({ ...x, n, deg, dur: 0.5, chord: i === 0 ? c.sym : undefined, text: i === 0 ? modeName(mode) : undefined });
         });
         prev = items[items.length - 1].midi;
       });
     }
     emitMixed(b, items, { center: 5, open: 'avoid' });
-    return b.build({ label: 'degree' });
+    // written 8ths: the subdivision never moves a chord off its bar line
+    return b.build({ label: 'degree', uniform: false });
   },
 });
 
@@ -332,14 +333,15 @@ const pentSuper = ex({
           const run = runsOver(Math.max(4, c.beats * 2), roots[ci] + o.r, prev, ctx, pass,
             (start, up) => (up ? scaleRun(pr, 'majorPent', start, { dir: 'up' }) : scaleRun(pr, 'majorPent', start - 12, { dir: 'down' })));
           run.forEach((x, i) => items.push({
-            ...x, n: spell(x.midi), deg: labelOn(c.type, mode, x.midi - roots[ci]), dur: 1,
+            ...x, n: spell(x.midi), deg: labelOn(c.type, mode, x.midi - roots[ci]), dur: 0.5,
             chord: i === 0 ? c.sym : undefined, text: i === 0 ? prName : undefined,
           }));
         });
       }
     }
     emitMixed(b, items, { center: 5, open: 'avoid' });
-    return b.build({ label: 'degree' });
+    // written 8ths: the subdivision never moves a chord off its bar line
+    return b.build({ label: 'degree', uniform: false });
   },
 });
 
@@ -402,11 +404,12 @@ const melodicSuper = ex({
           const idxs = Array.from({ length: 8 }, (_, i) => pIdx + i);
           return (up ? idxs : idxs.reverse()).map((i) => note(i, base));
         });
-        run.forEach((x, i) => items.push({ ...x, dur: 1, chord: i === 0 ? c.sym : undefined, text: i === 0 ? `${nm(parent, S)} melodic minor${also}` : undefined }));
+        run.forEach((x, i) => items.push({ ...x, dur: 0.5, chord: i === 0 ? c.sym : undefined, text: i === 0 ? `${nm(parent, S)} melodic minor${also}` : undefined }));
       });
     }
     emitMixed(b, items, { center: 5, open: 'avoid' });
-    return b.build({ label: 'degree' });
+    // written 8ths: the subdivision never moves a chord off its bar line
+    return b.build({ label: 'degree', uniform: false });
   },
 });
 
