@@ -190,7 +190,7 @@ const majVsMin = ex({
   id: 'tri-maj-min', module: M, level: 1,
   title: 'Major vs minor: hear the 3rd',
   summary: 'Alternate C and Cm. Only one note changes.',
-  about: 'The 3rd is the note that makes a chord sound happy (major) or sad (minor). Play the major triad, then move only the 3rd down one fret for the minor. Listen for the colour change.',
+  about: 'The 3rd is the note that makes a chord sound happy (major) or sad (minor). Play the major triad, then lower only the 3rd, by one fret in sound (a half step), for the minor. In the shapes the 3rd moves to a new place (the minor shape is fingered from finger 1), but it is the only note that changes. Listen for the colour change.',
   tips: ['Watch the blue dot: it is the only one that moves.', 'Try it with your eyes closed after a few rounds.'],
   source: 'Common to all methods (StudyBass, BassBuzz, Hal Leonard)',
   // one root for both chords, named so neither needs a double flat (F♯ and F♯m, not G♭m)

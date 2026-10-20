@@ -286,6 +286,10 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .tlbl { fill: var(--muted); font-size: 9.5px; font-weight: 600; }
 .trest { fill: var(--muted); font-size: 14px; }
 .hit { fill: transparent; cursor: pointer; }
+/* Quiz mode: a note not played yet shows "?" in the tab */
+.tabsvg .tqm { display: none; }
+.tabsvg .tcol.future .tq { display: none; }
+.tabsvg .tcol.future .tqm { display: inline; }
 
 /* ---------------------------------------------------------------- explorer */
 .explorer { display: flex; flex-direction: column; height: 100%; gap: 8px; }
@@ -413,10 +417,11 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .course-next.done { cursor: default; }
 .session { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .session-head { gap: 8px; }
-.session-head .seg button { min-height: 30px; padding: 4px 9px; font-size: 12.5px; }
+.session-head .seg button { min-height: 34px; padding: 4px 10px; font-size: 12.5px; }
 .session-head .btn { padding: 6px 12px; }
 .block .session-list .item { padding: 6px 10px; }
 .session-list .item .n { width: 24px; height: 24px; font-size: 12px; }
+.session-list .item.demo .n { background: rgba(70, 201, 162, 0.2); color: var(--accent); }
 
 /* ---------------------------------------------------------------- course map */
 .course-intro { max-width: 900px; margin: -4px 0 4px; }
@@ -430,7 +435,7 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .les-row:hover { background: var(--panel-2); }
 .les-row .st { width: 18px; text-align: center; color: var(--dim); font-weight: 800; flex: none; }
 .les-row .num { width: 30px; color: var(--muted); font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; flex: none; }
-.les-row .tt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.les-row .tt { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .les-row.done .st { color: var(--good); }
 .les-row.known { color: var(--muted); }
 .les-row.started .st { color: var(--accent-2); }
@@ -444,10 +449,14 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .les-title { min-width: 0; display: flex; flex-direction: column; }
 .les-title small { color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .les-title h1 { font-size: 19px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.les-cols { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
-@media (max-width: 700px) { .les-cols { grid-template-columns: minmax(0, 1fr); } }
+.les-cols { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-areas: 'main steps' 'more steps'; gap: 0 18px; align-items: start; }
+.les-main { grid-area: main; }
+.les-steps { grid-area: steps; }
+.les-more { grid-area: more; }
+/* one column: the practice steps come right after the explanation, the pitfalls after them */
+@media (max-width: 700px) { .les-cols { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'main' 'steps' 'more'; } }
 .les-main p { margin: 0 0 10px; }
-.les-main h4, .les-steps h4 { margin: 14px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.les-main h4, .les-steps h4, .les-more h4 { margin: 14px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
 .les-steps h4 { margin-top: 0; }
 .les-steps > p { margin: 0 0 8px; }
 .idea-box { background: rgba(70, 201, 162, 0.1); border-left: 3px solid var(--accent); padding: 8px 12px; border-radius: 0 10px 10px 0; font-weight: 600; margin-bottom: 10px; }
@@ -463,6 +472,8 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .step-row .tempo { color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
 .step-row .go { color: var(--dim); display: grid; flex: none; }
 .step-row .go svg { width: 18px; height: 18px; }
+.step-row b .chip { margin-left: 6px; vertical-align: 1px; }
+.step-row .untick { flex: none; width: 34px; height: 34px; font-size: 17px; color: var(--muted); }
 .step-row.music { border-style: dashed; }
 .music-tag { color: var(--deg-5); font-weight: 700; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; }
 .can-list { display: flex; flex-direction: column; gap: 2px; }
@@ -479,10 +490,18 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .place-row .seg { flex: none; }
 
 /* ---------------------------------------------------------------- exercise: lesson step */
-.goal-btn { flex: none; padding: 6px 10px; font-size: 12.5px; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--muted); }
+.goal-btn { flex: none; min-width: 92px; justify-content: center; padding: 6px 8px; font-size: 12.5px; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--muted); }
 .goal-btn.ready { color: var(--accent); border-color: var(--accent); animation: goal-pulse 1.6s ease-in-out infinite; }
 .goal-btn.clean { background: rgba(70, 201, 162, 0.18); color: var(--accent); border-color: rgba(70, 201, 162, 0.5); }
 .goal-btn.off { color: #f2c35b; border-color: rgba(242, 195, 91, 0.5); }
 @keyframes goal-pulse { 50% { box-shadow: 0 0 0 3px rgba(70, 201, 162, 0.28); } }
 .les-step-box { background: rgba(70, 201, 162, 0.08); border: 1px solid #2d5560; border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; }
 .les-step-box p { margin: 4px 0 0; }
+.drawer .les-idea { font-weight: 600; border-left: 3px solid var(--accent); padding-left: 10px; }
+/* in a lesson the header holds the goal and Next too: on narrow screens Options is just its icon */
+@media (max-width: 760px) {
+  .exv-top.lesson .opts-btn { flex: none; padding: 0 9px; }
+  .exv-top.lesson .opts-txt { display: none; }
+  .exv-top.lesson .exv-title { flex: 1 1 auto; }
+  .exv-top.lesson .exv-title b, .exv-top.lesson .exv-title span { max-width: none; }
+}

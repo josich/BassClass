@@ -93,6 +93,13 @@ export class TabView {
       <rect class="tcur" x="-100" y="0" width="0" height="${h}" rx="4"/>${svgBody}</svg>`;
     this.curRect = this.inner.querySelector('.tcur');
     if (this.cur >= 0) this.placeCursor(this.cur, !keepScroll);
+    this.markFuture();
+  }
+
+  /** Quiz mode (tab): the notes not played yet show "?" instead of their fret and name. */
+  markFuture() {
+    if (!this.opts?.quiz || this.mode !== 'tab') return;
+    for (const g of this.inner.querySelectorAll('g.tcol')) g.classList.toggle('future', Number(g.dataset.i) > this.cur);
   }
 
   tabSvg(win0, i0) {
@@ -142,6 +149,7 @@ export class TabView {
         cells.push(out.join(''));
         continue;
       }
+      if (this.opts.quiz && c.st.notes.length) out.push(`<text x="${cx - 3}" y="${top + rowH * (strings - 1) / 2 + 4}" class="tnum tqm">?</text>`, '<g class="tq">');
       for (const n of c.st.notes) {
         const y = top + (strings - 1 - n.s) * rowH;
         const t = n.tag === 'x' ? 'x' : String(n.f);
@@ -150,6 +158,7 @@ export class TabView {
       }
       const lbl = c.st.notes.map((n) => label(n)).filter(Boolean).join('·');
       if (lbl) out.push(`<text x="${cx - 4}" y="${h - 4}" class="tlbl">${lbl}</text>`);
+      if (this.opts.quiz && c.st.notes.length) out.push('</g>');
       out.push('</g>');
       cells.push(out.join(''));
     }
@@ -176,5 +185,6 @@ export class TabView {
     // redraw when the playhead leaves the drawn window
     if (c && this.win && (c.x < this.win[0] + 200 || c.x + c.w > this.win[1] - 600)) this.paint(i);
     this.placeCursor(i);
+    this.markFuture();
   }
 }

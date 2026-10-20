@@ -10,6 +10,8 @@ import * as A from '../audio.js';
 import { paramSummary, paramOptions } from './exercise.js';
 import { starButton, dragToReorder } from './favorites.js';
 import { courseBlock } from './course.js';
+import { resetCourse } from '../course/progress.js';
+import { replaceHash } from './nav.js';
 
 export const go = (hash) => { location.hash = hash; };
 export const exHref = (id, params) => {
@@ -66,6 +68,8 @@ const WARMUP_SLOTS = [
 export let currentRoutine = null;
 export let routineLabel = 'Warm-up';
 export function setRoutine(items, label = 'Warm-up') { currentRoutine = items; routineLabel = label; }
+/** Opens item `i` of a routine (its preset options, and for course items the lesson step, demo or review). */
+export const routineHref = (it, i) => exHref(it.id, { ...it.params, ...(it.ls ? { ls: it.ls } : {}), ...(it.demo ? { demo: 1 } : {}), ...(it.rv ? { rv: 1 } : {}), wu: i });
 let shuffled = null; // a shuffle lasts until the app is closed
 
 export function buildRoutine(level, seed) {
@@ -101,7 +105,6 @@ function warmupBlock() {
   const lvName = h('span', { class: 'lv-name' });
   const render = () => {
     const items = buildRoutine(level, (shuffled ?? daily) + level * 7);
-    setRoutine(items);
     lvTabs.replaceChildren(...LEVELS.map((L) => h('button', { class: L.n === level ? 'on' : '', title: L.name, onClick: () => { level = L.n; saveSettings({ level }); render(); } }, `L${L.n}`)));
     lvName.textContent = `Level ${level} · ${LEVELS[level - 1].name}`;
     listEl.replaceChildren(...items.map((it, i) => {
@@ -116,8 +119,8 @@ function warmupBlock() {
   return h('section', { class: 'block' },
     h('div', { class: 'block-head' }, h('h2', {}, '🔥 Daily warm-up'), h('div', { class: 'grow' }),
       h('button', { class: 'icon-btn shuffle', title: 'Shuffle: a new random routine', 'aria-label': 'Shuffle', html: icon('dice'), onClick: () => { shuffled = Math.floor(Math.random() * 1e9); render(); } }),
-      h('button', { class: 'btn primary', onClick: () => { const items = buildRoutine(level, (shuffled ?? daily) + level * 7); setRoutine(items); go(exHref(items[0].id, { ...items[0].params, wu: 0 })); } }, '▶ Start')),
-    h('p', { class: 'muted small' }, 'A fresh routine every day: hands, fretboard, scales, triads, arpeggios and groove. About 5 minutes each.'),
+      h('button', { class: 'btn primary', onClick: () => { const items = buildRoutine(level, (shuffled ?? daily) + level * 7); setRoutine(items); go(exHref(items[0].id, { ...items[0].params, wu: 0 })); } }, '▶ Start warm-up')),
+    h('p', { class: 'muted small' }, 'A random routine outside the course, fresh every day: hands, fretboard, scales, triads, arpeggios and groove from the level you pick. About 5 minutes each.'),
     h('div', { class: 'row lv-row' }, lvTabs, lvName),
     listEl);
 }
@@ -180,7 +183,7 @@ export function pathScreen(main) {
 
 export function moduleScreen(main, id) {
   const m = moduleOf(id);
-  if (!m) { location.replace('#/path'); return; }
+  if (!m) { replaceHash('#/path'); return; }
   let level = 0;
   const tabs = h('div', { class: 'tabs' });
   const list = h('div');
@@ -348,7 +351,7 @@ export function settingsScreen(main) {
       field('Bass volume', range('bassVol', 0, 2, 0.1, 2)),
       field('Metronome volume', range('clickVol', 0, 1.5, 0.075, 1.5)),
       field('Progress', h('div', { class: 'row' },
-        h('button', { class: 'btn', onClick: () => { if (confirm('Reset all progress?')) { resetProgress(); toast('Progress reset'); } } }, 'Reset progress'),
+        h('button', { class: 'btn', onClick: () => { if (confirm('Reset all progress, the course included?')) { resetProgress(); resetCourse(); toast('Progress reset'); } } }, 'Reset progress'),
         h('button', { class: 'btn', onClick: () => {
           saveSettings({ ...DEFAULT_SETTINGS });
           A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol });

@@ -4,11 +4,12 @@
 import { h, icon, toast, note, rng } from './dom.js';
 import { settings } from '../store.js';
 import { byId, defaultParams } from '../curriculum/index.js';
-import { paramSummary } from './exercise.js';
-import { exHref, go, buildRoutine, setRoutine } from './screens.js';
+import { paramSummary, SUB_NAMES } from './exercise.js';
+import { exHref, go, buildRoutine, setRoutine, routineHref } from './screens.js';
+import { replaceHash } from './nav.js';
 import {
   STAGES, LESSONS, UNITS, lessonById, SESSION_LENGTHS,
-  stepState, stepPassed, stepClean, canTicked, setCan, isComplete, isDue, nextReview, dueLessons,
+  stepState, stepPassed, stepClean, setClean, canTicked, setCan, isComplete, isDue, nextReview, dueLessons,
   status, started, anyProgress, continueLesson, courseStats, knownUnits, setKnown, placed,
   sessionMinutes, setSessionMinutes, setLast, resetCourse,
 } from '../course/progress.js';
@@ -20,6 +21,8 @@ export const stepHref = (lesson, i, extra = {}) => exHref(lesson.steps[i].ex, { 
 const where = (l) => [`Stage ${STAGES.indexOf(l.stage) + 1} · ${l.stage.title}`, l.unit ? `Unit ${UNITS.find((u) => u.id === l.unit.id).n} · ${l.unit.title}` : null].filter(Boolean).join(' · ');
 const lessonName = (l) => (l.kind === 'lesson' ? `Lesson ${l.num} · ${l.title}` : l.title);
 const STATUS_ICON = { done: '✓', known: '✓', started: '◐', new: '○' };
+/** "goal 96 BPM in 8ths", or "one full round" for an ear or note-finding step. */
+const goalText = (s) => (s.goal ? `goal ${s.goal} BPM${s.sub ? ` in ${SUB_NAMES[s.sub]}` : ''}` : 'one full round');
 
 /** The step's own options in words ("Major (Ionian) · Root on: A string"): the rest stay the player's. */
 function presetSummary(tpl, p) {
@@ -27,66 +30,77 @@ function presetSummary(tpl, p) {
   return paramSummary({ params: defs }, { ...defaultParams(tpl), ...p }, settings);
 }
 const daysUntil = (t) => Math.max(0, Math.ceil((t - Date.now()) / 86400000));
-
-// ---------------------------------------------------------------- today's session
-// About five minutes per item: a warm-up for the hands, the reviews that are due, the next steps
-// of the course, and (30 and 45 minutes) an ear or reading drill at the end.
-const EXTRA = {
-  1: [{ id: 'ear-triads', params: { set: 'mm' }, slot: 'Ear' }, { id: 'rd-naturals', params: { range: 'all' }, slot: 'Reading' }],
-  2: [{ id: 'iv-ear-quiz', params: { set: 'basic' }, slot: 'Ear' }, { id: 'ear-triads', params: { set: 'all' }, slot: 'Ear' },
-    { id: 'rd-accidentals', params: { range: 'all' }, slot: 'Reading' }, { id: 'rd-melodies', params: { key: '7' }, slot: 'Reading' }],
-};
-
-function reviewStep(l) {
-  // the last practice step with a tempo goal is the one that shows whether the lesson stuck
+const reviewWhen = (l) => { const d = daysUntil(nextReview(l)); return d <= 1 ? 'Next review tomorrow' : `Next review in ${d} days`; };
+/** The step a review plays: the last practice step with a tempo goal shows whether the lesson stuck. */
+export function reviewStep(l) {
   let i = l.steps.length - 1;
   while (i > 0 && (l.steps[i].music || !l.steps[i].goal)) i--;
   return i;
 }
+/** The step "Hear it" plays: the first one with a tempo goal (none: the lesson is an ear lesson). */
+const demoStep = (l) => l.steps.findIndex((s) => s.goal);
+
+// ---------------------------------------------------------------- today's session
+// About five minutes per item: a warm-up, the reviews that are due, the next steps of the course
+// (a lesson not started yet opens with its demo), and at 30 and 45 minutes an ear or reading drill.
+// The warm-up and the drill come from lessons already done (or known), so nothing untaught turns up.
+const EAR_MODULES = ['ear', 'reading', 'intervals'];
+const practised = (l) => ['done', 'known'].includes(status(l));
 
 export function buildSession(minutes) {
   const n = Math.round(minutes / 5);
   const t = new Date();
   const day = t.getFullYear() * 10000 + (t.getMonth() + 1) * 100 + t.getDate();
   const rand = rng(day * 7 + minutes);
+  const pick = (list) => list[Math.floor(rand() * list.length)];
   const cont = continueLesson();
-  const stage = cont?.stage || STAGES[STAGES.length - 1];
   const items = [];
-  const pool = EXTRA[stage.level] || EXTRA[2];
-  const tail = n >= 6 ? pool[Math.floor(rand() * pool.length)] : null;
-  // room for the reviews and lessons (the warm-up opens the session, the ear or reading drill ends it)
-  const room = n - 1 - (tail ? 1 : 0);
-  for (const l of dueLessons().slice(0, Math.max(1, Math.floor(n / 3)))) {
-    const i = reviewStep(l);
-    items.push({ id: l.steps[i].ex, params: l.steps[i].p, ls: `${l.id}.${i}`, slot: 'Review', lesson: l });
-  }
-  if (cont) {
-    for (const l of LESSONS.slice(LESSONS.indexOf(cont))) {
-      if (items.length >= room) break;
-      if (l.optional || ['done', 'known'].includes(status(l))) continue;
-      l.steps.forEach((s, i) => {
-        if (items.length < room && !stepClean(l, i)) items.push({ id: s.ex, params: s.p, ls: `${l.id}.${i}`, slot: l.kind === 'lesson' ? `Lesson ${l.num}` : l.kind === 'check' ? 'Checkpoint' : 'Stage test', lesson: l });
-      });
-    }
-  }
-  // the course is finished (or nothing is left today): keep the lessons fresh with early reviews
-  if (items.length < room) {
-    const doneList = LESSONS.filter((l) => status(l) === 'done' && !items.some((x) => x.lesson === l)).sort((a, b) => nextReview(a) - nextReview(b));
-    for (const l of doneList) {
-      if (items.length >= room) break;
-      const i = reviewStep(l);
-      items.push({ id: l.steps[i].ex, params: l.steps[i].p, ls: `${l.id}.${i}`, slot: 'Review', lesson: l });
-    }
-  }
-  if (tail) items.push(tail);
-  // the warm-up: from the daily routine of the stage's level, never an exercise the session already has
-  const warm = buildRoutine(stage.level, day + stage.level * 7).find((x) => !items.some((it) => it.id === x.id));
-  if (warm) items.unshift({ id: warm.id, params: warm.params, slot: 'Warm-up' });
-  return items.slice(0, n);
-}
+  const has = (id) => items.some((x) => x.id === id);
+  const stepItem = (l, i, slot, extra = {}) => ({ id: l.steps[i].ex, params: l.steps[i].p, ls: `${l.id}.${i}`, slot, lesson: l, ...extra });
+  const count = () => items.filter((x) => !x.demo).length; // a demo is a minute, not a slot
 
-function sessionItemHref(it, i) {
-  return exHref(it.id, { ...it.params, ...(it.ls ? { ls: it.ls } : {}), wu: i });
+  // what the player has already met: the source of the warm-up and the ear or reading drill
+  const met = LESSONS.filter(practised).flatMap((l) => l.steps.map((s, i) => ({ l, s, i }))).filter((x) => !x.s.music);
+  const earPool = met.filter((x) => EAR_MODULES.includes(byId.get(x.s.ex).module));
+  const handsPool = met.filter((x) => !EAR_MODULES.includes(byId.get(x.s.ex).module) && x.s.goal);
+  const tail = n >= 6 && earPool.length ? pick(earPool) : null;
+  const room = n - (handsPool.length ? 1 : 0) - (tail ? 1 : 0);
+
+  for (const l of dueLessons().slice(0, Math.max(1, Math.floor(n / 3)))) items.push(stepItem(l, reviewStep(l), 'Review', { rv: 1 }));
+  if (cont) {
+    // new material: one lesson (or checkpoint) per 15 minutes, so each gets its time
+    let lessons = 0;
+    for (const l of LESSONS.slice(LESSONS.indexOf(cont))) {
+      if (count() >= room || lessons >= Math.max(1, Math.round(minutes / 15))) break;
+      if (l.optional || practised(l)) continue;
+      lessons++;
+      const slot = l.kind === 'lesson' ? `Lesson ${l.num}` : l.kind === 'check' ? 'Checkpoint' : 'Stage test';
+      if (l.kind === 'lesson' && !started(l) && demoStep(l) >= 0) items.push(stepItem(l, demoStep(l), slot, { demo: 1 }));
+      l.steps.forEach((s, i) => { if (count() < room && !stepClean(l, i)) items.push(stepItem(l, i, slot)); });
+    }
+  }
+  // nothing new left (the course is done, or known from the placement): early reviews, then the
+  // Library's next level until the next stage of the course exists
+  if (count() < room) {
+    const fresh = LESSONS.filter((l) => practised(l) && !l.optional && !items.some((x) => x.lesson === l))
+      .sort((a, b) => (nextReview(a) || Infinity) - (nextReview(b) || Infinity) || rand() - 0.5);
+    // with nothing new in the course, about half the room goes to the Library's Level 3
+    const upTo = cont ? room : Math.max(1, Math.ceil(room / 2));
+    for (const l of fresh) {
+      if (count() >= upTo) break;
+      items.push(stepItem(l, reviewStep(l), 'Review', isComplete(l) ? { rv: 1 } : {}));
+    }
+  }
+  if (count() < room && !cont) {
+    for (const it of buildRoutine(3, day + 21)) {
+      if (count() >= room) break;
+      if (!has(it.id)) items.push({ id: it.id, params: it.params, slot: 'Level 3' });
+    }
+  }
+  if (tail) items.push(stepItem(tail.l, tail.i, byId.get(tail.s.ex).module === 'reading' ? 'Reading' : 'Ear'));
+  const warm = handsPool.filter((x) => !has(x.s.ex));
+  if (warm.length) { const w = pick(warm); items.unshift(stepItem(w.l, w.i, 'Warm-up')); }
+  return items;
 }
 
 // ---------------------------------------------------------------- Home block
@@ -105,17 +119,18 @@ export function courseBlock() {
         h('button', { class: 'btn', onClick: () => go('#/course/placement') }, 'Already play? Find your level')));
     return section;
   }
+  const reached = stats.done + stats.known;
   const next = cont
     ? h('div', { class: 'course-next', onClick: () => go(lessonHref(cont)) },
       h('small', {}, where(cont)),
       h('b', {}, lessonName(cont)),
       h('span', { class: 'idea' }, cont.idea || ''),
-      h('div', { class: 'row' }, h('button', { class: 'btn primary' }, started(cont) ? '▶ Continue' : '▶ Start lesson'), h('div', { class: 'grow' }),
-        h('span', { class: 'muted small' }, `${stats.done + stats.known}/${stats.total} lessons`)),
-      h('div', { class: 'bar' }, h('i', { style: { width: `${((stats.done + stats.known) / stats.total) * 100}%` } })))
+      h('div', { class: 'row' }, h('button', { class: 'btn primary' }, started(cont) ? '▶ Continue lesson' : '▶ Start lesson'), h('div', { class: 'grow' }),
+        h('span', { class: 'muted small' }, `${reached}/${stats.total} lessons`)),
+      h('div', { class: 'bar' }, h('i', { style: { width: `${(reached / stats.total) * 100}%` } })))
     : h('div', { class: 'course-next done' },
-      h('b', {}, '✓ Stages 1 and 2 complete'),
-      h('span', { class: 'muted small' }, 'More stages are on the way. Until then, today\'s session keeps your lessons fresh, and the Library\'s Level 3 is the next step.'));
+      h('b', {}, stats.known ? `✓ Stages 1 and 2: ${stats.done} done, ${stats.known} known` : '✓ Stages 1 and 2 complete'),
+      h('span', { class: 'muted small' }, 'More stages are on the way. Until then, today\'s session mixes reviews of these lessons with Level 3 exercises from the Library.'));
   section.append(head, h('div', { class: 'course-cols' }, next, sessionPanel()));
   return section;
 }
@@ -125,19 +140,19 @@ function sessionPanel() {
   const render = () => {
     const minutes = sessionMinutes();
     const items = buildSession(minutes);
-    const start = (i) => { setRoutine(items, 'Session'); go(sessionItemHref(items[i], i)); };
+    const start = (i) => { setRoutine(items, 'Session'); go(routineHref(items[i], i)); };
     wrap.replaceChildren(
       h('div', { class: 'row session-head' }, h('b', {}, 'Today\'s session'), h('div', { class: 'grow' }),
         h('div', { class: 'seg' }, SESSION_LENGTHS.map((m) => h('button', { class: m === minutes ? 'on' : '', onClick: () => { setSessionMinutes(m); render(); } }, `${m} min`))),
-        h('button', { class: 'btn primary', disabled: !items.length, onClick: () => start(0) }, '▶ Start')),
+        h('button', { class: 'btn primary', disabled: !items.length, onClick: () => start(0) }, '▶ Start session')),
       h('div', { class: 'routine session-list' }, items.map((it, i) => {
         const t = byId.get(it.id);
-        const goal = it.lesson?.steps[Number(it.ls.split('.')[1])].goal;
-        return h('div', { class: 'item', onClick: () => start(i) },
+        const step = it.lesson?.steps[Number(it.ls.split('.')[1])];
+        return h('div', { class: `item${it.demo ? ' demo' : ''}`, onClick: () => start(i) },
           h('div', { class: 'n' }, i + 1),
-          h('div', { class: 't' }, h('b', {}, `${it.slot}: `, h('span', { class: 'ex-num' }, t.num), t.title),
-            h('span', {}, [it.lesson?.title, presetSummary(t, it.params)].filter(Boolean).join(' · '))),
-          goal ? h('span', { class: 'chip', title: `Goal: ${goal} BPM` }, `🎯 ${goal}`) : null);
+          h('div', { class: 't' }, h('b', {}, `${it.slot}: `, it.demo ? `▶ Hear it · ${it.lesson.title}` : [h('span', { class: 'ex-num' }, t.num), t.title]),
+            h('span', {}, it.demo ? (it.lesson.idea || '') : [it.lesson?.title, presetSummary(t, it.params)].filter(Boolean).join(' · '))),
+          step?.goal && !it.demo ? h('span', { class: 'chip', title: `Goal: ${goalText(step)}` }, `🎯 ${step.goal}`) : null);
       })));
   };
   render();
@@ -164,7 +179,7 @@ export function courseScreen(main) {
       h('h1', {}, 'Course'), h('span', { class: 'muted' }, `${stats.done} of ${stats.total} lessons done${stats.known ? ` · ${stats.known} known` : ''}`), h('div', { class: 'grow' }),
       cont ? h('button', { class: 'btn primary', onClick: () => go(lessonHref(cont)) }, `▶ ${lessonName(cont)}`) : null,
       h('button', { class: 'btn', onClick: () => go('#/course/placement') }, placed() ? 'Placement check' : 'Find your level')),
-    h('p', { class: 'muted small course-intro' }, 'Work through the lessons in order, or jump to any of them: nothing is locked. A step is done when you reach its goal tempo for a full loop and tick ✓ Clean. Completed lessons come back for short reviews (after 1, 3, 7 and 21 days) in today\'s session on Home.'),
+    h('p', { class: 'muted small course-intro' }, 'Work through the lessons in order, or jump to any of them: nothing is locked. A step is done when you play a full loop from the first note at its goal tempo and tick ✓ Clean. Completed lessons come back for short reviews (after 1, 3, 7, 21 and 60 days) in today\'s session on Home.'),
     ...STAGES.flatMap((stage, si) => {
       const list = stage.lessons.filter((l) => !l.optional);
       const done = list.filter((l) => status(l) === 'done').length;
@@ -191,35 +206,55 @@ export function courseScreen(main) {
 // ---------------------------------------------------------------- lesson page
 export function lessonScreen(main, id) {
   const l = lessonById.get(id);
-  if (!l) { location.replace('#/course'); return; }
+  if (!l) { replaceHash('#/course'); return; }
   setLast(l.id);
+  const rerender = () => { const y = main.scrollTop; lessonScreen(main, id); main.scrollTop = y; };
   const idx = LESSONS.indexOf(l);
   const prev = LESSONS[idx - 1], nextL = LESSONS[idx + 1];
   const st = status(l);
+  const due = isDue(l);
+  const rv = reviewStep(l);
   const stepRow = (s, i) => {
     const t = byId.get(s.ex);
     const ss = stepState(l.id, i);
     const clean = stepClean(l, i), passed = stepPassed(l, i);
-    const tempo = s.goal ? `from ${s.from} → goal ${s.goal} BPM${ss.best ? ` · best ${ss.best}` : ''}` : `one full loop${ss.loops ? ' · played' : ''}`;
-    return h('a', { class: `step-row${clean ? ' clean' : passed ? ' passed' : ''}${s.music ? ' music' : ''}`, href: stepHref(l, i) },
+    const tempo = `Exercise ${t.num} · ${s.goal ? `from ${s.from} → ${goalText(s)}${ss.best ? ` · best ${ss.best}` : ''}` : `one full round${ss.loops ? ' · played' : ''}`}`;
+    // a tick can be taken back here (not in the exercise, where a second tap would undo a lesson)
+    const untick = clean ? h('button', { class: 'icon-btn untick', title: 'Untick: practise this step again', 'aria-label': 'Untick this step', onClick: (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!confirm('Untick this step? The lesson counts as done again once every step is ticked.')) return;
+      setClean(l, i, false);
+      rerender();
+    } }, '↺') : null;
+    return h('a', { class: `step-row${clean ? ' clean' : passed ? ' passed' : ''}${s.music ? ' music' : ''}`, href: stepHref(l, i, due && i === rv ? { rv: 1 } : {}) },
       h('span', { class: 'n' }, clean ? '✓' : i + 1),
       h('span', { class: 't' },
         s.music ? h('small', { class: 'music-tag' }, '🎵 Make music') : null,
-        h('b', {}, h('span', { class: 'ex-num' }, t.num), t.title),
+        h('b', {}, t.title, due && i === rv ? h('span', { class: 'chip due' }, 'review') : null),
         h('span', { class: 'do' }, s.do || presetSummary(t, s.p)),
         h('span', { class: 'tempo' }, tempo)),
+      untick,
       h('span', { class: 'go', html: icon('next') }));
   };
   const canList = (l.can || []).map((text, i) => {
     const box = h('input', { type: 'checkbox', checked: canTicked(l, i) });
-    box.addEventListener('change', () => { if (setCan(l, i, box.checked)) toast(`${l.kind === 'lesson' ? 'Lesson' : l.title} complete ✓`); lessonScreen(main, id); });
+    box.addEventListener('change', () => { if (setCan(l, i, box.checked)) toast(`${l.kind === 'lesson' ? 'Lesson' : l.title} complete ✓`); rerender(); });
     return h('label', { class: 'can-row' }, box, h('span', {}, text));
   });
-  const demoAt = l.steps.findIndex((s) => s.goal) >= 0 ? l.steps.findIndex((s) => s.goal) : 0;
+  const demoAt = demoStep(l);
   const footer = isComplete(l)
     ? h('div', { class: 'les-done' }, h('b', {}, '✓ Complete'), h('span', { class: 'muted small' },
-      isDue(l) ? 'A review is due: play the steps once more at the goal tempo and tick ✓ Clean.' : `Next review in ${daysUntil(nextReview(l))} day${daysUntil(nextReview(l)) === 1 ? '' : 's'}, in today's session.`))
+      due ? `A review is due: play step ${rv + 1} once more at its goal tempo and tick ✓ Still clean?` : `${reviewWhen(l)}, in that day's session on Home.`))
     : null;
+  const intro = l.kind === 'lesson'
+    ? (demoAt >= 0
+      ? h('div', { class: 'row' }, h('button', { class: 'btn primary', onClick: () => go(stepHref(l, demoAt, { demo: 1 })) }, '▶ Hear it'),
+        h('span', { class: 'muted small' }, 'The app plays it once at the goal tempo: watch the neck and listen.'))
+      : h('p', { class: 'muted small' }, 'An ear lesson: each round plays before its answer appears, so there is nothing to show first.'))
+    : h('p', { class: 'muted' }, l.kind === 'check'
+      ? 'Before moving on: play each step at its goal tempo, cleanly, and tick what you can honestly do. Anything shaky? Go back to its lesson; nothing is locked.'
+      : 'The whole stage in a few minutes: the steps below at their goal tempos, and the list of what you can now do.');
   main.replaceChildren(
     h('div', { class: 'page-head les-head' },
       h('button', { class: 'icon-btn', 'aria-label': 'Back', html: icon('back'), onClick: () => back('#/course') }),
@@ -232,20 +267,18 @@ export function lessonScreen(main, id) {
       h('div', { class: 'les-main' },
         l.idea ? h('div', { class: 'idea-box' }, l.idea) : null,
         ...(l.concept || []).map((para) => h('p', {}, para)),
-        l.kind === 'lesson'
-          ? h('div', { class: 'row' }, h('button', { class: 'btn primary', onClick: () => go(stepHref(l, demoAt, { demo: 1 })) }, '▶ Hear it'),
-            h('span', { class: 'muted small' }, 'The app plays it once at the goal tempo: watch the neck and listen.'))
-          : h('p', { class: 'muted' }, l.kind === 'check'
-            ? 'Before moving on: play each step at its goal tempo, cleanly, and tick what you can honestly do. Anything shaky? Go back to its lesson; nothing is locked.'
-            : 'The whole stage in a few minutes: the steps below at their goal tempos, and the list of what you can now do.'),
-        canList.length ? h('div', { class: 'can-list' }, h('h4', {}, 'I can…'), ...canList) : null,
-        l.mistakes?.length ? h('div', {}, h('h4', {}, 'Watch out for'), h('ul', { class: 'mistakes' }, l.mistakes.map((m) => h('li', {}, m)))) : null),
+        l.tuner ? h('div', { class: 'row' }, h('button', { class: 'btn', onClick: () => go('#/tuner') }, 'Open the tuner')) : null,
+        intro,
+        canList.length ? h('div', { class: 'can-list' }, h('h4', {}, 'I can…'), ...canList) : null),
       h('div', { class: 'les-steps' },
         h('h4', {}, 'Practise'),
-        h('p', { class: 'muted small' }, 'Reach the goal tempo for a full loop, then tick ✓ Clean in the exercise when it really was clean.'),
+        h('p', { class: 'muted small' }, l.steps.some((s) => s.goal)
+          ? 'Play a full loop from the first note at the goal tempo, then tick ✓ Clean in the exercise when it really was clean.'
+          : 'Play one full round, then tick ✓ in the exercise if you named every answer before it appeared.'),
         ...l.steps.map(stepRow),
         footer,
-        nextL ? h('button', { class: `btn${isComplete(l) ? ' primary' : ''} les-next`, onClick: () => go(lessonHref(nextL)) }, `Next: ${lessonName(nextL)} ›`) : null)));
+        nextL ? h('button', { class: `btn${isComplete(l) ? ' primary' : ''} les-next`, onClick: () => go(lessonHref(nextL)) }, `Next: ${lessonName(nextL)} ›`) : null),
+      l.mistakes?.length ? h('div', { class: 'les-more' }, h('h4', {}, 'Watch out for'), h('ul', { class: 'mistakes' }, l.mistakes.map((m) => h('li', {}, m)))) : null));
 }
 
 // ---------------------------------------------------------------- placement check
@@ -279,8 +312,9 @@ export function placementScreen(main) {
     // units answered "yes" are marked as known; the course starts at the first lesson that is not
     setKnown(PLACEMENT.flatMap(([, units], i) => (answers[i] ? units : [])));
     const cont = continueLesson();
-    note(cont ? `Start here: ${lessonName(cont)}` : 'You know everything in Stages 1 and 2');
-    location.replace('#/course');
+    note(cont ? `Start here: ${lessonName(cont)}` : 'You know everything in Stages 1 and 2: today\'s session reviews them and adds Level 3 exercises.');
+    // back to where the check was opened from (the map or Home), which now shows the starting point
+    if (history.state?.depth > 0) history.back(); else replaceHash('#/course');
   });
   render();
   main.replaceChildren(

@@ -104,7 +104,7 @@ const progressions = ex({
       const chords = progChords(key, k, { S });
       chords.forEach((c, j) => {
         const rm = 28 + T.mod(T.pc(c.root) - 28, 12);
-        if (j === 0) b.chord(`#${r + 1}`, 'Listen: which progression?');
+        if (j === 0) b.chord(`Round ${r + 1}`, 'Listen: which progression?');
         b.line([{ midi: rm, n: c.root, deg: 'R', dur: 1, hide: true }], { place: { open: 'avoid', center: 4 } });
         const upper = shapeFor(ctx, c.ivs.slice(1, 4).map((iv) => ({ midi: rm + 12 + T.semis(iv), n: T.up(c.root, iv), deg: T.fmtDeg(iv) })))
           || shapeFor(ctx, c.ivs.slice(1, 4).map((iv) => ({ midi: rm + T.semis(iv), n: T.up(c.root, iv), deg: T.fmtDeg(iv) })))

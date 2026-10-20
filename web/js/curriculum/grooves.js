@@ -10,12 +10,12 @@ const GROOVES = {
   rock8: { name: 'Rock 8ths', bars: [e8('R')] },
   pop8: { name: 'Pop 8ths with approach', bars: [[...e8('R', 6), ['5', 0.5], ['A', 0.5]]] },
   rootFifth: { name: 'Root–5th two-beat (country)', bars: [[['R', 2], ['5_', 2]]] },
-  r585: { name: 'R-5-8-5 quarters', bars: [[['R', 1], ['5', 1], ['8', 1], ['5', 1]]] },
-  octaves: { name: 'Disco octaves', bars: [[['R', 0.5], ['8', 0.5], ['R', 0.5], ['8', 0.5], ['R', 0.5], ['8', 0.5], ['R', 0.5], ['8', 0.5]]] },
-  r5b7: { name: 'R-5-♭7-8 (blues rock)', bars: [[['R', 1], ['5', 1], ['b7', 1], ['8', 1]]] },
-  boogie: { name: 'Boogie-woogie (R-3-5-6-♭7-6-5-3)', bars: [[['R', 0.5], ['3', 0.5], ['5', 0.5], ['6', 0.5], ['b7', 0.5], ['6', 0.5], ['5', 0.5], ['3', 0.5]]] },
-  shuffle: { name: 'Shuffle (R-R-5-5-6-6-5-5)', bars: [swing([['R', 0.5], ['R', 0.5], ['5', 0.5], ['5', 0.5], ['6', 0.5], ['6', 0.5], ['5', 0.5], ['5', 0.5]])] },
-  boogieSwing: { name: 'Swung boogie', bars: [swing([['R', 0.5], ['3', 0.5], ['5', 0.5], ['6', 0.5], ['b7', 0.5], ['6', 0.5], ['5', 0.5], ['3', 0.5]])] },
+  r585: { shape: true, name: 'R-5-8-5 quarters', bars: [[['R', 1], ['5', 1], ['8', 1], ['5', 1]]] },
+  octaves: { shape: true, name: 'Disco octaves', bars: [[['R', 0.5], ['8', 0.5], ['R', 0.5], ['8', 0.5], ['R', 0.5], ['8', 0.5], ['R', 0.5], ['8', 0.5]]] },
+  r5b7: { shape: true, name: 'R-5-♭7-8 (blues rock)', bars: [[['R', 1], ['5', 1], ['b7', 1], ['8', 1]]] },
+  boogie: { shape: true, name: 'Boogie-woogie (R-3-5-6-♭7-6-5-3)', bars: [[['R', 0.5], ['3', 0.5], ['5', 0.5], ['6', 0.5], ['b7', 0.5], ['6', 0.5], ['5', 0.5], ['3', 0.5]]] },
+  shuffle: { shape: true, name: 'Shuffle (R-R-5-5-6-6-5-5)', bars: [swing([['R', 0.5], ['R', 0.5], ['5', 0.5], ['5', 0.5], ['6', 0.5], ['6', 0.5], ['5', 0.5], ['5', 0.5]])] },
+  boogieSwing: { shape: true, name: 'Swung boogie', bars: [swing([['R', 0.5], ['3', 0.5], ['5', 0.5], ['6', 0.5], ['b7', 0.5], ['6', 0.5], ['5', 0.5], ['3', 0.5]])] },
   approach: { name: 'Chromatic approach on beat 4', bars: [[['R', 1], ['R', 1], ['5', 1], ['A', 1]]] },
   fifthApproach: { name: '5th (dominant) approach on beat 4', bars: [[['R', 1], ['R', 1], ['8', 1], ['D', 1]]] },
   motown: { name: 'Motown (dotted root, octave, approach)', bars: [[['R', 1.5], ['R', 0.5], ['8', 1], ['A', 1]]] },
@@ -32,14 +32,14 @@ const GROOVES = {
   pickDown: { name: 'Pick: down-strokes only (punk 8ths)', bars: [e8('R').map(([t, d]) => [t, d, '↓'])] },
   pickAlt: { name: 'Pick: alternate picking (↓ ↑) with the 5th', bars: [[['R', 0.5, '↓'], ['R', 0.5, '↑'], ['R', 0.5, '↓'], ['R', 0.5, '↑'], ['5', 0.5, '↓'], ['5', 0.5, '↑'], ['8', 0.5, '↓'], ['5', 0.5, '↑']]] },
   gallop: { name: 'Pick: the metal gallop (8th + two 16ths)', bars: [[['R', 0.5, '↓'], ['R', 0.25, '↓'], ['R', 0.25, '↑'], ['R', 0.5, '↓'], ['R', 0.25, '↓'], ['R', 0.25, '↑'], ['R', 0.5, '↓'], ['R', 0.25, '↓'], ['R', 0.25, '↑'], ['5', 0.5, '↓'], ['8', 0.25, '↓'], ['5', 0.25, '↑']]] },
-  funkOct: { name: 'Octave funk 16ths', bars: [[['R', 0.25], ['x', 0.25], ['8', 0.25], ['x', 0.25], ['x', 0.25], ['R', 0.25], ['8', 0.25], ['x', 0.25], ['R', 0.25], ['x', 0.25], ['8', 0.25], ['b7', 0.25], ['x', 0.25], ['8', 0.25], ['R', 0.25], ['x', 0.25]]] },
+  funkOct: { shape: true, name: 'Octave funk 16ths', bars: [[['R', 0.25], ['x', 0.25], ['8', 0.25], ['x', 0.25], ['x', 0.25], ['R', 0.25], ['8', 0.25], ['x', 0.25], ['R', 0.25], ['x', 0.25], ['8', 0.25], ['b7', 0.25], ['x', 0.25], ['8', 0.25], ['R', 0.25], ['x', 0.25]]] },
   fill: {
     name: '3 bars groove + pentatonic fill',
     bars: [e8('R'), e8('R'), [['R', 0.5], ['R', 0.5], ['5', 0.5], ['8', 0.5], ['R', 0.5], ['R', 0.5], ['5', 0.5], ['8', 0.5]],
       [['R', 1], ['-', 0.5], ['R', 0.25], ['b3', 0.25], ['4', 0.25], ['5', 0.25], ['b7', 0.25], ['8', 0.25], ['b7', 0.25], ['5', 0.25], ['4', 0.25], ['b3', 0.25]]],
   },
-  riff: { name: 'Minor pentatonic riff (transpose it)', bars: [[['R', 0.5], ['R', 0.5], ['b3', 0.5], ['R', 0.5], ['4', 0.5], ['5', 0.5], ['b7', 0.5], ['8', 0.5]]] },
-  slowBlues: { name: '12/8 slow blues (triplets)', ts: [12, 8], compound: true, bpm: 60, bars: [[['R', 2 / 3], ['R', 1 / 3], ['3', 2 / 3], ['5', 1 / 3], ['6', 2 / 3], ['5', 1 / 3], ['b7', 2 / 3], ['6', 1 / 3]]] },
+  riff: { shape: true, name: 'Minor pentatonic riff (transpose it)', bars: [[['R', 0.5], ['R', 0.5], ['b3', 0.5], ['R', 0.5], ['4', 0.5], ['5', 0.5], ['b7', 0.5], ['8', 0.5]]] },
+  slowBlues: { shape: true, name: '12/8 slow blues (triplets)', ts: [12, 8], compound: true, bpm: 60, bars: [[['R', 2 / 3], ['R', 1 / 3], ['3', 2 / 3], ['5', 1 / 3], ['6', 2 / 3], ['5', 1 / 3], ['b7', 2 / 3], ['6', 1 / 3]]] },
 };
 
 const STYLE_PROGS = {
@@ -63,7 +63,9 @@ function grooveEx(id, level, styleKeys, def, meta) {
       const b = new Builder(ctx, S, { jazz: true });
       const progKey = p.prog === 'auto' ? STYLE_PROGS[p.style] : p.prog;
       for (const L of keyLines(keysFor(p.key), (k) => progChords(progKey, k, { S }))) {
-        grooveLine(b, L.chords, L.roots, GROOVES[p.style].bars, { place: { open: 'allow' }, next: L.next });
+        // a line that is a hand shape (R-5-8, octaves, boogie, riffs) keeps it: fretted notes, open
+        // strings only where no fret has the note (the open E of a 4-string)
+        grooveLine(b, L.chords, L.roots, GROOVES[p.style].bars, { place: { open: GROOVES[p.style].shape ? 'avoid' : 'allow' }, shape: !!GROOVES[p.style].shape, next: L.next });
       }
       // compound grooves (12/8) are written in dotted-quarter beats
       const g = GROOVES[p.style];

@@ -9,7 +9,7 @@ export const MAX_BPM = 260;
 
 export class Player {
   constructor(cb = {}) {
-    this.cb = cb;               // { onStep(idx), onBeat(level, beatInBar), onState(playing), onLoop(n, bpm) }
+    this.cb = cb;               // { onStep(idx), onBeat(level, beatInBar), onState(playing), onLoop(n, bpm, done) }
     this.inst = null;
     this.bpm = 80;
     this.sub = 2;               // notes per beat for uniform exercises
@@ -84,6 +84,8 @@ export class Player {
     }
     this.pendingBpm = null; // a manual change overrides a speed-trainer step not yet applied
     this.bpm = bpm;
+    // a loop is credited at the slowest tempo it was played at
+    if (this.playing) this.loopMin = Math.min(this.loopMin ?? bpm, bpm);
   }
 
   _time(absBeat) { return this.anchorTime + (absBeat - this.anchorBeat) * (60 / this.bpm); }
@@ -108,6 +110,9 @@ export class Player {
     this.anchorBeat = startBeat - pre;
     this.loopBase = 0;
     this.loopN = 0;
+    // only a pass that starts on the first note is a full loop (one started from ◀ or a tap on the strip is not)
+    this.loopFull = this.cur === 0;
+    this.loopMin = this.bpm;
     this.si = this.cur;
     this.nextStepAbs = startBeat;
     this.nextClickAbs = Math.ceil(startBeat - pre - 1e-9);
@@ -202,6 +207,7 @@ export class Player {
       // schedule a step
       const idx = this.si;
       const step = steps[idx];
+      if (idx === 0) this.loopMin = this.bpm; // a pass starts at the tempo of its first note
       const beats = this.beatsOf(step);
       const secs = beats * (60 / this.bpm);
       // backing pad: a new harmony starts with its step (and the first step played sets it up)
@@ -228,8 +234,10 @@ export class Player {
           this.si = 0;
           this.nextStepAbs = this.loopBase + this.starts[0];
           this.loopN++;
-          // `done` is the tempo of the loop just completed (what "best BPM" may credit)
-          const done = this.bpm;
+          // `done` is the tempo of the loop just completed (what "best BPM" may credit): its slowest
+          // tempo, and null when the pass did not start on the first note
+          const done = this.loopFull ? Math.min(this.loopMin, this.bpm) : null;
+          this.loopFull = true;
           if (this.trainer.on && this.bpm < this.trainer.target) {
             const nb = Math.min(this.trainer.target, this.bpm + this.trainer.inc);
             // the rest of this loop (clicks after the last note) keeps the old tempo

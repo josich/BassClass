@@ -4,7 +4,9 @@
 // records, plus the player's own "clean" tick (no goal: one full loop). A step marked `music`
 // puts the lesson to work in a musical setting, with the backing it names.
 // Nothing is locked: the Course only recommends the next lesson.
-// Ids are stored in the player's progress: never rename one.
+// Ids are stored in the player's progress: never rename one. Steps are stored by their place in the
+// lesson ("pluck.1"): add new steps at the end of a lesson, never insert or reorder them.
+// `sub` (notes per beat) is part of a step whose exercise lets the player choose it.
 
 export const STAGES = [
   // ================================================================ Stage 1
@@ -14,8 +16,25 @@ export const STAGES = [
     units: [
       {
         id: 'u-hands', title: 'Your two hands',
-        goal: 'Pluck evenly with two fingers and fret with one finger per fret.',
+        goal: 'Hold and tune the bass, pluck evenly with two fingers and fret with one finger per fret.',
         lessons: [
+          {
+            id: 'hold', title: 'Holding and tuning the bass', tuner: true,
+            idea: 'Relaxed shoulders, the neck pointing slightly up, and a bass in tune.',
+            concept: [
+              'Sitting, rest the bass on your right thigh (the left one if you play left-handed) with the neck pointing slightly upwards, the headstock about level with your shoulder. Standing, set the strap so the bass sits at the same height as when you sit: everything you practise then works both ways.',
+              'The plucking forearm rests on the top edge of the body, so the hand falls over the strings by itself. The fretting thumb sits behind the neck, not wrapped over it, and the wrist stays fairly straight. Shoulders down, nothing tense.',
+              'Tune before every practice. Open the tuner, pluck one open string at a time and turn its tuning key until the needle sits in the middle: E, A, D, G from the thickest string (low B and high C on 5- and 6-string basses). Tune up to the note: if a string is sharp, go below the note and come back up.',
+            ],
+            steps: [
+              { ex: 'fb-open-strings', p: { reps: '2' }, sub: 1, from: 50, goal: 66, do: 'Tuned? Play each open string twice and let it ring for its full length. Check your posture between notes.' },
+            ],
+            mistakes: [
+              'A neck pointing at the floor: the fretting wrist has to bend sharply. Raise the neck.',
+              'The thumb wrapped over the top of the neck. Keep it behind the neck, roughly behind the middle finger.',
+              'Skipping the tuning. Everything you learn by ear depends on it.',
+            ],
+          },
           {
             id: 'pluck', title: 'Plucking with two fingers',
             idea: 'Alternate index and middle, and make the two fingers sound the same.',
@@ -24,8 +43,8 @@ export const STAGES = [
               'The aim is not speed but sameness: every note the same volume, the same length and exactly with the click. With your eyes closed, nobody should be able to tell which finger played.',
             ],
             steps: [
-              { ex: 'tech-alt-pluck', p: { start: 'i', reps: '8' }, from: 60, goal: 80, do: 'Eight notes on each open string, starting with the index. The i/m tags show which finger plucks.' },
-              { ex: 'tech-alt-pluck', p: { start: 'm', reps: '4' }, from: 60, goal: 80, do: 'Now start with the middle finger, four notes per string. Neither finger should lead.' },
+              { ex: 'tech-alt-pluck', p: { start: 'i', reps: '8' }, sub: 2, from: 60, goal: 80, do: 'Eight notes on each open string, starting with the index. The i/m tags show which finger plucks.' },
+              { ex: 'tech-alt-pluck', p: { start: 'm', reps: '4' }, sub: 2, from: 60, goal: 80, do: 'Now start with the middle finger, four notes per string. Neither finger should lead.' },
             ],
             mistakes: [
               'Using the same finger twice when you change string. Keep alternating, even across strings.',
@@ -37,12 +56,12 @@ export const STAGES = [
             id: 'open-strings', title: 'The open strings',
             idea: 'E-A-D-G, each string a 4th above the one below.',
             concept: [
-              'From the thickest string to the thinnest, a 4-string bass is tuned E-A-D-G (a 5-string adds a low B, a 6-string a low B and a high C). Each string is a 4th above the one below it, which is why the same shapes work all over the neck.',
-              'A phrase to remember them: Eat All Day, Grandma. Tune up before you practise: the tuner button sits at the top of every exercise.',
+              'From the thickest string to the thinnest, a 4-string bass is tuned E-A-D-G (a 5-string adds a low B, a 6-string a low B and a high C). Each string is five frets above the one below it: fret 5 of a string gives the next open string. That distance is called a 4th (you will meet intervals in Unit 11), and it is why the same shapes work all over the neck.',
+              'A phrase to remember them: Eat All Day, Grandma. Tune up first, as in the last lesson: the tuner button sits at the top of every exercise.',
             ],
             steps: [
-              { ex: 'fb-open-strings', p: { reps: '4' }, from: 60, goal: 76, do: 'Four plucks on each string. Say its name out loud as you play.' },
-              { ex: 'fb-open-strings', p: { reps: '1' }, from: 60, goal: 80, do: 'One pluck per string: now you cross strings on every note. Keep alternating i-m.' },
+              { ex: 'fb-open-strings', p: { reps: '4' }, sub: 1, from: 60, goal: 76, do: 'Four plucks on each string. Say its name out loud as you play.' },
+              { ex: 'fb-open-strings', p: { reps: '1' }, sub: 1, from: 60, goal: 80, do: 'One pluck per string: now you cross strings on every note. Keep alternating i-m.' },
             ],
             mistakes: [
               'Letting the open strings ring into each other. After each note, rest the plucking finger on the next string and touch the string you left.',
@@ -57,8 +76,8 @@ export const STAGES = [
               'Press just behind the fret, not on top of it and not halfway between two frets, and only as hard as a clean note needs. The thumb rests behind the neck, roughly behind the middle finger.',
             ],
             steps: [
-              { ex: 'tech-1234', p: { pos: '5' }, from: 60, goal: 80, do: 'Start at fret 5, where the frets are closer together. Keep each finger down until the next one sounds.' },
-              { ex: 'tech-1234', p: { pos: '1' }, from: 60, goal: 72, do: 'Now at fret 1, where the hand opens wider. Stretch from the knuckles, not by moving the arm.' },
+              { ex: 'tech-1234', p: { pos: '5' }, sub: 2, from: 60, goal: 80, do: 'Start at fret 5, where the frets are closer together. Keep each finger down until the next one sounds.' },
+              { ex: 'tech-1234', p: { pos: '1' }, sub: 2, from: 60, goal: 72, do: 'Now at fret 1, where the hand opens wider. Stretch from the knuckles, not by moving the arm.' },
             ],
             mistakes: [
               'Lifting each finger high off the string. Keep the fingers hovering close: less movement now, more speed later.',
@@ -69,13 +88,14 @@ export const STAGES = [
         ],
         check: {
           can: [
+            'I can tune my bass with the tuner, and I sit (or stand) without tension.',
             'I alternate i-m without thinking about it, even when I change string.',
             'I can name the open strings without looking.',
             'I keep one finger per fret, with my fingers close to the strings.',
           ],
           steps: [
-            { ex: 'tech-alt-pluck', p: { start: 'i', reps: '4' }, from: 72, goal: 92 },
-            { ex: 'tech-1234', p: { pos: '3' }, from: 66, goal: 88 },
+            { ex: 'tech-alt-pluck', p: { start: 'i', reps: '4' }, sub: 2, from: 72, goal: 92 },
+            { ex: 'tech-1234', p: { pos: '3' }, sub: 2, from: 66, goal: 88 },
           ],
         },
       },
@@ -108,8 +128,8 @@ export const STAGES = [
               'The pyramid climbs from one to four notes per beat and back. Count out loud and feel where each group starts: always exactly on the click.',
             ],
             steps: [
-              { ex: 'rh-pyramid', p: { max: '4', note: 'A0' }, from: 60, goal: 80, do: 'Count every subdivision out loud. The first note of each group lands on the click.' },
-              { ex: 'rh-pyramid', p: { max: '4', note: 'E5' }, from: 60, goal: 76, do: 'The same on a fretted A (E string, fret 5): now the fretting hand has to hold the note steady too.' },
+              { ex: 'rh-pyramid', p: { max: '4', note: 'A0' }, from: 56, goal: 72, do: 'Count every subdivision out loud. The first note of each group lands on the click.' },
+              { ex: 'rh-pyramid', p: { max: '4', note: 'E5' }, from: 56, goal: 66, do: 'The same on a fretted A (E string, fret 5): now the fretting hand has to hold the note steady too.' },
             ],
             mistakes: [
               'Speeding up on the 16ths. If the four notes squash together, lower the tempo.',
@@ -141,7 +161,7 @@ export const STAGES = [
           ],
           steps: [
             { ex: 'rh-pulse', p: { click: '2bars' }, from: 66, goal: 80 },
-            { ex: 'rh-pyramid', p: { max: '4' }, from: 66, goal: 88 },
+            { ex: 'rh-pyramid', p: { max: '4' }, from: 60, goal: 76 },
             { ex: 'rh-rests', p: {}, from: 80, goal: 100 },
           ],
         },
@@ -158,8 +178,8 @@ export const STAGES = [
               'So from the open E: F is fret 1, G fret 3, A fret 5, B fret 7, C fret 8, D fret 10, and at fret 12 E again, one octave higher. Fret 12 repeats the open string.',
             ],
             steps: [
-              { ex: 'fb-naturals', p: { string: 'E', range: '0' }, from: 60, goal: 80, do: 'Say each note\'s name as you play it. Notice the half steps E–F and B–C.' },
-              { ex: 'fb-naturals', p: { string: 'A', range: '0' }, from: 60, goal: 80, do: 'The same alphabet starting from A. Where are the half steps now?' },
+              { ex: 'fb-naturals', p: { string: 'E', range: '0' }, sub: 1, from: 60, goal: 80, do: 'Say each note\'s name as you play it. Notice the half steps E–F and B–C.' },
+              { ex: 'fb-naturals', p: { string: 'A', range: '0' }, sub: 1, from: 60, goal: 80, do: 'The same alphabet starting from A. Where are the half steps now?' },
             ],
             mistakes: [
               'Forgetting that E–F and B–C have no fret between them.',
@@ -174,8 +194,8 @@ export const STAGES = [
               'Going up, players usually name them as sharps; coming down, as flats. With the natural notes and these two rules, every fret has a name.',
             ],
             steps: [
-              { ex: 'fb-chromatic-string', p: { string: 'A' }, from: 66, goal: 84, do: 'Sharps going up, flats coming down. Say every name.' },
-              { ex: 'fb-chromatic-string', p: { string: 'E' }, from: 66, goal: 84, do: 'Now on the E string.' },
+              { ex: 'fb-chromatic-string', p: { string: 'A' }, sub: 1, from: 66, goal: 84, do: 'Sharps going up, flats coming down. Say every name.' },
+              { ex: 'fb-chromatic-string', p: { string: 'E' }, sub: 1, from: 66, goal: 84, do: 'Now on the E string.' },
             ],
             mistakes: [
               'Thinking there is a note between E and F or between B and C. There is no fret there.',
@@ -190,12 +210,12 @@ export const STAGES = [
               'E string: G, A, B, C♯, E. A string: C, D, E, F♯, A. D string: F, G, A, B, D. G string: B♭, C, D, E, G.',
             ],
             steps: [
-              { ex: 'fb-landmarks', p: { order: 'string' }, from: 60, goal: 80, do: 'One string at a time: name each landmark before its dot appears.' },
-              { ex: 'fb-landmarks', p: { order: 'fret' }, from: 60, goal: 80, do: 'Now fret by fret across the strings: fret 5 is A, D, G, C.' },
+              { ex: 'fb-landmarks', p: { order: 'string' }, sub: 1, from: 60, goal: 80, do: 'One string at a time: name each landmark before its dot appears.' },
+              { ex: 'fb-landmarks', p: { order: 'fret' }, sub: 1, from: 60, goal: 80, do: 'Now fret by fret across the strings: fret 5 is A, D, G, C.' },
             ],
             mistakes: [
               'Counting frets from the nut. Start from the nearest dot instead.',
-              'Learning the E string only. The A string is just as important: half of all bass lines start there.',
+              'Learning the E string only. The A string is just as important: many bass lines start there.',
             ],
           },
           {
@@ -206,8 +226,8 @@ export const STAGES = [
               'Octaves double what you know: learn the E and A strings and you also know the D and G strings. They are also the start of the root–octave lines of disco and rock.',
             ],
             steps: [
-              { ex: 'fb-octaves', p: { pair: '0' }, from: 66, goal: 84, do: 'E string to D string: index on the low note, ring or little finger on the octave.' },
-              { ex: 'fb-octaves', p: { pair: '1' }, from: 66, goal: 84, do: 'Now from the A string to the G string.' },
+              { ex: 'fb-octaves', p: { pair: '0' }, sub: 2, from: 66, goal: 84, do: 'E string to D string: index on the low note, ring or little finger on the octave.' },
+              { ex: 'fb-octaves', p: { pair: '1' }, sub: 2, from: 66, goal: 84, do: 'Now from the A string to the G string.' },
             ],
             mistakes: [
               'Letting the string in between ring. Mute it with the side of the index finger.',
@@ -222,8 +242,8 @@ export const STAGES = [
             'I can find the octave of any note on the E or A string.',
           ],
           steps: [
-            { ex: 'fb-naturals', p: { string: 'A', range: '0' }, from: 72, goal: 96 },
-            { ex: 'fb-landmarks', p: { order: 'fret' }, from: 72, goal: 96 },
+            { ex: 'fb-naturals', p: { string: 'A', range: '0' }, sub: 1, from: 72, goal: 96 },
+            { ex: 'fb-landmarks', p: { order: 'fret' }, sub: 1, from: 72, goal: 96 },
           ],
         },
       },
@@ -236,7 +256,7 @@ export const STAGES = [
             idea: 'Every chord has a root: playing it steadily is the bass player\'s first job.',
             concept: [
               'Every chord has a root, the note that names it: A for A major, D for D major. Playing just the roots, in steady 8ths, is the foundation of countless rock and pop songs.',
-              'Roman numerals name chords by their place in the key: in A major, I is A, IV is D and V is E. So I–IV–V–I means the same moves in every key. The chord names appear above the neck as you play.',
+              'Roman numerals name chords by their place in the key: count up the key\'s scale from its first note (the scale itself comes in Unit 5). In A major, I is A, IV is D and V is E; a lowercase numeral is a minor chord (vi in A is F♯m). So I–IV–V–I means the same moves in every key. The chord names appear above the neck as you play.',
             ],
             steps: [
               { ex: 'gr-roots', p: { style: 'rock8', prog: 'I-IV-V-I', key: '9' }, from: 80, goal: 110, backing: 'chords', do: 'Rock 8ths through I–IV–V–I in A. Keep every note the same length and volume.' },
@@ -251,7 +271,7 @@ export const STAGES = [
             id: 'root-fifth', title: 'Root and 5th',
             idea: 'The 5th is the root\'s best friend: one string up and two frets up, or the same fret one string down.',
             concept: [
-              'The 5th is the closest friend of the root. On the bass it sits one string up and two frets up (the power-chord shape), or at the same fret on the string below. Both are the same note, an octave apart.',
+              'The 5th is the closest friend of the root. On the bass it sits one string up and two frets up (the shape guitarists use for power chords), or at the same fret on the string below. Both are the same note, an octave apart.',
               'Root on beat 1 and the 5th below on beat 3 is the two-beat line of country and folk. R-5-8-5 (root, 5th, octave, 5th) is a line that fits under almost any chord.',
             ],
             steps: [
@@ -304,9 +324,9 @@ export const STAGES = [
               'On the bass it fits under one hand. With the root under the middle finger on the E or A string, the fingering is 2-4, 1-2-4, 1-3-4, with no shift. Because the shape never changes, you can play it in any key by moving it.',
             ],
             steps: [
-              { ex: 'sc-one-octave', p: { type: 'ionian', key: '0', root: 'A', oct: '1' }, from: 60, goal: 84, do: 'C major from the A string. Sing "do re mi" along with it.' },
-              { ex: 'sc-one-octave', p: { type: 'ionian', key: '7', root: 'E', oct: '1' }, from: 60, goal: 84, do: 'G major from the E string: the same shape, one string lower.' },
-              { ex: 'sc-one-octave', p: { type: 'ionian', root: 'A', oct: '1' }, from: 60, goal: 84, do: 'Pick any key under Options. The shape does not change, only its place on the neck.' },
+              { ex: 'sc-one-octave', p: { type: 'ionian', key: '0', root: 'A', oct: '1' }, sub: 1, from: 60, goal: 84, do: 'C major from the A string. Sing "do re mi" along with it.' },
+              { ex: 'sc-one-octave', p: { type: 'ionian', key: '7', root: 'E', oct: '1' }, sub: 1, from: 60, goal: 84, do: 'G major from the E string: the same shape, one string lower.' },
+              { ex: 'sc-one-octave', p: { type: 'ionian', root: 'A', oct: '1' }, sub: 1, from: 60, goal: 84, do: 'Pick any key under Options. The shape does not change, only its place on the neck.' },
             ],
             mistakes: [
               'Changing the fingering each time. Switch the dot labels to fingers (Fing) and follow them.',
@@ -321,24 +341,24 @@ export const STAGES = [
               'Natural minor is the darker sister of the major scale: its 3rd, 6th and 7th are a fret lower. E minor in open position is one of the first sounds of rock.',
             ],
             steps: [
-              { ex: 'sc-open-position', p: { type: 'ionian', key: '7', oct: '1' }, from: 60, goal: 84, do: 'G major in open position. Let no open string ring into the next note.' },
-              { ex: 'sc-open-position', p: { type: 'aeolian', key: '4', oct: '1' }, from: 60, goal: 84, do: 'E natural minor: hear how much darker it is than major.' },
+              { ex: 'sc-open-position', p: { type: 'ionian', key: '7', oct: '1' }, sub: 1, from: 60, goal: 84, do: 'G major in open position. Let no open string ring into the next note.' },
+              { ex: 'sc-open-position', p: { type: 'aeolian', key: '4', oct: '1' }, sub: 1, from: 60, goal: 84, do: 'E natural minor: hear how much darker it is than major.' },
             ],
             mistakes: [
               'Open strings ringing on. An open string cannot be stopped by the fretting hand: touch it with the plucking hand.',
-              'Fretting with the wrong finger after an open string. Keep one finger per fret in frets 1–4.',
+              'Losing the fingering around the open strings. Switch the dot labels to fingers (Fing) and follow them: in these two keys the hand sits in second position, index on fret 2.',
             ],
           },
           {
             id: 'pentatonics', title: 'Pentatonic scales',
             idea: 'Five notes, no clashes: the sound of rock, blues and pop.',
             concept: [
-              'Leave out the 4th and 7th of the major scale and you get the major pentatonic: five notes that never clash, the sound of folk, country and pop melodies. The minor pentatonic (1 ♭3 4 5 ♭7) is home for rock and blues players.',
+              'Leave out the 4th and 7th of the major scale and you get the major pentatonic: five notes with no half steps between them, so they rarely clash, the sound of folk, country and pop melodies. The minor pentatonic (1 ♭3 4 5 ♭7) is home for rock and blues players.',
               'They share their notes: C major pentatonic and A minor pentatonic are the same five notes starting from a different root. The minor box, two notes per string, is a shape you will use for years.',
             ],
             steps: [
-              { ex: 'sc-one-octave', p: { type: 'minorPent', key: '9', root: 'E', oct: '1' }, from: 60, goal: 88, do: 'A minor pentatonic from the E string: fingers 1-4, 1-3, 1-3.' },
-              { ex: 'sc-one-octave', p: { type: 'majorPent', key: '0', root: 'A', oct: '1' }, from: 60, goal: 88, do: 'C major pentatonic: the same notes as A minor pentatonic, from another root.' },
+              { ex: 'sc-one-octave', p: { type: 'minorPent', key: '9', root: 'E', oct: '1' }, sub: 1, from: 60, goal: 88, do: 'A minor pentatonic from the E string: fingers 1-4, 1-3, 1-3.' },
+              { ex: 'sc-one-octave', p: { type: 'majorPent', key: '0', root: 'A', oct: '1' }, sub: 1, from: 60, goal: 88, do: 'C major pentatonic: the same notes as A minor pentatonic, from another root.' },
               { ex: 'gr-octaves', p: { style: 'riff', prog: 'vamp-min' }, from: 84, goal: 104, backing: 'chords', music: true, do: 'A riff built from the minor pentatonic. Listen to how the box turns into a bass line.' },
             ],
             mistakes: [
@@ -354,8 +374,8 @@ export const STAGES = [
             'I can play the minor pentatonic box from the E string.',
           ],
           steps: [
-            { ex: 'sc-one-octave', p: { type: 'ionian', root: 'A', oct: '1' }, from: 72, goal: 96 },
-            { ex: 'sc-one-octave', p: { type: 'minorPent', root: 'E', oct: '1' }, from: 72, goal: 100 },
+            { ex: 'sc-one-octave', p: { type: 'ionian', root: 'A', oct: '1' }, sub: 1, from: 72, goal: 96 },
+            { ex: 'sc-one-octave', p: { type: 'minorPent', root: 'E', oct: '1' }, sub: 1, from: 72, goal: 100 },
           ],
         },
       },
@@ -371,8 +391,8 @@ export const STAGES = [
               'This is why the scale came first: every chord tone is a scale note, so the chord shape sits inside the scale shape you already know.',
             ],
             steps: [
-              { ex: 'hm-build-a-chord', p: { scale: 'ionian', key: '0', root: 'A' }, from: 60, goal: 84, do: 'The scale, then 1-3-5, then 1-3-5-7: hear the chord grow out of the scale.' },
-              { ex: 'hm-build-a-chord', p: { scale: 'aeolian', key: '9', root: 'E' }, from: 60, goal: 84, do: 'Now from A natural minor: 1-♭3-5-♭7.' },
+              { ex: 'hm-build-a-chord', p: { scale: 'ionian', key: '0', root: 'A' }, sub: 2, from: 60, goal: 84, do: 'The scale, then 1-3-5, then 1-3-5-7: hear the chord grow out of the scale.' },
+              { ex: 'hm-build-a-chord', p: { scale: 'aeolian', key: '9', root: 'E' }, sub: 2, from: 60, goal: 84, do: 'Now from A natural minor: 1-♭3-5-♭7.' },
             ],
             mistakes: [
               'Learning chord shapes as dots without names. Say the degree of each note.',
@@ -386,9 +406,9 @@ export const STAGES = [
               'Like the scale, each shape moves to any key unchanged. Go up to the octave (1-3-5-8) and the shape becomes a complete bass line.',
             ],
             steps: [
-              { ex: 'tri-shape', p: { quality: 'maj', root: 'A', shape: 'updown' }, from: 60, goal: 88, do: 'Major triad up and down. Say "root, 3rd, 5th" as you play.' },
-              { ex: 'tri-shape', p: { quality: 'min', root: 'A', shape: 'updown' }, from: 60, goal: 88, do: 'Minor: only the 3rd changes.' },
-              { ex: 'tri-shape', p: { quality: 'maj', root: 'E', shape: 'octave' }, from: 60, goal: 88, do: '1-3-5-8-5-3: up to the octave and back, from the E string.' },
+              { ex: 'tri-shape', p: { quality: 'maj', root: 'A', shape: 'updown' }, sub: 1, from: 60, goal: 88, do: 'Major triad up and down. Say "root, 3rd, 5th" as you play.' },
+              { ex: 'tri-shape', p: { quality: 'min', root: 'A', shape: 'updown' }, sub: 1, from: 60, goal: 88, do: 'Minor: only the 3rd changes.' },
+              { ex: 'tri-shape', p: { quality: 'maj', root: 'E', shape: 'octave' }, sub: 1, from: 60, goal: 88, do: '1-3-5-8-5-3: up to the octave and back, from the E string.' },
             ],
             mistakes: [
               'Starting the major shape with finger 1: the 3rd then needs a stretch backwards. Root on finger 2 for major.',
@@ -399,11 +419,12 @@ export const STAGES = [
             id: 'major-minor', title: 'Hear major and minor',
             idea: 'Major sounds bright, minor darker: the 3rd decides.',
             concept: [
-              'Major sounds bright and settled, minor darker and more serious. The only difference is the 3rd: a major 3rd is four frets above the root, a minor 3rd three.',
+              'Major sounds bright and settled, minor darker and more serious. The only difference is the 3rd: a major 3rd is four frets above the root, a minor 3rd three. In sound it drops by one fret.',
+              'Watch the blue dot, the 3rd: it is the only note that changes. On the neck it jumps to a new place, because the minor shape is fingered from finger 1 (the ♭3 sits on the root\'s string), but the root and the 5th stay where they were.',
               'Train your ear along with your hands: whenever you play a triad, say "major" or "minor" before you reach the 3rd.',
             ],
             steps: [
-              { ex: 'tri-maj-min', p: { root: 'A' }, from: 66, goal: 90, do: 'Major, then minor on the same root: listen to the one note that changes.' },
+              { ex: 'tri-maj-min', p: { root: 'A' }, sub: 1, from: 66, goal: 90, do: 'Major, then minor on the same root: listen to the one note that changes, the 3rd (blue).' },
               { ex: 'ear-triads', p: { set: 'mm' }, do: 'Ear check: a triad plays with its notes hidden. Say "major" or "minor" before the answer appears.' },
             ],
             mistakes: [
@@ -418,8 +439,8 @@ export const STAGES = [
             'I know that a chord is built from every other note of a scale.',
           ],
           steps: [
-            { ex: 'tri-shape', p: { quality: 'maj', shape: 'octave' }, from: 72, goal: 100 },
-            { ex: 'tri-maj-min', p: {}, from: 76, goal: 100 },
+            { ex: 'tri-shape', p: { quality: 'maj', shape: 'octave' }, sub: 1, from: 72, goal: 100 },
+            { ex: 'tri-maj-min', p: {}, sub: 1, from: 76, goal: 100 },
           ],
         },
       },
@@ -432,7 +453,7 @@ export const STAGES = [
             idea: 'The open strings are your anchors on the staff.',
             concept: [
               'Bass music is written in the bass clef. Its lines from the bottom are G B D F A ("Good Boys Do Fine Always"), its spaces A C E G ("All Cows Eat Grass").',
-              'Bass guitar is written an octave above its sound, so the notes sit on the staff rather than far below it. The open E is on the first ledger line below the staff, the open A in the bottom space, the open D on the middle line and the open G in the top space.',
+              'Bass guitar is written an octave above its sound, so the notes sit on the staff rather than far below it. The open E is on the first ledger line below the staff (a short extra line for a note below the five), the open A in the bottom space, the open D on the middle line and the open G in the top space.',
             ],
             steps: [
               { ex: 'rd-naturals', p: { range: 'ea' }, from: 50, goal: 66, do: 'E and A strings only. Read the note and play it before its dot appears.' },
@@ -470,15 +491,15 @@ export const STAGES = [
     ],
     check: {
       can: [
-        'I can play a root line through a song at 110 BPM with even 8ths.',
+        'I can play a root line through a song at 112 BPM with even 8ths.',
         'I can play the major scale and major and minor triads in any key.',
         'I keep time with the click on beat 1 only.',
         'I can read first-position notes on the staff.',
       ],
       steps: [
-        { ex: 'gr-roots', p: { style: 'r585', prog: 'I-V-vi-IV' }, from: 92, goal: 112, backing: 'chords' },
-        { ex: 'sc-one-octave', p: { type: 'ionian', root: 'E', oct: '1' }, from: 80, goal: 100 },
-        { ex: 'tri-shape', p: { quality: 'min', shape: 'octave' }, from: 80, goal: 100 },
+        { ex: 'gr-roots', p: { style: 'rock8', prog: 'I-V-vi-IV' }, from: 92, goal: 112, backing: 'chords' },
+        { ex: 'sc-one-octave', p: { type: 'ionian', root: 'E', oct: '1' }, sub: 1, from: 80, goal: 100 },
+        { ex: 'tri-shape', p: { quality: 'min', shape: 'octave' }, sub: 1, from: 80, goal: 100 },
         { ex: 'rh-pulse', p: { click: '1' }, from: 76, goal: 92 },
         { ex: 'rd-naturals', p: { range: 'all' }, from: 60, goal: 72 },
       ],
@@ -499,11 +520,11 @@ export const STAGES = [
             idea: 'Alternate going up, rake coming down.',
             concept: [
               'Moving to a higher string, keep alternating i-m. Moving to a lower-pitched string, let the finger that just played fall onto it and pluck again: a rake. It saves motion and keeps the time even.',
-              'The i/m tags above the dots show which finger plucks. Follow them slowly first: the habit is what matters.',
+              'In Lesson 1.2 you alternated strictly; the rake is the one exception, for crossing to a lower-pitched string. The i/m tags above the dots show which finger plucks. Follow them slowly first: the habit is what matters.',
             ],
             steps: [
-              { ex: 'tech-raking', p: { fret: '0', pattern: 'wave' }, from: 70, goal: 96, do: 'Open strings up and down. Watch the i/m tags on the way down.' },
-              { ex: 'tech-raking', p: { fret: '5', pattern: 'arp' }, from: 70, goal: 96, do: 'An arpeggio shape at fret 5: raking makes it smooth.' },
+              { ex: 'tech-raking', p: { fret: '0', pattern: 'wave' }, sub: 2, from: 70, goal: 96, do: 'Open strings up and down. Watch the i/m tags on the way down.' },
+              { ex: 'tech-raking', p: { fret: '5', pattern: 'arp' }, sub: 2, from: 70, goal: 96, do: 'Across the strings at fret 5 and back: raking makes it smooth.' },
             ],
             mistakes: [
               'Raking with a flick that makes the second note louder. All notes the same volume.',
@@ -533,8 +554,8 @@ export const STAGES = [
               'Shift during the last note before the move, with the thumb sliding along, so the new position arrives in time.',
             ],
             steps: [
-              { ex: 'tech-1234-climb', p: { top: '5', dir: 'up' }, from: 80, goal: 100, do: 'Up to fret 5 and back. Keep the thumb moving with the hand.' },
-              { ex: 'tech-1234-climb', p: { top: '9', dir: 'up' }, from: 80, goal: 100, do: 'Now to fret 9: the frets get closer as you climb.' },
+              { ex: 'tech-1234-climb', p: { top: '5', dir: 'up' }, sub: 2, from: 80, goal: 100, do: 'Up to fret 5 and back. Keep the thumb moving with the hand.' },
+              { ex: 'tech-1234-climb', p: { top: '9', dir: 'up' }, sub: 2, from: 80, goal: 100, do: 'Now to fret 9: the frets get closer as you climb.' },
             ],
             mistakes: [
               'A gap at every shift. Move during the note before, not after it.',
@@ -548,9 +569,9 @@ export const STAGES = [
               'Play these slowly and cleanly: the aim is control, not speed. A few minutes a day is enough.',
             ],
             steps: [
-              { ex: 'tech-permutations', p: { perm: '1243', pos: '5' }, from: 66, goal: 88, do: '1-2-4-3: the little finger before the ring finger.' },
-              { ex: 'tech-spider', p: { pattern: 'a', pos: '5' }, from: 66, goal: 84, do: 'The spider: two fingers on one string, two on the next.' },
-              { ex: 'tech-finger-pairs', p: { pair: '34', pos: '5' }, from: 66, goal: 84, do: 'Fingers 3 and 4 alone: the hardest pair.' },
+              { ex: 'tech-permutations', p: { perm: '1243', pos: '5' }, sub: 2, from: 66, goal: 88, do: '1-2-4-3: the little finger before the ring finger.' },
+              { ex: 'tech-spider', p: { pattern: 'a', pos: '5' }, sub: 2, from: 66, goal: 84, do: 'The spider: two fingers on one string, two on the next.' },
+              { ex: 'tech-finger-pairs', p: { pair: '34', pos: '5' }, sub: 2, from: 66, goal: 84, do: 'Fingers 3 and 4 alone: the hardest pair.' },
             ],
             mistakes: [
               'Lifting the other fingers high while one plays. Keep them close to the string.',
@@ -565,9 +586,9 @@ export const STAGES = [
             'I can shift the hand without a gap in the time.',
           ],
           steps: [
-            { ex: 'tech-raking', p: { pattern: 'arp' }, from: 84, goal: 104 },
+            { ex: 'tech-raking', p: { pattern: 'arp' }, sub: 2, from: 84, goal: 104 },
             { ex: 'tech-muting', p: { pattern: 'skip' }, from: 80, goal: 100 },
-            { ex: 'tech-permutations', p: { perm: 'all', pos: '5' }, from: 66, goal: 84 },
+            { ex: 'tech-permutations', p: { perm: 'all', pos: '5' }, sub: 2, from: 66, goal: 84 },
           ],
         },
       },
@@ -598,7 +619,7 @@ export const STAGES = [
             ],
             steps: [
               { ex: 'rh-shuffle', p: {}, from: 84, goal: 110, do: 'Feel the triplet underneath: the second note comes late, on the last triplet.' },
-              { ex: 'gr-blues', p: { style: 'shuffle', prog: 'blues' }, from: 84, goal: 104, backing: 'chords', music: true, do: 'The shuffle line through a 12-bar blues. Keep the long-short feel all the way.' },
+              { ex: 'gr-blues', p: { style: 'shuffle', prog: 'vamp-dom' }, from: 84, goal: 104, backing: 'chords', music: true, do: 'A shuffle line on one chord: R-R-5-5-6-6-5-5, where the 6th is two frets above the 5th. Keep the long-short feel all the way.' },
             ],
             mistakes: [
               'Swinging too hard, so it sounds like a dotted 8th and a 16th. Think triplets.',
@@ -642,6 +663,7 @@ export const STAGES = [
           steps: [
             { ex: 'rh-offbeats', p: {}, from: 88, goal: 108 },
             { ex: 'rh-syncopation', p: {}, from: 84, goal: 104 },
+            { ex: 'rh-shuffle', p: {}, from: 92, goal: 116 },
           ],
         },
       },
@@ -653,12 +675,12 @@ export const STAGES = [
             id: 'unisons', title: 'One note, several places',
             idea: 'Fret 5 on one string is the next open string.',
             concept: [
-              'Fret 5 on the E string is the open A; fret 5 on the A string is the open D. Every note below fret 12 exists on two or three strings, and choosing the right one is what keeps your hand still.',
+              'Fret 5 on the E string is the open A; fret 5 on the A string is the open D. So most notes can be played on two or three strings (only the lowest few, open E to G♯, live on the E string alone), and choosing the right one is what keeps your hand still.',
               'On a bass every pair of neighbouring strings is a 4th apart (the low B and high C of 5- and 6-string basses too), so the rule is always fret 5.',
             ],
             steps: [
-              { ex: 'fb-unison', p: { string: 'E' }, from: 66, goal: 84, do: 'Each note, then the same pitch on the next string. Listen: they should sound identical.' },
-              { ex: 'fb-unison', p: { string: 'A' }, from: 66, goal: 84, do: 'Now from the A string.' },
+              { ex: 'fb-unison', p: { string: 'E' }, sub: 2, from: 66, goal: 84, do: 'Each note, then the same pitch on the next string. Listen: they should sound identical.' },
+              { ex: 'fb-unison', p: { string: 'A' }, sub: 2, from: 66, goal: 84, do: 'Now from the A string.' },
             ],
             mistakes: [
               'Thinking the higher string gives a higher note. Same pitch, different string.',
@@ -672,8 +694,8 @@ export const STAGES = [
               'This is the step that frees you from the first position. Say the note name each time you play it.',
             ],
             steps: [
-              { ex: 'fb-find-note', p: { range: '12' }, from: 66, goal: 84, do: 'Every place this note lives, from the nut to fret 12. Change the key under Options for a new note.' },
-              { ex: 'fb-note-sweep', p: {}, from: 60, goal: 80, do: 'One note on every string, up and back, then the next note around the cycle.' },
+              { ex: 'fb-find-note', p: { range: '12' }, sub: 1, from: 66, goal: 84, do: 'Every place this note lives, from the nut to fret 12. Change the key under Options for a new note.' },
+              { ex: 'fb-note-sweep', p: {}, sub: 1, from: 60, goal: 80, do: 'One note on every string, up and back, then the next note around the cycle.' },
             ],
             mistakes: [
               'Hunting fret by fret. Use the shapes: octave and unison.',
@@ -687,8 +709,8 @@ export const STAGES = [
               'The cycle of 4ths is the order chords most often move in, so this is real preparation for playing songs.',
             ],
             steps: [
-              { ex: 'fb-cycle-zone', p: { zone: '1', order: 'cycle4' }, from: 60, goal: 80, do: 'Zone 1 (frets 1–5), around the cycle of 4ths. Say each name.' },
-              { ex: 'fb-cycle-zone', p: { zone: '2', order: 'cycle4' }, from: 60, goal: 80, do: 'The same in zone 2 (frets 5–9).' },
+              { ex: 'fb-cycle-zone', p: { zone: '1', order: 'cycle4' }, sub: 0.25, from: 60, goal: 80, do: 'Zone 1 (frets 1–5), around the cycle of 4ths. Say each name.' },
+              { ex: 'fb-cycle-zone', p: { zone: '2', order: 'cycle4' }, sub: 0.25, from: 60, goal: 80, do: 'The same in zone 2 (frets 5–9).' },
             ],
             mistakes: [
               'Leaving the zone for a note you know elsewhere. Find it inside the zone.',
@@ -702,8 +724,8 @@ export const STAGES = [
               'Speed up only when you find nine notes out of ten in time.',
             ],
             steps: [
-              { ex: 'fb-quiz', p: { range: '7', strings: 'all', notes: 'nat' }, from: 50, goal: 66, do: 'Natural notes, frets 0–7 on every string.' },
-              { ex: 'fb-quiz', p: { range: '12', strings: 'all', notes: 'all' }, from: 50, goal: 66, do: 'All twelve notes up to fret 12.' },
+              { ex: 'fb-quiz', p: { range: '7', strings: 'all', notes: 'nat' }, sub: 0.5, from: 50, goal: 66, do: 'Natural notes, frets 0–7 on every string.' },
+              { ex: 'fb-quiz', p: { range: '12', strings: 'all', notes: 'all' }, sub: 0.5, from: 50, goal: 66, do: 'All twelve notes up to fret 12.' },
             ],
             mistakes: [
               'Waiting for the dot. Commit to a fret before it appears, then check.',
@@ -717,8 +739,8 @@ export const STAGES = [
             'I can play all 12 roots in one zone.',
           ],
           steps: [
-            { ex: 'fb-quiz', p: { range: '12', strings: 'all', notes: 'all' }, from: 56, goal: 72 },
-            { ex: 'fb-cycle-zone', p: { zone: '3', order: 'cycle4' }, from: 66, goal: 84 },
+            { ex: 'fb-quiz', p: { range: '12', strings: 'all', notes: 'all' }, sub: 0.5, from: 56, goal: 72 },
+            { ex: 'fb-cycle-zone', p: { zone: '3', order: 'cycle4' }, sub: 0.25, from: 66, goal: 84 },
           ],
         },
       },
@@ -730,13 +752,13 @@ export const STAGES = [
             id: 'interval-shapes', title: 'Interval shapes',
             idea: 'Every interval is a fixed shape on the bass.',
             concept: [
-              'An interval is the distance between two notes. Because the strings are tuned in 4ths, each interval is a fixed shape: the 5th one string up and two frets up, the major 3rd one string up and one fret back, the minor 3rd one string up and two frets back.',
+              'An interval is the distance between two notes. Because the strings are tuned in 4ths, each interval is a fixed shape: the 5th one string up and two frets up, the major 3rd one string up and one fret back, the minor 3rd three frets up on the same string (or one string up and two frets back).',
               'Learn each shape with its sound. Sing the second note before you play it.',
             ],
             steps: [
-              { ex: 'iv-shapes', p: { iv: '5', dir: 'up' }, from: 66, goal: 88, do: 'The perfect 5th: root, 5th, root, 5th.' },
-              { ex: 'iv-shapes', p: { iv: '3', dir: 'up' }, from: 66, goal: 88, do: 'The major 3rd: bright.' },
-              { ex: 'iv-shapes', p: { iv: 'b3', dir: 'up' }, from: 66, goal: 88, do: 'The minor 3rd: darker. Compare it with the major 3rd.' },
+              { ex: 'iv-shapes', p: { iv: '5', dir: 'up' }, sub: 1, from: 66, goal: 88, do: 'The perfect 5th: root, 5th, root, 5th.' },
+              { ex: 'iv-shapes', p: { iv: '3', dir: 'up' }, sub: 1, from: 66, goal: 88, do: 'The major 3rd: bright.' },
+              { ex: 'iv-shapes', p: { iv: 'b3', dir: 'up' }, sub: 1, from: 66, goal: 88, do: 'The minor 3rd: darker. Compare it with the major 3rd.' },
             ],
             mistakes: [
               'Learning the shapes without the sound. Sing every interval.',
@@ -744,14 +766,14 @@ export const STAGES = [
           },
           {
             id: 'interval-family', title: 'Every interval from one root',
-            idea: 'From ♭2 to the octave, all in one hand position.',
+            idea: 'From ♭2 to the octave, all around one hand position.',
             concept: [
               'From one root, the twelve intervals climb a fret at a time: ♭2, 2, ♭3, 3, 4, ♭5, 5, ♭6, 6, ♭7, 7, octave. Every chord and scale is a selection of them.',
               'Name each one as you play it: "minor 2nd, major 2nd…"',
             ],
             steps: [
-              { ex: 'iv-all-from-root', p: { root: 'E' }, from: 72, goal: 92, do: 'Name each interval as you play it.' },
-              { ex: 'iv-moving', p: { iv: '3', string: 'E' }, from: 76, goal: 96, do: 'One shape, moved up a fret at a time: the same distance from every root.' },
+              { ex: 'iv-all-from-root', p: { root: 'E' }, sub: 2, from: 72, goal: 92, do: 'Name each interval as you play it.' },
+              { ex: 'iv-moving', p: { iv: '3', string: 'E' }, sub: 2, from: 76, goal: 96, do: 'One shape, moved up a fret at a time: the same distance from every root. (It starts on fret 2, where the shape needs no open string.)' },
             ],
             mistakes: [
               'Saying "3" for both 3rds. Major or minor: name the quality.',
@@ -765,8 +787,8 @@ export const STAGES = [
               'Begin with 3rds, 4ths, 5ths and the octave: they are the intervals bass lines use most.',
             ],
             steps: [
-              { ex: 'iv-ear-quiz', p: { set: 'basic' }, do: '3rds, 4ths, 5ths and the octave. Sing, name, then play.' },
-              { ex: 'iv-ear-quiz', p: { set: 'all' }, do: 'Every interval within the octave.' },
+              { ex: 'iv-ear-quiz', p: { set: 'basic' }, sub: 1, do: '3rds, 4ths, 5ths and the octave. Sing, name, then play.' },
+              { ex: 'iv-ear-quiz', p: { set: 'all' }, sub: 1, do: 'Every interval within the octave.' },
             ],
             mistakes: [
               'Guessing from the fret. Close your eyes and listen first.',
@@ -779,8 +801,8 @@ export const STAGES = [
             'I can hear 3rds, 4ths, 5ths and octaves.',
           ],
           steps: [
-            { ex: 'iv-all-from-root', p: { root: 'A' }, from: 80, goal: 100 },
-            { ex: 'iv-ear-quiz', p: { set: 'basic' } },
+            { ex: 'iv-all-from-root', p: { root: 'A' }, sub: 2, from: 80, goal: 100 },
+            { ex: 'iv-ear-quiz', p: { set: 'basic' }, sub: 1 },
           ],
         },
       },
@@ -796,9 +818,9 @@ export const STAGES = [
               'Each one is a movable shape. Learn its sound together with its shape.',
             ],
             steps: [
-              { ex: 'tri-qualities', p: { quality: 'dim', shape: 'updown' }, from: 66, goal: 88, do: 'Diminished: R-♭3-♭5.' },
-              { ex: 'tri-qualities', p: { quality: 'aug', shape: 'updown' }, from: 66, goal: 88, do: 'Augmented: R-3-♯5.' },
-              { ex: 'tri-qualities', p: { quality: 'sus4', shape: 'updown' }, from: 66, goal: 88, do: 'Sus4: the 4th takes the place of the 3rd.' },
+              { ex: 'tri-qualities', p: { quality: 'dim', shape: 'updown' }, sub: 2, from: 66, goal: 88, do: 'Diminished: R-♭3-♭5.' },
+              { ex: 'tri-qualities', p: { quality: 'aug', shape: 'updown' }, sub: 2, from: 66, goal: 88, do: 'Augmented: R-3-♯5.' },
+              { ex: 'tri-qualities', p: { quality: 'sus4', shape: 'updown' }, sub: 2, from: 66, goal: 88, do: 'Sus4: the 4th takes the place of the 3rd.' },
             ],
             mistakes: [
               'Mixing up diminished and minor. Diminished also lowers the 5th.',
@@ -808,10 +830,10 @@ export const STAGES = [
             id: 'four-types', title: 'Four types from one root',
             idea: 'Change one note at a time and hear each colour.',
             concept: [
-              'Major, minor, diminished, augmented on the same root: from one to the next only one note moves by a fret. Hearing that one note change is the best ear training for chords.',
+              'Major, minor, diminished, augmented on the same root. Major to minor lowers the 3rd by a fret, minor to diminished lowers the 5th, and augmented then raises the 5th of the major triad (so from diminished both the 3rd and the 5th move). Hearing which note moved is the best ear training for chords.',
             ],
             steps: [
-              { ex: 'tri-four-types', p: { root: 'A' }, from: 70, goal: 92, do: 'Major → minor → diminished → augmented. Say each name before it plays.' },
+              { ex: 'tri-four-types', p: { root: 'A' }, sub: 2, from: 70, goal: 92, do: 'Major → minor → diminished → augmented. Say each name before it plays.' },
               { ex: 'ear-triads', p: { set: 'all' }, do: 'Ear check: all four types, notes hidden. Name each one before the answer appears.' },
             ],
             mistakes: [
@@ -825,8 +847,8 @@ export const STAGES = [
               'Now combine the triad shapes with the zone idea: all twelve major triads without leaving five frets. The zone decides which shape each chord takes, which is exactly what happens in a real song.',
             ],
             steps: [
-              { ex: 'tri-zone-cycle', p: { quality: 'maj', zone: '1', order: 'cycle4', pattern: 'turn' }, from: 72, goal: 96, do: 'Major triads around the cycle of 4ths in zone 1.' },
-              { ex: 'tri-zone-cycle', p: { quality: 'min', zone: '1', order: 'cycle4', pattern: 'turn' }, from: 72, goal: 96, do: 'Minor triads, same zone.' },
+              { ex: 'tri-zone-cycle', p: { quality: 'maj', zone: '1', order: 'cycle4', pattern: 'turn' }, sub: 1, from: 72, goal: 96, do: 'Major triads around the cycle of 4ths in zone 1.' },
+              { ex: 'tri-zone-cycle', p: { quality: 'min', zone: '1', order: 'cycle4', pattern: 'turn' }, sub: 1, from: 72, goal: 96, do: 'Minor triads, same zone.' },
             ],
             mistakes: [
               'Jumping out of the zone for a familiar shape. Find the shape inside it.',
@@ -840,8 +862,9 @@ export const STAGES = [
             'I can play all twelve major triads in one zone.',
           ],
           steps: [
-            { ex: 'tri-four-types', p: {}, from: 80, goal: 100 },
-            { ex: 'tri-zone-cycle', p: { quality: 'maj', zone: '2', order: 'cycle4' }, from: 80, goal: 100 },
+            { ex: 'tri-four-types', p: {}, sub: 2, from: 80, goal: 100 },
+            { ex: 'tri-zone-cycle', p: { quality: 'maj', zone: '2', order: 'cycle4' }, sub: 1, from: 80, goal: 100 },
+            { ex: 'ear-triads', p: { set: 'all' } },
           ],
         },
       },
@@ -857,7 +880,7 @@ export const STAGES = [
               'The dominant 7 (R-3-5-♭7) is the chord of the blues: you will use it in the next unit.',
             ],
             steps: [
-              { ex: 'arp-7th-qualities', p: { root: 'A' }, from: 70, goal: 90, do: 'Lower one note at a time. Say each chord\'s name.' },
+              { ex: 'arp-7th-qualities', p: { root: 'A' }, sub: 2, from: 70, goal: 90, do: 'Lower one note at a time. Say each chord\'s name.' },
             ],
             mistakes: [
               'Learning five unrelated shapes. See each one as the one before with one note lowered.',
@@ -870,9 +893,9 @@ export const STAGES = [
               'Most songs use three 7th chords: major 7, dominant 7 and minor 7. Learn each as a one-octave shape you can move to any key.',
             ],
             steps: [
-              { ex: 'arp-7th', p: { quality: 'dom7', shape: 'updown', oct: '1', root: 'A' }, from: 72, goal: 96, do: 'Dominant 7: R-3-5-♭7.' },
-              { ex: 'arp-7th', p: { quality: 'min7', shape: 'updown', oct: '1', root: 'A' }, from: 72, goal: 96, do: 'Minor 7: R-♭3-5-♭7.' },
-              { ex: 'arp-7th', p: { quality: 'maj7', shape: 'updown', oct: '1', root: 'A' }, from: 72, goal: 96, do: 'Major 7: R-3-5-7.' },
+              { ex: 'arp-7th', p: { quality: 'dom7', shape: 'updown', oct: '1', root: 'A' }, sub: 2, from: 72, goal: 96, do: 'Dominant 7: R-3-5-♭7.' },
+              { ex: 'arp-7th', p: { quality: 'min7', shape: 'updown', oct: '1', root: 'A' }, sub: 2, from: 72, goal: 96, do: 'Minor 7: R-♭3-5-♭7.' },
+              { ex: 'arp-7th', p: { quality: 'maj7', shape: 'updown', oct: '1', root: 'A' }, sub: 2, from: 72, goal: 96, do: 'Major 7: R-3-5-7.' },
             ],
             mistakes: [
               'Confusing the 7 and the ♭7. The major 7th is one fret below the octave, the ♭7 two frets below.',
@@ -883,10 +906,10 @@ export const STAGES = [
             idea: 'Major, minor, minor, major, major, minor, diminished.',
             concept: [
               'Build a triad on every note of the major scale and you get the chords of the key: I major, ii minor, iii minor, IV major, V major, vi minor, vii diminished. That is why songs in C use C, Dm, Em, F, G and Am.',
-              'Root and 3rd are enough to hear each chord\'s quality.',
+              'Root and 3rd tell major from minor. The vii chord has a minor 3rd too, but its 5th is a fret lower as well: that makes it diminished, the tense one.',
             ],
             steps: [
-              { ex: 'hm-chord-qualities', p: { scale: 'ionian' }, from: 72, goal: 92, do: 'Root and 3rd on every degree. Say "major" or "minor" each time.' },
+              { ex: 'hm-chord-qualities', p: { scale: 'ionian' }, sub: 2, from: 72, goal: 92, do: 'Root and 3rd on every degree. Say "major" or "minor" each time, and "diminished" on vii.' },
             ],
             mistakes: [
               'Memorising the pattern without hearing it. Listen to the 3rd change.',
@@ -899,8 +922,8 @@ export const STAGES = [
             'I know which chords are major, minor and diminished in a major key.',
           ],
           steps: [
-            { ex: 'arp-7th-qualities', p: {}, from: 80, goal: 100 },
-            { ex: 'arp-7th', p: { quality: 'dom7', oct: '1' }, from: 84, goal: 104 },
+            { ex: 'arp-7th-qualities', p: {}, sub: 2, from: 80, goal: 100 },
+            { ex: 'arp-7th', p: { quality: 'dom7', oct: '1' }, sub: 2, from: 84, goal: 104 },
           ],
         },
       },
@@ -946,8 +969,8 @@ export const STAGES = [
               'The major blues scale (1 2 ♭3 3 5 6) is the brighter cousin, used over major blues and country.',
             ],
             steps: [
-              { ex: 'sc-blues', p: { type: 'blues', root: 'E', oct: '1' }, from: 60, goal: 88, do: 'The blues scale from the E string.' },
-              { ex: 'sc-blues', p: { type: 'majorBlues', root: 'E', oct: '1' }, from: 60, goal: 88, do: 'The major blues scale: hear the brighter colour.' },
+              { ex: 'sc-blues', p: { type: 'blues', root: 'E', oct: '1' }, sub: 1, from: 60, goal: 88, do: 'The blues scale from the E string.' },
+              { ex: 'sc-blues', p: { type: 'majorBlues', root: 'E', oct: '1' }, sub: 1, from: 60, goal: 88, do: 'The major blues scale: hear the brighter colour.' },
             ],
             mistakes: [
               'Holding the ♭5 as if it were home. It is a passing note.',
@@ -957,7 +980,7 @@ export const STAGES = [
             id: 'blues-lines', title: 'Blues bass lines',
             idea: 'Boogie and shuffle: the lines that built rock\'n\'roll.',
             concept: [
-              'The boogie-woogie line (R-3-5-6-♭7-6-5-3) and the shuffle (R-R-5-5-6-6-5-5) move the same shape through the 12 bars. Swing them, keep them steady, and you can play with any blues band.',
+              'The boogie-woogie line (R-3-5-6-♭7-6-5-3) and the shuffle (R-R-5-5-6-6-5-5) move the same shape through the 12 bars. Play them straight, then swung; keep them steady and you can play with any blues band.',
             ],
             steps: [
               { ex: 'gr-blues', p: { style: 'boogie', prog: 'blues' }, from: 84, goal: 112, backing: 'chords', do: 'The boogie line: one shape, moved to each chord.' },
@@ -972,11 +995,12 @@ export const STAGES = [
           can: [
             'I can play through the 12-bar blues without losing my place.',
             'I know the blues scale and where its blue note is.',
-            'I recognise I–IV–V and I–V–vi–IV by ear.',
+            'I know the sound of I–IV–V and I–V–vi–IV and can play their roots in any key.',
           ],
           steps: [
             { ex: 'hm-12-bar-blues', p: { prog: 'blues', pattern: 'r357' }, from: 100, goal: 120, backing: 'chords' },
             { ex: 'gr-blues', p: { style: 'boogie', prog: 'blues' }, from: 96, goal: 120, backing: 'chords' },
+            { ex: 'hm-progression-roots', p: { prog: 'I-V-vi-IV', rhythm: '1' }, from: 96, goal: 116, backing: 'chords' },
           ],
         },
       },
@@ -992,7 +1016,7 @@ export const STAGES = [
               'Index on the root, ring or little finger on the octave; let the fretting hand release between notes for a bouncy, short sound.',
             ],
             steps: [
-              { ex: 'tech-octaves', p: { pair: 'E' }, from: 96, goal: 112, do: 'Root–octave 8ths moving up the neck. Keep the string in between silent.' },
+              { ex: 'tech-octaves', p: { pair: 'E' }, sub: 2, from: 96, goal: 112, do: 'Root–octave 8ths moving up the neck. Keep the string in between silent.' },
               { ex: 'gr-octaves', p: { style: 'octaves' }, from: 96, goal: 116, backing: 'chords', music: true, do: 'Disco octaves through a progression. Short, even, with the bounce.' },
             ],
             mistakes: [
@@ -1021,7 +1045,7 @@ export const STAGES = [
               'Soft notes still need a full tone; loud notes should not rattle the frets.',
             ],
             steps: [
-              { ex: 'tech-dynamics', p: { pos: '5' }, from: 66, goal: 84, do: 'pp → ff → pp. Keep the tempo steady as the volume changes.' },
+              { ex: 'tech-dynamics', p: { pos: '5' }, sub: 2, from: 66, goal: 84, do: 'pp → ff → pp. Keep the tempo steady as the volume changes.' },
             ],
             mistakes: [
               'Speeding up as you get louder. Volume and tempo are separate.',
@@ -1052,6 +1076,7 @@ export const STAGES = [
           steps: [
             { ex: 'gr-octaves', p: { style: 'octaves' }, from: 104, goal: 120, backing: 'chords' },
             { ex: 'gr-octaves', p: { style: 'r5b7', prog: 'blues' }, from: 100, goal: 120, backing: 'chords' },
+            { ex: 'tech-dynamics', p: { pos: '5' }, sub: 2, from: 72, goal: 90 },
           ],
         },
       },
@@ -1078,13 +1103,15 @@ export const STAGES = [
             id: 'key-signatures', title: 'Melodies with a key signature',
             idea: 'The key signature tells you which notes are always sharp or flat.',
             concept: [
-              'At the start of each line, the key signature lists the notes that are sharp or flat throughout: one ♯ (F♯) is G major, one ♭ (B♭) is F major. Read it before the first note, then keep it in mind.',
+              'At the start of each line, the key signature lists the notes that are sharp or flat throughout: one ♯ (F♯) is G major, two (F♯, C♯) D major; one ♭ (B♭) is F major, two (B♭, E♭) B♭ major. Read it before the first note, then keep it in mind.',
               'Read in shapes: steps, small leaps and repeated notes, not one note at a time.',
             ],
             steps: [
               { ex: 'rd-melodies', p: { key: '0' }, from: 60, goal: 76, do: 'C major: no sharps or flats.' },
               { ex: 'rd-melodies', p: { key: '7' }, from: 60, goal: 76, do: 'G major: every F is F♯.' },
               { ex: 'rd-melodies', p: { key: '5' }, from: 60, goal: 76, do: 'F major: every B is B♭.' },
+              { ex: 'rd-melodies', p: { key: '2' }, from: 60, goal: 76, do: 'D major: every F and C is sharp.' },
+              { ex: 'rd-melodies', p: { key: '10' }, from: 60, goal: 76, do: 'B♭ major: every B and E is flat.' },
             ],
             mistakes: [
               'Forgetting the key signature halfway through. Check it again at the start of every line.',
@@ -1094,7 +1121,7 @@ export const STAGES = [
         check: {
           can: [
             'I read sharps, flats and naturals in first position.',
-            'I can read a simple melody in C, G or F major.',
+            'I can read a simple melody in C, G, F, D or B♭ major.',
           ],
           steps: [
             { ex: 'rd-melodies', p: { key: '2' }, from: 60, goal: 76 },
@@ -1105,15 +1132,15 @@ export const STAGES = [
     ],
     check: {
       can: [
-        'I can play the 12-bar blues with a boogie line at 112 BPM.',
+        'I can play the 12-bar blues with a boogie line at 116 BPM.',
         'I can find any note up to fret 12 and play every triad type from it.',
         'I can play maj7, 7 and m7 arpeggios in any key.',
         'I can swing, play off-beats and read a melody with a key signature.',
       ],
       steps: [
         { ex: 'gr-blues', p: { style: 'boogieSwing', prog: 'blues' }, from: 96, goal: 116, backing: 'chords' },
-        { ex: 'tri-zone-cycle', p: { quality: 'min', zone: '2', order: 'cycle4' }, from: 84, goal: 104 },
-        { ex: 'arp-7th', p: { quality: 'min7', oct: '1' }, from: 84, goal: 104 },
+        { ex: 'tri-zone-cycle', p: { quality: 'min', zone: '2', order: 'cycle4' }, sub: 1, from: 84, goal: 104 },
+        { ex: 'arp-7th', p: { quality: 'min7', oct: '1' }, sub: 2, from: 84, goal: 104 },
         { ex: 'rh-shuffle', p: {}, from: 96, goal: 120 },
         { ex: 'rd-melodies', p: { key: '10' }, from: 66, goal: 80 },
       ],

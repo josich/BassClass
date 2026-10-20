@@ -48,6 +48,7 @@ export function candidates(midi, ctx, { maxFret = ctx.maxFret, strings = null, o
  *   open: 'allow' | 'avoid' | 'prefer'
  *   strings: [indices]  allowed strings
  *   pin: { midi: stringIndex }  force a pitch onto a string
+ *   regions: [{lo, hi, s?, open?}|null]  per note: like region (s pins that note's string, open allows an open string)
  *   string: index       put every note on one string (linear playing)
  * Returns [{s, f, finger}]
  */
@@ -67,11 +68,17 @@ function handSearch(midis, ctx, opts) {
   const layers = [];
   for (let i = 0; i < midis.length; i++) {
     const m = midis[i];
-    let cands = candidates(m, ctx, { open, strings: opts.strings, maxFret: opts.maxFret ?? ctx.maxFret });
+    const nr = opts.regions?.[i];
+    let cands = candidates(m, ctx, { open: nr?.open ? 'allow' : open, strings: opts.strings, maxFret: opts.maxFret ?? ctx.maxFret });
     if (opts.pin && opts.pin[m] != null) {
       const pinned = cands.filter((c) => c.s === opts.pin[m]);
       if (pinned.length) cands = pinned;
     }
+    if (nr?.s != null) {
+      const pinned = cands.filter((c) => c.s === nr.s);
+      if (pinned.length) cands = pinned;
+    }
+    const nopts = nr ? { ...opts, region: [nr.lo, nr.hi] } : opts;
     if (!cands.length) cands = candidates(m, ctx, { maxFret: MAX_FRET });
     if (!cands.length) cands = [{ s: 0, f: Math.max(0, m - ctx.tuning[0]) }];
     const states = [];
@@ -85,7 +92,7 @@ function handSearch(midis, ctx, opts) {
       for (let finger = 0; finger <= 5; finger++) {
         const hp = c.f - finger + 1;
         if (hp < 1) continue;
-        let cost = nodeCost(c.f, hp, opts, c.s);
+        let cost = nodeCost(c.f, hp, nopts, c.s);
         if (finger === 0 || finger === 5) cost += STRETCH;
         states.push({ s: c.s, f: c.f, hp, finger: Math.min(4, Math.max(1, finger)), cost });
       }

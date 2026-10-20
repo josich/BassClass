@@ -112,7 +112,7 @@ const chordTonesProg = ex({
   build(p, ctx, S) {
     const b = new Builder(ctx, S, { jazz: true });
     for (const L of keyLines(keysFor(p.key), (k) => progChords(p.prog, k, { S, triads: !['r357', 'r3575'].includes(p.pattern) }))) {
-      grooveLine(b, L.chords, L.roots, PATTERNS[p.pattern].bars, { place: { open: 'allow' }, next: L.next });
+      grooveLine(b, L.chords, L.roots, PATTERNS[p.pattern].bars, { place: { open: 'avoid' }, shape: true, next: L.next });
     }
     return b.build({ uniform: false, label: 'degree' });
   },
@@ -216,7 +216,7 @@ const minorHarmony = ex({
   build(p, ctx, S) {
     const b = new Builder(ctx, S, { jazz: true });
     for (const L of keyLines(keysFor(p.key), (k) => progChords(p.prog, k, { S, triads: p.pattern === 'r353' }))) {
-      grooveLine(b, L.chords, L.roots, PATTERNS[p.pattern].bars, { place: { open: 'allow' }, next: L.next });
+      grooveLine(b, L.chords, L.roots, PATTERNS[p.pattern].bars, { place: { open: 'avoid' }, shape: true, next: L.next });
     }
     return b.build({ uniform: false, label: 'degree' });
   },
@@ -234,7 +234,7 @@ const colour = ex({
   build(p, ctx, S) {
     const b = new Builder(ctx, S, { jazz: true });
     for (const L of keyLines(keysFor(p.key), (k) => progChords(p.prog, k, { S }))) {
-      grooveLine(b, L.chords, L.roots, PATTERNS[p.pattern].bars, { place: { open: 'allow' }, next: L.next });
+      grooveLine(b, L.chords, L.roots, PATTERNS[p.pattern].bars, { place: { open: 'avoid' }, shape: true, next: L.next });
     }
     return b.build({ uniform: false, label: 'degree' });
   },
@@ -252,7 +252,7 @@ const blues = ex({
   build(p, ctx, S) {
     const b = new Builder(ctx, S, { jazz: true });
     for (const L of keyLines(keysFor(p.key), (k) => progChords(p.prog, k, { S }))) {
-      grooveLine(b, L.chords, L.roots, PATTERNS[p.pattern].bars, { place: { open: 'allow' }, next: L.next });
+      grooveLine(b, L.chords, L.roots, PATTERNS[p.pattern].bars, { place: { open: 'avoid' }, shape: true, next: L.next });
     }
     return b.build({ uniform: false, label: 'degree' });
   },

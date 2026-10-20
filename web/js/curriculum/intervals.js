@@ -1,5 +1,6 @@
 // Intervals: every distance between two notes, as a shape and a sound.
 import { T, Builder, keysFor, ex, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS, spellMidi, rootStrP, rootStrLowP , tonicFor, keySigFor } from './common.js';
+import { place } from '../fretboard.js';
 
 const M = 'intervals';
 const IVS = ['b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7', '8', 'b9', '9', 'b10', '10'];
@@ -38,7 +39,7 @@ const allFromRoot = ex({
   id: 'iv-all-from-root', module: M, level: 2,
   title: 'Every interval from one root',
   summary: 'R-♭2, R-2, R-♭3 … R-8: the whole interval family in one position.',
-  about: 'Play the root, then each interval above it in turn, from the minor 2nd up to the octave. You will see the 12 shapes sitting inside one hand position and hear the character of each: tense (♭2, 7), open (4, 5), sweet (3, 6), dark (♭3, ♭6).',
+  about: 'Play the root, then each interval above it in turn, from the minor 2nd up to the octave. You will see the 12 shapes around one hand position (the index reaches back a fret for some) and hear the character of each: tense (♭2, 7), open (4, 5), sweet (3, 6), dark (♭3, ♭6).',
   tips: ['Name each interval aloud as you play it.', 'Then switch the labels to "Note" to see the actual note names.'],
   source: 'Standard interval training (MI, Berklee, StudyBass)',
   params: { key: keyP(['1'], { def: '0', cycles: false }), root: rootStrP('E') },
@@ -99,12 +100,20 @@ const moving = ex({
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     const s = Math.max(0, ctx.str(p.string));
-    const frets = [1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2];
+    const semis = T.semis(p.iv);
+    // the shape as it sits mid-neck (string and fret of the top note from the root), kept all the
+    // way: it starts on the lowest fret where its top note is still fretted (the major 3rd, one fret
+    // back on the next string, starts at fret 2, not on an open string)
+    const ref = place([ctx.tuning[s] + 5, ctx.tuning[s] + 5 + semis], ctx, { pin: { [ctx.tuning[s] + 5]: s }, open: 'avoid', center: 5 });
+    const ds = ref[1].s - s, df = ref[1].f - 5;
+    const lo = Math.max(1, 1 - df);
+    const up = Array.from({ length: 9 }, (_, i) => lo + i);
+    const frets = [...up, ...up.slice(1, -1).reverse()];
     for (const f of frets) {
       const m = ctx.tuning[s] + f;
       const root = spellMidi(m, true);
       b.chord(nm(root, S));
-      b.line([{ midi: m, n: root, deg: 'R' }, { midi: m + T.semis(p.iv), n: T.up(root, p.iv), deg: T.fmtDeg(p.iv) }], { pattern: false, place: { pin: { [m]: s }, open: 'avoid', center: f } });
+      b.line([{ midi: m, n: root, deg: 'R' }, { midi: m + semis, n: T.up(root, p.iv), deg: T.fmtDeg(p.iv) }], { pattern: false, place: { pin: { [m]: s, [m + semis]: s + ds }, open: 'avoid', center: f } });
     }
     return b.build({ label: 'degree' });
   },
@@ -242,7 +251,7 @@ const earQuiz = ex({
     const pool = p.set === 'basic' ? ['b3', '3', '4', '5', '8'] : ['b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7', '8'];
     for (let i = 0; i < 12; i++) {
       const iv = pool[Math.floor(Math.random() * pool.length)];
-      b.line([{ midi: r.midi, n: root, deg: 'R', chord: `#${i + 1}` }, { midi: r.midi + T.semis(iv), n: T.up(root, iv === '8' ? '1' : iv), deg: T.fmtDeg(iv), text: ivName(iv) }], { pattern: false, place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
+      b.line([{ midi: r.midi, n: root, deg: 'R', chord: `Round ${i + 1}` }, { midi: r.midi + T.semis(iv), n: T.up(root, iv === '8' ? '1' : iv), deg: T.fmtDeg(iv), text: ivName(iv) }], { pattern: false, place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
     }
     return b.build({ label: 'degree', reveal: 'quiz' });
   },

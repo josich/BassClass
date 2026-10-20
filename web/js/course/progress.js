@@ -14,11 +14,13 @@ function load() {
   try { v = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { v = null; }
   const obj = (x) => (x && typeof x === 'object' && !Array.isArray(x) ? x : {});
   const num = (x) => (Number.isFinite(x) && x >= 0 ? x : 0);
+  // a tempo is 30–260 BPM (0: none yet)
+  const bpm = (x) => (Number.isFinite(x) && x > 0 ? Math.max(30, Math.min(260, Math.round(x))) : 0);
   v = obj(v);
   const steps = {};
   for (const [k, s] of Object.entries(obj(v.steps))) {
     if (!s || typeof s !== 'object') continue;
-    steps[k] = { best: num(s.best), last: num(s.last), loops: num(s.loops), clean: num(s.clean) };
+    steps[k] = { best: bpm(s.best), last: bpm(s.last), loops: num(s.loops), clean: num(s.clean) };
   }
   const lessons = {};
   for (const [k, s] of Object.entries(obj(v.lessons))) {
@@ -140,8 +142,9 @@ export function continueLesson() {
   return LESSONS.find((l) => !l.optional && ['started', 'new'].includes(status(l))) || null;
 }
 
+/** Lessons done and known (checkpoints and tests are not counted as lessons). */
 export function courseStats() {
-  const list = LESSONS.filter((l) => !l.optional);
+  const list = LESSONS.filter((l) => !l.optional && l.kind === 'lesson');
   return { done: list.filter((l) => status(l) === 'done').length, known: list.filter((l) => status(l) === 'known').length, total: list.length };
 }
 

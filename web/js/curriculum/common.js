@@ -1,7 +1,7 @@
 // Shared helpers for curriculum modules: params, key handling, zones, progressions,
 // and the groove/walking line engines.
 import * as T from '../theory.js';
-import { shapes, place } from '../fretboard.js';
+import { shapes, place, candidates } from '../fretboard.js';
 import {
   Builder, keysFor, rootOn, scaleRun, scaleSeq, chordTones, ARP_SHAPES, BROKEN_SHAPES, SCALE_PATTERNS,
   diatonicChords, nearestVoicing, pitchIn, spellMidi, P, fitShift,
@@ -307,7 +307,8 @@ export function progChords(progKey, tonicPc, { triads, S = {} } = {}) {
     } else root = T.bestRoot(T.mod(tonicPc + where, 12), ivs);
     // a chord of the key keeps the key's spelling (C♭ is the IV of G♭ major); a chord that would need
     // a double accidental takes its lead-sheet name (C♭7 → B7), and so does any chromatic chord
-    if (T.awkward(root) && (typeof where === 'number' || ivs.some((iv) => Math.abs(T.up(root, iv).a) > 1))) root = T.bestRoot(T.pc(root), ivs);
+    const chromatic = typeof where === 'number' || !(prog.minor ? T.SCALES.aeolian.iv : T.SCALES.ionian.iv).includes(where);
+    if (T.awkward(root) && (chromatic || ivs.some((iv) => Math.abs(T.up(root, iv).a) > 1))) root = T.bestRoot(T.pc(root), ivs);
     const key = keyOff != null ? T.mod(tonicPc + keyOff, 12) : tonicPc;
     return { root, type, beats, ivs, sym: chordName(root, type, S), key, minorKey: !!prog.minor && keyOff == null, vamp: prog.chords.length === 1 };
   });
@@ -438,8 +439,48 @@ export function resolveToken(tok, chord, rootMidi, nextRoot, nextMidi) {
  * Render a groove pattern over chords. pattern: list of bars, each [[token, beats, tag?], ...]
  * (bar 0 pattern is reused if the chord lasts longer). Durations in beats (non-uniform).
  */
-export function grooveLine(b, chords, roots, pattern, { tags = true, place: popts = {}, next = null } = {}) {
+/**
+ * Where each chord's root sits when a line is a hand shape (R-5-8, octaves, boogie, chord tones):
+ * a fretted note on a string with two strings above it (the 5th and the octave go up from there),
+ * near the previous root, not on the low B when the E string has the note; the open string when
+ * only an open string has it (the low E). A root that would sit above fret 9 drops an octave, so a
+ * shape line stays in the lower positions. Returns the roots (moved) and their places.
+ */
+function shapeRoots(roots, ctx) {
+  const eStr = Math.max(0, ctx.str('E'));
+  const top = ctx.tuning.length - 3;
+  let prev = 5;
+  const fretted = (m) => candidates(m, ctx, { open: 'avoid', maxFret: 12 }).filter((x) => x.s >= eStr || m < ctx.tuning[eStr]);
+  const pos = [];
+  const midis = roots.map((m) => {
+    const low = fretted(m).filter((x) => x.s <= top && x.f <= 9);
+    if (!low.length && m - 12 >= ctx.tuning[0] && (fretted(m - 12).length || ctx.tuning.includes(m - 12))) m -= 12;
+    const c = fretted(m);
+    if (!c.length) {
+      const so = ctx.tuning.indexOf(m);
+      pos.push(so >= 0 ? { s: so, f: 0 } : null);
+      return m;
+    }
+    c.sort((a, b) => (a.s > top) - (b.s > top) || Math.abs(a.f - prev) - Math.abs(b.f - prev) || a.s - b.s);
+    prev = c[0].f;
+    pos.push(c[0]);
+    return m;
+  });
+  return { midis, pos };
+}
+
+export function grooveLine(b, chords, roots, pattern, { tags = true, place: popts = {}, next = null, shape = false } = {}) {
   const pitches = [];
+  // a shape line keeps each chord's notes around its root: fret window from one below to four above
+  let rootAt = null;
+  if (shape) ({ midis: roots, pos: rootAt } = shapeRoots(roots, b.ctx));
+  const regionOf = (ci, isRoot) => {
+    if (!rootAt) return undefined;
+    const r = rootAt[ci];
+    if (!r) return { lo: 0, hi: 4 };
+    if (r.f === 0) return { lo: 1, hi: 4, ...(isRoot ? { s: r.s, open: true } : {}) };
+    return { lo: Math.max(1, r.f - 1), hi: r.f + 4, ...(isRoot ? { s: r.s } : {}) };
+  };
   let at = 0; // beats from the start of the line: a two-bar pattern alternates bar by bar across chords
   chords.forEach((c, ci) => {
     const lastOfKey = ci === chords.length - 1 && next;
@@ -470,19 +511,20 @@ export function grooveLine(b, chords, roots, pattern, { tags = true, place: popt
             lowTok = lowTok === 'A' ? 'Ab' : 'A';
             p = resolveToken(lowTok, c, roots[ci], tgtRoot, tgtMidi);
           }
-          // an approach under the lowest string (into the open E): the half step above, or the whole step
-          // above when that would repeat the note just played (never an octave away)
-          if ((lowTok === 'A' || lowTok === 'Ab') && p.midi < Math.min(...b.ctx.tuning)) {
-            const m = [tgtMidi + 1, tgtMidi + 2].find((x) => !(before && !before.rest && T.mod(x - before.midi, 12) === 0));
-            if (m != null) p = { midi: m, n: stepSpell(m, tgtRoot, tgtMidi), deg: '→' };
-          }
           // the 5th of the next chord can be the root just played (a move by a 4th): approach chromatically
           if (lowTok === 'D' && (T.mod(p.midi - roots[ci], 12) === 0 || (before && !before.rest && T.mod(p.midi - before.midi, 12) === 0))) {
             lowTok = 'A';
             p = resolveToken('A', c, roots[ci], tgtRoot, tgtMidi);
             if (before && !before.rest && T.mod(p.midi - before.midi, 12) === 0) p = resolveToken('Ab', c, roots[ci], tgtRoot, tgtMidi);
           }
-          pitches.push({ ...p, dur: d, chord: first ? c.sym : undefined, tag: p.tag === 'x' ? 'x' : (tags && tag) || p.tag });
+          // an approach under the lowest string (into the open E), or one moved an octave away from its
+          // target to stay on the neck: the half step above, or the whole step above when that would
+          // repeat the note just played
+          if ((lowTok === 'A' || lowTok === 'Ab') && (p.midi < Math.min(...b.ctx.tuning) || Math.abs(p.midi - tgtMidi) > 2)) {
+            const m = [tgtMidi + 1, tgtMidi + 2].find((x) => !(before && !before.rest && T.mod(x - before.midi, 12) === 0));
+            if (m != null) p = { midi: m, n: stepSpell(m, tgtRoot, tgtMidi), deg: '→' };
+          }
+          pitches.push({ ...p, dur: d, chord: first ? c.sym : undefined, tag: p.tag === 'x' ? 'x' : (tags && tag) || p.tag, region: regionOf(ci, lowTok === 'R' && p.midi === roots[ci]) });
         }
         first = false;
       }
@@ -538,7 +580,8 @@ export function emitMixed(b, items, popts = {}) {
     while (m > highest) m -= 12;
     return m;
   });
-  const pos = place(midis, b.ctx, { open: 'allow', center: 4, ...placeOpts }).map((q) => ({ ...q }));
+  const regions = notes.some((n) => n.region) ? notes.map((n) => n.region || null) : undefined;
+  const pos = place(midis, b.ctx, { open: 'allow', center: 4, ...placeOpts, ...(regions ? { regions } : {}) }).map((q) => ({ ...q }));
   // slap: a hammer-on (H) goes up on the same string as the note before, a pull-off (PO) down on
   // it; a pop (P) leaves the thumb's string (the octave pop is two strings up, not fret 12)
   const tags = notes.map((n) => n.tag);
@@ -594,17 +637,26 @@ export function emitMixed(b, items, popts = {}) {
       }
     }
   }
-  // notes thumbed after all (an unplayable hammer-on or pull-off) leave the low B for the E string
+  // every thumbed note ends on the low strings: off the low B onto the E string, and off the pop
+  // strings (D, G) onto E or A when one of them has the note within 12 frets (an unplayable
+  // hammer-on or pull-off thumbed after all, or a thumb note placed up there for the hand position)
   if (thumbed) {
     const eStr = Math.max(0, b.ctx.str('E'));
+    const popLo = Math.max(eStr + 1, b.ctx.str('D'));
     for (let j = 0; j < notes.length; j++) {
       const tag = tags[j];
-      if (!(tag && (tag.startsWith('T') || tag === 'x')) || pos[j].s >= eStr || midis[j] < T0[eStr]) continue;
+      if (!(tag && (tag.startsWith('T') || tag === 'x')) || (pos[j].s >= eStr && pos[j].s < popLo) || midis[j] < T0[eStr]) continue;
       // a thumbed note that starts a hammer/pull-off run moves with its whole run (same string)
       let e = j;
       while (e + 1 < notes.length && (tags[e + 1] === 'H' || tags[e + 1] === 'PO') && pos[e + 1].s === pos[j].s) e++;
-      const run = pos.slice(j, e + 1).map((_, i) => midis[j + i] - T0[eStr]);
-      if (run.every((f) => f >= 0 && f <= 12)) for (let i = j; i <= e; i++) pos[i] = { s: eStr, f: run[i - j] };
+      const ref = j > 0 ? pos[j - 1].f : pos[j].f;
+      let best = null;
+      for (let s2 = eStr; s2 < popLo; s2++) {
+        const run = pos.slice(j, e + 1).map((_, i) => midis[j + i] - T0[s2]);
+        if (!run.every((f) => f >= 0 && f <= 12)) continue;
+        if (!best || Math.abs(run[0] - ref) < Math.abs(best.run[0] - ref)) best = { s: s2, run };
+      }
+      if (best) for (let i = j; i <= e; i++) pos[i] = { s: best.s, f: best.run[i - j] };
       j = e;
     }
   }
@@ -820,8 +872,9 @@ export function walkLine(b, chords, roots, formula = 'mixed', { triplets = false
       if (r && tok === 'D' && T.mod(r.midi - roots[ci], 12) === 0) r = resolveToken('A', c, roots[ci], tRoot, tMidi);
       if (r && (tok === 'A' || tok === 'Ab' || r.deg === '→')) {
         // an approach is never the note just played (in any octave), never the current chord's
-        // root (the bar has stated it) and never below the lowest string
-        const bad = (m) => m < lowest || (prevMidi != null && T.mod(m - prevMidi, 12) === 0) || T.mod(m - roots[ci], 12) === 0;
+        // root (the bar has stated it), never below the lowest string and never more than an octave
+        // from the note before it (into a new key a register lower: from above instead)
+        const bad = (m) => m < lowest || (prevMidi != null && (T.mod(m - prevMidi, 12) === 0 || Math.abs(m - prevMidi) > 12)) || T.mod(m - roots[ci], 12) === 0;
         if (bad(r.midi)) {
           // from above (the first note of an enclosure): a whole step above, so the enclosure still
           // closes in from both sides; from below: the whole step below after a note from above
@@ -896,7 +949,7 @@ export function walkLine(b, chords, roots, formula = 'mixed', { triplets = false
       const before = items.length > start + 1 ? items[items.length - 2].midi : roots[ci];
       const near = (x) => Math.abs(x.midi - before) + Math.abs(x.midi - nextMidi);
       const alt = formula === 'ct'
-        ? ['3', '5', '3_', '5_'].map((t) => res(t)).filter((x) => x && x.midi >= lowest && T.mod(x.midi - nextMidi, 12) !== 0 && x.midi !== before).sort((x, y) => near(x) - near(y))[0]
+        ? ['3', '5', '3_', '5_'].map((t) => res(t)).filter((x) => x && x.midi >= lowest && T.mod(x.midi - nextMidi, 12) !== 0 && T.mod(x.midi - before, 12) !== 0).sort((x, y) => near(x) - near(y))[0]
         : res('A');
       if (alt) items[items.length - 1] = { ...last, ...alt, tag: undefined };
     }

@@ -7,10 +7,11 @@ import { settings } from './store.js';
 import { tunerScreen } from './ui/tuner.js';
 import {
   homeScreen, pathScreen, libraryScreen, moduleScreen, explorerScreen, settingsScreen,
-  currentRoutine, routineLabel, exHref, go,
+  currentRoutine, routineLabel, routineHref, go,
 } from './ui/screens.js';
 import { courseScreen, lessonScreen, placementScreen, stepHref } from './ui/course.js';
 import { lessonById } from './course/data.js';
+import { nav, replaceHash } from './ui/nav.js';
 
 const app = document.getElementById('app');
 const NAV = [
@@ -27,17 +28,16 @@ let active = null; // { dispose }
 // How many in-app screens deep we are, kept in history.state so Back never leaves the app
 // (history.length also counts pages from before the app was opened).
 let depth = -1;
-let replacing = false;
 /** Returns true when we came back to an existing history entry (Back/Forward). */
 function trackDepth() {
   const st = history.state;
   const returning = !!(st && typeof st.depth === 'number');
   if (returning) depth = st.depth;
   else {
-    depth = replacing ? Math.max(depth, 0) : depth + 1;
+    depth = nav.replacing ? Math.max(depth, 0) : depth + 1;
     try { history.replaceState({ ...(st || {}), depth }, ''); } catch { /* ignore */ }
   }
-  replacing = false;
+  nav.replacing = false;
   return returning;
 }
 
@@ -80,9 +80,13 @@ function route() {
     const wu = params.wu != null ? Number(params.wu) : null;
     const ls = params.ls || '';
     const demo = params.demo === '1';
-    delete params.wu; delete params.ls; delete params.demo;
+    const review = params.rv === '1';
+    delete params.wu; delete params.ls; delete params.demo; delete params.rv;
     let routine = null;
-    if (wu != null && currentRoutine && currentRoutine[wu]) {
+    // (only while the routine in memory is the one this entry belongs to: Back/Forward into an old
+    // session after Home has built another routine opens the plain exercise)
+    const item = wu != null ? currentRoutine?.[wu] : null;
+    if (item && item.id === tpl.id && (item.ls || '') === ls && !!item.demo === demo) {
       const list = currentRoutine;
       routine = {
         index: wu,
@@ -92,8 +96,7 @@ function route() {
           const nx = list[wu + 1];
           // the routine replaces one exercise with the next; Finish steps back to where it started
           if (!nx) { back(); return; }
-          replacing = true;
-          location.replace(exHref(nx.id, { ...nx.params, ...(nx.ls ? { ls: nx.ls } : {}), wu: wu + 1 }));
+          replaceHash(routineHref(nx, wu + 1));
         },
       };
     }
@@ -104,13 +107,12 @@ function route() {
     const index = Number(si);
     if (L && L.steps[index]?.ex === tpl.id) {
       lesson = {
-        lesson: L, index, step: L.steps[index], demo,
+        lesson: L, index, step: L.steps[index], demo, review,
         // the demo leads into the first step; the last step goes back to the lesson page
         next: () => {
           const j = demo ? 0 : index + 1;
           if (!L.steps[j]) { back(); return; }
-          replacing = true;
-          location.replace(stepHref(L, j));
+          replaceHash(stepHref(L, j));
         },
       };
     }
@@ -120,8 +122,7 @@ function route() {
       console.error(err);
       document.body.classList.remove('in-ex');
       toast('Sorry, this exercise could not be opened');
-      replacing = true;
-      location.replace('#/');
+      replaceHash('#/');
     }
     return;
   }
@@ -129,8 +130,7 @@ function route() {
   if (parts[0] === 'ex') {
     const n = /^\d{1,4}$/.test(parts[1] || '') ? Number(parts[1]) : 0;
     note(n >= 1 ? `Exercise ${n} is not in this version of BassClass.` : 'This exercise does not exist.');
-    replacing = true;
-    location.replace('#/');
+    replaceHash('#/');
     return;
   }
   // the daily warm-up and the course live on Home; topics (#/m/...) belong to the Path

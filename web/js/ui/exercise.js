@@ -11,8 +11,10 @@ import * as T from '../theory.js';
 import { moduleOf, LEVELS, defaultParams } from '../curriculum/index.js';
 import { CYCLE_OPTS, PROGS, tonicFor } from '../curriculum/common.js';
 import { harmonyTrack, harmonyAt } from '../harmony.js';
-import { recordLoop, rememberTempo, stepState, stepPassed, stepClean, setClean, isDue, reviewed } from '../course/progress.js';
+import { recordLoop, rememberTempo, stepState, stepPassed, stepClean, setClean, isDue, isComplete, reviewed } from '../course/progress.js';
 
+// what a lesson step's goal tempo counts in ("goal 96 BPM in 8ths")
+export const SUB_NAMES = { 0.25: 'whole notes', 0.5: 'half notes', 1: 'quarter notes', 2: '8ths', 3: 'triplets', 4: '16ths', 5: 'quintuplets', 6: 'sextuplets' };
 const SUBS = [['0.25', 'Whole'], ['0.5', 'Half'], ['1', '♩ 1/beat'], ['2', '♪ 2/beat'], ['3', '3 triplets'], ['4', '4 16ths'], ['5', '5 quint.'], ['6', '6 sext.']];
 const REVEALS = [['gradual', 'Step'], ['full', 'Shape'], ['quiz', 'Quiz']];
 const LABELS = [['note', 'Note'], ['degree', 'Deg'], ['finger', 'Fing'], ['none', '—']];
@@ -68,8 +70,11 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   // a course lesson step: L = the lesson, LI = the step's index, LS = the step
   const L = lesson?.lesson, LI = lesson?.index, LS = lesson?.step;
   const demo = !!lesson?.demo;
-  // a completed lesson due for review: the goal has to be played again in this visit
-  let reviewing = !!(lesson && !demo && isDue(L));
+  // a completed lesson due for review (or opened as a review from today's session): the goal has to be
+  // played again in this visit
+  let reviewing = !!(lesson && !demo && isComplete(L) && (isDue(L) || lesson.review));
+  // a step without a tempo goal is an ear or note-finding round: one full round, then "got them all?"
+  const earStep = !!(LS && !LS.goal);
   let visitPassed = false, passShown = false;
   let alive = true;
   // "Continue" on Home reopens the last exercise opened
@@ -80,7 +85,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   }
   let ctx = makeCtx(S);
   let inst = null;
-  let userSub = prog.sub ?? null;
+  // a lesson step plays in its own subdivision (part of the lesson's options, never saved to the exercise)
+  let userSub = lesson ? (LS.sub ?? null) : (prog.sub ?? null);
   let labelMode = prog.label || null;
   let reveal = S.reveal;
   let score = null; // 'tab' | 'staff' (reading exercises open on the staff)
@@ -103,10 +109,11 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     h('span', { class: 'opts-txt' }, h('small', {}, 'Options · tap to change'), optsSum)) : h('div', { class: 'grow' });
   const sheet = h('div', { class: 'sheet', onClick: (e) => { if (e.target === sheet) closeOptions(); } });
   const lessonName = L ? (L.kind === 'lesson' ? `Lesson ${L.num}` : L.kind === 'check' ? `Checkpoint ${L.num}` : 'Stage test') : '';
+  const goalText = () => (LS?.goal ? `goal ${LS.goal} BPM${LS.sub ? ` in ${SUB_NAMES[LS.sub]}` : ''}` : 'one full round');
   const subtitle = L
-    ? `${lessonName} · ${demo ? 'demo: listen and watch' : `step ${LI + 1} of ${L.steps.length}${LS.goal ? ` · goal ${LS.goal} BPM` : ''}`}`
+    ? `${lessonName} · ${demo ? 'demo: listen and watch' : `step ${LI + 1}/${L.steps.length} · ${goalText()}`}`
     : `${mod?.name ?? ''} · Level ${tpl.level} ${lvl ? lvl.name : ''}`;
-  const titleEl = h('div', { class: 'exv-title' }, h('b', {}, h('span', { class: 'ex-num' }, tpl.num), tpl.title), h('span', {}, subtitle));
+  const titleEl = h('div', { class: 'exv-title' }, h('b', {}, h('span', { class: 'ex-num' }, tpl.num), tpl.title), h('span', { title: subtitle }, subtitle));
   let nextBtn = null;
   if (routine) {
     const last = routine.index + 1 >= routine.total;
@@ -116,12 +123,13 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     const last = LI + 1 >= L.steps.length;
     nextBtn = demo
       ? h('button', { class: 'btn primary routine-next', title: 'Practise the first step', onClick: () => lesson.next() }, 'Practise ›')
-      : h('button', { class: `btn routine-next${stepClean(L, LI) ? ' primary' : ''}`, title: last ? 'Back to the lesson' : 'Next step of the lesson', onClick: () => lesson.next() },
+      : h('button', { class: `btn routine-next${stepClean(L, LI) ? ' primary' : ''}`, title: last ? 'Back to the lesson' : 'Next step of the lesson', onClick: () => (lessonDone ? close() : lesson.next()) },
         h('small', {}, `${LI + 1}/${L.steps.length}`), last ? 'Done ›' : 'Next ›');
   }
   // the step's pass mark: its goal tempo (recorded by the app), then the player's own "clean" tick
   const goalBtn = lesson && !demo ? h('button', { class: 'btn goal-btn', onClick: () => onGoal() }) : null;
-  const top = h('header', { class: 'exv-top' },
+  let lessonDone = false; // the lesson was completed in this visit: Next goes back to its page
+  const top = h('header', { class: `exv-top${lesson ? ' lesson' : ''}` },
     btn('back', 'Back', () => close()), titleEl, optsBtn, goalBtn, nextBtn,
     starButton(tpl.id, { cls: 'icon-btn' }),
     btn('tuner', 'Tuner', () => { location.hash = '#/tuner'; }), btn('info', 'About this exercise', () => openDrawer()));
@@ -142,7 +150,13 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     h('button', { class: 'lbl-btn', 'aria-label': 'Slower', onClick: () => setBpm(player.bpm - 2) }, '−'), bpmRange,
     h('button', { class: 'lbl-btn', 'aria-label': 'Faster', onClick: () => setBpm(player.bpm + 2) }, '+'), bpmVal);
   const subSel = h('select', { class: 'mini-sel', title: 'Notes per beat' }, SUBS.map(([v, l]) => h('option', { value: v }, l)));
-  subSel.addEventListener('change', () => { userSub = Number(subSel.value); player.setSub(userSub); updateProgress(tpl.id, { sub: userSub }); renderTab(); });
+  subSel.addEventListener('change', () => {
+    userSub = Number(subSel.value);
+    player.setSub(userSub);
+    if (!lesson) updateProgress(tpl.id, { sub: userSub });
+    renderTab();
+    syncGoal();
+  });
   // shown instead of the subdivision select when the rhythm is part of the exercise (licks, grooves…)
   const rhythmBtn = h('button', { class: 'lbl-btn written', title: 'Why can\'t I change the subdivision?',
     onClick: () => note('The rhythm is written into this exercise, so the subdivision is fixed. Change the tempo instead.') }, '♪ Written rhythm');
@@ -180,18 +194,22 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     onState: (playing) => { playBtn.innerHTML = icon(playing ? 'pause' : 'play'); },
     onLoop: (n, bpm, done) => {
       syncBpm();
-      const pr = getProgress(tpl.id) || {};
-      // credit the tempo of the loop just played, not the speed trainer's next step
-      const played = done ?? bpm;
-      updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, bestBpm: Math.max(pr.bestBpm || 0, played), ...keep(), ...(lesson ? {} : { lastBpm: player.bpm }) });
+      // `done`: the slowest tempo of the loop just played, or null when it did not start on the first
+      // note (not a full loop). A lesson step leaves the exercise's own progress alone.
+      const played = done;
+      if (!lesson) {
+        const pr = getProgress(tpl.id) || {};
+        updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, ...(played != null ? { bestBpm: Math.max(pr.bestBpm || 0, played) } : {}), ...keep(), lastBpm: player.bpm });
+      }
       // a lesson step counts only with the lesson's options (another key is fine where the lesson leaves it free)
-      if (lesson && !demo && presetOk()) {
+      if (lesson && !demo && played != null && presetOk()) {
         const first = recordLoop(L, LI, played);
         rememberTempo(L, LI, player.bpm);
         if (!LS.goal || played >= LS.goal) visitPassed = true;
         if (first || (reviewing && visitPassed && !passShown)) {
           passShown = true;
-          note(reviewing ? 'Goal reached: if it is still clean, tick ✓ Still clean?' : 'Goal reached! If it felt clean, tick ✓ Clean?');
+          note(earStep ? (reviewing ? 'Round played: if you still got them all, tick ✓ Still got them?' : 'Round played: if you named them all before the answers, tick ✓ Got them all?')
+            : reviewing ? 'Goal reached: if it is still clean, tick ✓ Still clean?' : 'Goal reached! If it felt clean, tick ✓ Clean?');
         }
         syncGoal();
       }
@@ -202,9 +220,10 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     },
   });
   // a lesson step starts where it was last practised (or at its starting tempo), a demo at the goal
-  player.bpm = lesson
-    ? (demo ? (LS.goal || LS.from || tpl.bpm || 70) : (stepState(L.id, LI).last || LS.from || prog.lastBpm || tpl.bpm || 70))
-    : (prog.lastBpm || tpl.bpm || 70);
+  const clampBpm = (v) => (Number.isFinite(v) && v > 0 ? Math.max(MIN_BPM, Math.min(MAX_BPM, Math.round(v))) : null);
+  player.bpm = (lesson
+    ? (demo ? clampBpm(LS.goal || LS.from) : (clampBpm(stepState(L.id, LI).last) || clampBpm(LS.from)))
+    : clampBpm(prog.lastBpm)) || tpl.bpm || 70;
   // the demo plays once, with the sound on
   if (demo) { player.loop = false; player.sound = true; }
   player.metro = S.metro;
@@ -283,9 +302,12 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     }
     if (!next?.steps?.length) { toast('No notes for this variation'); return; }
     inst = next;
-    // a variation with its own natural tempo (the 12/8 slow blues) starts there when it is chosen
+    // a variation with its own natural tempo (the 12/8 slow blues) starts there when it is chosen, or when
+    // it opens with no tempo of its own yet; choosing another variation then returns to the usual tempo
     const hint = inst.bpm || null;
-    if (bpmHint !== undefined && hint && hint !== bpmHint) setBpm(hint);
+    if (bpmHint === undefined) { if (hint && !lesson && !prog.lastBpm) player.setBpm(hint); }
+    else if (hint && hint !== bpmHint) setBpm(hint);
+    else if (!hint && bpmHint) setBpm(tpl.bpm || 70);
     bpmHint = hint;
     // ear training: the notes of a hidden step show no dot until the answer
     for (const st of inst.steps) if (st.hide) for (const n of st.notes) n.hidden = true;
@@ -323,9 +345,11 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   }
 
   function renderTab() {
+    // Quiz mode: the strip gives no answers away (tab: "?" until a note is played; staff: no names)
+    const quiz = reveal === 'quiz';
     tab.render(inst, {
-      strings: ctx.tuning.length, beatsOf: (st) => player.beatsOf(st), beatsPerBar: inst.beatsPerBar || 4, sub: player.sub, mode: score,
-      label: (n) => (labelMode === 'none' ? '' : noteLabel(n, labelMode === 'finger' ? 'note' : labelMode, S.notation)),
+      strings: ctx.tuning.length, beatsOf: (st) => player.beatsOf(st), beatsPerBar: inst.beatsPerBar || 4, sub: player.sub, mode: score, quiz,
+      label: (n) => (labelMode === 'none' || (quiz && score === 'staff') ? '' : noteLabel(n, labelMode === 'finger' ? 'note' : labelMode, S.notation)),
     });
     tab.setCurrent(cur);
   }
@@ -387,7 +411,10 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   }
 
   // ------------------------------------------------------------ lesson step
-  function presetOk() { return Object.entries(LS?.p || {}).every(([k, v]) => p[k] === v); }
+  /** The lesson's options are in place: its preset and, where the rhythm is not written in, its subdivision. */
+  function presetOk() {
+    return Object.entries(LS?.p || {}).every(([k, v]) => p[k] === v) && (!inst?.uniform || LS?.sub == null || player.sub === LS.sub);
+  }
   function syncGoal() {
     if (!goalBtn) return;
     const st = stepState(L.id, LI);
@@ -395,16 +422,19 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     const clean = !reviewing && stepClean(L, LI);
     const ok = presetOk();
     goalBtn.className = `btn goal-btn${!ok ? ' off' : clean ? ' clean' : passed ? ' ready' : ''}`;
-    goalBtn.textContent = !ok ? '↺ Lesson options'
-      : clean ? '✓ Clean'
-        : passed ? (reviewing ? '✓ Still clean?' : '✓ Clean?')
-          : LS.goal ? `🎯 ${reviewing ? 'review' : st.best || '–'} / ${LS.goal}` : '🎯 one loop';
-    goalBtn.title = !ok ? 'You changed an option the lesson sets: tap to go back to the lesson\'s options (only those count for the lesson)'
-      : LS.goal ? `Goal: a full loop at ${LS.goal} BPM or faster, then tick ✓ Clean (best so far: ${st.best || '–'} BPM)` : 'Goal: one full loop, then tick ✓ Clean';
+    const tick = earStep ? 'Got them all' : 'Clean';
+    goalBtn.textContent = !ok ? '↺ Options'
+      : clean ? `✓ ${earStep ? 'Got them' : 'Clean'}`
+        : passed ? (reviewing ? `✓ Still ${earStep ? 'got them' : 'clean'}?` : `✓ ${tick}?`)
+          : LS.goal ? `🎯 ${reviewing ? 'review' : st.best || '–'}/${LS.goal}` : '🎯 1 round';
+    goalBtn.title = !ok ? 'You changed an option the lesson sets (or its notes per beat): tap to go back to the lesson\'s options. Only those count for the lesson.'
+      : LS.goal ? `Goal: a full loop from the first note at ${LS.goal} BPM or faster${LS.sub ? ` in ${SUB_NAMES[LS.sub]}` : ''}, then tick ✓ Clean (best so far: ${st.best || '–'} BPM)`
+        : 'Goal: one full round from the first note, then tick ✓ if you named them all before the answers';
   }
   function onGoal() {
     if (!presetOk()) {
       Object.assign(p, LS.p);
+      if (LS.sub != null) { userSub = LS.sub; player.setSub(LS.sub); }
       rebuild();
       renderParams();
       if (sheet.classList.contains('open')) renderOptions();
@@ -414,18 +444,23 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     }
     const passed = reviewing ? visitPassed : stepPassed(L, LI);
     if (!passed) {
-      note(LS.goal ? `Play a full loop at ${LS.goal} BPM or faster, then tick ✓ Clean.` : 'Play one full loop, then tick ✓ Clean.');
+      note(LS.goal ? `Play a full loop from the first note at ${LS.goal} BPM or faster, then tick ✓ Clean.` : 'Play one full round from the first note, then tick ✓ if you named them all before the answers.');
       return;
     }
     if (reviewing) {
       const days = reviewed(L);
       reviewing = false;
       toast(`Reviewed ✓ Next review in ${days} days`, 3000);
+    } else if (stepClean(L, LI)) {
+      // a ticked step stays ticked here (a second tap must not undo a lesson): untick it on the lesson page
+      note('Already ticked ✓. To practise this step again from scratch, untick it on the lesson page.');
     } else {
-      const on = !stepClean(L, LI);
-      const complete = setClean(L, LI, on);
-      toast(complete ? `${lessonName} complete ✓` : on ? 'Step done ✓' : 'Clean tick removed', complete ? 3000 : 1800);
-      if (on && nextBtn && !routine) nextBtn.classList.add('primary');
+      const complete = setClean(L, LI, true);
+      toast(complete ? `${lessonName} complete ✓` : 'Step done ✓', complete ? 3000 : 1800);
+      if (nextBtn && !routine) {
+        nextBtn.classList.add('primary');
+        if (complete) { lessonDone = true; nextBtn.replaceChildren('Done ›'); nextBtn.title = 'Back to the lesson'; }
+      }
     }
     syncGoal();
   }
@@ -456,6 +491,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     reveal = REVEALS[(i + 1) % REVEALS.length][0];
     if (!inst.reveal) saveSettings({ reveal });
     syncToggles();
+    renderTab();
     showStep(cur);
   }
   // a lesson step can bring its own backing (not saved: the player's setting stays as it was)
@@ -527,6 +563,19 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   }
 
   // ------------------------------------------------------------ info drawer
+  /** In a lesson the drawer starts with the step, then the lesson's idea, explanation and pitfalls. */
+  function lessonBox() {
+    const step = demo
+      ? '<p>Demo: the app plays it once at the goal tempo. Watch the neck and listen, then tap Practise.</p>'
+      : `<p>Step ${LI + 1} of ${L.steps.length}${LS.do ? `: ${esc(LS.do)}` : ''}</p><p class="muted small">${LS.goal
+        ? `Goal: a full loop from the first note at ${LS.goal} BPM or faster${LS.sub ? ` in ${SUB_NAMES[LS.sub]}` : ''}. Then tick ✓ Clean if it really was clean: every note in time, even and clear.`
+        : 'Goal: one full round from the first note. Then tick ✓ if you named (or sang) every answer before it appeared.'}</p>`;
+    return `<div class="les-step-box"><b>${esc(lessonName)} · ${esc(L.title)}</b>${step}</div>
+      ${L.idea ? `<p class="les-idea">${esc(L.idea)}</p>` : ''}
+      ${(L.concept || []).map((para) => `<p>${esc(para)}</p>`).join('')}
+      ${L.mistakes?.length ? `<h4>Watch out for</h4><ul>${L.mistakes.map((m) => `<li>${esc(m)}</li>`).join('')}</ul>` : ''}
+      <h4>This exercise</h4>`;
+  }
   function openDrawer() {
     closeMore();
     const pr = getProgress(tpl.id) || {};
@@ -537,7 +586,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     drawer.innerHTML = `
       <header><h2>${tpl.num} · ${esc(tpl.title)}</h2><button class="icon-btn" data-close aria-label="Close">${icon('close')}</button></header>
       <div class="body">
-        ${L ? `<div class="les-step-box"><b>${esc(lessonName)} · ${esc(L.title)}</b>${demo ? '<p>Demo: the app plays it once at the goal tempo. Watch the neck and listen, then tap Practise.</p>' : `<p>Step ${LI + 1} of ${L.steps.length}${LS.do ? `: ${esc(LS.do)}` : ''}</p><p class="muted small">${LS.goal ? `Goal: a full loop at ${LS.goal} BPM or faster.` : 'Goal: one full loop.'} Then tick ✓ Clean if it really was clean: every note in time, even and clear.</p>`}</div>` : ''}
+        ${L ? lessonBox() : ''}
         <div class="row" style="margin-bottom:10px"><span class="chip lv lv${tpl.level}">Level ${tpl.level} · ${esc(lvl?.name ?? '')}</span><span class="chip">${esc(mod?.name ?? '')}</span></div>
         ${(tpl.about || '').split('\n\n').map((para) => `<p>${esc(para)}</p>`).join('')}
         ${tpl.tips?.length ? `<h4>Focus points</h4><ul>${tpl.tips.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
