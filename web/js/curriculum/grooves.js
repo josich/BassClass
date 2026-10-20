@@ -1,5 +1,5 @@
 // Grooves & bass lines, walking bass and slap: applying everything musically.
-import { T, Builder, keysFor, ex, sel, keyP, progChords, progP, PROGS, chordRootMidis, grooveLine, walkLine } from './common.js';
+import { T, Builder, keysFor, ex, sel, keyP, progChords, progP, PROGS, chordRootMidis, grooveLine, walkLine , keyLines } from './common.js';
 
 // ---------------------------------------------------------------- grooves
 const G = 'grooves';
@@ -62,9 +62,8 @@ function grooveEx(id, level, styleKeys, def, meta) {
     build(p, ctx, S) {
       const b = new Builder(ctx, S, { jazz: true });
       const progKey = p.prog === 'auto' ? STYLE_PROGS[p.style] : p.prog;
-      for (const k of keysFor(p.key)) {
-        const chords = progChords(progKey, k, { S });
-        grooveLine(b, chords, chordRootMidis(chords), GROOVES[p.style].bars, { place: { open: 'allow' } });
+      for (const L of keyLines(keysFor(p.key), (k) => progChords(progKey, k, { S }))) {
+        grooveLine(b, L.chords, L.roots, GROOVES[p.style].bars, { place: { open: 'allow' }, next: L.next });
       }
       // compound grooves (12/8) are written in dotted-quarter beats
       const g = GROOVES[p.style];
@@ -192,11 +191,10 @@ function walkEx(id, level, formula, def, meta) {
     build(p, ctx, S) {
       const b = new Builder(ctx, S, { jazz: true });
       const keys = p.prog === 'cycle-251' ? [0] : keysFor(p.key);
-      for (const k of keys) {
-        const chords = progChords(p.prog, k, { S });
-        // enclosures need a note below every target: no target on the lowest note of the bass
-        const lo = formula === 'enclosure' ? ctx.tuning[0] + 2 : 28;
-        walkLine(b, chords, chordRootMidis(chords, { lo, hi: 43, firstLo: Math.max(28, lo) }), formula, { triplets: meta.triplets });
+      // enclosures need a note below every target: no target on the lowest note of the bass
+      const lo = formula === 'enclosure' ? ctx.tuning[0] + 2 : 28;
+      for (const L of keyLines(keys, (k) => progChords(p.prog, k, { S }), (c) => chordRootMidis(c, { lo, hi: 43, firstLo: Math.max(28, lo) }))) {
+        walkLine(b, L.chords, L.roots, formula, { triplets: meta.triplets, next: L.next, firstFixed: !!L.next });
       }
       return b.build({ uniform: false, label: 'degree' });
     },
@@ -308,9 +306,8 @@ function slapEx(id, level, styles, def, prog, meta) {
     sub: 1, label: 'degree',
     build(p, ctx, S) {
       const b = new Builder(ctx, S, { jazz: true });
-      for (const k of keysFor(p.key)) {
-        const chords = progChords(p.prog, k, { S });
-        grooveLine(b, chords, chordRootMidis(chords, { lo: 28, hi: 38, firstLo: 28, firstHi: 36 }), SLAPS[p.style].bars, { place: { open: 'allow', center: 3 } });
+      for (const L of keyLines(keysFor(p.key), (k) => progChords(p.prog, k, { S }), (c) => chordRootMidis(c, { lo: 28, hi: 38, firstLo: 28, firstHi: 36 }))) {
+        grooveLine(b, L.chords, L.roots, SLAPS[p.style].bars, { place: { open: 'allow', center: 3 }, next: L.next });
       }
       return b.build({ uniform: false, label: 'degree' });
     },

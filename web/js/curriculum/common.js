@@ -342,6 +342,30 @@ const TOKEN_IV = {
  *         5_ b7_ 6_ (below the root), A / Ab (chromatic approach from below/above to next root),
  *         N (next root), D (dominant approach: 5th of next chord), x (ghost note), - (rest)
  */
+const LPC = [0, 2, 4, 5, 7, 9, 11];
+/**
+ * An approach note spelled as a step from the note it leads to: the letter above for a note above
+ * (F or F♯ over E), the letter below for a note below (D♯ or D under E); plainly when that would
+ * need a double accidental or C♭/F♭/E♯/B♯.
+ */
+export function stepSpell(m, target, targetMidi) {
+  const up = m > targetMidi;
+  const l = (target.l + (up ? 1 : 6)) % 7;
+  let a = T.mod(m - LPC[l], 12);
+  if (a > 6) a -= 12;
+  const n = { l, a };
+  return Math.abs(a) <= 1 && !T.awkward(n) ? n : spellMidi(m, up);
+}
+
+/** One line per key; in a cycle each key's last chord leads into the next key's first chord. */
+export function keyLines(keys, chordsOf, rootsOf = (c) => chordRootMidis(c)) {
+  const lines = keys.map((k) => { const chords = chordsOf(k); return { chords, roots: rootsOf(chords) }; });
+  return lines.map((L, i) => {
+    const N = lines[(i + 1) % lines.length];
+    return { ...L, next: lines.length > 1 ? { chord: N.chords[0], midi: N.roots[0] } : null };
+  });
+}
+
 export function resolveToken(tok, chord, rootMidi, nextRoot, nextMidi) {
   const ivs = chord.ivs;
   const third = ivs[1] || '3';
@@ -363,7 +387,7 @@ export function resolveToken(tok, chord, rootMidi, nextRoot, nextMidi) {
   }
   if (tok === 'A' || tok === 'Ab') {
     const m = nextMidi + (tok === 'A' ? -1 : 1);
-    return { midi: m, n: spellMidi(m, tok === 'Ab'), deg: '→' };
+    return { midi: m, n: stepSpell(m, nextRoot, nextMidi), deg: '→' };
   }
   if (tok === 'N') return { midi: nextMidi, n: nextRoot, deg: 'R' };
   if (tok === 'D') {
@@ -383,12 +407,13 @@ export function resolveToken(tok, chord, rootMidi, nextRoot, nextMidi) {
  * Render a groove pattern over chords. pattern: list of bars, each [[token, beats, tag?], ...]
  * (bar 0 pattern is reused if the chord lasts longer). Durations in beats (non-uniform).
  */
-export function grooveLine(b, chords, roots, pattern, { tags = true, place: popts = {} } = {}) {
+export function grooveLine(b, chords, roots, pattern, { tags = true, place: popts = {}, next = null } = {}) {
   const pitches = [];
   let at = 0; // beats from the start of the line: a two-bar pattern alternates bar by bar across chords
   chords.forEach((c, ci) => {
-    const nextC = chords[(ci + 1) % chords.length];
-    const nextMidi = roots[(ci + 1) % chords.length];
+    const lastOfKey = ci === chords.length - 1 && next;
+    const nextC = lastOfKey ? next.chord : chords[(ci + 1) % chords.length];
+    const nextMidi = lastOfKey ? next.midi : roots[(ci + 1) % chords.length];
     let beatsLeft = c.beats;
     let barIdx = Math.floor(at / 4 + 1e-9);
     at += c.beats;
@@ -413,6 +438,12 @@ export function grooveLine(b, chords, roots, pattern, { tags = true, place: popt
           if ((lowTok === 'A' || lowTok === 'Ab') && before && !before.rest && T.mod(p.midi - before.midi, 12) === 0) {
             lowTok = lowTok === 'A' ? 'Ab' : 'A';
             p = resolveToken(lowTok, c, roots[ci], tgtRoot, tgtMidi);
+          }
+          // the 5th of the next chord can be the root just played (a move by a 4th): approach chromatically
+          if (lowTok === 'D' && (T.mod(p.midi - roots[ci], 12) === 0 || (before && !before.rest && T.mod(p.midi - before.midi, 12) === 0))) {
+            lowTok = 'A';
+            p = resolveToken('A', c, roots[ci], tgtRoot, tgtMidi);
+            if (before && !before.rest && T.mod(p.midi - before.midi, 12) === 0) p = resolveToken('Ab', c, roots[ci], tgtRoot, tgtMidi);
           }
           pitches.push({ ...p, dur: d, chord: first ? c.sym : undefined, tag: p.tag === 'x' ? 'x' : (tags && tag) || p.tag });
         }
@@ -571,12 +602,13 @@ function mirrorCell(cell) {
  * chosen for the whole line at once (dynamic programming): each bar runs into the next by step
  * or small leap, the line stays between the lowest string and C4, and the loop closes.
  */
-function walkRegisters(ctx, chords, roots, cells, formula) {
+function walkRegisters(ctx, chords, roots, cells, formula, { firstFixed = false, next = null } = {}) {
   const n = chords.length;
-  if (n < 2) return { roots: [...roots], dirs: roots.map(() => 'up') };
-  const lowest = ctx.tuning[0];
+  if (n < 2 && !next) return { roots: [...roots], dirs: roots.map(() => 'up') };
+  // enclosures need a note below every target
+  const lowest = ctx.tuning[0] + (formula === 'enclosure' ? 2 : 0);
   const top = Math.min(60, Math.max(...ctx.tuning) + ctx.maxFret);
-  const cellsOf = (c, ci) => (formula === 'twofeel' ? [cells[ci % cells.length]]
+  const cellsOf = (c, ci) => (formula === 'twofeel' ? [c.beats <= 2 ? ['R'] : cells[ci % cells.length]]
     : c.beats <= 2 ? [['R', formula === 'ct' ? '5' : 'A']]
       : Array.from({ length: Math.ceil(c.beats / 4) }, (_, k) => cells[(ci + k) % cells.length]));
   const shapeOf = (c, cs) => {
@@ -589,12 +621,17 @@ function walkRegisters(ctx, chords, roots, cells, formula) {
   const states = chords.map((c, ci) => {
     const cs = cellsOf(c, ci);
     const dirs = [['up', cs]];
-    const down = c.beats > 2 ? cs.map(mirrorCell) : [];
+    const down = cs.map(mirrorCell);
     if (down.length && down.every(Boolean)) dirs.push(['down', down]);
     const out = [];
     for (const [dir, dcs] of dirs) {
       const sh = shapeOf(c, dcs);
       for (let m = lowest - sh.lo; m + sh.hi <= top; m++) if (T.mod(m - roots[ci], 12) === 0) out.push({ m, dir, sh });
+    }
+    // in a cycle of keys each key starts where the key before was told it would
+    if (ci === 0 && firstFixed) {
+      const fixed = out.filter((x) => x.m === roots[0] && x.dir === 'up');
+      return fixed.length ? fixed.slice(0, 1) : [{ m: roots[0], dir: 'up', sh: shapeOf(c, cs) }];
     }
     return out.length ? out : [{ m: roots[ci], dir: 'up', sh: shapeOf(c, cs) }];
   });
@@ -619,8 +656,10 @@ function walkRegisters(ctx, chords, roots, cells, formula) {
         return best;
       });
     }
+    // the line closes on its own first chord, or leads into the next key's first chord
+    const close = next ? { m: next.midi, dir: 'up', sh: s0.sh } : s0;
     for (const v of dp) {
-      const c = v.c + cost(v.st, s0) - (s0.dir === 'down' ? 0.5 : 0);
+      const c = v.c + cost(v.st, close) - (close.dir === 'down' ? 0.5 : 0);
       if (!fin || c < fin.c) fin = { c, path: v.path };
     }
   }
@@ -631,22 +670,24 @@ function walkRegisters(ctx, chords, roots, cells, formula) {
  * Walking bass over chords. formula: key of WALK_FORMULAS. 4-beat chords take
  * a 4-note cell; 2-beat chords take R + approach. Choices rotate deterministically.
  */
-export function walkLine(b, chords, roots, formula = 'mixed', { triplets = false } = {}) {
+export function walkLine(b, chords, roots, formula = 'mixed', { triplets = false, next: nextKey = null, firstFixed = false } = {}) {
   const cells = WALK_FORMULAS[formula];
   const items = [];
   const lowest = b.ctx.tuning[0];
-  const reg = walkRegisters(b.ctx, chords, roots, cells, formula);
+  const reg = walkRegisters(b.ctx, chords, roots, cells, formula, { firstFixed, next: nextKey });
   roots = reg.roots;
   // the cell a chord plays, walked up or down from its root
   const cellAt = (ci, idx) => (reg.dirs[ci] === 'down' ? mirrorCell(cells[idx % cells.length]) || cells[idx % cells.length] : cells[idx % cells.length]);
   chords.forEach((c, ci) => {
-    const next = chords[(ci + 1) % chords.length];
+    // after a key's last chord comes its first chord again, or in a cycle the next key's first chord
+    const intoNextKey = ci === chords.length - 1 && nextKey;
+    const next = intoNextKey ? nextKey.chord : chords[(ci + 1) % chords.length];
     // approach the note the next bar really starts on: the upper root when its cell opens on '8'
     // (after the last chord the line starts again with the first cell)
     const ni = (ci + 1) % chords.length;
     const nextCell = cells[ni % cells.length];
     const up8 = formula !== 'twofeel' && next.beats > 2 && nextCell[0] === '8' ? 12 : 0;
-    const nextMidi = roots[ni] + up8;
+    const nextMidi = (intoNextKey ? nextKey.midi : roots[ni]) + up8;
     const start = items.length;
     // a dominant with ♭9, or one resolving down a 5th to a minor chord, walks with ♭9 and ♭13
     const toMinor = ['min7', 'min6', 'mMaj7', 'm7b5', 'min'].includes(next.type) && T.mod(T.pc(next.root) - T.pc(c.root), 12) === 5;
@@ -686,10 +727,12 @@ export function walkLine(b, chords, roots, formula = 'mixed', { triplets = false
           // (the end of an enclosure), else the half step above
           const fromAbove = prevMidi != null && prevMidi > nextMidi;
           // enclosures keep their shape (a whole step above); other lines prefer the half step below
-          const offs = tok === 'Ab' ? (formula === 'enclosure' ? [2, -1, -2] : [-1, 2, -2]) : fromAbove ? [-2, 1, 2] : [1, -2, 2];
+          // (outside enclosures a half step always comes first)
+          const offs = tok === 'Ab' ? (formula === 'enclosure' ? [2, -1, -2] : [-1, 2, -2])
+            : formula === 'enclosure' && fromAbove ? [-2, 1, 2] : [1, -2, 2];
           const m = offs.map((o) => nextMidi + o).find((x) => !bad(x));
-          // spelled as a step: sharps for the half step below, flats otherwise (B♭ is a whole step under C)
-          if (m != null) r = { midi: m, n: spellMidi(m, m !== nextMidi - 1), deg: '→' };
+          // spelled as a step from the target (F♯ a whole step above E, not G♭)
+          if (m != null) r = { midi: m, n: stepSpell(m, next.root, nextMidi), deg: '→' };
         }
         // an approach note that is also a chord tone is spelled as that chord tone (B♭ under B♭7),
         // unless that needs a double sharp/flat (then the plain name reads better)
@@ -712,7 +755,8 @@ export function walkLine(b, chords, roots, formula = 'mixed', { triplets = false
     if (c.beats <= 2) {
       items.push({ ...res('R'), dur: 1, chord: c.sym });
       // chord tones only: R and 5 (or 3); the other lines approach the next root
-      items.push({ ...res(formula === 'ct' ? '5' : ci % 2 ? 'Ab' : 'A'), dur: 1 });
+      // (the 5th below when the line is walking down: R–5 then down a 5th would leap a 9th)
+      items.push({ ...res(formula === 'ct' ? (reg.dirs[ci] === 'down' ? '5_' : '5') : ci % 2 ? 'Ab' : 'A'), dur: 1 });
       fixLast();
       return;
     }
@@ -742,6 +786,7 @@ export function walkLine(b, chords, roots, formula = 'mixed', { triplets = false
     function fixLast() {
       const last = items[items.length - 1];
       if (items.length <= start || !last || last.rest || last.deg === '→') return;
+      if (items.length - start === 1) return;
       if (T.mod(last.midi - nextMidi, 12) !== 0) return;
       // the chord tone nearest both neighbours, above or below the root
       const before = items.length > start + 1 ? items[items.length - 2].midi : roots[ci];

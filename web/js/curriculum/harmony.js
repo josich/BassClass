@@ -2,6 +2,7 @@
 import {
   T, Builder, keysFor, chordTones, ex, sel, keyP, nm, chordName, pickRoot, scaleRun, progChords, progP, PROGS,
   chordRootMidis, emitMixed, grooveLine, diatonicStacks, scaleTone, rootStrP,
+  keyLines,
 } from './common.js';
 
 const M = 'harmony';
@@ -110,9 +111,8 @@ const chordTonesProg = ex({
   bpm: 88, sub: 1, label: 'degree',
   build(p, ctx, S) {
     const b = new Builder(ctx, S, { jazz: true });
-    for (const k of keysFor(p.key)) {
-      const chords = progChords(p.prog, k, { S, triads: !['r357', 'r3575'].includes(p.pattern) });
-      grooveLine(b, chords, chordRootMidis(chords), PATTERNS[p.pattern].bars, { place: { open: 'allow' } });
+    for (const L of keyLines(keysFor(p.key), (k) => progChords(p.prog, k, { S, triads: !['r357', 'r3575'].includes(p.pattern) }))) {
+      grooveLine(b, L.chords, L.roots, PATTERNS[p.pattern].bars, { place: { open: 'allow' }, next: L.next });
     }
     return b.build({ uniform: false, label: 'degree' });
   },
@@ -215,9 +215,8 @@ const minorHarmony = ex({
   bpm: 84, sub: 1, label: 'degree',
   build(p, ctx, S) {
     const b = new Builder(ctx, S, { jazz: true });
-    for (const k of keysFor(p.key)) {
-      const chords = progChords(p.prog, k, { S, triads: p.pattern === 'r353' });
-      grooveLine(b, chords, chordRootMidis(chords), PATTERNS[p.pattern].bars, { place: { open: 'allow' } });
+    for (const L of keyLines(keysFor(p.key), (k) => progChords(p.prog, k, { S, triads: p.pattern === 'r353' }))) {
+      grooveLine(b, L.chords, L.roots, PATTERNS[p.pattern].bars, { place: { open: 'allow' }, next: L.next });
     }
     return b.build({ uniform: false, label: 'degree' });
   },
@@ -234,9 +233,8 @@ const colour = ex({
   bpm: 84, sub: 1, label: 'degree',
   build(p, ctx, S) {
     const b = new Builder(ctx, S, { jazz: true });
-    for (const k of keysFor(p.key)) {
-      const chords = progChords(p.prog, k, { S });
-      grooveLine(b, chords, chordRootMidis(chords), PATTERNS[p.pattern].bars, { place: { open: 'allow' } });
+    for (const L of keyLines(keysFor(p.key), (k) => progChords(p.prog, k, { S }))) {
+      grooveLine(b, L.chords, L.roots, PATTERNS[p.pattern].bars, { place: { open: 'allow' }, next: L.next });
     }
     return b.build({ uniform: false, label: 'degree' });
   },
@@ -253,9 +251,8 @@ const blues = ex({
   bpm: 92, sub: 1, label: 'degree',
   build(p, ctx, S) {
     const b = new Builder(ctx, S, { jazz: true });
-    for (const k of keysFor(p.key)) {
-      const chords = progChords(p.prog, k, { S });
-      grooveLine(b, chords, chordRootMidis(chords), PATTERNS[p.pattern].bars, { place: { open: 'allow' } });
+    for (const L of keyLines(keysFor(p.key), (k) => progChords(p.prog, k, { S }))) {
+      grooveLine(b, L.chords, L.roots, PATTERNS[p.pattern].bars, { place: { open: 'allow' }, next: L.next });
     }
     return b.build({ uniform: false, label: 'degree' });
   },

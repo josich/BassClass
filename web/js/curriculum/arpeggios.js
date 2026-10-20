@@ -3,6 +3,7 @@ import {
   T, Builder, keysFor, chordTones, ARP_SHAPES, ex, variant, keyP, sel, nm, chordName, cycleRoot, QUALITY_7THS, QUALITY_TRIADS,
   ZONES, zoneP, orderP, rootStrP, pickRoot, zoneShape, zoneShapeAny, shapeFingers, emitShapeF, SEVENTH_ORDERS, voiceLedItems, emitMixed,
   progChords, progP, diatonicStacks, scaleTone, DEG_SEQ, degSeqP, SCALE_TYPE_OPTS, spellMidi, chordRootMidis,
+  stepSpell,
 } from './common.js';
 import { arpBuild, diatonicBuild } from './triads.js';
 
@@ -422,7 +423,7 @@ const approach7 = ex({
       let a = apps(nx.midi);
       // never "approach" with the note just played: come from the other side of the target
       if (a[0] === t.midi) a = a.map((m) => 2 * nx.midi - m);
-      for (const m of a) items.push({ midi: m, n: spellMidi(m, m > nx.midi), deg: '→', dur: 1 / per });
+      for (const m of a) items.push({ midi: m, n: stepSpell(m, nx.n, nx.midi), deg: '→', dur: 1 / per });
     });
     emitMixed(b, items, { center: 5, open: 'avoid' });
     return b.build({ label: 'degree', uniform: false, sub: per });
