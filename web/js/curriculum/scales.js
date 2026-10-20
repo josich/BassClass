@@ -2,6 +2,7 @@
 import {
   T, Builder, keysFor, ex, variant, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS,
   rootStrP, dirP, octP, place, scaleShort, ZONES, zoneP, orderP, jazzAltered, plainKeyP,
+  oneStringP,
 } from './common.js';
 
 const M = 'scales';
@@ -144,7 +145,7 @@ const oneString = ex({
   about: 'Played along one string, a scale shows its structure clearly: two frets for a whole step, one for a half step. Gary Willis and Victor Wooten recommend this to understand the neck horizontally and to practise shifting.',
   tips: ['Use fingers 1-2-4 or 1-3-4 per shift, like the double-bass Simandl method.', 'Say the step size: W W H W W W H.'],
   source: 'Gary Willis (linear approach); Victor Wooten; TalkingBass one-string scales',
-  params: { type: typeP(['ionian', 'aeolian', 'dorian', 'mixolydian', 'majorPent', 'minorPent', 'harmonicMinor', 'melodicMinor']), key: keyP(T.SCALES.ionian.iv, { cycles: false }), string: sel('String', [['E', 'E string'], ['A', 'A string'], ['D', 'D string'], ['G', 'G string']], 'A') },
+  params: { type: typeP(['ionian', 'aeolian', 'dorian', 'mixolydian', 'majorPent', 'minorPent', 'harmonicMinor', 'melodicMinor']), key: keyP(T.SCALES.ionian.iv, { cycles: false }), string: oneStringP('A') },
   bpm: 66, sub: 2, label: 'degree',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);

@@ -5,12 +5,13 @@ import { EXERCISES, byNumber } from './curriculum/index.js';
 import { makeCtx } from './fretboard.js';
 import * as T from './theory.js';
 
-function combos(params, limit = 400) {
+function combos(params, limit = 400, strings = 4) {
   const keys = Object.keys(params);
   const opts = keys.map((k) => {
     const def = params[k];
     if (def.kind === 'key') return [...T.CHROMATIC_PC.map(String), ...(def.cycles ? ['cycle4'] : [])];
-    return def.options.map((o) => o[0]);
+    // options that need a 5- or 6-string bass are only tried on one
+    return def.options.filter((o) => !o[2]?.minStrings || strings >= o[2].minStrings).map((o) => o[0]);
   });
   const out = [];
   // defaults, then vary one param at a time, then every key with every value of the options that
@@ -38,7 +39,7 @@ export function run({ strings = [4, 5, 6], verbose = false } = {}) {
     const S = { strings: st, notation: 'letters', maxFret: 20 };
     const ctx = makeCtx(S);
     for (const t of EXERCISES) {
-      for (const p of combos(t.params || {})) {
+      for (const p of combos(t.params || {}, 400, st)) {
         let inst;
         try {
           inst = t.build(p, ctx, S);
@@ -93,7 +94,7 @@ export async function catalogue() {
     if (!list.length) continue;
     lines.push(`### ${m.name}`, '');
     for (const e of list) {
-      const ps = Object.values(e.params || {}).map((d) => (d.kind === 'key' ? `${d.label}: 12 keys${d.cycles ? ' + all-keys cycles' : ''}` : `${d.label}: ${d.options.map((o) => o[1]).join(' / ')}`)).join(' · ');
+      const ps = Object.values(e.params || {}).map((d) => (d.kind === 'key' ? `${d.label}: 12 keys${d.cycles ? ' + all-keys cycles' : ''}` : `${d.label}: ${d.options.map((o) => o[1] + (o[2]?.minStrings ? ` (${o[2].minStrings}-string)` : '')).join(' / ')}`)).join(' · ');
       lines.push(`- **${e.num} · ${e.title}** (L${e.level}, \`${e.id}\`): ${ps || 'no options'}`);
     }
     lines.push('');

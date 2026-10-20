@@ -2,6 +2,7 @@
 import {
   T, Builder, keysFor, ex, variant, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS, octP, jazzAltered,
   progChords, progP, chordRootMidis, emitMixed, modeFor,
+  rootStrLowP,
 } from './common.js';
 import { scaleBuild } from './scales.js';
 
@@ -89,7 +90,7 @@ const study = ex({
   about: 'Choose a mode and drill it like a scale: straight, in sequences, over one or two octaves, in one key or all 12. Use this to learn each mode on its own terms, not as "C major starting on D".',
   tips: ['Know the formula: Dorian = 1 2 ♭3 4 5 6 ♭7.', 'Pair it with its chord: Dorian ↔ m7, Lydian ↔ maj7♯11, Mixolydian ↔ 7.'],
   source: 'RSL Grades 6–8; LCM; Tony Grey Bass Academy (fingerboard study of the modes)',
-  params: { type: sel('Mode', SCALE_TYPE_OPTS(ALL_MODES), 'dorian'), key: keyP(T.SCALES.dorian.iv), pattern: sel('Sequence', ['straight', 'g3', 'g4', 'thirds', 'triads', 'sevenths', 'turn'].map((k) => [k, SCALE_PATTERNS[k].name])), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]), root: sel('Root on', [['E', 'E string'], ['A', 'A string']]) },
+  params: { type: sel('Mode', SCALE_TYPE_OPTS(ALL_MODES), 'dorian'), key: keyP(T.SCALES.dorian.iv), pattern: sel('Sequence', ['straight', 'g3', 'g4', 'thirds', 'triads', 'sevenths', 'turn'].map((k) => [k, SCALE_PATTERNS[k].name])), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]), root: rootStrLowP() },
   bpm: 76, sub: 2, label: 'degree',
   build(p, ctx, S) { return scaleBuild(p, ctx, S).build({ label: 'degree' }); },
 });

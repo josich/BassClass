@@ -1,5 +1,5 @@
 // Intervals: every distance between two notes, as a shape and a sound.
-import { T, Builder, keysFor, ex, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS, spellMidi, rootStrP } from './common.js';
+import { T, Builder, keysFor, ex, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS, spellMidi, rootStrP, rootStrLowP } from './common.js';
 
 const M = 'intervals';
 const IVS = ['b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7', '8', 'b9', '9', 'b10', '10'];
@@ -93,7 +93,7 @@ const moving = ex({
   about: 'Hold an interval shape and move it up the neck one fret at a time, then back down. The sound of the interval stays the same while the notes change, which trains your ear to recognise intervals by sound and your hand to remember the shape.',
   tips: ['Sing the top note before you play it.', 'Do all intervals from ♭2 to the octave over a week.'],
   source: 'Common interval drill',
-  params: { iv: ivP('3'), string: sel('Root on', [['E', 'E string'], ['A', 'A string']]) },
+  params: { iv: ivP('3'), string: rootStrLowP() },
   bpm: 76, sub: 2, label: 'degree',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
@@ -159,7 +159,7 @@ const octavesScale = ex({
   about: 'Play each note of the scale together with its octave as a double stop. It is a strong, unison-like sound used in rock riffs and solo bass, and it drills the octave shape until it is automatic. Pluck the two strings together with two fingers (or thumb and finger).',
   tips: ['Mute the string in between with the index finger.', 'Both notes must sound at the same volume.'],
   source: 'LCM Grades 6/8 (scales in octaves)',
-  params: { key: keyP(T.SCALES.ionian.iv, { cycles: false }), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'minorPent', 'majorPent', 'blues'])), root: sel('Root on', [['E', 'E string'], ['A', 'A string']]) },
+  params: { key: keyP(T.SCALES.ionian.iv, { cycles: false }), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'minorPent', 'majorPent', 'blues'])), root: rootStrLowP() },
   bpm: 66, sub: 1, label: 'degree',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);

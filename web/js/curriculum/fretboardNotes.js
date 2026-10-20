@@ -101,7 +101,7 @@ const octaves = ex({
   about: 'The octave is the most useful shape on the bass. From any note, go two strings up and two frets up and you have the same note an octave higher. This doubles what you know: learn the E and A strings and you automatically know D and G. Here you walk the natural notes of a string, each followed by its octave.',
   tips: ['Use finger 1 for the low note and finger 3 or 4 for the octave.', 'Mute the string in between with the side of your index finger.'],
   source: 'Hal Leonard Bass Method 2, TalkingBass, BassBuzz',
-  params: { pair: sel('Strings', [['0', 'E → D'], ['1', 'A → G']]) },
+  params: { pair: sel('Strings', [['-1', 'B → A', { minStrings: 5 }], ['0', 'E → D'], ['1', 'A → G'], ['2', 'D → C', { minStrings: 6 }]], '0') },
   bpm: 66, sub: 2, label: 'note',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);

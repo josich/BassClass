@@ -1,5 +1,5 @@
 // Technique & rudiments: the daily gym for both hands.
-import { T, Builder, ex, sel, spellMidi, keyP, keysFor, progChords, chordRootMidis, nm, progP } from './common.js';
+import { T, Builder, ex, sel, spellMidi, keyP, keysFor, progChords, chordRootMidis, nm, progP, oneStringP } from './common.js';
 
 const M = 'technique';
 // start fret, kept low enough that the widest drill (start + 7 frets) stays under the highest fret
@@ -297,7 +297,7 @@ const shifting = ex({
   about: 'Clean shifts are what separate smooth bass lines from choppy ones. Play 1-2-3-4, then shift the hand so the index lands on the next fret of the group, and keep going up the string and back. The shift distance sets the difficulty: 1 fret is a crawl, 4 frets is a real jump.',
   tips: ['Shift on the last note: slide the whole hand, thumb included, keeping light contact.', 'Look at the target fret before you move.'],
   source: 'Willis linear approach; MI shifting drills; Simandl guide-finger shifts',
-  params: { string: sel('String', [['E', 'E string'], ['A', 'A string'], ['D', 'D string'], ['G', 'G string']], 'A'), shift: sel('Shift', [['1', '1 fret'], ['2', '2 frets'], ['3', '3 frets (index → pinky\'s fret)'], ['4', '4 frets (new position)']], '3') },
+  params: { string: oneStringP('A'), shift: sel('Shift', [['1', '1 fret'], ['2', '2 frets'], ['3', '3 frets (index → pinky\'s fret)'], ['4', '4 frets (new position)']], '3') },
   bpm: 72, sub: 4, label: 'finger',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
@@ -318,7 +318,7 @@ const octaveRun = ex({
   about: 'Root on the E string (finger 1), octave two strings up and two frets higher (finger 3 or 4). Alternate them in 8ths and move up one fret every two beats. Mute the string in between with the underside of the index finger. This is the engine of disco and funk bass.',
   tips: ['Pluck the octave with the middle finger, the root with the index (or rake).', 'The A and D strings in between must stay silent.'],
   source: 'Disco/funk octave technique; BassBuzz; StudyBass',
-  params: { pair: sel('Strings', [['E', 'E → D'], ['A', 'A → G']]) },
+  params: { pair: sel('Strings', [['B', 'B → A', { minStrings: 5 }], ['E', 'E → D'], ['A', 'A → G'], ['D', 'D → C', { minStrings: 6 }]], 'E') },
   bpm: 96, sub: 2, label: 'note',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);

@@ -78,7 +78,12 @@ export const ZONES = { '1': [1, 5], '2': [5, 9], '3': [8, 12], '4': [12, 16] };
 export const zoneP = sel('Zone', [
   ['1', 'Zone 1 · frets 1–5'], ['2', 'Zone 2 · frets 5–9'], ['3', 'Zone 3 · frets 8–12'], ['4', 'Zone 4 · frets 12–16'],
 ]);
-export const rootStrP = (def = 'A') => sel('Root on', [['E', 'E string'], ['A', 'A string'], ['D', 'D string']], def);
+// every string with room for the shape above it: the low B on a 5-string, also the G on a 6-string
+export const rootStrP = (def = 'A') => sel('Root on', [['B', 'Low B string', { minStrings: 5 }], ['E', 'E string'], ['A', 'A string'], ['D', 'D string'], ['G', 'G string', { minStrings: 6 }]], def);
+/** Root string for shapes that need two strings above the root (octaves, wide intervals, two octaves). */
+export const rootStrLowP = (def = 'E') => sel('Root on', [['B', 'Low B string', { minStrings: 5 }], ['E', 'E string'], ['A', 'A string'], ['D', 'D string', { minStrings: 6 }]], def);
+/** Any single string, for exercises along one string. */
+export const oneStringP = (def = 'A') => sel('String', [['B', 'Low B string', { minStrings: 5 }], ['E', 'E string'], ['A', 'A string'], ['D', 'D string'], ['G', 'G string'], ['C', 'High C string', { minStrings: 6 }]], def);
 export const octP = (def = '1') => sel('Range', [['1', '1 octave'], ['2', '2 octaves']], def);
 export const dirP = sel('Direction', [['updown', 'Up & down'], ['up', 'Up'], ['down', 'Down']]);
 export const orderP = sel('Key order', [['cycle4', 'Cycle of 4ths'], ['cycle5', 'Cycle of 5ths'], ['chromatic', 'Chromatic']]);
