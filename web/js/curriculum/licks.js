@@ -361,7 +361,7 @@ const motif = lickTemplate({
   id: 'lk-motif', level: 5,
   title: 'Motif development: one idea through the changes',
   summary: 'One four-note motif carried through a ii–V–I, moved up the scale, pushed, laid back and answered.',
-  about: 'A solo sounds composed when one idea grows, instead of new notes in every bar. Take a short motif (here four notes, 5 13 5 3, in a da-da-DAH-DAH rhythm) and keep it while the harmony moves: place it on each chord\'s tones, move it up the scale, play it an 8th early (pushed, the way a band anticipates a change) or an 8th late (laid back), and answer it after a bar of silence. The rests are part of the exercise: leave them empty.',
+  about: 'A solo sounds composed when one idea grows, instead of new notes in every bar. Take a short motif (here four notes, 5 13 5 3, with the ♭3 on a minor chord, in a da-da-DAH-DAH rhythm) and keep it while the harmony moves: place it on each chord\'s tones, move it up the scale, play it an 8th early from the second bar on (pushed, the way a band anticipates a change) or an 8th late (laid back), and answer it after a bar of silence, changing its last note to lead into the next chord. The rests are part of the exercise: leave them empty.',
   tips: ['Sing the motif first, then play it.', 'A pushed note belongs to the next chord: its label is against that chord.', 'Then invent your own four-note motif and put it through the same five treatments.'],
   source: 'Original motifs. Motivic development (repetition, sequence, rhythmic placement, question and answer) as taught in jazz improvisation (Hal Crook "How to Improvise").',
   bpm: 108,
@@ -370,7 +370,7 @@ const motif = lickTemplate({
     { name: 'Pushed: the motif an 8th early', prog: [['2', 'min7', 3.5], ['5', 'dom7', 4], ['1', 'maj7', 8.5]], notes: 'A2 B2 A2:q F2:q r:e D3 | E3 D3:q B2:q r:q G2 | A2 G2:q E2:q r:q D2 | E2 G2:q E2:h r:e' },
     { name: 'Laid back: the motif an 8th late', prog: II_V_I, notes: 'r:e A2 B2 A2:q F2:q r:e | r:e D3 E3 D3:q B2:q r:e | r:e G2 A2 G2:q E2:q r:e | r:e D2 E2 G2:q E2:dq' },
     { name: 'Up the scale (Dm7 vamp)', prog: [['2', 'min7', 16]], notes: 'A2 B2 A2:q F2:q r:q | B2 C3 B2:q G2:q r:q | C3 D3 C3:q A2:q r:q | D3 E3 D3:q A2:h' },
-    { name: 'Question and answer, with space', prog: [['1', 'maj7', 4], ['6', 'min7', 4], ['2', 'min7', 4], ['5', 'dom7', 4]], notes: 'E2 G2 A2:q G2:q r:q | r:w | F2 A2 B2:q A2:q r:q | B2 A2 G2:q F2:q r:q' },
+    { name: 'Question and answer, with space', prog: [['1', 'maj7', 4], ['6', 'min7', 4], ['2', 'min7', 4], ['5', 'dom7', 4]], notes: 'G2 A2 G2:q E2:q r:q | r:w | A2 B2 A2:q F2:q r:q | D3 E3 D3:q F2:q r:q' },
   ],
 });
 

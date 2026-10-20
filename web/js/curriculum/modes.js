@@ -216,7 +216,7 @@ const alteredChordScale = variant(chordScale, {
   id: 'md-altered-chord-scale', level: 6,
   title: 'Chord-scale with altered dominants',
   summary: 'ii – V7alt – I: altered, half-whole diminished and whole-tone scales over the V.',
-  about: 'Modern jazz colours the dominant chord with altered scales: the altered scale over 7♯9, half-whole diminished over 7♭9, and the whole-tone scale over 7♯5 and 7♭5. Each progression puts a different altered dominant between ii and I so you hear the tension and the resolution. The notes over the V are named as tensions (♭9, ♯9, ♯11, ♭13), the way jazz players say them.',
+  about: 'Modern jazz colours the dominant chord with altered scales: the altered scale over 7alt (♭9 ♯9 ♭5 ♭13), half-whole diminished over 7♭9, and the whole-tone scale over 7♯5 and 7♭5. Each progression puts a different altered dominant between ii and I so you hear the tension and the resolution. The notes over the V are named as tensions (♭9, ♯9, ♯11, ♭13), the way jazz players say them.',
   params: { ...chordScale.params, prog: progP(['ii-V7alt-I', 'ii-V7b9-I', 'ii-V7s5-I', 'ii-V7b5-I'], 'ii-V7alt-I') },
 });
 
@@ -297,12 +297,12 @@ const pentSuper = ex({
   id: 'md-pentatonic-superimposition', module: M, level: 5,
   title: 'Pentatonic superimposition: three pentatonics on every chord',
   summary: 'Over each chord, the major pentatonics inside its scale: F, C or G over Dm7, G, F or C over G7, D♭ over G7alt.',
-  about: 'A pentatonic has five notes and no half steps, so when it fits a chord\'s scale it never clashes. A 7-note scale holds three major pentatonics, and each one brings out different notes of the chord. Over Dm7 (Dorian) F major pentatonic has the ♭3 and ♭7, C major pentatonic the 9 and 11, G major pentatonic the 13. Over G7 (Mixolydian) G has the 3rd; F and C leave it out and sound suspended. Over an altered dominant only one fits: the major pentatonic a tritone above the root (D♭ over G7alt), all tensions. Each chord takes its scale by function, as in the chord-scale exercise, and the labels show every note against the chord. F major pentatonic and D minor pentatonic are the same five notes.',
-  tips: ['Start with the 1st choice until the sound is in your ear, then play "All three in turn".', 'Find the pentatonic\'s root on the neck before the chord arrives.', 'Over Cmaj7 the F major pentatonic holds the 11 (F): pass through it, do not land on it.'],
-  source: 'Pentatonic superimposition (Gary Willis; Ramon Ricker "Pentatonic Scales for Jazz Improvisation"); chord-scales by function (Berklee)',
+  about: 'A pentatonic has five notes and no half steps, so it rarely clashes. Every mode of the major scale holds three major pentatonics, and each one brings out different notes of the chord. Over Dm7 (Dorian) F major pentatonic has the ♭3 and ♭7, C major pentatonic the 9 and 11, G major pentatonic the 13. Over G7 (Mixolydian) G has the 3rd; F and C leave it out and sound suspended. Over an altered dominant only one fits: the major pentatonic a tritone above the root (D♭ over G7alt: ♭5 ♭13 ♭7 ♭9 ♯9, four alterations and the ♭7, no 3rd). Some choices hold an avoid note, like the 11 over a major or dominant chord: pass through it, do not land on it. Each chord takes its scale by function, as in the chord-scale exercise (a one-chord minor vamp is Dorian), and the labels show every note against the chord. F major pentatonic and D minor pentatonic are the same five notes.',
+  tips: ['Start with the 1st choice until the sound is in your ear, then play "All three in turn".', 'Find the pentatonic\'s root on the neck before the chord arrives.', 'Over Cmaj7 the F major pentatonic holds the 11 (F), over G7 the C major pentatonic holds the 11 (C): passing notes.'],
+  source: 'Pentatonics in a key (Gary Willis on Scott\'s Bass Lessons); Ramon Ricker "Pentatonic Scales for Jazz Improvisation"; Jerry Bergonzi "Inside Improvisation Vol. 2: Pentatonics"; chord-scales by function (Berklee)',
   params: {
     prog: progP(['ii-V-I', 'I-vi-ii-V', 'ii-V7alt-I', 'vamp-min', 'vamp-dom']), key: keyP(T.SCALES.ionian.iv),
-    choice: sel('Pentatonic', [['all', 'All three in turn'], ['0', '1st: holds the 3rd and 7th'], ['1', '2nd choice'], ['2', '3rd choice']]),
+    choice: sel('Pentatonic', [['all', 'All three in turn'], ['0', '1st: the most chord tones'], ['1', '2nd choice'], ['2', '3rd choice']]),
   },
   bpm: 92, sub: 2, label: 'degree',
   build(p, ctx, S) {
@@ -318,14 +318,22 @@ const pentSuper = ex({
           const mode = modeFor(c, chords[(ci + 1) % chords.length]);
           const opts = pentatonicsFor(c, mode);
           const o = opts[Math.min(choice, opts.length - 1)];
-          let pr = T.up(c.root, o.iv);
-          if (T.awkward(pr)) pr = T.readable(pr);
+          // the notes are spelled against the chord (C♭ is the ♭3 of A♭m7); the pentatonic is named
+          // plainly, with its spelled name when that differs ("B major pentatonic (= C♭)")
+          const pr = T.up(c.root, o.iv);
+          const prName = T.awkward(pr) ? `${nm(T.readable(pr), S)} major pentatonic${Math.abs(pr.a) === 1 ? ` (= ${nm(pr, S)})` : ''}` : `${nm(pr, S)} major pentatonic`;
+          const ivOf = new Map(T.SCALES[mode].iv.map((iv) => [T.mod(T.semis(iv), 12), iv]));
+          const spell = (midi) => {
+            const s0 = T.mod(midi - roots[ci], 12);
+            const sp = DOM_SPELL[mode]?.[s0];
+            return sp ? T.up(c.root, sp[0]) : T.up(c.root, ivOf.get(s0));
+          };
           const prev = items.length ? items[items.length - 1].midi : null;
           const run = runsOver(Math.max(4, c.beats * 2), roots[ci] + o.r, prev, ctx, pass,
             (start, up) => (up ? scaleRun(pr, 'majorPent', start, { dir: 'up' }) : scaleRun(pr, 'majorPent', start - 12, { dir: 'down' })));
           run.forEach((x, i) => items.push({
-            ...x, deg: labelOn(c.type, mode, x.midi - roots[ci]), dur: 1,
-            chord: i === 0 ? c.sym : undefined, text: i === 0 ? `${nm(pr, S)} major pentatonic` : undefined,
+            ...x, n: spell(x.midi), deg: labelOn(c.type, mode, x.midi - roots[ci]), dur: 1,
+            chord: i === 0 ? c.sym : undefined, text: i === 0 ? prName : undefined,
           }));
         });
       }
@@ -369,7 +377,7 @@ const melodicSuper = ex({
         const off = T.semis(piv) % 12;
         // a progression is spelled from its key; a chord on its own takes its lead-sheet name (flats on
         // the black keys, sharps for minor-type chords: D♭7alt, C♯m(maj7))
-        let root = set.minor ? T.up(tonic, where) : T.bestRoot(k, type === 'mMaj7' || type === 'm7b5' ? T.SCALES.aeolian.iv : T.SCALES.ionian.iv);
+        let root = set.minor ? T.up(tonic, where) : T.bestRoot(k, type === 'mMaj7' || type === 'm7b5' ? T.CHORDS[type].iv : T.SCALES.ionian.iv);
         if (T.awkward(root)) root = T.bestRoot(T.pc(root), T.CHORDS[type].iv);
         return { root, type, beats, off, piv, mode, sym: chordName(root, type, S) };
       });
@@ -378,8 +386,9 @@ const melodicSuper = ex({
         const ivs = T.SCALES[c.mode].iv;
         const pIdx = ivs.findIndex((iv) => T.mod(T.semis(iv), 12) === c.off);
         // the parent named by its interval from the chord root (A♭ over G7alt), plainly if that is awkward
-        let parent = T.up(c.root, c.piv);
-        if (T.awkward(parent)) parent = T.readable(parent);
+        const spelled = T.up(c.root, c.piv);
+        const parent = T.awkward(spelled) ? T.readable(spelled) : spelled;
+        const also = parent !== spelled && Math.abs(spelled.a) === 1 ? ` (= ${nm(spelled, S)})` : '';
         // a note of the chord's mode (index from its root), spelled and named against the chord
         const note = (idx, base) => {
           const q = T.scalePitch(c.root, c.mode, base, idx);
@@ -393,7 +402,7 @@ const melodicSuper = ex({
           const idxs = Array.from({ length: 8 }, (_, i) => pIdx + i);
           return (up ? idxs : idxs.reverse()).map((i) => note(i, base));
         });
-        run.forEach((x, i) => items.push({ ...x, dur: 1, chord: i === 0 ? c.sym : undefined, text: i === 0 ? `${nm(parent, S)} melodic minor` : undefined }));
+        run.forEach((x, i) => items.push({ ...x, dur: 1, chord: i === 0 ? c.sym : undefined, text: i === 0 ? `${nm(parent, S)} melodic minor${also}` : undefined }));
       });
     }
     emitMixed(b, items, { center: 5, open: 'avoid' });

@@ -253,7 +253,7 @@ export const PROGS = {
       ['3', 'min7', 2], ['6', 'dom7', 2], ['2', 'min7', 2], ['5', 'dom7', 2], ['1', 'maj7', 2], ['1', 'dom7', 2], ['4', 'maj7', 2], ['4', 'min7', 2],
       ['3', 'min7', 2], ['6', 'dom7', 2], ['2', 'min7', 2], ['5', 'dom7', 2]],
   },
-  'ii-V7alt-I': { name: 'ii – V7alt (♯9) – I', chords: [['2', 'min7'], ['5', 'dom7s9'], ['1', 'maj7', 8]] },
+  'ii-V7alt-I': { name: 'ii – V7alt – I', chords: [['2', 'min7'], ['5', 'dom7alt'], ['1', 'maj7', 8]] },
   'ii-V7b9-I': { name: 'ii – V7♭9 – I', chords: [['2', 'min7'], ['5', 'dom7b9'], ['1', 'maj7', 8]] },
   'ii-V7s5-I': { name: 'ii – V7♯5 – I', chords: [['2', 'min7'], ['5', 'dom7s5'], ['1', 'maj7', 8]] },
   'ii-V7b5-I': { name: 'ii – V7♭5 – I', chords: [['2', 'min7'], ['5', 'dom7b5'], ['1', 'maj7', 8]] },
@@ -308,7 +308,7 @@ export function progChords(progKey, tonicPc, { triads, S = {} } = {}) {
     // lead-sheet names: B7, not C♭7 (IV of G♭), and never a double accidental
     if (T.awkward(root)) root = T.bestRoot(T.pc(root), ivs);
     const key = keyOff != null ? T.mod(tonicPc + keyOff, 12) : tonicPc;
-    return { root, type, beats, ivs, sym: chordName(root, type, S), key, minorKey: !!prog.minor && keyOff == null };
+    return { root, type, beats, ivs, sym: chordName(root, type, S), key, minorKey: !!prog.minor && keyOff == null, vamp: prog.chords.length === 1 };
   });
 }
 
@@ -573,6 +573,8 @@ export function modeFor(c, next) {
   const toMinor = next && MINOR_TYPES.includes(next.type) && T.mod(T.pc(next.root) - T.pc(c.root), 12) === 5;
   if (toMinor && (c.type === 'dom7' || c.type === 'dom7b9')) return 'phrygianDom';
   const fam = FAMILY[c.type];
+  // a one-chord minor vamp is Dorian (So What, funk vamps); i of a minor progression stays Aeolian
+  if (c.vamp && fam === 'min') return 'dorian';
   if (fam && c.key != null) {
     const deg = T.mod(T.pc(c.root) - c.key, 12);
     const mode = BY_DEGREE[c.minorKey ? 'minor' : 'major'][`${deg}:${fam}`];
