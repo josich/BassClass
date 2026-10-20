@@ -283,9 +283,9 @@ const displacement = ex({
 
 const poly = ex({
   id: 'rh-polyrhythm', module: M, level: 5,
-  title: 'Polyrhythms (3:2, 4:3, 5:4, 3:4)',
+  title: 'Polyrhythms (3:2, 3:4, 4:3, 5:4, 7:4)',
   summary: 'Even notes across a different number of beats.',
-  about: 'A polyrhythm spreads N even notes over M beats. 3:2 is three notes across two beats (the "hemiola"), 4:3 is four over three, and 5:4 is five notes per bar of four. The click keeps the beat while you play the other layer. This is advanced time feel, heard in Afro-Cuban, prog and modern jazz.',
+  about: 'A polyrhythm spreads N even notes over M beats. 3:2 is three notes across two beats (the "hemiola"), 4:3 is four over three, 5:4 is five notes per bar of four and 7:4 is seven. The click keeps the beat while you play the other layer. This is advanced time feel, heard in Afro-Cuban, prog and modern jazz.',
   tips: ['Clap the click and say the polyrhythm before playing it.', 'Find the common subdivision: 3:2 lives on a 6-grid.'],
   source: 'Polyrhythm pedagogy (Berklee, Afro-Cuban rhythm studies)',
   params: { note: noteP, ratio: sel('Ratio', [['3:2', '3 over 2 beats'], ['3:4', '3 over 4 beats'], ['4:3', '4 over 3 beats'], ['5:4', '5 over 4 beats'], ['7:4', '7 over 4 beats']]) },

@@ -442,7 +442,7 @@ const susQuartal = variant(diatonic, {
   id: 'tri-sus-quartal', level: 5,
   title: 'Sus and quartal stacks through the scale',
   summary: 'Replace the 3rds with 4ths: modern, open sounds (McCoy Tyner, modal jazz, fusion).',
-  about: 'Stack 4ths instead of 3rds and you get sus4 (1-4-5) or quartal (1-4-7) chords. They have no major/minor colour, which makes them ideal for modal music and fusion. On bass they lie flat across the strings (the same fret on neighbouring strings).',
+  about: 'Replace the 3rd of each chord and you get sus chords: sus4 (1-4-5) and sus2 (1-2-5). Stack two 4ths instead and you get quartal chords (1-4-7). None of them has a major/minor colour, which makes them ideal for modal music and fusion. A stack of perfect 4ths lies flat across neighbouring strings (the same fret); where the scale gives an augmented 4th (F–B in C major) the top note moves up one fret.',
   source: 'McCoy Tyner and modal-jazz quartal voicings; Mark Levine "The Jazz Theory Book" (sus and fourth chords); fusion bass practice',
   params: { stack: sel('Stack', ['sus4', 'sus2', 'quartal'].map((k) => [k, STACKS[k].name]), 'quartal') },
   defaults: { pattern: 'up' },

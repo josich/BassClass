@@ -103,7 +103,7 @@ const chordTonesProg = ex({
   id: 'hm-chord-tones', module: M, level: 3, star: true,
   title: 'Chord tones over progressions',
   summary: 'Outline every chord of real progressions: R-5, R-3-5-3, R-3-5-7…',
-  about: 'Chord tones are the backbone of bass lines: every academy builds lines as chord tones first, then scale tones, then chromatic notes. Pick a progression and an outline pattern and play it through, in one key or all 12. The chord symbol and its numeral appear above the fretboard.',
+  about: 'Chord tones are the backbone of bass lines: every academy builds lines as chord tones first, then scale tones, then chromatic notes. Pick a progression and an outline pattern and play it through, in one key or all 12. The chord symbol appears above the fretboard: say its numeral (I, IV, V…) as you play it.',
   tips: ['Choose the octave of each root that keeps the hand in one area.', 'This is RSL\'s "transpose a riff" skill: same pattern, new chord.'],
   source: 'StudyBass (chord tones are primary); RSL Group C; Ed Friedland',
   params: { prog: progP(ALL_PROGS, 'I-vi-IV-V'), key: keyP(T.SCALES.ionian.iv), pattern: sel('Pattern', Object.entries(PATTERNS).map(([k, v]) => [k, v.name]), 'r353') },

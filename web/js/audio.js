@@ -114,7 +114,8 @@ export function audioCtx() {
 
     // backing pad (drone or chords): soft, warm and after the limiter, so it never ducks the bass
     padBus = ac.createGain();
-    padBus.gain.value = 0.5;
+    // with the bass at full level the sum stays inside the soft clip's knee (no hard clipping)
+    padBus.gain.value = 0.38;
     const padTone = ac.createBiquadFilter();
     padTone.type = 'lowpass'; padTone.frequency.value = 1500; padTone.Q.value = 0.3;
     padBus.connect(padTone).connect(clip);

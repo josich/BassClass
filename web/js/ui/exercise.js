@@ -30,7 +30,7 @@ export function noteLabel(n, mode, notation) {
  * exercise has one, so the chip matches what plays (a minor key shows "C♯m", not "D♭").
  */
 function keySpelling(def, p) {
-  if (PROGS[p.prog]?.minor || p.type === 'minor') return { ivs: T.SCALES.aeolian.iv, suffix: def.suffix || 'm' };
+  if (PROGS[p.prog]?.minor || p.type === 'minor' || p.mode === 'minor') return { ivs: T.SCALES.aeolian.iv, suffix: def.suffix || 'm' };
   if (PROGS[p.prog]) return { ivs: T.SCALES.ionian.iv, suffix: def.suffix || '' };
   const sc = T.SCALES[p.scale] || T.SCALES[p.type];
   return { ivs: sc?.iv || T.CHORDS[p.quality]?.iv || def.ivs, suffix: def.suffix || '' };

@@ -173,7 +173,7 @@ _Approach notes, triad pairs, melodic minor, odd groupings._
 |---|---|---|---|---|
 | 132 | Permutations across strings (one finger per string) | Technique & Rudiments | Each finger of the permutation lands on the next string: independence + string crossing. | Extension of Bass Fitness permutations (Josquin des Prés); Adam Nitti string-crossing permutations |
 | 133 | Thumb-index-middle (p-i-m) arpeggios | Technique & Rudiments | Classical-guitar right hand on bass: thumb on the low string, fingers on the high strings. | Dominique Di Piazza / Matthew Garrison right-hand approach; classical guitar technique |
-| 134 | Polyrhythms (3:2, 4:3, 5:4, 3:4) | Rhythm & Time | Even notes across a different number of beats. | Polyrhythm pedagogy (Berklee, Afro-Cuban rhythm studies) |
+| 134 | Polyrhythms (3:2, 3:4, 4:3, 5:4, 7:4) | Rhythm & Time | Even notes across a different number of beats. | Polyrhythm pedagogy (Berklee, Afro-Cuban rhythm studies) |
 | 135 | Interval cycles (Slonimsky-style) | Intervals | Chains of the same interval: 4ths, minor 3rds, major 3rds, whole tones… across the neck. | Nicolas Slonimsky "Thesaurus of Scales and Melodic Patterns"; Coltrane/Brecker practice |
 | 136 | Bebop scales | Scales | An extra chromatic passing note puts the chord tones on the beat. | Berklee PULSE; Barry Harris; David Baker "How to Play Bebop" |
 | 137 | Symmetric scales: diminished & whole tone | Scales | Scales built from repeating cells: the shape repeats every 3 frets (diminished) or 2 frets (whole tone). | RSL Grade 8; LCM Grade 7; Spanish conservatory year 5; Berklee PULSE |
@@ -293,7 +293,7 @@ _All keys, all inversions, Coltrane changes, pro-level stamina._
 - **97 · Rhythmic displacement** (L4, `rh-displacement`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D · Shift by: a 16th / an 8th
 - **98 · Odd meters: 5/4, 7/8, 7/4** (L4, `rh-odd-meters`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D · Meter: 5/4 (3+2) / 7/8 (2+2+3) / 7/8 (3+2+2) / 7/4 (4+3)
 - **99 · Gap click: keep time when the metronome disappears** (L4, `rh-sparse-click`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D · Click: Beat 1, every 2 bars / Beat 1, every 4 bars
-- **134 · Polyrhythms (3:2, 4:3, 5:4, 3:4)** (L5, `rh-polyrhythm`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D · Ratio: 3 over 2 beats / 3 over 4 beats / 4 over 3 beats / 5 over 4 beats / 7 over 4 beats
+- **134 · Polyrhythms (3:2, 3:4, 4:3, 5:4, 7:4)** (L5, `rh-polyrhythm`): Note: Open A / Open E / C (A string, fret 3) / A (E string, fret 5) / Open D · Ratio: 3 over 2 beats / 3 over 4 beats / 4 over 3 beats / 5 over 4 beats / 7 over 4 beats
 
 ### Reading
 
@@ -336,7 +336,7 @@ _All keys, all inversions, Coltrane changes, pro-level stamina._
 - **107 · Harmonic & melodic minor** (L4, `sc-minor-family`): Sequence: Groups of 3 / Groups of 4 / Groups of 4 reversed (4-3-2-1) / 1-2-3-1 turns / Up 3, down 1 (1-2-3-2) / 1-2-3-5 cells (Coltrane) / In 3rds / 3rds alternating (1-3, 4-2…) / In 4ths / Diatonic triads (1-3-5) / Diatonic 7ths (1-3-5-7) / Groups of 5 · Scale: Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) · Key: 12 keys + all-keys cycles · Range: 1 octave / 2 octaves · Root on: E string / A string / D string
 - **136 · Bebop scales** (L5, `sc-bebop`): Scale: Bebop dominant / Bebop major / Bebop Dorian · Key: 12 keys + all-keys cycles · Range: 1 octave / 2 octaves
 - **137 · Symmetric scales: diminished & whole tone** (L5, `sc-symmetric`): Scale: Diminished half-whole / Diminished whole-half / Whole tone / Augmented · Key: 12 keys + all-keys cycles · Sequence: Straight / Skip one note / Groups of 3 / Groups of 4 / Skip two notes · Range: 1 octave / 2 octaves
-- **138 · World scales: double harmonic, Hungarian & more** (L5, `sc-exotic`): Scale: Double harmonic major / Hungarian minor / Hungarian major / Ukrainian Dorian (Dorian ♯4) / Phrygian dominant (Spanish) / Augmented scale (1 ♭3 3 5 ♯5 7) · Key: 12 keys + all-keys cycles · Sequence: Straight / In 3rds / Groups of 3 / Groups of 4 · Range: 1 octave / 2 octaves
+- **138 · World scales: double harmonic, Hungarian & more** (L5, `sc-exotic`): Scale: Double harmonic major / Hungarian minor / Hungarian major / Ukrainian Dorian (Dorian ♯4) / Phrygian dominant (Spanish) / Augmented scale (1 ♭3 3 5 ♯5 7) · Key: 12 keys + all-keys cycles · Sequence: Straight / Skip one note / Groups of 3 / Groups of 4 · Range: 1 octave / 2 octaves
 - **139 · Barry Harris: the 6th-diminished scale** (L5, `sc-sixth-diminished`): Key: 12 keys + all-keys cycles · Sequence: Straight / Skip one note / Every other note: C6 and dim7 chords / Groups of 4 · Range: 1 octave / 2 octaves
 - **140 · Pentatonic side-stepping** (L5, `sc-pent-sidestep`): Key: 12 keys · Side-step: Half step up / Half step down / Tritone away · Range: 1 octave / 2 octaves
 - **170 · Odd groupings in 16ths, all keys** (L6, `sc-odd-groupings`): Sequence: Groups of 3 / Groups of 5 · Scale: Major (Ionian) / Natural minor (Aeolian) / Harmonic minor / Melodic minor (jazz) / Dorian / Phrygian / Lydian / Mixolydian / Locrian / Major pentatonic / Minor pentatonic · Key: 12 keys + all-keys cycles · Range: 1 octave / 2 octaves · Root on: E string / A string / D string

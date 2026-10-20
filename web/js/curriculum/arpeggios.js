@@ -58,7 +58,7 @@ const twoOct = variant(study, {
   id: 'arp-two-octaves', level: 4,
   title: 'Two-octave 7th arpeggios',
   summary: 'Spread each 7th chord over two octaves with clean position shifts.',
-  about: 'Two-octave arpeggios are the RSL Grade 5–7 and LCM Grade 6 standard. Play the first octave in position, shift at the octave and repeat the shape. Plan the shift and keep it identical on the way down.',
+  about: 'Two-octave arpeggios are typical of the intermediate grades of graded exams (RSL, LCM). Play the first octave in position, shift at the octave and repeat the shape. Plan the shift and keep it identical on the way down.',
   defaults: { oct: '2', shape: 'updown' }, only: { oct: ['2'] },
 });
 
@@ -68,7 +68,7 @@ const diatonic7 = ex({
   title: 'Diatonic 7th arpeggios: Imaj7 ii7 iii7 IVmaj7 V7 vi7 viiø7',
   summary: 'The harmonised scale in 7th chords: the vocabulary of jazz, soul and pop.',
   about: 'Stack four notes in thirds on each degree of the scale. In major you get Imaj7, iim7, iiim7, IVmaj7, V7, vim7 and viiø7. Every jazz standard and most soul and pop songs use these chords. Learn them in one position first, then in inversions and in every key.',
-  tips: ['"Up one, down the next" keeps you in position and sounds musical.', 'Inversions: start each chord from its 3rd, 5th or 7th (Berklee level exams).'],
+  tips: ['"Up one, down the next" keeps you in position and sounds musical.', 'Inversions: start each chord from its 3rd, 5th or 7th.'],
   source: 'Berklee PULSE & "Chord Studies for Electric Bass"; MI; LCM; StudyBass',
   params: {
     key: keyP(['1', '3', '5', '7']), scale: sel('Scale', SCALE_TYPE_OPTS(SCALES7)), order: degSeqP,
@@ -85,7 +85,7 @@ const diatonic7inv = variant(diatonic7, {
   id: 'arp-diatonic-inversions', level: 4,
   title: 'Diatonic 7ths in inversions',
   summary: 'Every chord of the key starting from its 3rd, 5th or 7th.',
-  about: 'Inversions of 7th chords give smooth, scale-like bass lines and are required at LCM Grade 8 and in conservatory programmes. Move through the key with each chord in the same inversion, then mix them.',
+  about: 'Inversions of 7th chords give smooth, scale-like bass lines and appear in the advanced grades of graded exams and in conservatory programmes. Move through the key with each chord in the same inversion, then mix them.',
   defaults: { inversion: '1', pattern: 'alt' }, only: { inversion: ['1', '2', '3'] },
 });
 
@@ -402,7 +402,7 @@ const approach7 = ex({
   id: 'arp-approach', module: M, level: 5,
   title: 'Arpeggios with approach notes & enclosures',
   summary: 'Every chord tone targeted chromatically, through ii–V–I in all keys.',
-  about: 'The bebop way to outline changes: each chord tone is approached from a half step below, from above, or "enclosed" (above, below, target). Every chord tone lands on a beat, and the approach notes lead into the next one: 8th notes with a single approach note, triplets with an enclosure. This is the core of jazz walking lines and solos (Berklee level exams).',
+  about: 'The bebop way to outline changes: each chord tone is approached from a half step below, from above, or "enclosed" (above, below, target). Every chord tone lands on a beat, and the approach notes lead into the next one: 8th notes with a single approach note, triplets with an enclosure. This is the core of jazz walking lines and solos.',
   tips: ['Accent the targets, play approach notes lighter.', 'The enclosure (above-below-target) fills the beat as a triplet: target, above, below, then the next target on the beat.', 'Approach notes are labelled →.'],
   source: 'Berklee level exams (approach notes); TalkingBass Chord Tone Essentials; David Baker',
   params: { key: keyP(['1', '3', '5', '7'], { def: 'cycle4' }), approach: sel('Approach', [['below', 'Half step below'], ['above', 'Half step above'], ['enclosure', 'Enclosure']]), prog: progP(['ii-V-I', 'minor-ii-V-i', 'I-vi-ii-V']) },
@@ -433,7 +433,7 @@ const altered = ex({
   id: 'arp-altered-dominants', module: M, level: 5,
   title: 'Altered dominants resolving',
   summary: '7♯5, 7♭5, 7♭9, 7♯9 arpeggios, each resolving to Imaj7.',
-  about: 'Altered dominant chords add tension before resolving to the tonic. Each arpeggio is played and then resolved to the I chord a 5th below, so you hear the tension and the release. These colours are required at RSL Grade 8 and LCM Grades 7–8.',
+  about: 'Altered dominant chords add tension before resolving to the tonic. Each arpeggio is played and then resolved to the I chord a 5th below, so you hear the tension and the release. These colours appear in the advanced grades of graded exams such as RSL and LCM.',
   tips: ['Find the altered note and where it resolves (e.g. ♯5 → 3 of I).', 'Go through all 12 keys with the cycle option.'],
   source: 'RSL Grade 8; LCM Grades 7–8; jazz harmony',
   params: { alt: sel('Dominant', [['dom7s5', '7♯5'], ['dom7b5', '7♭5'], ['dom7b9', '7♭9'], ['dom7s9', '7♯9']]), key: keyP(['1', '3', '5', '7']) },

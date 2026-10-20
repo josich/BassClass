@@ -50,11 +50,17 @@ function melody(notes, tonicPc, bars = 4) {
       // land on the nearest tonic
       i = tonics.reduce((best, t) => (Math.abs(t - i) < Math.abs(best - i) ? t : best), tonics[0]);
     } else if (k > 0) {
-      const r = Math.random();
-      const move = r < 0.6 ? 1 : r < 0.85 ? 2 : r < 0.95 ? 3 : 4;
-      let dir = Math.random() < 0.5 ? -1 : 1;
-      if (i + dir * move < 0 || i + dir * move >= notes.length) dir = -dir;
-      i = Math.max(0, Math.min(notes.length - 1, i + dir * move));
+      // a step, 3rd, 4th or 5th; never a tritone (F–B in C), which early sight-reading avoids
+      let next = i;
+      for (let tries = 0; tries < 12; tries++) {
+        const r = Math.random();
+        const move = r < 0.6 ? 1 : r < 0.85 ? 2 : r < 0.95 ? 3 : 4;
+        let dir = Math.random() < 0.5 ? -1 : 1;
+        if (i + dir * move < 0 || i + dir * move >= notes.length) dir = -dir;
+        next = Math.max(0, Math.min(notes.length - 1, i + dir * move));
+        if (next !== i && T.mod(notes[next].midi - notes[i].midi, 12) !== 6) break;
+      }
+      i = next;
     }
     line.push({ ...notes[i], dur });
   });
@@ -161,7 +167,7 @@ const allKeys = ex({
   id: 'rd-keys', level: 4,
   title: 'Reading in every key',
   summary: 'Melodies in all 12 major and minor keys across the neck, with key signatures.',
-  about: 'Professional reading means any key. Each melody comes with its key signature (up to seven sharps or flats) and moves across a wide range of the neck, from frets 1 to 9. Minor keys use the harmonic minor, so the raised 7th appears as an accidental, as in real music.',
+  about: 'Professional reading means any key. Each melody comes with its key signature (up to six sharps or flats) and moves across a wide range of the neck, from frets 1 to 9. Minor keys use the harmonic minor, so the raised 7th appears as an accidental, as in real music.',
   tips: ['Say the key signature before you play: "three flats: B♭, E♭, A♭".', 'Sharps in order: F C G D A E B. Flats: B E A D G C F.'],
   source: 'Standard bass-guitar notation; RSL, LCM and Trinity sight-reading (higher grades)',
   params: { key: keyP(T.SCALES.ionian.iv, { cycles: false }), mode: sel('Mode', [['major', 'Major'], ['minor', 'Minor (harmonic)']]) },
