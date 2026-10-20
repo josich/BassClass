@@ -1,5 +1,5 @@
 // Intervals: every distance between two notes, as a shape and a sound.
-import { T, Builder, keysFor, ex, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS, spellMidi, rootStrP, rootStrLowP } from './common.js';
+import { T, Builder, keysFor, ex, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS, spellMidi, rootStrP, rootStrLowP , tonicFor, keySigFor } from './common.js';
 
 const M = 'intervals';
 const IVS = ['b2', '2', 'b3', '3', '4', 'b5', '5', 'b6', '6', 'b7', '7', '8', 'b9', '9', 'b10', '10'];
@@ -75,10 +75,11 @@ const diatonic = ex({
     const b = new Builder(ctx, S);
     let prev = null;
     for (const k of keysFor(p.key)) {
-      const tonic = T.bestRoot(k, T.SCALES[p.scale].iv);
+      const tonic = tonicFor(k, p.scale);
       const many = keysFor(p.key).length > 1;
       const r = pickRoot(ctx, k, { strings: many ? ['E', 'A'] : [p.oct === '2' ? 'E' : p.root], hi: many ? 8 : 10, prev, prefer: p.root });
       if (many) b.chord(`${nm(tonic, S)}`);
+      else b.keySig = keySigFor(tonic, p.scale);
       b.line(scaleRun(tonic, p.scale, r.midi, { octaves: Number(p.oct), pattern: p.pattern }), { place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
       prev = r.midi;
     }
@@ -123,7 +124,7 @@ const tenths = ex({
     const e = Math.max(0, ctx.str('E'));
     const g = e + 3;
     const k = Number(p.key);
-    const tonic = T.bestRoot(k, T.SCALES[p.scale].iv);
+    const tonic = tonicFor(k, p.scale);
     const ivs = T.SCALES[p.scale].iv;
     const notes = [];
     const base = ctx.tuning[e] + T.mod(k - ctx.tuning[e], 12) - 12;
@@ -148,6 +149,7 @@ const tenths = ex({
       if (p.mode === 'stop') b.stack([lo, hi], { dur: 2 });
       else b.frets([lo, hi]);
     }
+    b.keySig = keySigFor(tonic, p.scale);
     return b.build({ label: 'degree' });
   },
 });
@@ -164,7 +166,7 @@ const octavesScale = ex({
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     const k = Number(p.key);
-    const tonic = T.bestRoot(k, T.SCALES[p.scale].iv);
+    const tonic = tonicFor(k, p.scale);
     // the octave sits 2 frets above and the scale climbs 12 more: use the string pair where it
     // fits under the highest fret (the chosen string first), or overshoots least
     const want = Math.max(0, ctx.str(p.root));
@@ -182,6 +184,7 @@ const octavesScale = ex({
       const f = q.midi - ctx.tuning[s];
       b.stack([{ s, f, n: q.n, deg: q.deg }, { s: s + 2, f: f + 2, n: q.n, deg: q.deg }]);
     }
+    b.keySig = keySigFor(tonic, p.scale);
     return b.build({ label: 'degree' });
   },
 });

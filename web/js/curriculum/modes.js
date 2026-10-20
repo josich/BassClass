@@ -217,7 +217,7 @@ const alteredChordScale = variant(chordScale, {
   id: 'md-altered-chord-scale', level: 6,
   title: 'Chord-scale with altered dominants',
   summary: 'ii – V7alt – I: altered, half-whole diminished and whole-tone scales over the V.',
-  about: 'Modern jazz colours the dominant chord with altered scales: the altered scale over 7alt (♭9 ♯9 ♭5 ♭13), half-whole diminished over 7♭9, and the whole-tone scale over 7♯5 and 7♭5. Each progression puts a different altered dominant between ii and I so you hear the tension and the resolution. The notes over the V are named as tensions (♭9, ♯9, ♯11, ♭13), the way jazz players say them.',
+  about: 'Modern jazz colours the dominant chord with altered scales: the altered scale over 7alt (♭9 ♯9 ♭5 ♭13), half-whole diminished over 7♭9, and the whole-tone scale over 7♯5 and 7♭5. Each progression puts a different altered dominant between ii and I so you hear the tension and the resolution. The notes over the V are named as tensions (♭9, ♯9, ♯11 or ♭5, ♭13), the way jazz players say them.',
   params: { ...chordScale.params, prog: progP(['ii-V7alt-I', 'ii-V7b9-I', 'ii-V7s5-I', 'ii-V7b5-I'], 'ii-V7alt-I') },
 });
 
@@ -329,12 +329,16 @@ const pentSuper = ex({
             const sp = DOM_SPELL[mode]?.[s0];
             return sp ? T.up(c.root, sp[0]) : T.up(c.root, ivOf.get(s0));
           };
+          // over an altered dominant some notes take the chord's letters (C♭, the ♭7 of D♭7alt): say so
+          const own = PENT.map((iv) => T.up(pr, iv).l);
+          const vs = PENT.map((iv) => spell(roots[ci] + o.r + T.semis(iv)).l);
+          const name = own.some((l, j) => l !== vs[j]) ? `${prName} (spelled from the chord)` : prName;
           const prev = items.length ? items[items.length - 1].midi : null;
           const run = runsOver(Math.max(4, c.beats * 2), roots[ci] + o.r, prev, ctx, pass,
             (start, up) => (up ? scaleRun(pr, 'majorPent', start, { dir: 'up' }) : scaleRun(pr, 'majorPent', start - 12, { dir: 'down' })));
           run.forEach((x, i) => items.push({
             ...x, n: spell(x.midi), deg: labelOn(c.type, mode, x.midi - roots[ci]), dur: 0.5,
-            chord: i === 0 ? c.sym : undefined, text: i === 0 ? prName : undefined,
+            chord: i === 0 ? c.sym : undefined, text: i === 0 ? name : undefined,
           }));
         });
       }

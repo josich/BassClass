@@ -5,6 +5,7 @@ import {
   emitMixed, progChords, progP, diatonicStacks, scaleTone, DEG_SEQ, degSeqP, SCALE_TYPE_OPTS, spellMidi,
   shapeFingers, scaleRun, rootStrLowP, dirP, keySigFor,
   stepSpell, placeRoot,
+  tonicFor,
 } from './common.js';
 
 const M = 'triads';
@@ -62,7 +63,7 @@ export function diatonicBuild(p, ctx, S, { offsets, order, inversion = 0, sizeLa
   let prev = null;
   for (const k of keys) {
     const ivs = T.SCALES[p.scale].iv;
-    const tonic = T.bestRoot(k, ivs);
+    const tonic = tonicFor(k, p.scale);
     const many = keys.length > 1;
     const r = pickRoot(ctx, k, { strings: many ? ['E', 'A'] : [p.root || 'A'], hi: many ? 7 : 10, prev, prefer: p.root || 'A' });
     const stacks = diatonicStacks(tonic, p.scale, offsets, S, { inversion });
@@ -338,7 +339,7 @@ const scaleForms = ex({
   id: 'tri-scale-forms', module: 'scales', level: 3,
   title: 'The 3 scale fingerings (root under finger 1, 2 or 4)',
   summary: 'The same major or minor scale three times from the same root: with the root under finger 1, 2 and 4.',
-  about: 'Like the three triad fingerings, every scale has three fingerings, named after the finger that plays the root. The root stays on the same fret and the hand moves around it. In major, the root under finger 2 is the one-position shape (2-4, 1-2-4, 1-3-4); the root under finger 1 reaches one fret further with the little finger on two strings (1-3-4, 1-3-4, 2-3); the root under finger 4 crosses four strings with one little-finger stretch (4, 1-3-4, 1-3-4, 1). In natural minor the root under finger 1 (1-3-4, 1-3-4, 1-3) and under finger 4 (4, 1-2-4, 1-2-4, 1) fit in one position, and the root under finger 2 slides the little finger up one fret (2-4-4, 1-3-4, 1-3). With fewer strings above the root a form takes one small shift instead. Learn all three and you can start a scale wherever your hand already is.',
+  about: 'Like The 3 triad fingerings (in the Triads topic), every scale has three fingerings, named after the finger that plays the root. The root stays on the same fret and the hand moves around it. In major, the root under finger 2 is the one-position shape (2-4, 1-2-4, 1-3-4); the root under finger 1 reaches one fret further with the little finger on two strings (1-3-4, 1-3-4, 2-3); the root under finger 4 crosses four strings with one little-finger stretch (4, 1-3-4, 1-3-4, 1). In natural minor the root under finger 1 (1-3-4, 1-3-4, 1-3) and under finger 4 (4, 1-2-4, 1-2-4, 1) fit in one position, and the root under finger 2 slides the little finger up one fret (2-4-4, 1-3-4, 1-3). With only one string above the root (the D string of a 4-string) a form has to shift along the top string. Learn all three and you can start a scale wherever your hand already is.',
   tips: ['Name the form before you play it: "one", "two", "four".', 'Play the shift with the finger that is moving, sliding lightly, and keep the same fingering on the way down.', 'Pair it with The 3 triad fingerings: the same idea with three notes instead of seven.'],
   source: 'One-finger-per-fret scale fingerings by starting finger (StudyBass scale patterns; Hal Leonard Bass Method; Berklee position playing)',
   params: {
@@ -352,7 +353,8 @@ const scaleForms = ex({
     const fingers = p.form === 'all' ? FORM_FINGERS : [Number(p.form)];
     const keys = keysFor(p.key);
     for (const k of keys) {
-      const tonic = T.bestRoot(k, T.SCALES[p.type].iv);
+      const tonic = tonicFor(k, p.type);
+      if (keys.length === 1) b.keySig = keySigFor(tonic, p.type);
       // the lowest root fret on a string where every chosen form fits
       const rootOnString = (s0, maxF) => {
         let best = null;

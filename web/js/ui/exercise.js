@@ -9,7 +9,7 @@ import { Player, MAX_BPM, MIN_BPM } from '../player.js';
 import * as A from '../audio.js';
 import * as T from '../theory.js';
 import { moduleOf, LEVELS, defaultParams } from '../curriculum/index.js';
-import { CYCLE_OPTS, PROGS } from '../curriculum/common.js';
+import { CYCLE_OPTS, PROGS, tonicFor } from '../curriculum/common.js';
 import { harmonyTrack, harmonyAt } from '../harmony.js';
 
 const SUBS = [['0.25', 'Whole'], ['0.5', 'Half'], ['1', '♩ 1/beat'], ['2', '♪ 2/beat'], ['3', '3 triplets'], ['4', '4 16ths'], ['5', '5 quint.'], ['6', '6 sext.']];
@@ -33,14 +33,14 @@ function keySpelling(def, p) {
   if (PROGS[p.prog]?.minor || p.type === 'minor' || p.mode === 'minor' || def.minorWhen?.(p)) return { ivs: T.SCALES.aeolian.iv, suffix: def.suffix || 'm' };
   if (PROGS[p.prog]) return { ivs: T.SCALES.ionian.iv, suffix: def.suffix || '' };
   const sc = T.SCALES[p.scale] || T.SCALES[p.type];
-  return { ivs: sc?.iv || T.CHORDS[p.quality]?.iv || def.ivs, suffix: def.suffix || '' };
+  return { ivs: sc?.iv || T.CHORDS[p.quality]?.iv || def.ivs, suffix: def.suffix || '', type: T.SCALES[p.scale] ? p.scale : T.SCALES[p.type] ? p.type : null };
 }
 
 /** Options for a param (key params are spelled for the current notation and the selected scale/chord). */
 export function paramOptions(def, S, p = {}) {
   if (def.kind === 'key') {
-    const { ivs, suffix } = keySpelling(def, p);
-    const opts = T.CHROMATIC_PC.map((pcv) => [String(pcv), T.noteName(def.plain ? T.flatRoot(pcv) : T.bestRoot(pcv, ivs), S.notation) + suffix]);
+    const { ivs, suffix, type } = keySpelling(def, p);
+    const opts = T.CHROMATIC_PC.map((pcv) => [String(pcv), T.noteName(def.plain ? T.flatRoot(pcv) : type ? tonicFor(pcv, type) : T.bestRoot(pcv, ivs), S.notation) + suffix]);
     return def.cycles ? [...opts, ...CYCLE_OPTS] : opts;
   }
   // options marked { minStrings } only exist on basses with that many strings
@@ -48,7 +48,7 @@ export function paramOptions(def, S, p = {}) {
 }
 
 /** "Label: value" when the value alone does not say what it is (short or numeric values). */
-const optText = (def, label) => ((label.length <= 3 || /^\d/.test(label)) && !label.toLowerCase().includes(def.label.toLowerCase()) ? `${def.label}: ${label}` : label);
+const optText = (def, label) => ((label.length <= 3 || /^\d/.test(label) || label.includes('→')) && !label.toLowerCase().includes(def.label.toLowerCase()) ? `${def.label}: ${label}` : label);
 
 /** One-line summary of an exercise's options (header button, warm-up list). */
 export function paramSummary(tpl, p, S, fixed = {}) {
@@ -229,6 +229,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
   }
   function outsideMore(e) { if (!morePop.contains(e.target) && !moreBtn.contains(e.target)) closeMore(); }
 
+  let bpmHint;
   function rebuild() {
     const wasPlaying = player.playing;
     ctx = makeCtx(S);
@@ -242,6 +243,10 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null 
     }
     if (!next?.steps?.length) { toast('No notes for this variation'); return; }
     inst = next;
+    // a variation with its own natural tempo (the 12/8 slow blues) starts there when it is chosen
+    const hint = inst.bpm || null;
+    if (bpmHint !== undefined && hint && hint !== bpmHint) setBpm(hint);
+    bpmHint = hint;
     // ear training: the notes of a hidden step show no dot until the answer
     for (const st of inst.steps) if (st.hide) for (const n of st.notes) n.hidden = true;
     // segments: a chord label starts a new segment (used for the dot trail)

@@ -305,8 +305,9 @@ export function progChords(progKey, tonicPc, { triads, S = {} } = {}) {
       const local = T.bestRoot(T.mod(tonicPc + keyOff, 12), T.SCALES.ionian.iv);
       root = T.up(local, T.IV_OF_SEMIS[T.mod(where - keyOff, 12)]);
     } else root = T.bestRoot(T.mod(tonicPc + where, 12), ivs);
-    // lead-sheet names: B7, not C♭7 (IV of G♭), and never a double accidental
-    if (T.awkward(root)) root = T.bestRoot(T.pc(root), ivs);
+    // a chord of the key keeps the key's spelling (C♭ is the IV of G♭ major); a chord that would need
+    // a double accidental takes its lead-sheet name (C♭7 → B7), and so does any chromatic chord
+    if (T.awkward(root) && (typeof where === 'number' || ivs.some((iv) => Math.abs(T.up(root, iv).a) > 1))) root = T.bestRoot(T.pc(root), ivs);
     const key = keyOff != null ? T.mod(tonicPc + keyOff, 12) : tonicPc;
     return { root, type, beats, ivs, sym: chordName(root, type, S), key, minorKey: !!prog.minor && keyOff == null, vamp: prog.chords.length === 1 };
   });
@@ -504,6 +505,22 @@ export function keySigFor(tonic, type) {
   else if (['harmonicMinor', 'melodicMinor', 'minorPent', 'blues'].includes(type)) ks = sum('aeolian');
   else if (['majorPent', 'majorBlues', 'harmonicMajor'].includes(type)) ks = sum('ionian');
   return ks != null && Math.abs(ks) <= 7 ? ks : null;
+}
+
+/**
+ * The tonic's name for a scale chosen on its own. Usually its plain name; on a black key, when that
+ * name's key signature needs six or seven accidentals, the enharmonic name with fewer (F♯ Mixolydian,
+ * parent B, not G♭ Mixolydian, parent C♭). Blues scales take their key's lead-sheet name (E♭ blues).
+ */
+export function tonicFor(k, type) {
+  if (type === 'blues') return T.bestRoot(k, T.SCALES.aeolian.iv);
+  if (type === 'majorBlues') return T.bestRoot(k, T.SCALES.ionian.iv);
+  const base = T.bestRoot(k, T.SCALES[type].iv);
+  const ks = keySigFor(base, type);
+  if (ks == null || Math.abs(ks) <= 5) return base;
+  const other = [spellMidi(60 + k, false), spellMidi(60 + k, true)].find((n) => n.l !== base.l);
+  const ko = other ? keySigFor(other, type) : null;
+  return ko != null && Math.abs(ko) < Math.abs(ks) ? other : base;
 }
 
 /** Emit a list of pitches/rests (with per-item durations) placed as one melodic line. */

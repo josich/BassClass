@@ -3,6 +3,7 @@ import {
   T, Builder, keysFor, ex, variant, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS,
   rootStrP, dirP, octP, place, scaleShort, ZONES, zoneP, orderP, jazzAltered, plainKeyP,
   oneStringP, keySigFor,
+  tonicFor,
 } from './common.js';
 
 const M = 'scales';
@@ -11,13 +12,15 @@ const typeP = (keys, def) => sel('Scale', SCALE_TYPE_OPTS(keys), def || keys[0])
 
 /** Generic scale exercise: one key or all keys, any pattern, 1–2 octaves. */
 export function scaleBuild(p, ctx, S, { type = p.type, pattern = p.pattern || 'straight', octaves = Number(p.oct || 1), dir = p.dir || 'updown', rootStr = p.root || 'A', open = p.open === 'yes', jazz = false, plain = false } = {}) {
-  const b = new Builder(ctx, S, { jazz, plain });
+  // blues scales: the blue note is written plainly (E♭ blues: A, not B♭♭)
+  const bluesType = type === 'blues' || type === 'majorBlues';
+  const b = new Builder(ctx, S, { jazz, plain: plain || bluesType });
   const keys = keysFor(p.key);
   const many = keys.length > 1;
   let prev = null, lastTonic = null;
   for (const k of keys) {
     const ivs = T.SCALES[type].iv;
-    const tonic = lastTonic = plain ? T.flatRoot(k) : T.bestRoot(k, ivs);
+    const tonic = lastTonic = plain ? T.flatRoot(k) : tonicFor(k, type);
     // one key: root on the chosen string; all keys: E or A string, whichever is nearest
     // two octaves always start on the E string (the "Root on" choice applies to one octave)
     const single = octaves > 1 ? 'E' : rootStr;
@@ -44,7 +47,7 @@ export function scaleBuild(p, ctx, S, { type = p.type, pattern = p.pattern || 's
   }
   if (octaves > 1) b.fixed = { root: 'E string (2 octaves start low)' };
   // one key: its key signature on the staff (scales spelled plainly or the jazz way keep accidentals)
-  if (keys.length === 1 && !plain && !jazz) b.keySig = keySigFor(lastTonic, type);
+  if (keys.length === 1 && (!plain || bluesType) && !jazz) b.keySig = keySigFor(lastTonic, type);
   return b;
 }
 
@@ -86,7 +89,7 @@ const openPosition = ex({
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     const k = Number(p.key);
-    const tonic = T.bestRoot(k, T.SCALES[p.type].iv);
+    const tonic = tonicFor(k, p.type);
     const r = pickRoot(ctx, k, { strings: ['E', 'A'], lo: 0, hi: 4 });
     b.chord(`${nm(tonic, S)} ${scaleShort(p.type)}`);
     // two octaves start in open position and shift up the neck for the top of the scale
@@ -168,9 +171,10 @@ const oneString = ex({
       const alt = [s - 1, s + 1, s - 2, s + 2].find((x) => x >= 0 && x < ctx.tuning.length && T.mod(k - ctx.tuning[x], 12) + 12 <= ctx.maxFret);
       if (alt != null) { s = alt; f0 = T.mod(k - ctx.tuning[s], 12); moved = `on the ${ctx.names[s]} string`; }
     }
-    const tonic = T.bestRoot(k, T.SCALES[p.type].iv);
+    const tonic = tonicFor(k, p.type);
     b.chord(`${nm(tonic, S)} ${scaleShort(p.type)}`, moved || undefined);
     b.line(scaleRun(tonic, p.type, ctx.tuning[s] + f0), { place: { string: s } });
+    b.keySig = keySigFor(tonic, p.type);
     return b.build({ label: 'degree' });
   },
 });
@@ -189,7 +193,7 @@ const allKeysPosition = ex({
     const zone = ZONES[p.zone];
     const region = [zone[0], zone[1]];
     for (const k of keysFor(p.order)) {
-      const tonic = T.bestRoot(k, T.SCALES[p.type].iv);
+      const tonic = tonicFor(k, p.type);
       let best = null;
       for (const sName of ['E', 'A', 'D']) {
         const s = ctx.str(sName);
@@ -241,7 +245,7 @@ const threeNps = ex({
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     const k = Number(p.key);
-    const tonic = T.bestRoot(k, T.SCALES[p.type].iv);
+    const tonic = tonicFor(k, p.type);
     const s0 = 0;
     let f0 = T.mod(k - ctx.tuning[s0], 12);
     if (f0 < 1) f0 += 12;
@@ -269,6 +273,7 @@ const threeNps = ex({
     items.forEach((it) => { delete it.cell; });
     b.chord(`${nm(tonic, S)} ${scaleShort(p.type)}`);
     b.frets([...items, ...items.slice(0, -1).reverse()]);
+    b.keySig = keySigFor(tonic, p.type);
     return b.build({ label: 'degree' });
   },
 });
@@ -285,7 +290,7 @@ const positions = ex({
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     const k = Number(p.key);
-    const tonic = T.bestRoot(k, T.SCALES[p.type].iv);
+    const tonic = tonicFor(k, p.type);
     const ivs = T.SCALES[p.type].iv;
     const len = ivs.length;
     const e = Math.max(0, ctx.str('E'));
@@ -334,6 +339,7 @@ const positions = ex({
       const seq = i % 2 === 0 || p.pos !== 'all' ? [...box, ...box.slice(0, -1).reverse()] : [...box].reverse();
       b.frets(seq.map((q) => ({ s: q.s, f: q.f, n: q.n, deg: q.deg, finger: q.finger })));
     });
+    b.keySig = keySigFor(tonic, p.type);
     return b.build({ label: 'degree' });
   },
 });
@@ -401,8 +407,8 @@ const sixthDim = ex({
 const sidestep = ex({
   id: 'sc-pent-sidestep', module: M, level: 5,
   title: 'Pentatonic side-stepping',
-  summary: 'Play the pentatonic, slip a half step up for one bar ("outside"), then resolve back.',
-  about: 'Side-stepping is a classic way to play "outside": shift the whole pentatonic up a half step for a moment, creating tension, and then resolve back into the key. It works because the shape is strong and the resolution is clear. Fusion and modern jazz players use it constantly.',
+  summary: 'Play the pentatonic, slip a half step up or down (or a tritone away) for one bar ("outside"), then resolve back.',
+  about: 'Side-stepping is a classic way to play "outside": shift the whole pentatonic up a half step for a moment, creating tension, and then resolve back into the key. It works because the shape is strong and the resolution is clear. The backing stays on the home key during the outside bar, so you hear the tension. Fusion and modern jazz players use it constantly.',
   tips: ['Make the outside bar sound intentional: strong rhythm, clear shape.', 'Resolve to a chord tone on beat 1.'],
   source: 'Charlie Banacos (pentatonic side-stepping); Michael Brecker / Scott Henderson practice',
   params: { key: keyP(T.SCALES.minorPent.iv, { def: '9', cycles: false }), side: sel('Side-step', [['1', 'Half step up'], ['-1', 'Half step down'], ['6', 'Tritone away']]), oct: octP() },
@@ -412,18 +418,25 @@ const sidestep = ex({
     const k = Number(p.key);
     const octaves = Number(p.oct || 1);
     const r = pickRoot(ctx, k, { strings: ['E'], hi: octaves > 1 ? 7 : 9 });
+    const home = T.bestRoot(k, T.SCALES.minorPent.iv);
     const parts = [[k, 'inside'], [T.mod(k + Number(p.side), 12), 'outside'], [k, 'inside']];
     for (const [pcv, label] of parts) {
       const tonic = T.bestRoot(pcv, T.SCALES.minorPent.iv);
       let m = r.midi + (pcv - k);
       if (Number(p.side) === 6 && label === 'outside') m = r.midi + 6;
-      b.chord(`${nm(tonic, S)}m pent`, label);
       // each bar's box sits where its own root is (the tritone side-step moves the hand), an octave
       // lower when two octaves would run off the neck
       if (m + 12 * octaves > ctx.tuning[ctx.tuning.length - 1] + ctx.maxFret && m - 12 >= ctx.tuning[r.s]) m -= 12;
-      b.line(scaleRun(tonic, 'minorPent', m, { pattern: 'straight', octaves }), { place: { open: 'avoid', pin: { [m]: r.s }, center: m - ctx.tuning[r.s] + 1 } });
+      // whole bars of 8ths: up the box, then back down until the bar is full, so the side-step starts
+      // and resolves on beat 1
+      const up = scaleRun(tonic, 'minorPent', m, { pattern: 'straight', octaves, dir: 'up' });
+      const down = scaleRun(tonic, 'minorPent', m, { pattern: 'straight', octaves, dir: 'down' }).slice(1);
+      const notes = [...up, ...down].slice(0, 8 * octaves);
+      // the outside bar is text, not a chord: the backing stays on the home key and the tension is heard
+      const tag = label === 'inside' ? { chord: `${nm(home, S)}m pent`, text: 'inside' } : { text: `outside: ${nm(tonic, S)}m pent`, implied: `${nm(tonic, S)}m pent` };
+      b.line(notes.map((x, i) => ({ ...x, dur: 0.5, ...(i === 0 ? tag : {}) })), { place: { open: 'avoid', pin: { [m]: r.s }, center: m - ctx.tuning[r.s] + 1 } });
     }
-    return b.build({ label: 'note' });
+    return b.build({ label: 'note', uniform: false });
   },
 });
 

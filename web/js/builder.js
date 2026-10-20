@@ -122,6 +122,7 @@ export class Builder {
       if (p.fill) step.fill = true;
       if (p.hide) step.hide = true;     // ear training: heard, not shown
       if (p.silent) step.silent = true; // shown, not heard (the answer)
+      if (p.implied) step.implied = p.implied;
       if (p.vel != null) step.vel = p.vel;
       if (p.chord) this.pendingChord = p.chord;
       if (p.text) this.pendingText = p.text;
