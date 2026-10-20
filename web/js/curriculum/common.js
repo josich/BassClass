@@ -509,6 +509,7 @@ const WALK_FORMULAS = {
 const MODE_FOR = {
   maj7: 'ionian', dom7: 'mixolydian', min7: 'dorian', m7b5: 'locrianN2', dim7: 'dimWH', mMaj7: 'melodicMinor', maj6: 'ionian', min6: 'melodicMinor',
   dom7s9: 'altered', dom7b9: 'dimHW', dom7s5: 'wholeTone', dom7b5: 'wholeTone', maj7s5: 'lydianAug',
+  dom7alt: 'altered', dom7s11: 'lydianDom', dom7b13: 'mixolydianB6', dom7susb9: 'dorianB2',
 };
 const MINOR_TYPES = ['min7', 'min6', 'mMaj7', 'm7b5', 'min'];
 const FAMILY = { maj7: 'maj', maj6: 'maj', maj: 'maj', min7: 'min', min: 'min', dom7: 'dom', m7b5: 'hdim' };

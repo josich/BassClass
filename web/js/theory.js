@@ -172,6 +172,11 @@ export const CHORDS = {
   dom7s9: { iv: ['1', '3', '5', 'b7', '#9'], sym: '7♯9', name: 'Dominant 7♯9' },
   dom7b5: { iv: ['1', '3', 'b5', 'b7'], sym: '7♭5', name: 'Dominant 7♭5' },
   dom13: { iv: ['1', '3', '5', 'b7', '9', '13'], sym: '13', name: 'Dominant 13' },
+  // dominant colours from melodic minor (their scales: Lydian dominant, Mixolydian ♭6, altered, Dorian ♭2)
+  dom7s11: { iv: ['1', '3', '5', 'b7', '#11'], sym: '7♯11', name: 'Dominant 7♯11' },
+  dom7b13: { iv: ['1', '3', '5', 'b7', 'b13'], sym: '7♭13', name: 'Dominant 7♭13' },
+  dom7alt: { iv: ['1', '3', 'b7', '#9', 'b13'], sym: '7alt', name: 'Altered dominant' },
+  dom7susb9: { iv: ['1', '4', '5', 'b7', 'b9'], sym: '7sus♭9', name: 'Dominant 7sus♭9' },
 };
 export const TRIAD_TYPES = ['maj', 'min', 'dim', 'aug'];
 export const SEVENTH_TYPES = ['maj7', 'dom7', 'min7', 'm7b5', 'dim7', 'mMaj7', 'maj7s5'];

@@ -2,7 +2,7 @@
 
 A landscape app to learn bass from the first open string to mastery. Every exercise is shown **note by note on a fretboard**. Each marker appears as it plays, with the note name, degree or finger, and a dashed arc points to the next note. You hear a **recorded bass**, a metronome counts, and a scrolling tab strip below the neck shows what is coming. A **microphone tuner** is built in.
 
-- **187 exercise families** in 15 modules and 6 levels: fretboard & notes, **reading (bass clef)**, technique/rudiments, rhythm, intervals, **ear training**, scales, modes, triads, arpeggios & 7ths, chords & harmony, grooves, walking bass, **jazz licks**, slap. See [docs/CATALOGUE.md](docs/CATALOGUE.md).
+- **191 exercise families** in 15 modules and 6 levels: fretboard & notes, **reading (bass clef)**, technique/rudiments, rhythm, intervals, **ear training**, scales, modes, triads, arpeggios & 7ths, chords & harmony, grooves, walking bass, **jazz licks**, slap. See [docs/CATALOGUE.md](docs/CATALOGUE.md).
 - **Tab or staff.** The strip under the neck shows tab or standard notation on a bass-clef staff, engraved properly: written an octave above the sound, key and time signatures, dotted values, ties, rests, beams per beat, tuplets, accidentals held to the bar line and 8va above the ledger lines. The Reading exercises open on the staff, show no note names and hide each dot until it sounds.
 - **Backing.** A soft pad under any exercise with chords or scales: a drone on the root, or the chords (the mode's triad, or the chord of the progression).
 - **Ear training.** Chords and progressions play with their notes hidden; the answer and the shape appear afterwards.

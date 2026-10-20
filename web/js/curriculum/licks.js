@@ -85,13 +85,13 @@ function lickItems(lick, k, S, ctx, swing, { keyPcs, blue }) {
   // awkward gets its lead-sheet name (E♭♭7 -> D7); a diatonic chord keeps the key's spelling (D♯7 in
   // G♯ minor, its F𝄪 written as G like every other double accidental)
   let at = 0;
-  const chords = lick.prog.map(([where, type, beats]) => {
+  const chords = lick.prog.map(([where, type, beats, opts = {}]) => {
     const ivs = T.CHORDS[type].iv;
     const civ = typeof where === 'number' ? OFFSET_IV[T.mod(where, 12)] : where;
     let root = T.up(tonic, civ);
     if (awkward(root) || (typeof where === 'number' && ivs.some((iv) => Math.abs(T.up(root, iv).a) > 1))) root = T.bestRoot(T.pc(root), ivs);
     const semis = new Map(ivs.map((iv) => [T.semis(iv) % 12, iv]));
-    const c = { root, cRoot: T.up(C, civ), type, fam: family(type), semis, start: at, end: at + beats, sym: chordName(root, type, S) };
+    const c = { root, cRoot: T.up(C, civ), type, fam: family(type), semis, start: at, end: at + beats, sym: chordName(root, type, S), implied: !!opts.implied };
     at += beats;
     return c;
   });
@@ -129,9 +129,13 @@ function lickItems(lick, k, S, ctx, swing, { keyPcs, blue }) {
     const start = sw(x.t);
     const end = i + 1 < notes.length ? sw(notes[i + 1].t) : x.t + x.dur;
     const c = chordAt(x.t);
-    const chord = labelled.has(c) ? undefined : c.sym;
+    const first = !labelled.has(c);
     labelled.add(c);
-    const item = { dur: end - start, chord, text: i === 0 ? lick.name : undefined };
+    // a chord the line only implies (over a vamp) is named in the text: the badge and the backing keep the vamp
+    const item = {
+      dur: end - start, chord: first && !c.implied ? c.sym : undefined,
+      text: i === 0 ? lick.name : first && c.implied ? `implies ${c.sym}` : undefined,
+    };
     if (x.rest) return { ...item, rest: true };
     const a = info[i];
     // spell the note against its chord as in the C version; double accidentals get the plain
@@ -174,13 +178,16 @@ const feelP = sel('Feel', [['swing', 'Swing 8ths'], ['straight', 'Straight 8ths'
 
 function lickTemplate(def) {
   const { licks, minor = false, keys = minor ? 'minor' : 'major', blue = false, ...meta } = def;
+  const key = keyP(minor ? T.SCALES.aeolian.iv : T.SCALES.ionian.iv, { suffix: minor ? 'm' : '' });
+  // the key chips name minor keys (C♯m, not D♭) when the chosen lick is over a minor chord
+  if (licks.some((l) => l.minor != null)) key.minorWhen = (p) => !!(licks[Number(p.lick)] || licks[0]).minor;
   return ex({
     ...meta,
     module: M,
     label: 'degree',
     params: {
       lick: sel('Lick', licks.map((l, i) => [String(i), l.name])),
-      key: keyP(minor ? T.SCALES.aeolian.iv : T.SCALES.ionian.iv, { suffix: minor ? 'm' : '' }),
+      key,
       feel: feelP,
     },
     licks,
@@ -189,7 +196,8 @@ function lickTemplate(def) {
       const lick = licks[Number(p.lick)] || licks[0];
       const swingable = canSwing(lick);
       const swing = p.feel === 'swing' && swingable;
-      const segs = keysFor(p.key).map((k) => lickItems({ ...lick, minor }, k, S, ctx, swing, { keyPcs: KEY_PCS[keys], blue }));
+      const isMinor = lick.minor ?? minor;
+      const segs = keysFor(p.key).map((k) => lickItems({ ...lick, minor: isMinor }, k, S, ctx, swing, { keyPcs: KEY_PCS[lick.keys || keys], blue }));
       // the last note of a lick leads into the first note of the next one (or of itself when it
       // loops): a half step into a chord tone makes it an approach note
       segs.forEach((seg, i) => {
@@ -346,5 +354,47 @@ export function checkLicks(list = ALL_LICK_TEMPLATES) {
   return out;
 }
 
-const ALL_LICK_TEMPLATES = [majorIIVI, minorIIVI, blues, turnarounds, soloDevices, bebop, modern];
+// ---------------------------------------------------------------- motifs and implied changes
+
+const motif = lickTemplate({
+  id: 'lk-motif', level: 5,
+  title: 'Motif development: one idea through the changes',
+  summary: 'One four-note motif carried through a ii–V–I, moved up the scale, pushed, laid back and answered.',
+  about: 'A solo sounds composed when one idea grows, instead of new notes in every bar. Take a short motif (here four notes, 5 13 5 3, in a da-da-DAH-DAH rhythm) and keep it while the harmony moves: place it on each chord\'s tones, move it up the scale, play it an 8th early (pushed, the way a band anticipates a change) or an 8th late (laid back), and answer it after a bar of silence. The rests are part of the exercise: leave them empty.',
+  tips: ['Sing the motif first, then play it.', 'A pushed note belongs to the next chord: its label is against that chord.', 'Then invent your own four-note motif and put it through the same five treatments.'],
+  source: 'Original motifs. Motivic development (repetition, sequence, rhythmic placement, question and answer) as taught in jazz improvisation (Hal Crook "How to Improvise").',
+  bpm: 108,
+  licks: [
+    { name: 'One motif through ii–V–I', prog: II_V_I, notes: 'A2 B2 A2:q F2:q r:q | D3 E3 D3:q B2:q r:q | G2 A2 G2:q E2:q r:q | D2 E2 G2:q E2:h' },
+    { name: 'Pushed: the motif an 8th early', prog: [['2', 'min7', 3.5], ['5', 'dom7', 4], ['1', 'maj7', 8.5]], notes: 'A2 B2 A2:q F2:q r:e D3 | E3 D3:q B2:q r:q G2 | A2 G2:q E2:q r:q D2 | E2 G2:q E2:h r:e' },
+    { name: 'Laid back: the motif an 8th late', prog: II_V_I, notes: 'r:e A2 B2 A2:q F2:q r:e | r:e D3 E3 D3:q B2:q r:e | r:e G2 A2 G2:q E2:q r:e | r:e D2 E2 G2:q E2:dq' },
+    { name: 'Up the scale (Dm7 vamp)', prog: [['2', 'min7', 16]], notes: 'A2 B2 A2:q F2:q r:q | B2 C3 B2:q G2:q r:q | C3 D3 C3:q A2:q r:q | D3 E3 D3:q A2:h' },
+    { name: 'Question and answer, with space', prog: [['1', 'maj7', 4], ['6', 'min7', 4], ['2', 'min7', 4], ['5', 'dom7', 4]], notes: 'E2 G2 A2:q G2:q r:q | r:w | F2 A2 B2:q A2:q r:q | B2 A2 G2:q F2:q r:q' },
+  ],
+});
+
+const IMPLIED = { implied: true };
+const MINOR_VAMP = 'C2 Eb2 G2 Bb2 D3 Bb2 G2 F2 | Eb2:q F2 G2 Bb2:q A2 G2';
+const DOM_VAMP = 'C2 E2 G2 Bb2 D3 Bb2 G2 E2 | F2:q G2 A2 Bb2:q A2 G2';
+const MAJOR_VAMP = 'C2 E2 G2 B2 D3 B2 G2 E2 | A2:q G2 E2 D2:q E2 G2';
+const implied = lickTemplate({
+  id: 'lk-implied', level: 5,
+  title: 'Implied changes over a vamp',
+  summary: 'The band holds one chord; your line implies its V7, its ii–V or the tritone sub, then resolves.',
+  about: 'Over a vamp the band holds one chord, but your line can travel. Play the vamp\'s chord for two bars, then imply a cadence into it in the third bar: its V7, its ii–V, or the tritone substitute of the V (the dominant a half step above the root). In the fourth bar resolve to a chord tone. With Backing set to Chords the pad keeps the vamp, so you hear the tension of the implied chords and the release when you land. The implied chords appear as text ("implies G7♭9") and the labels show each note against the chord you are implying.',
+  tips: ['Resolve by step: the ♭9 of the V falls to the 5th, its 3rd rises to the root.', 'Turn the Backing to Chords to hear the clash and the resolution.', 'In a real solo, once or twice a chorus is plenty.'],
+  source: 'Original lines. Implying ii–V and tritone-substitute cadences over static harmony is standard bebop and post-bop practice.',
+  bpm: 104,
+  licks: [
+    { name: 'Minor vamp: implied iiø–V7♭9', minor: true, keys: 'minor', prog: [['1', 'min7', 8], ['2', 'm7b5', 2, IMPLIED], ['5', 'dom7b9', 2, IMPLIED], ['1', 'min7', 4]], notes: `${MINOR_VAMP} | D2 F2 Ab2 C3 B2 D3 F3 Ab3 | G3:q Eb3:q C3:h` },
+    { name: 'Minor vamp: implied V7♭9', minor: true, keys: 'minor', prog: [['1', 'min7', 8], ['5', 'dom7b9', 4, IMPLIED], ['1', 'min7', 4]], notes: `${MINOR_VAMP} | G2 B2 D3 F3 Ab3 F3 D3 B2 | C3:q Eb3:q G2:h` },
+    { name: 'Minor vamp: tritone sub (♭II7)', minor: true, keys: 'minor', prog: [['1', 'min7', 8], ['b2', 'dom7', 4, IMPLIED], ['1', 'min7', 4]], notes: `${MINOR_VAMP} | Db2 F2 Ab2 Cb3 Bb2 Ab2 F2 Eb2 | D2 Eb2 G2:q C2:h` },
+    { name: 'Dominant vamp: implied V7♭9', minor: false, keys: 'blues', prog: [['1', 'dom7', 8], ['5', 'dom7b9', 4, IMPLIED], ['1', 'dom7', 4]], notes: `${DOM_VAMP} | G2 B2 D3 F3 Ab3 F3 D3 B2 | C3:q G2:q E2:h` },
+    { name: 'Dominant vamp: implied ii–V', minor: false, keys: 'blues', prog: [['1', 'dom7', 8], ['2', 'min7', 2, IMPLIED], ['5', 'dom7', 2, IMPLIED], ['1', 'dom7', 4]], notes: `${DOM_VAMP} | D2 F2 A2 C3 B2 D3 F3 A3 | G3:q E3:q C3:h` },
+    { name: 'Major vamp: implied ii–V7♭9', minor: false, keys: 'major', prog: [['1', 'maj7', 8], ['2', 'min7', 2, IMPLIED], ['5', 'dom7b9', 2, IMPLIED], ['1', 'maj7', 4]], notes: `${MAJOR_VAMP} | F2 A2 C3 E3 F3 D3 B2 Ab2 | G2:q E2:q C2:h` },
+    { name: 'Major vamp: tritone sub (♭II7)', minor: false, keys: 'major', prog: [['1', 'maj7', 8], ['b2', 'dom7', 4, IMPLIED], ['1', 'maj7', 4]], notes: `${MAJOR_VAMP} | Db2 F2 Ab2 Cb3 Bb2 Ab2 F2 Eb2 | D2 E2 G2:q C2:h` },
+  ],
+});
+
+const ALL_LICK_TEMPLATES = [majorIIVI, minorIIVI, blues, turnarounds, soloDevices, motif, implied, bebop, modern];
 export default ALL_LICK_TEMPLATES;

@@ -2,7 +2,7 @@
 import {
   T, Builder, keysFor, ex, variant, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS, octP, jazzAltered,
   progChords, progP, chordRootMidis, emitMixed, modeFor,
-  rootStrLowP,
+  rootStrLowP, chordName,
 } from './common.js';
 import { scaleBuild } from './scales.js';
 
@@ -108,6 +108,9 @@ const DOM_SPELL = {
   phrygianDom: { 0: ['1', '1'], 1: ['b2', 'b9'], 4: ['3', '3'], 5: ['4', '11'], 7: ['5', '5'], 8: ['b6', 'b13'], 10: ['b7', 'b7'] },
   // on every dominant the tensions are named 9, 11, 13 (not 2, 4, 6)
   mixolydian: { 0: ['1', '1'], 2: ['2', '9'], 4: ['3', '3'], 5: ['4', '11'], 7: ['5', '5'], 9: ['6', '13'], 10: ['b7', 'b7'] },
+  mixolydianB6: { 0: ['1', '1'], 2: ['2', '9'], 4: ['3', '3'], 5: ['4', '11'], 7: ['5', '5'], 8: ['b6', 'b13'], 10: ['b7', 'b7'] },
+  // 7sus♭9 has no 3rd, so its minor 3rd is named ♭3
+  dorianB2: { 0: ['1', '1'], 1: ['b2', 'b9'], 3: ['b3', 'b3'], 5: ['4', '11'], 7: ['5', '5'], 9: ['6', '13'], 10: ['b7', 'b7'] },
 };
 /** Mode names for the chord-scale badge ("Ionian", not "Major"). */
 const modeName = (m) => ({ ionian: 'Ionian', aeolian: 'Aeolian' })[m] || T.SCALES[m].name.split(' (')[0];
@@ -226,6 +229,176 @@ const harmonicMajorModes = variant(melodicModes, {
   build(p, ctx, S) { return relativeBuild(p, ctx, S, T.HARMONIC_MAJOR_MODES).build({ label: 'degree' }); },
 });
 
+// ---------------------------------------------------------------- superimposition
+
+const PENT = ['1', '2', '3', '5', '6'];
+// a note's name against a chord by semitones above its root (9, 11, 13 on 7th chords)
+const TENSION = {
+  dom: ['R', '♭9', '9', '♯9', '3', '11', '♯11', '5', '♭13', '13', '♭7', '7'],
+  min: ['R', '♭9', '9', '♭3', '3', '11', '♯11', '5', '♭13', '13', '♭7', '7'],
+  hdim: ['R', '♭9', '9', '♭3', '3', '11', '♭5', '5', '♭13', '13', '♭7', '7'],
+  maj: ['R', '♭9', '9', '♯9', '3', '11', '♯11', '5', '♯5', '13', '♭7', '7'],
+};
+const famOf = (type) => (type.startsWith('dom') ? 'dom' : type === 'm7b5' ? 'hdim' : /^min|^mMaj/.test(type) ? 'min' : 'maj');
+/** A note's label against its chord; dominants use their scale's jazz names (G7alt: ♭5, not ♯11). */
+const labelOn = (type, mode, semis) => {
+  const sp = DOM_SPELL[mode]?.[T.mod(semis, 12)];
+  return sp ? T.fmtDeg(sp[1]) : TENSION[famOf(type)][T.mod(semis, 12)];
+};
+
+/**
+ * The major pentatonics that lie inside a chord's scale, best first: the ones holding its 3rd and
+ * 7th, then the root and 5th; the 4th over a major or dominant chord (an avoid note) counts against.
+ */
+function pentatonicsFor(c, mode) {
+  const inScale = new Map(T.SCALES[mode].iv.map((iv) => [T.mod(T.semis(iv), 12), iv]));
+  const tones = new Map(c.ivs.map((iv) => [T.mod(T.semis(iv), 12), iv]));
+  const fam = famOf(c.type);
+  const out = [];
+  for (let r = 0; r < 12; r++) {
+    const semis = PENT.map((iv) => T.mod(r + T.semis(iv), 12));
+    if (!inScale.has(r) || !semis.every((x) => inScale.has(x))) continue;
+    let score = 0;
+    for (const x of semis) {
+      const iv = tones.get(x);
+      if (iv === '3' || iv === 'b3' || iv === '7' || iv === 'b7' || iv === '6') score += 2;
+      else if (iv === '1') score += 1;
+      else if (iv === '5' || iv === 'b5' || iv === '#5') score += 0.5;
+      if (x === 5 && (fam === 'maj' || fam === 'dom') && !tones.has(5)) score -= 2;
+    }
+    out.push({ r, iv: inScale.get(r), score });
+  }
+  return out.sort((a, z) => z.score - a.score || a.r - z.r);
+}
+
+/**
+ * 8th-note runs over one chord, alternately up and down a scale whose start note is `from` (a midi),
+ * each run starting in the octave nearest the last note. seg(start, up) returns a run's notes.
+ */
+function runsOver(total, from, ref, ctx, pass, seg) {
+  const highest = ctx.tuning[ctx.tuning.length - 1] + ctx.maxFret;
+  const run = [];
+  while (run.length < total) {
+    const up = pass.n++ % 2 === 0;
+    const last = run.length ? run[run.length - 1].midi : ref ?? from;
+    const cands = [-24, -12, 0, 12, 24].map((x) => from + x)
+      .filter((m) => (up ? m >= ctx.tuning[0] && m + 12 <= highest : m - 12 >= ctx.tuning[0] && m <= highest));
+    const start = cands.sort((a, z) => Math.abs(a - last) - Math.abs(z - last))[0] ?? from;
+    const notes = seg(start, up);
+    if (run.length && notes[0].midi === run[run.length - 1].midi) notes.shift();
+    run.push(...notes.slice(0, total - run.length));
+  }
+  return run;
+}
+
+const pentSuper = ex({
+  id: 'md-pentatonic-superimposition', module: M, level: 5,
+  title: 'Pentatonic superimposition: three pentatonics on every chord',
+  summary: 'Over each chord, the major pentatonics inside its scale: F, C or G over Dm7, G, F or C over G7, D♭ over G7alt.',
+  about: 'A pentatonic has five notes and no half steps, so when it fits a chord\'s scale it never clashes. A 7-note scale holds three major pentatonics, and each one brings out different notes of the chord. Over Dm7 (Dorian) F major pentatonic has the ♭3 and ♭7, C major pentatonic the 9 and 11, G major pentatonic the 13. Over G7 (Mixolydian) G has the 3rd; F and C leave it out and sound suspended. Over an altered dominant only one fits: the major pentatonic a tritone above the root (D♭ over G7alt), all tensions. Each chord takes its scale by function, as in the chord-scale exercise, and the labels show every note against the chord. F major pentatonic and D minor pentatonic are the same five notes.',
+  tips: ['Start with the 1st choice until the sound is in your ear, then play "All three in turn".', 'Find the pentatonic\'s root on the neck before the chord arrives.', 'Over Cmaj7 the F major pentatonic holds the 11 (F): pass through it, do not land on it.'],
+  source: 'Pentatonic superimposition (Gary Willis; Ramon Ricker "Pentatonic Scales for Jazz Improvisation"); chord-scales by function (Berklee)',
+  params: {
+    prog: progP(['ii-V-I', 'I-vi-ii-V', 'ii-V7alt-I', 'vamp-min', 'vamp-dom']), key: keyP(T.SCALES.ionian.iv),
+    choice: sel('Pentatonic', [['all', 'All three in turn'], ['0', '1st: holds the 3rd and 7th'], ['1', '2nd choice'], ['2', '3rd choice']]),
+  },
+  bpm: 92, sub: 2, label: 'degree',
+  build(p, ctx, S) {
+    const b = new Builder(ctx, S, { jazz: true });
+    const items = [];
+    const pass = { n: 0 };
+    const choices = p.choice === 'all' ? [0, 1, 2] : [Number(p.choice)];
+    for (const k of keysFor(p.key)) {
+      const chords = progChords(p.prog, k, { S });
+      const roots = chordRootMidis(chords, { lo: 28, hi: 45 });
+      for (const choice of choices) {
+        chords.forEach((c, ci) => {
+          const mode = modeFor(c, chords[(ci + 1) % chords.length]);
+          const opts = pentatonicsFor(c, mode);
+          const o = opts[Math.min(choice, opts.length - 1)];
+          let pr = T.up(c.root, o.iv);
+          if (T.awkward(pr)) pr = T.readable(pr);
+          const prev = items.length ? items[items.length - 1].midi : null;
+          const run = runsOver(Math.max(4, c.beats * 2), roots[ci] + o.r, prev, ctx, pass,
+            (start, up) => (up ? scaleRun(pr, 'majorPent', start, { dir: 'up' }) : scaleRun(pr, 'majorPent', start - 12, { dir: 'down' })));
+          run.forEach((x, i) => items.push({
+            ...x, deg: labelOn(c.type, mode, x.midi - roots[ci]), dur: 1,
+            chord: i === 0 ? c.sym : undefined, text: i === 0 ? `${nm(pr, S)} major pentatonic` : undefined,
+          }));
+        });
+      }
+    }
+    emitMixed(b, items, { center: 5, open: 'avoid' });
+    return b.build({ label: 'degree' });
+  },
+});
+
+// each chord's parent melodic minor: its interval above the chord root, and the chord's mode of it
+const MEL_PARENT = {
+  mMaj7: ['1', 'melodicMinor'], dom7susb9: ['b7', 'dorianB2'], maj7s5: ['6', 'lydianAug'], dom7s11: ['5', 'lydianDom'],
+  dom7b13: ['4', 'mixolydianB6'], m7b5: ['b3', 'locrianN2'], dom7alt: ['b2', 'altered'],
+};
+const MEL_SETS = {
+  minor251: { name: 'Minor ii–V–i (iiø, V7alt, i m(maj7))', minor: true, chords: [['2', 'm7b5', 4], ['5', 'dom7alt', 4], ['1', 'mMaj7', 8]] },
+  dominants: { name: 'Four dominant colours on one root', chords: [['1', 'dom7s11', 8], ['1', 'dom7alt', 8], ['1', 'dom7b13', 8], ['1', 'dom7susb9', 8]] },
+  all: { name: 'All seven chords on one root', chords: [['1', 'mMaj7', 8], ['1', 'dom7susb9', 8], ['1', 'maj7s5', 8], ['1', 'dom7s11', 8], ['1', 'dom7b13', 8], ['1', 'm7b5', 8], ['1', 'dom7alt', 8]] },
+};
+const melKey = keyP(T.SCALES.ionian.iv);
+melKey.minorWhen = (p) => !!MEL_SETS[p.set]?.minor;
+
+const melodicSuper = ex({
+  id: 'md-melodic-superimposition', module: M, level: 5,
+  title: 'Melodic-minor superimposition: one shape, seven chords',
+  summary: 'Play a melodic minor from its own root over the chord it colours: A♭ over G7alt, D over G7♯11, F over Dm7♭5…',
+  about: 'Melodic minor (1 2 ♭3 4 5 6 7) is the parent of the most-used modern chord-scales. Instead of seven modes, learn one shape and where to put it: on the root over m(maj7); on the ♭7 over 7sus♭9; on the 6th over maj7♯5; on the 5th over 7♯11; on the 4th over 7♭13; on the ♭3 over m7♭5; a half step above the root over 7alt. Each chord here gets its parent melodic minor, played from the parent\'s own root and labelled against the chord, so you hear the colour and see the shortcut. Over the dominants the notes are written the jazz way (G7alt: A♭ B♭ B D♭ E♭ F G).',
+  tips: ['Say the parent before you play: "G7alt, A♭ melodic minor".', 'A minor ii–V–i uses three melodic minors: on the ♭3 of the ii, a half step above the V and on the i.', 'Compare with Modes of melodic minor: the same notes, seen from the chord\'s root.'],
+  source: 'Melodic-minor harmony and superimposition (Mark Levine "The Jazz Theory Book"; Berklee chord-scale theory)',
+  params: { set: sel('Chords', Object.entries(MEL_SETS).map(([k, v]) => [k, v.name])), key: melKey },
+  bpm: 88, sub: 2, label: 'degree',
+  build(p, ctx, S) {
+    const b = new Builder(ctx, S, { jazz: true });
+    const set = MEL_SETS[p.set] || MEL_SETS.minor251;
+    const items = [];
+    const pass = { n: 0 };
+    for (const k of keysFor(p.key)) {
+      const tonic = T.bestRoot(k, set.minor ? T.SCALES.aeolian.iv : T.SCALES.ionian.iv);
+      const chords = set.chords.map(([where, type, beats]) => {
+        const [piv, mode] = MEL_PARENT[type];
+        const off = T.semis(piv) % 12;
+        // a progression is spelled from its key; a chord on its own takes its lead-sheet name (flats on
+        // the black keys, sharps for minor-type chords: D♭7alt, C♯m(maj7))
+        let root = set.minor ? T.up(tonic, where) : T.bestRoot(k, type === 'mMaj7' || type === 'm7b5' ? T.SCALES.aeolian.iv : T.SCALES.ionian.iv);
+        if (T.awkward(root)) root = T.bestRoot(T.pc(root), T.CHORDS[type].iv);
+        return { root, type, beats, off, piv, mode, sym: chordName(root, type, S) };
+      });
+      const roots = chordRootMidis(chords, { lo: 28, hi: 45 });
+      chords.forEach((c, ci) => {
+        const ivs = T.SCALES[c.mode].iv;
+        const pIdx = ivs.findIndex((iv) => T.mod(T.semis(iv), 12) === c.off);
+        // the parent named by its interval from the chord root (A♭ over G7alt), plainly if that is awkward
+        let parent = T.up(c.root, c.piv);
+        if (T.awkward(parent)) parent = T.readable(parent);
+        // a note of the chord's mode (index from its root), spelled and named against the chord
+        const note = (idx, base) => {
+          const q = T.scalePitch(c.root, c.mode, base, idx);
+          const sp = DOM_SPELL[c.mode]?.[T.mod(q.midi - base, 12)];
+          return { midi: q.midi, n: sp ? T.up(c.root, sp[0]) : q.n, deg: labelOn(c.type, c.mode, q.midi - base) };
+        };
+        const prev = items.length ? items[items.length - 1].midi : null;
+        // one octave of the parent from its own root: up from `start`, or down to it from an octave above
+        const run = runsOver(Math.max(4, c.beats * 2), roots[ci] + c.off, prev, ctx, pass, (start, up) => {
+          const base = start - c.off - (up ? 0 : 12);
+          const idxs = Array.from({ length: 8 }, (_, i) => pIdx + i);
+          return (up ? idxs : idxs.reverse()).map((i) => note(i, base));
+        });
+        run.forEach((x, i) => items.push({ ...x, dur: 1, chord: i === 0 ? c.sym : undefined, text: i === 0 ? `${nm(parent, S)} melodic minor` : undefined }));
+      });
+    }
+    emitMixed(b, items, { center: 5, open: 'avoid' });
+    return b.build({ label: 'degree' });
+  },
+});
+
 // the order inside each level is the order of the exercise numbers
-export default [relative, parallel, study, chordScale, pitchAxis, melodicModes, harmonicModes, harmonicMajorModes, alteredChordScale];
+export default [relative, parallel, study, chordScale, pitchAxis, pentSuper, melodicModes, melodicSuper, harmonicModes, harmonicMajorModes, alteredChordScale];
 void MODE_NAMES;
