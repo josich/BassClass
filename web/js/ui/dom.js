@@ -54,13 +54,29 @@ const P = {
 export const icon = (name) => `<svg viewBox="0 0 24 24" aria-hidden="true">${P[name] || ''}</svg>`;
 
 let toastTimer = null;
+let noteAt = 0;
+const toastEl = () => document.querySelector('.toast') || document.body.appendChild(h('div', { class: 'toast', role: 'status' }));
+/** A short confirmation ("Step done ✓") that fades by itself. */
 export function toast(msg, ms = 1800) {
-  let el = document.querySelector('.toast');
-  if (!el) { el = h('div', { class: 'toast' }); document.body.append(el); }
+  const el = toastEl();
   el.textContent = msg;
+  el.classList.remove('sticky');
   el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+}
+/** An instruction or explanation to read: it stays until its × is tapped (or the screen changes). */
+export function note(msg) {
+  const el = toastEl();
+  el.replaceChildren(h('span', {}, msg), h('button', { class: 'toast-x', 'aria-label': 'Close', title: 'Close', onClick: () => hideNote() }, '×'));
+  el.classList.add('show', 'sticky');
+  clearTimeout(toastTimer);
+  noteAt = performance.now();
+}
+/** Closes the open note (`minAge`: only one shown at least that many ms ago, so a note sent just before a screen change survives it). */
+export function hideNote(minAge = 0) {
+  const el = document.querySelector('.toast.sticky');
+  if (el && performance.now() - noteAt >= minAge) el.classList.remove('show', 'sticky');
 }
 
 /** Deterministic PRNG (mulberry32) for daily routines. */

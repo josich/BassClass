@@ -1,5 +1,5 @@
 // App bootstrap: navigation rail + hash router.
-import { h, icon, toast } from './ui/dom.js';
+import { h, icon, toast, note, hideNote } from './ui/dom.js';
 import { byId, byNumber } from './curriculum/index.js';
 import { renderExercise } from './ui/exercise.js';
 import { loadBank, setAudioOptions } from './audio.js';
@@ -66,6 +66,8 @@ function route() {
   scrollKey = null;
   active?.dispose?.();
   active = null;
+  // a note belongs to the screen it was shown on (one sent just before this change is for the new screen)
+  hideNote(500);
   const hash = location.hash || '#/';
   const [path, query] = hash.slice(1).split('?');
   const parts = path.split('/').filter(Boolean);
@@ -126,7 +128,7 @@ function route() {
   // an exercise number this version does not have (e.g. a link from a newer version)
   if (parts[0] === 'ex') {
     const n = /^\d{1,4}$/.test(parts[1] || '') ? Number(parts[1]) : 0;
-    toast(n >= 1 ? `Exercise ${n} is not in this version of BassClass` : 'This exercise does not exist');
+    note(n >= 1 ? `Exercise ${n} is not in this version of BassClass.` : 'This exercise does not exist.');
     replacing = true;
     location.replace('#/');
     return;
