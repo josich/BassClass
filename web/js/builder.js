@@ -41,11 +41,17 @@ const CORE_DEGREES = new Set(['R', '2', '3', '4', '5', '6', '7', '8', '9', '10',
 const MINOR_CHORD = /^[A-G][♭♯]*(?:m(?!aj)|°|ø|min)/;
 const DIM_CHORD = /°|ø|m7?♭5/;
 const MAJOR_CHORD = /^[A-G][♭♯]*(?:maj7?|maj9|maj13|6|add9)?(?:$|\s|\/|\()/;
+// the ♭9 and ♭13 of a non-dominant chord are tones of its mode (Phrygian, Aeolian, Locrian), and
+// the ♯11 of a major chord is Lydian's: they keep the key's spelling (C♭ in B♭m7 of G♭ major);
+// on a dominant they are alterations and read plainly
+const DOMINANT = /^[A-G][♭♯]*(?:7|9|11|13|alt)/;
 function chordTone(deg, sym) {
   if (CORE_DEGREES.has(deg)) return true;
   if (deg === '♭3' || deg === '♭10') return MINOR_CHORD.test(sym);
   if (deg === '♭5') return DIM_CHORD.test(sym);
   if (deg === '♭7') return !MAJOR_CHORD.test(sym);
+  if (deg === '♭9' || deg === '♭2' || deg === '♭13' || deg === '♭6') return !!sym && !DOMINANT.test(sym);
+  if (deg === '♯11' || deg === '♯4') return MAJOR_CHORD.test(sym) || /^[A-G][♭♯]*maj/.test(sym);
   return false;
 }
 

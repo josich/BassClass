@@ -23,15 +23,15 @@ const GROOVES = {
   bossa: { name: 'Bossa nova (R-5 dotted)', bars: [[['R', 1.5], ['5_', 0.5], ['5_', 1.5], ['R', 0.5]]] },
   tumbao: { name: 'Latin tumbao (anticipated)', bars: [[['-', 1.5], ['5', 1.5], ['N', 1]]] },
   funk16: { name: 'Funk 16ths with ghost notes', bars: [[['R', 0.25], ['x', 0.25], ['x', 0.25], ['R', 0.25], ['-', 0.25], ['x', 0.25], ['b7', 0.25], ['8', 0.25], ['R', 0.25], ['x', 0.25], ['5', 0.25], ['x', 0.25], ['b7', 0.25], ['x', 0.25], ['8', 0.25], ['x', 0.25]]] },
-  countryTwo: { name: 'Country two-beat with a walk-up', bars: [[['R', 1], ['5_', 1], ['R', 1], ['5_', 1]], [['R', 1], ['5_', 1], ['2', 1], ['3', 1]]] },
-  samba: { name: 'Samba (R–5 with the anticipated 16th)', bars: [[['R', 0.75], ['R', 0.25], ['5_', 0.75], ['5_', 0.25], ['R', 0.75], ['R', 0.25], ['5_', 0.75], ['5_', 0.25]]] },
+  countryTwo: { name: 'Country two-beat (R–5 half notes, pickup into the next chord)', bars: [[['R', 2], ['5_', 2]], [['R', 2], ['5_', 1], ['A', 1]]] },
+  samba: { name: 'Samba (R–5 with the anticipated 16th)', bars: [[['R', 0.75], ['5_', 0.25], ['5_', 0.75], ['R', 0.25], ['R', 0.75], ['5_', 0.25], ['5_', 0.75], ['N', 0.25]]] },
   secondLine: { name: 'New Orleans second line', bars: [[['R', 0.5], ['-', 0.25], ['R', 0.25], ['3', 0.5], ['5', 0.5], ['6', 0.5], ['5', 0.25], ['3', 0.25], ['R', 0.5], ['5_', 0.5]]] },
   afrobeat: { name: 'Afrobeat (syncopated R–♭7–8)', bars: [[['R', 0.75], ['R', 0.25], ['-', 0.5], ['b7', 0.5], ['8', 0.5], ['-', 0.25], ['5', 0.25], ['b7', 0.5], ['R', 0.5]]] },
-  neoSoul: { name: 'Neo-soul (laid back, ghost notes)', bars: [[['R', 1], ['x', 0.25], ['5', 0.25], ['-', 0.5], ['b7', 0.75], ['8', 0.25], ['-', 0.5], ['5', 0.5]]] },
+  neoSoul: { name: 'Neo-soul (laid back, ghost notes)', bars: [[['R', 1], ['x', 0.25], ['5', 0.25], ['-', 0.5], ['7', 0.75], ['8', 0.25], ['-', 0.5], ['5', 0.5]]] },
   soulBallad: { name: 'Soul ballad (long roots, passing tones)', bars: [[['R', 2], ['3', 1], ['A', 1]]] },
   pickDown: { name: 'Pick: down-strokes only (punk 8ths)', bars: [e8('R').map(([t, d]) => [t, d, '↓'])] },
   pickAlt: { name: 'Pick: alternate picking (↓ ↑) with the 5th', bars: [[['R', 0.5, '↓'], ['R', 0.5, '↑'], ['R', 0.5, '↓'], ['R', 0.5, '↑'], ['5', 0.5, '↓'], ['5', 0.5, '↑'], ['8', 0.5, '↓'], ['5', 0.5, '↑']]] },
-  gallop: { name: 'Pick: the metal gallop (8th + two 16ths)', bars: [[['R', 0.5, '↓'], ['R', 0.25, '↓'], ['R', 0.25, '↑'], ['R', 0.5, '↓'], ['R', 0.25, '↓'], ['R', 0.25, '↑'], ['R', 0.5, '↓'], ['R', 0.25, '↓'], ['R', 0.25, '↑'], ['5', 0.5, '↓'], ['b7', 0.25, '↓'], ['5', 0.25, '↑']]] },
+  gallop: { name: 'Pick: the metal gallop (8th + two 16ths)', bars: [[['R', 0.5, '↓'], ['R', 0.25, '↓'], ['R', 0.25, '↑'], ['R', 0.5, '↓'], ['R', 0.25, '↓'], ['R', 0.25, '↑'], ['R', 0.5, '↓'], ['R', 0.25, '↓'], ['R', 0.25, '↑'], ['5', 0.5, '↓'], ['8', 0.25, '↓'], ['5', 0.25, '↑']]] },
   funkOct: { name: 'Octave funk 16ths', bars: [[['R', 0.25], ['x', 0.25], ['8', 0.25], ['x', 0.25], ['x', 0.25], ['R', 0.25], ['8', 0.25], ['x', 0.25], ['R', 0.25], ['x', 0.25], ['8', 0.25], ['b7', 0.25], ['x', 0.25], ['8', 0.25], ['R', 0.25], ['x', 0.25]]] },
   fill: {
     name: '3 bars groove + pentatonic fill',
@@ -123,7 +123,7 @@ const funk = grooveEx('gr-funk', 3, ['funk16', 'funkOct', 'fill'], 'funk16', {
 const genres = grooveEx('gr-genres', 3, ['countryTwo', 'samba', 'secondLine', 'afrobeat'], 'countryTwo', {
   title: 'Country, samba, second line & afrobeat',
   summary: 'Four more feels: the country two-beat, samba, the New Orleans second line and afrobeat.',
-  about: 'Every style has its own bass feel. Country alternates root and 5th on beats 1 and 3, with a walk-up into the next chord. Samba is a two-feel with an anticipated 16th before each beat. The New Orleans second line bounces between the root, 3rd, 5th and 6th over a street-parade beat. Afrobeat (Fela Kuti\'s band) repeats a syncopated one-bar figure over a minor vamp.',
+  about: 'Every style has its own bass feel. Country plays root and 5th as half notes on beats 1 and 3 (beats 2 and 4 belong to the snare), with a chromatic pickup into the next chord every other bar. Samba is a two-feel in which the 16th before each beat already plays the next note (R . . 5 | 5 . . R). The New Orleans second line bounces between the root, 3rd, 5th and 6th over a street-parade beat. Afrobeat (Fela Kuti\'s band) repeats a syncopated one-bar figure over a minor vamp.',
   tips: ['Country: keep beats 2 and 4 empty for the snare.', 'Samba: the short 16th is light; the long note carries the beat.', 'Second line: swing it a little and dig into beat 1.'],
   source: 'Ed Friedland "Bass Grooves" and "Building Walking Bass Lines" (styles appendix); Chuck Sher; Berklee styles courses', bpm: 96,
 });
@@ -131,7 +131,7 @@ const genres = grooveEx('gr-genres', 3, ['countryTwo', 'samba', 'secondLine', 'a
 const soul = grooveEx('gr-soul', 4, ['neoSoul', 'soulBallad', 'motown'], 'neoSoul', {
   title: 'Soul and neo-soul: space, ghost notes and passing tones',
   summary: 'Laid-back neo-soul with ghost notes, and the long-note soul ballad with passing tones.',
-  about: 'Soul bass is about space and feel. The neo-soul line (D\'Angelo, Pino Palladino) sits behind the beat with ghost notes and a lazy ♭7. The soul ballad holds the root for two beats, then walks through the 3rd and a chromatic approach into the next chord. Play them with the metronome on 2 and 4 in your head.',
+  about: 'Soul bass is about space and feel. The neo-soul line (D\'Angelo, Pino Palladino) sits behind the beat with ghost notes and leans on the chord\'s 7th. The soul ballad holds the root for two beats, then walks through the 3rd and a chromatic approach into the next chord. Play them with the metronome on 2 and 4 in your head.',
   tips: ['Neo-soul: play slightly late, but always land the root on 1.', 'Ballad: let the long notes ring for their full length.'],
   source: 'Pino Palladino and James Jamerson-style lines; Ed Friedland "R&B Bass Masters"; Berklee', bpm: 76,
 });
@@ -294,8 +294,8 @@ const SLAPS = {
   tmp: { name: 'Thumb – mute – pop (16ths)', bars: [[['R', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['b7', 0.25, 'P'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['5', 0.25, 'T'], ['x', 0.25, 'T']]] },
   hammer: { name: 'Thumb – hammer – pop – pull-off', bars: [[['R', 0.25, 'T'], ['x', 0.25, 'T'], ['b3', 0.25, 'H'], ['8', 0.25, 'P'], ['b7', 0.25, 'PO'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['5', 0.25, 'T'], ['R', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['b3', 0.25, 'H'], ['4', 0.25, 'H'], ['8', 0.25, 'P'], ['b7', 0.25, 'PO'], ['5', 0.25, 'T']]] },
   triad: { name: 'Slap arpeggio (T R, T 5, P 8, P 10)', bars: [[['R', 0.5, 'T'], ['5', 0.5, 'T'], ['8', 0.5, 'P'], ['10', 0.5, 'P'], ['R', 0.5, 'T'], ['5', 0.5, 'T'], ['8', 0.5, 'P'], ['5', 0.5, 'T']]] },
-  ghostFunk: { name: 'Ghost-note funk: T x x P, hammer and pull-off', bars: [[['R', 0.25, 'T'], ['x', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['R', 0.25, 'T'], ['b7', 0.25, 'H'], ['8', 0.25, 'P'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['5', 0.25, 'T'], ['b7', 0.25, 'H'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['b7', 0.25, 'PO'], ['5', 0.25, 'T']]] },
-  popFill: { name: 'Pop fill down the minor pentatonic (pull-offs)', bars: [[['R', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['b7', 0.25, 'PO'], ['5', 0.25, 'T'], ['4', 0.25, 'H'], ['5', 0.25, 'T'], ['b3', 0.25, 'H'], ['R', 0.25, 'T'], ['x', 0.25, 'T']]] },
+  ghostFunk: { name: 'Ghost-note funk: thumb ghosts, hammer-ons, pop and pull-off', bars: [[['R', 0.25, 'T'], ['x', 0.25, 'T'], ['b3', 0.25, 'H'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['5', 0.25, 'T'], ['b7', 0.25, 'H'], ['8', 0.25, 'P'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['b3', 0.25, 'H'], ['4', 0.25, 'T'], ['8', 0.25, 'P'], ['b7', 0.25, 'PO'], ['5', 0.25, 'T'], ['x', 0.25, 'T']]] },
+  popFill: { name: 'Pop fill down the minor pentatonic (pull-offs)', bars: [[['R', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['b7', 0.25, 'PO'], ['5', 0.25, 'T'], ['4', 0.25, 'PO'], ['b3', 0.25, 'PO'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['R', 0.25, 'T']]] },
   double: { name: 'Double thumb (down ↓ / up ↑) + pop', bars: [[['R', 0.25, 'T↓'], ['R', 0.25, 'T↑'], ['8', 0.25, 'P'], ['x', 0.25, 'T↑'], ['R', 0.25, 'T↓'], ['R', 0.25, 'T↑'], ['8', 0.25, 'P'], ['b7', 0.25, 'P'], ['5', 0.25, 'T↓'], ['5', 0.25, 'T↑'], ['8', 0.25, 'P'], ['x', 0.25, 'T↑'], ['R', 0.25, 'T↓'], ['b3', 0.25, 'T↑'], ['4', 0.25, 'H'], ['8', 0.25, 'P']]] },
 };
 

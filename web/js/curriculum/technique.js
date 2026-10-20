@@ -583,7 +583,8 @@ const muting = ex({
       MUTE_PATTERNS[p.pattern].notes.forEach(([ds, f], i) => {
         const s = base + ds;
         if (s >= ctx.tuning.length) return;
-        b.frets([{ s, f, n: spellMidi(ctx.tuning[s] + f), deg: '', dur: on, finger: f === 0 ? 0 : Math.min(4, f), chord: i === 0 && round === 0 ? 'Stop each note' : undefined }]);
+        // second position (index on fret 2): frets 2, 3 and 5 under fingers 1, 2 and 4
+        b.frets([{ s, f, n: spellMidi(ctx.tuning[s] + f), deg: '', dur: on, finger: f === 0 ? 0 : Math.max(1, Math.min(4, f - 1)), chord: i === 0 && round === 0 ? 'Stop each note' : undefined }]);
         b.rest(1 - on);
       });
     }

@@ -1,7 +1,7 @@
 // Modes: relative and parallel views, mode study, chord-scale playing, melodic/harmonic minor and harmonic major modes.
 import {
   T, Builder, keysFor, ex, variant, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS, octP, jazzAltered,
-  progChords, progP, chordRootMidis, emitMixed,
+  progChords, progP, chordRootMidis, emitMixed, modeFor,
 } from './common.js';
 import { scaleBuild } from './scales.js';
 
@@ -94,35 +94,6 @@ const study = ex({
   build(p, ctx, S) { return scaleBuild(p, ctx, S).build({ label: 'degree' }); },
 });
 
-const MODE_FOR = {
-  maj7: 'ionian', dom7: 'mixolydian', min7: 'dorian', m7b5: 'locrianN2', dim7: 'dimWH', mMaj7: 'melodicMinor', maj6: 'ionian', min6: 'melodicMinor',
-  dom7s9: 'altered', dom7b9: 'dimHW', dom7s5: 'wholeTone', dom7b5: 'wholeTone', maj7s5: 'lydianAug',
-};
-const MINOR_TYPES = ['min7', 'min6', 'mMaj7', 'm7b5', 'min'];
-const FAMILY = { maj7: 'maj', maj6: 'maj', maj: 'maj', min7: 'min', min: 'min', dom7: 'dom', m7b5: 'hdim' };
-/** Chord-scale theory (Berklee): a diatonic chord takes the mode of its degree in the key. */
-const BY_DEGREE = {
-  major: { '0:maj': 'ionian', '2:min': 'dorian', '4:min': 'phrygian', '5:maj': 'lydian', '7:dom': 'mixolydian', '9:min': 'aeolian', '11:hdim': 'locrian' },
-  minor: { '0:min': 'aeolian', '2:hdim': 'locrian', '3:maj': 'ionian', '5:min': 'dorian', '7:min': 'phrygian', '8:maj': 'lydian', '10:dom': 'mixolydian' },
-};
-/**
- * Scale for a chord by its function: diatonic chords by degree (IV Lydian, vi Aeolian, a minor key's
- * iiø Locrian), a dominant resolving down a 5th to a minor chord Phrygian dominant (♭9, ♭13), and any
- * other chord by its quality (secondary dominants Mixolydian, m(maj7) melodic minor, °7 whole-half).
- */
-function modeFor(c, next) {
-  const toMinor = next && MINOR_TYPES.includes(next.type) && T.mod(T.pc(next.root) - T.pc(c.root), 12) === 5;
-  if (toMinor && (c.type === 'dom7' || c.type === 'dom7b9')) return 'phrygianDom';
-  const fam = FAMILY[c.type];
-  if (fam && c.key != null) {
-    const deg = T.mod(T.pc(c.root) - c.key, 12);
-    const mode = BY_DEGREE[c.minorKey ? 'minor' : 'major'][`${deg}:${fam}`];
-    if (mode) return mode;
-  }
-  // the iiø of a minor ii–V–i in a major-key progression (Autumn's relative minor) is Locrian too
-  if (c.type === 'm7b5') return 'locrian';
-  return MODE_FOR[c.type] || 'ionian';
-}
 /**
  * Dominant scales are spelled and labelled the jazz way, by semitones above the root:
  * G altered = G A♭ B♭ B D♭ E♭ F (R ♭9 ♯9 3 ♭5 ♭13 ♭7), not C♭ "♭4". 7♭5 keeps the ♭5 of its symbol.

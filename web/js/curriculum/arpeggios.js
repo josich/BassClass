@@ -274,8 +274,9 @@ const dimDominants = ex({
         return { midi: m, n: T.up(domRoot, iv), deg: T.fmtDeg(iv) };
       });
       items[0].chord = chordName(domRoot, 'dom7', S);
-      items[0].text = `lower ${nm(dim[i].n, S)}`;
-      b.line([...items, ...[...items].reverse()], { pattern: false, place: { open: 'avoid', center: r.f + 1 } });
+      // the lowered note named as it is shown (A, not B♭♭, in C°7)
+      items[0].text = `lower ${nm(T.awkward(dim[i].n) ? T.readable(dim[i].n) : dim[i].n, S)}`;
+      b.line([...items, ...[...items].reverse().map((it) => ({ ...it, chord: undefined, text: undefined }))], { pattern: false, place: { open: 'avoid', center: r.f + 1 } });
     }
     return b.build({ label: 'degree' });
   },
@@ -296,8 +297,9 @@ const dimToMinor = ex({
     let prev = null;
     for (const k of keysFor(p.key)) {
       const minor = T.bestRoot(k, ivsOf('min'));
-      // the leading tone, spelled in the key (F𝄪 in G♯ minor), so every resolution is visible
-      const lt = T.up(minor, '7');
+      // the leading-tone diminished chord, named the jazz way (G°7 → G♯m, not F𝄪°7)
+      const lt0 = T.up(minor, '7');
+      const lt = T.awkward(lt0) ? T.readable(lt0) : lt0;
       const r = pickRoot(ctx, k, { strings: ['E', 'A'], hi: 8, prev, prefer: 'A' });
       const ltMidi = r.midi - 1;
       chordTones(lt, ivsOf('dim7'), ltMidi, [0, 1, 2, 3]).forEach((t, j) => items.push({ ...t, chord: j === 0 ? chordName(lt, 'dim7', S) : undefined }));

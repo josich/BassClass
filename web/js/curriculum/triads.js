@@ -65,10 +65,11 @@ export function diatonicBuild(p, ctx, S, { offsets, order, inversion = 0, sizeLa
       const oct = Math.floor(d / 7) * 7;
       const group = order(i, offsets.length).map((ti, j) => {
         const idx = st.idxs[ti % st.idxs.length] + oct + Math.floor(ti / st.idxs.length) * 7;
-        return {
-          ...scaleTone(tonic, p.scale, r.midi, idx, st.root),
-          chord: j === 0 ? st.sym : undefined, text: j === 0 ? st.roman : undefined,
-        };
+        const tone = scaleTone(tonic, p.scale, r.midi, idx, st.root);
+        // a 3rd above the octave is a 10th (R-5-10 voicings)
+        const rootMidi = T.scalePitch(tonic, p.scale, r.midi, st.k + oct).midi;
+        if (tone.midi - rootMidi > 12 && (tone.deg === '3' || tone.deg === '♭3')) tone.deg = tone.deg === '3' ? '10' : '♭10';
+        return { ...tone, chord: j === 0 ? st.sym : undefined, text: j === 0 ? st.roman : undefined };
       });
       // fold a chord down an octave when it would run off the top of the neck
       const top = Math.max(...group.map((g) => g.midi));
@@ -78,8 +79,30 @@ export function diatonicBuild(p, ctx, S, { offsets, order, inversion = 0, sizeLa
       items.push(...group.map((g) => ({ ...g, midi: g.midi + fold })));
     });
     if (many) items[0].text = `${nm(tonic, S)} ${T.SCALES[p.scale].name}`;
-    // fingered in played order so every chord stays a compact shape
-    b.line(items, { pattern: false, place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
+    // every chord is one hand shape (four frets at most, never three notes on one string) in the
+    // position where the exercise starts, moving only as far as the chord needs; a chord with no
+    // such shape falls back to the line placement
+    const home = r.f + 1;
+    let center = home, firstChord = true;
+    const groups = [];
+    for (const it of items) { if (it.chord || !groups.length) groups.push([]); groups[groups.length - 1].push(it); }
+    for (const g of groups) {
+      const uniq = [...new Set(g.map((x) => x.midi))].sort((a, c) => a - c);
+      const perString = (c) => Math.max(...[...new Set(c.pos.map((q) => q.s))].map((sv) => c.pos.filter((q) => q.s === sv).length));
+      const cands = shapes(uniq, ctx, { lo: 1, hi: ctx.maxFret, maxSpan: 4 }).filter((c) => perString(c) <= 2);
+      if (!cands.length) { b.line(g, { pattern: true, place: { open: 'avoid', center } }); continue; }
+      const mid = (c) => c.pos.reduce((a, q) => a + q.f, 0) / c.pos.length;
+      const score = (c) => c.cost + Math.abs(mid(c) - home) * 0.6 + Math.abs(mid(c) - center) * 0.4
+        + (perString(c) > 1 ? 0.3 : 0) + (firstChord && c.pos[0].s !== r.s ? 4 : 0);
+      const best = cands.reduce((A, c) => (score(c) < score(A) ? c : A));
+      const at = new Map(uniq.map((m, j) => [m, best.pos[j]]));
+      // one finger per fret from the lowest fret; a four-fret span puts the little finger on the top
+      const lo = Math.min(...best.pos.map((q) => q.f)), span = Math.max(...best.pos.map((q) => q.f)) - lo;
+      const finger = (f) => (span <= 3 ? f - lo + 1 : 1 + Math.round(((f - lo) * 3) / span));
+      b.frets(g.map((x) => { const q = at.get(x.midi); return { ...x, s: q.s, f: q.f, finger: finger(q.f) }; }));
+      center = mid(best);
+      firstChord = false;
+    }
     prev = r.midi;
   }
   return b;
