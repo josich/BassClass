@@ -3,7 +3,7 @@ import {
   T, Builder, keysFor, chordTones, ARP_SHAPES, BROKEN_SHAPES, ex, variant, keyP, sel, nm, chordName, cycleRoot, QUALITY_TRIADS,
   ZONES, zoneP, rootStrP, orderP, pickRoot, zoneShape, emitShapeF, TRIAD_ORDERS, shapes, voiceLedItems,
   emitMixed, progChords, progP, diatonicStacks, scaleTone, DEG_SEQ, degSeqP, SCALE_TYPE_OPTS, spellMidi,
-  shapeFingers,
+  shapeFingers, scaleRun, rootStrLowP, dirP,
 } from './common.js';
 
 const M = 'triads';
@@ -265,6 +265,100 @@ const threeForms = ex({
     for (const s of picked) {
       b.chord(chordName(root, p.quality, S), `Root on finger ${s.rootFinger}`);
       emitShapeF(b, root, ivs, s.pos, TRIAD_ORDERS[p.pattern].f(0));
+    }
+    return b.build({ label: 'finger' });
+  },
+});
+
+/**
+ * One octave of a scale from a root played with a chosen finger: one finger per fret, strings only
+ * go up, and the hand stays in the starting position as long as it can, then shifts as little as
+ * possible (a shift along a string always follows the line). Returns [{s, f, finger}] for the
+ * ascending notes, or null when the form does not fit on the neck.
+ */
+function scaleForm(midis, ctx, rootS, rootF, startFinger) {
+  const pos0 = rootF - startFinger + 1;
+  if (pos0 < 1) return null;
+  const topS = Math.min(ctx.tuning.length - 1, rootS + 3);
+  let states = [{ s: rootS, pos: pos0, c: 0, path: [{ s: rootS, f: rootF, finger: startFinger }] }];
+  for (let i = 1; i < midis.length; i++) {
+    const next = new Map();
+    for (const st of states) {
+      for (let s = st.s; s <= topS; s++) {
+        const f = midis[i] - ctx.tuning[s];
+        if (f < 1 || f > ctx.maxFret) continue;
+        for (let fg = 1; fg <= 4; fg++) {
+          const pos = f - fg + 1;
+          if (pos < 1) continue;
+          const shift = pos !== st.pos;
+          // going up a string the hand never moves down (that is a pivot, not a shift)
+          if (shift && s === st.s && pos < st.pos) continue;
+          // a shift costs most, each note away from the starting position a little (so the form
+          // keeps its shape as long as it can), a skipped string a little
+          const c = st.c + (shift ? 4 + Math.abs(pos - st.pos) : 0) + (pos !== pos0 ? 1 : 0) + (s - st.s > 1 ? 3 : 0);
+          const key = `${s}:${f}:${pos}`;
+          if (!next.has(key) || next.get(key).c > c) next.set(key, { s, pos, c, path: [...st.path, { s, f, finger: fg }] });
+        }
+      }
+    }
+    states = [...next.values()];
+    if (!states.length) return null;
+  }
+  return states.reduce((a, b2) => (b2.c < a.c ? b2 : a)).path;
+}
+
+const FORM_FINGERS = [1, 2, 4];
+const scaleForms = ex({
+  id: 'tri-scale-forms', module: M, level: 3,
+  title: 'The 3 scale fingerings (root under finger 1, 2 or 4)',
+  summary: 'The same major or minor scale three times from the same root: with the root under finger 1, 2 and 4.',
+  about: 'Like the triads in the exercise before, every scale has three fingerings, named after the finger that plays the root. The root stays on the same fret and the hand moves around it. In major, the root under finger 2 is the one-position shape (2-4, 1-2-4, 1-3-4); with the root under finger 1 or 4 the hand makes one small shift. In natural minor it is the other way round: the root under finger 1 (1-3-4, 1-3-4, 1-3) fits in one position, and so does the root under finger 4 when the scale can climb four strings (4, 1-2-4, 1-2-4, 1); the root under finger 2 needs the shift. Learn all three and you can start a scale wherever your hand already is.',
+  tips: ['Name the form before you play it: "one", "two", "four".', 'Play the shift with the finger that is moving, sliding lightly, and keep the same fingering on the way down.', 'Pair it with the triad fingerings of the exercise before: the same idea with three notes instead of seven.'],
+  source: 'One-finger-per-fret scale fingerings by starting finger (StudyBass scale patterns; Hal Leonard Bass Method; Berklee position playing)',
+  params: {
+    type: sel('Scale', [['ionian', 'Major'], ['aeolian', 'Natural minor']]), key: keyP(T.SCALES.ionian.iv),
+    form: sel('Root finger', [['all', 'All three (1, 2, 4)'], ['1', 'Finger 1'], ['2', 'Finger 2'], ['4', 'Finger 4']]),
+    root: rootStrLowP('E'), dir: dirP,
+  },
+  bpm: 66, sub: 1, label: 'finger',
+  build(p, ctx, S) {
+    const b = new Builder(ctx, S);
+    const fingers = p.form === 'all' ? FORM_FINGERS : [Number(p.form)];
+    const keys = keysFor(p.key);
+    for (const k of keys) {
+      const tonic = T.bestRoot(k, T.SCALES[p.type].iv);
+      // the lowest root fret on a string where every chosen form fits
+      const rootOnString = (s0, maxF) => {
+        let best = null;
+        for (let f = 1; f <= maxF; f++) {
+          const midi = ctx.tuning[s0] + f;
+          if (T.mod(midi, 12) !== k) continue;
+          const up = scaleRun(tonic, p.type, midi, { dir: 'up' });
+          const forms = fingers.map((fg) => ({ fg, path: scaleForm(up.map((q) => q.midi), ctx, s0, f, fg) })).filter((x) => x.path);
+          if (!best || forms.length > best.forms.length) best = { s: s0, f, up, forms };
+          if (forms.length === fingers.length) break;
+        }
+        return best;
+      };
+      const s0 = Math.max(0, ctx.str(p.root));
+      let best = rootOnString(s0, ctx.maxFret);
+      // a root too low for the finger-4 form (C at fret 3 of the A string) would climb to fret 15:
+      // it moves to the string below instead (from the lowest string, to the one above), where the
+      // forms sit in the middle of the neck
+      const other = s0 > 0 ? s0 - 1 : s0 + 1 <= ctx.tuning.length - 3 ? s0 + 1 : -1;
+      if (best.f > 12 && other >= 0) {
+        const moved = rootOnString(other, 12);
+        if (moved && moved.f <= 12 && moved.forms.length === best.forms.length) {
+          if (keys.length === 1) b.fixed = { root: `${ctx.names[other]} string (on the ${p.root} string the forms would start at fret ${best.f})` };
+          best = moved;
+        }
+      }
+      for (const { fg, path } of best.forms) {
+        const notes = best.up.map((q, i) => ({ ...path[i], n: q.n, deg: q.deg }));
+        const seq = p.dir === 'up' ? notes : p.dir === 'down' ? [...notes].reverse() : [...notes, ...[...notes].reverse().slice(1)];
+        b.chord(`${nm(tonic, S)} ${p.type === 'ionian' ? 'major' : 'minor'}`, `Root under finger ${fg}`);
+        b.frets(seq);
+      }
     }
     return b.build({ label: 'finger' });
   },
@@ -786,7 +880,7 @@ const rudimentsAllKeys = variant(rudiments, {
 });
 
 export default [
-  triadShape, majVsMin, triadQualities, fourTypes, zoneCycle, threeForms, neckChain, inversions,
+  triadShape, majVsMin, triadQualities, fourTypes, zoneCycle, threeForms, scaleForms, neckChain, inversions,
   diatonic, diatonicMinor, diatonicInv, diatonic4ths, openTriads, twoOctave, stringSets,
   voiceLedCycle, progressions, approachTriads, permutations, rudiments, triadPairs, diatonicModes,
   susQuartal, upperStructures, coltrane, allInversionsCycle, diatonicAllKeys, rudimentsAllKeys,
