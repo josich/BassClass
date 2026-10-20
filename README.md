@@ -2,6 +2,7 @@
 
 A landscape app to learn bass from the first open string to mastery. Every exercise is shown **note by note on a fretboard**. Each marker appears as it plays, with the note name, degree or finger, and a dashed arc points to the next note. You hear a **recorded bass**, a metronome counts, and a scrolling tab strip below the neck shows what is coming. A **microphone tuner** is built in.
 
+- **A guided course.** A teacher's path through the exercises: stages, units and short lessons. Each lesson has one key idea, a short explanation, a demo the app plays on the neck, practice steps with a starting and a goal tempo, a "make music" step over the backing, and the common mistakes to avoid. A step passes when the app has recorded a full loop at the goal tempo and you tick ✓ Clean. Every unit ends with a checkpoint ("I can…"), every stage with a test. Nothing is locked: the course points at the next lesson. Home builds a 15/30/45-minute session every day (warm-up, the reviews that are due, the next lesson steps, an ear or reading drill); completed lessons come back for review after 1, 3, 7 and 21 days. A placement check marks what you already know. Stages 1–2 (Levels 1–2: 16 units, 52 lessons) are in; later stages follow.
 - **191 exercise families** in 15 modules and 6 levels: fretboard & notes, **reading (bass clef)**, technique/rudiments, rhythm, intervals, **ear training**, scales, modes, triads, arpeggios & 7ths, chords & harmony, grooves, walking bass, **jazz licks**, slap. See [docs/CATALOGUE.md](docs/CATALOGUE.md).
 - **Tab or staff.** The strip under the neck shows tab or standard notation on a bass-clef staff, engraved properly: written an octave above the sound, key and time signatures, dotted values, ties, rests, beams per beat, tuplets, accidentals held to the bar line and 8va above the ledger lines. The Reading exercises open on the staff, show no note names and hide each dot until it sounds.
 - **Backing.** A soft pad under any exercise with chords or scales: a drone on the root, or the chords (the mode's triad, or the chord of the progression).
@@ -13,7 +14,7 @@ A landscape app to learn bass from the first open string to mastery. Every exerc
 - **Tuner.** Chromatic or per-string, with a cents gauge, adjustable A4 and reference tones. It uses YIN pitch detection, which works down to a 5-string's low B.
 - **Elegant fretboard.** Navy board, nickel round-wound strings drawn at real gauge ratios (.045–.130), and glossy colour-coded markers (root = square).
 - **Built for practice.** Step-by-step mode (◀ ▶), loop, tempo 30–260 BPM, subdivision selector (whole notes to sextuplets; fixed where the rhythm is written in, as in licks and grooves), count-in, speed trainer (+4 BPM per loop), "Shape" and "Quiz" reveal modes, mastered/best-BPM tracking and a neck explorer.
-- **Organised for daily use.** Home holds the daily warm-up (a fresh random routine every day) and your favourites: star any exercise and drag the list into your own order. The Path walks through the topics, and the Library shows every exercise at once, by level, with search. Every exercise has a number, its place in the Library (1 = Alternate plucking, 2 = Chromatic 1-2-3-4…), so you can point someone to "exercise 42": type 42 in the search, or open `#/ex/42`. Numbers can move up when new exercises are added before them.
+- **Organised for daily use.** Home holds the course, the daily warm-up (a fresh random routine every day) and your favourites: star any exercise and drag the list into your own order. The Path walks through the topics, and the Library shows every exercise at once, by level, with search. Every exercise has a number, its place in the Library (1 = Alternate plucking, 2 = Chromatic 1-2-3-4…), so you can point someone to "exercise 42": type 42 in the search, or open `#/ex/42`. Numbers can move up when new exercises are added before them.
 - **Jazz licks for advanced players.** 33 original phrases in real jazz vocabulary (ii–V–I, minor ii–V–i, blues, turnarounds, bebop, modern sounds, bass-solo devices). Each plays over its chord changes in all 12 keys, with swing and colour-coded tensions.
 - **Grounded in real curricula.** Content draws on Scott's Bass Lessons, TalkingBass, StudyBass, BassBuzz, RSL/Trinity/LCM grades, Berklee, MI, Spanish conservatories, Bass Fitness, Willis, Friedland, Barry Harris, Banacos, Gwizdala and others. See [docs/RESEARCH.md](docs/RESEARCH.md).
 
@@ -70,8 +71,9 @@ web/                    the app (static HTML/CSS/JS, no build step)
   audio/bass/           recorded bass samples (CC0), see audio/bass/LICENSE.txt
   js/player.js          sample-accurate scheduler, loop, speed trainer
   js/views/             SVG fretboard and tab strip
-  js/ui/                screens (home with warm-up + favorites, path, library, explorer, settings, player)
+  js/ui/                screens (home with course + warm-up + favorites, course, path, library, explorer, settings, player)
   js/curriculum/        all exercise generators, one file per module
+  js/course/            the guided course: data.js (stages, units, lessons, steps), progress.js (tempos, ticks, reviews)
   js/selftest.js        builds every exercise on 4/5/6-string and checks every note
   js/dev/sampleprep.js  dev tool that converted the raw samples (trim, retune, level-match, 22 kHz)
 android/                Android Studio WebView wrapper (Kotlin)
@@ -104,6 +106,16 @@ Add it to the module's `export default [...]` list, at the place where it belong
 ```js
 (await import('./js/selftest.js')).run()
 ```
+
+## Adding a course lesson
+
+Lessons live in `js/course/data.js`. A step opens an exercise with the options that matter for the lesson (`p`, by option value; the others stay the player's own) and gives its tempos:
+
+```js
+{ ex: 'sc-one-octave', p: { type: 'ionian', key: '0', root: 'A', oct: '1' }, from: 60, goal: 84, do: 'C major from the A string.' }
+```
+
+Leave out `goal` for drills without a tempo target (ear training: one full loop passes). `music: true` marks the "make music" step and `backing: 'chords'` (or `'drone'`) turns the backing on for that step only. Lesson ids are stored in the player's progress, so never rename one. The self-test checks every step: the exercise and its options exist on a 4-string bass, the tempos make sense and it builds on 4, 5 and 6 strings.
 
 ## Credits
 

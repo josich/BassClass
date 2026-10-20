@@ -26,6 +26,7 @@
 - `web/` is the whole app: static ES modules, no build step. `android/` wraps it in a WebView (`assets.srcDirs("../../web")`).
 - This PC has no JDK, Android SDK, Node, Gradle or numpy, so APKs are built only by GitHub Actions. Audio processing runs in the browser (`web/js/dev/sampleprep.js`).
 - Exercises live in `web/js/curriculum/`, one file per module, with shared helpers in `common.js`. See README "Adding an exercise".
+- The guided Course (user, 2026-10-20) lives in `web/js/course/`: `data.js` (stages → units → lessons → steps; a step = exercise id + preset options `p` + `from`/`goal` tempo), `progress.js` (localStorage `bassclass.course.v1`), and `web/js/ui/course.js` (Home block, `#/course`, `#/course/<lesson>`, `#/course/placement`). An exercise opened from a lesson carries `ls=<lesson>.<step>` (and `demo=1` for "Hear it"). Lesson ids are stored: never rename one. The self-test checks every step. See README "Adding a course lesson".
 - Exercise numbers follow the Library order: level, then topic (PATH_ORDER), then the order of the module's `export default [...]` list (computed in `curriculum/index.js`). Put a new exercise where it belongs in that list; the ones after it move up by one (user's choice, 2026-10-15, replacing the earlier frozen `numbers.js`). Everything stored uses ids, never numbers.
 - `web/js/version.js` is overwritten by CI with the release number (`1.0.<run number>`) and commit, shown at the bottom of Settings. Keep the committed copy empty (it reads "development version" locally).
 - Sound: CC0 Karoryfer "darkblack" bass samples in `web/audio/bass/` (B0–E4, plus ghost notes); `web/js/audio.js` falls back to a synth.
@@ -43,6 +44,7 @@
 - Relay an `URGENT:` line at once. Otherwise summarise both reports for the user, grouped by severity with a recommendation, and **fix only what the user picks**. Log the user's decisions below so QA stops re-reporting them.
 
 ### Decisions QA should not re-report
+- The Course (user, 2026-10-20): a guided path of stages, units and lessons built on the existing exercises (each lesson: idea, concept, "Hear it" demo, practice steps, make music, common mistakes; a checkpoint per unit, a test per stage). A step passes on the goal tempo the app records for a full loop at the lesson's options plus the player's own ✓ Clean tick (no goal: one loop). Nothing is locked; the course recommends the next lesson. Home is course-first (Continue + a 15/30/45-minute session with spaced reviews after 1, 3, 7, 21 and 60 days); Path and Library stay. Lesson steps do not change the exercise's saved options or tempo; a step's backing does not change the Backing setting. Phase 1 covers Stages 1–2 (Levels 1–2); later stages follow.
 - Navy/teal/periwinkle/peach design; root notes drawn as rounded squares; real string-gauge proportions.
 - The signing key `android/app/bassclass.p12` is committed on purpose (sideloaded app; updates must install over each other).
 - Jazz licks are original vocabulary, not transcriptions.

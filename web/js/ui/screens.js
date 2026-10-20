@@ -1,4 +1,4 @@
-// Browsing screens: home (daily warm-up + favorites), learning path (topics), library (every exercise), module list, explorer, settings.
+// Browsing screens: home (course, daily warm-up, favorites), learning path (topics), library (every exercise), module list, explorer, settings.
 import { VERSION, COMMIT } from '../version.js';
 import { h, icon, toast, rng, esc } from './dom.js';
 import { settings, saveSettings, getProgress, allProgress, resetProgress, DEFAULT_SETTINGS, getFavorites } from '../store.js';
@@ -9,6 +9,7 @@ import * as T from '../theory.js';
 import * as A from '../audio.js';
 import { paramSummary, paramOptions } from './exercise.js';
 import { starButton, dragToReorder } from './favorites.js';
+import { courseBlock } from './course.js';
 
 export const go = (hash) => { location.hash = hash; };
 export const exHref = (id, params) => {
@@ -40,27 +41,15 @@ function moduleStats(id) {
 /** In-app back: one step back when we came from inside the app, otherwise to `fallback`. */
 const back = (fallback) => (history.state?.depth > 0 ? history.back() : go(fallback));
 
-// ---------------------------------------------------------------- home: daily warm-up + favorites
+// ---------------------------------------------------------------- home: course, daily warm-up, favorites
 export function homeScreen(main) {
   const prog = allProgress();
   const last = Object.entries(prog).filter(([id]) => byId.has(id)).sort((a, b) => (b[1].last || 0) - (a[1].last || 0))[0];
   const lastT = last ? byId.get(last[0]) : null;
-  const started = Object.values(prog).some((v) => v.plays || v.done);
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('h1', {}, 'BassClass'), h('div', { class: 'grow' }),
-      lastT ? h('button', { class: 'btn continue', title: lastT.title, onClick: () => go(exHref(lastT.id)) }, `▶ Continue: ${lastT.title}`) : null),
-    h('div', { class: 'home-cols' }, started ? null : startHere(), warmupBlock(), favoritesBlock()));
-}
-
-/** Shown until the first exercise has been played: where a new player begins. */
-function startHere() {
-  const first = byNumber.get(1);
-  return h('section', { class: 'block start-here' },
-    h('div', { class: 'block-head' }, h('h2', {}, '👋 New here? Start with Level 1')),
-    h('p', { class: 'muted small' }, 'Level 1 builds the basics: plucking and fretting, steady time, the open strings and your first notes, scales and triads. Begin with the first exercise, then let the daily warm-up below (set to Level 1) mix them for you.'),
-    h('div', { class: 'row' },
-      h('button', { class: 'btn primary', onClick: () => go(exHref(first.id)) }, `▶ ${first.title}`),
-      h('button', { class: 'btn', onClick: () => go('#/library?l=1') }, 'See all of Level 1')));
+      lastT ? h('button', { class: 'btn continue', title: `Back to the last exercise you opened: ${lastT.title}`, onClick: () => go(exHref(lastT.id)) }, `↺ Last exercise: ${lastT.title}`) : null),
+    h('div', { class: 'home-cols' }, courseBlock(), warmupBlock(), favoritesBlock()));
 }
 
 // ---------------------------------------------------------------- warm-up (daily random routine)
@@ -73,7 +62,10 @@ const WARMUP_SLOTS = [
   { label: 'Groove', modules: ['grooves', 'walking', 'rhythm', 'licks'] },
 ];
 
+// the steps of the warm-up or session being played (exercise screens step through them with Next)
 export let currentRoutine = null;
+export let routineLabel = 'Warm-up';
+export function setRoutine(items, label = 'Warm-up') { currentRoutine = items; routineLabel = label; }
 let shuffled = null; // a shuffle lasts until the app is closed
 
 export function buildRoutine(level, seed) {
@@ -109,12 +101,12 @@ function warmupBlock() {
   const lvName = h('span', { class: 'lv-name' });
   const render = () => {
     const items = buildRoutine(level, (shuffled ?? daily) + level * 7);
-    currentRoutine = items;
+    setRoutine(items);
     lvTabs.replaceChildren(...LEVELS.map((L) => h('button', { class: L.n === level ? 'on' : '', title: L.name, onClick: () => { level = L.n; saveSettings({ level }); render(); } }, `L${L.n}`)));
     lvName.textContent = `Level ${level} · ${LEVELS[level - 1].name}`;
     listEl.replaceChildren(...items.map((it, i) => {
       const t = byId.get(it.id);
-      return h('div', { class: 'item', onClick: () => go(exHref(it.id, { ...it.params, wu: i })) },
+      return h('div', { class: 'item', onClick: () => { setRoutine(items); go(exHref(it.id, { ...it.params, wu: i })); } },
         h('div', { class: 'n' }, i + 1),
         h('div', { class: 't' }, h('b', {}, `${it.slot}: `, h('span', { class: 'ex-num' }, t.num), t.title), h('span', {}, paramSummary(t, it.params, settings))),
         h('span', { class: `chip lv lv${t.level}` }, `L${t.level}`));
@@ -124,7 +116,7 @@ function warmupBlock() {
   return h('section', { class: 'block' },
     h('div', { class: 'block-head' }, h('h2', {}, '🔥 Daily warm-up'), h('div', { class: 'grow' }),
       h('button', { class: 'icon-btn shuffle', title: 'Shuffle: a new random routine', 'aria-label': 'Shuffle', html: icon('dice'), onClick: () => { shuffled = Math.floor(Math.random() * 1e9); render(); } }),
-      h('button', { class: 'btn primary', onClick: () => { const it = currentRoutine[0]; go(exHref(it.id, { ...it.params, wu: 0 })); } }, '▶ Start')),
+      h('button', { class: 'btn primary', onClick: () => { const items = buildRoutine(level, (shuffled ?? daily) + level * 7); setRoutine(items); go(exHref(items[0].id, { ...items[0].params, wu: 0 })); } }, '▶ Start')),
     h('p', { class: 'muted small' }, 'A fresh routine every day: hands, fretboard, scales, triads, arpeggios and groove. About 5 minutes each.'),
     h('div', { class: 'row lv-row' }, lvTabs, lvName),
     listEl);

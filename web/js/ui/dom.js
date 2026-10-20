@@ -54,13 +54,13 @@ const P = {
 export const icon = (name) => `<svg viewBox="0 0 24 24" aria-hidden="true">${P[name] || ''}</svg>`;
 
 let toastTimer = null;
-export function toast(msg) {
+export function toast(msg, ms = 1800) {
   let el = document.querySelector('.toast');
   if (!el) { el = h('div', { class: 'toast' }); document.body.append(el); }
   el.textContent = msg;
   el.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
+  toastTimer = setTimeout(() => el.classList.remove('show'), ms);
 }
 
 /** Deterministic PRNG (mulberry32) for daily routines. */

@@ -7,8 +7,10 @@ import { settings } from './store.js';
 import { tunerScreen } from './ui/tuner.js';
 import {
   homeScreen, pathScreen, libraryScreen, moduleScreen, explorerScreen, settingsScreen,
-  currentRoutine, exHref, go,
+  currentRoutine, routineLabel, exHref, go,
 } from './ui/screens.js';
+import { courseScreen, lessonScreen, placementScreen, stepHref } from './ui/course.js';
+import { lessonById } from './course/data.js';
 
 const app = document.getElementById('app');
 const NAV = [
@@ -74,23 +76,44 @@ function route() {
   if (exTpl) {
     const tpl = exTpl;
     const wu = params.wu != null ? Number(params.wu) : null;
-    delete params.wu;
+    const ls = params.ls || '';
+    const demo = params.demo === '1';
+    delete params.wu; delete params.ls; delete params.demo;
     let routine = null;
     if (wu != null && currentRoutine && currentRoutine[wu]) {
+      const list = currentRoutine;
       routine = {
         index: wu,
-        total: currentRoutine.length,
+        total: list.length,
+        label: routineLabel,
         next: () => {
-          const nx = currentRoutine[wu + 1];
+          const nx = list[wu + 1];
           // the routine replaces one exercise with the next; Finish steps back to where it started
           if (!nx) { back(); return; }
           replacing = true;
-          location.replace(exHref(nx.id, { ...nx.params, wu: wu + 1 }));
+          location.replace(exHref(nx.id, { ...nx.params, ...(nx.ls ? { ls: nx.ls } : {}), wu: wu + 1 }));
+        },
+      };
+    }
+    // a course lesson step ("ls=<lesson>.<step>"): its goal, its clean tick, Next to the following step
+    let lesson = null;
+    const [lid, si] = ls.split('.');
+    const L = lessonById.get(lid);
+    const index = Number(si);
+    if (L && L.steps[index]?.ex === tpl.id) {
+      lesson = {
+        lesson: L, index, step: L.steps[index], demo,
+        // the demo leads into the first step; the last step goes back to the lesson page
+        next: () => {
+          const j = demo ? 0 : index + 1;
+          if (!L.steps[j]) { back(); return; }
+          replacing = true;
+          location.replace(stepHref(L, j));
         },
       };
     }
     try {
-      active = renderExercise(app, tpl, { params, routine, onBack: back });
+      active = renderExercise(app, tpl, { params, routine, lesson, onBack: back });
     } catch (err) {
       console.error(err);
       document.body.classList.remove('in-ex');
@@ -108,10 +131,13 @@ function route() {
     location.replace('#/');
     return;
   }
-  // the daily warm-up lives on Home; topics (#/m/...) belong to the Path
-  const key = { '': 'home', path: 'path', library: 'library', m: 'path', explorer: 'explorer', tuner: 'tuner', settings: 'settings' }[parts[0] || ''] || 'home';
+  // the daily warm-up and the course live on Home; topics (#/m/...) belong to the Path
+  const key = { '': 'home', course: 'home', path: 'path', library: 'library', m: 'path', explorer: 'explorer', tuner: 'tuner', settings: 'settings' }[parts[0] || ''] || 'home';
   const main = shell(key);
-  if (parts[0] === 'path') pathScreen(main);
+  if (parts[0] === 'course' && parts[1] === 'placement') placementScreen(main);
+  else if (parts[0] === 'course' && parts[1]) lessonScreen(main, parts[1]);
+  else if (parts[0] === 'course') courseScreen(main);
+  else if (parts[0] === 'path') pathScreen(main);
   else if (parts[0] === 'library') libraryScreen(main, params);
   else if (parts[0] === 'm') moduleScreen(main, parts[1]);
   else if (parts[0] === 'explorer') active = explorerScreen(main);

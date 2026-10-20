@@ -1,7 +1,9 @@
 // Dev self-test: builds every exercise across its parameter space on 4/5/6-string
-// basses and checks that every note is playable and correctly spelled.
+// basses and checks that every note is playable and correctly spelled, and that every step of
+// the guided course opens an exercise with options it has.
 // Run in the browser console:  (await import('./js/selftest.js')).run()
-import { EXERCISES, byNumber } from './curriculum/index.js';
+import { EXERCISES, byNumber, byId, defaultParams } from './curriculum/index.js';
+import { LESSONS } from './course/data.js';
 import { makeCtx } from './fretboard.js';
 import * as T from './theory.js';
 
@@ -30,9 +32,42 @@ function combos(params, limit = 400, strings = 4) {
   return out.slice(0, limit);
 }
 
+/** The course: unique lesson ids, real exercises and options (on any bass), sane tempos, every step builds. */
+function checkCourse(problems, strings) {
+  const ids = new Set();
+  for (const l of LESSONS) {
+    if (ids.has(l.id)) problems.push(`course: duplicate lesson id ${l.id}`);
+    ids.add(l.id);
+    if (!l.steps?.length) problems.push(`course ${l.id}: no steps`);
+    if (l.kind === 'lesson' && (!l.idea || !l.concept?.length || !l.mistakes?.length)) problems.push(`course ${l.id}: idea, concept or mistakes missing`);
+    if (l.kind !== 'lesson' && !l.can?.length) problems.push(`course ${l.id}: a checkpoint needs its "I can" list`);
+    (l.steps || []).forEach((st, i) => {
+      const where = `course ${l.id} step ${i}`;
+      const t = byId.get(st.ex);
+      if (!t) { problems.push(`${where}: no exercise ${st.ex}`); return; }
+      for (const [k, v] of Object.entries(st.p || {})) {
+        const def = t.params?.[k];
+        if (!def) { problems.push(`${where}: ${st.ex} has no option ${k}`); continue; }
+        // (an option that needs a 5- or 6-string bass would not open on a 4-string)
+        const ok = typeof v === 'string' && (def.kind === 'key' ? /^(\d|1[01])$/.test(v) : def.options.some((o) => o[0] === v && !o[2]?.minStrings));
+        if (!ok) problems.push(`${where}: ${k}=${v} is not an option of ${st.ex}`);
+      }
+      if (st.goal != null && !(st.from >= 30 && st.goal <= 260 && st.from <= st.goal)) problems.push(`${where}: tempo ${st.from} → ${st.goal}`);
+      if (st.backing && !['off', 'drone', 'chords'].includes(st.backing)) problems.push(`${where}: backing ${st.backing}`);
+      for (const n of strings) {
+        const S = { strings: n, notation: 'letters', maxFret: 20 };
+        try {
+          if (!t.build({ ...defaultParams(t), ...st.p }, makeCtx(S), S)?.steps?.length) problems.push(`${where} [${n}str]: empty`);
+        } catch (e) { problems.push(`${where} [${n}str]: threw ${e.message}`); }
+      }
+    });
+  }
+}
+
 export function run({ strings = [4, 5, 6], verbose = false } = {}) {
   const problems = [];
   let builds = 0, notes = 0;
+  checkCourse(problems, strings);
   // every exercise has its own number (its place in the Library: level, topic, module order)
   for (const t of EXERCISES) if (!(t.num > 0) || byNumber.get(t.num) !== t) problems.push(`${t.id}: missing or duplicate number ${t.num}`);
   for (const st of strings) {
@@ -67,7 +102,7 @@ export function run({ strings = [4, 5, 6], verbose = false } = {}) {
     }
   }
   const uniq = [...new Set(problems.map((x) => x.replace(/step \d+.*/, '')))];
-  const summary = { exercises: EXERCISES.length, builds, notes, problems: problems.length, sample: uniq.slice(0, verbose ? 200 : 25) };
+  const summary = { exercises: EXERCISES.length, lessons: LESSONS.length, builds, notes, problems: problems.length, sample: uniq.slice(0, verbose ? 200 : 25) };
   console.log(summary);
   return summary;
 }
