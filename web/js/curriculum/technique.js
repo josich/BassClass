@@ -393,7 +393,10 @@ const dynamics = ex({
       b.chord(mark);
       b.frets([1, 2, 3, 4, 4, 3, 2, 1].map((fg) => F(ctx, a, pos + fg - 1, fg, { vel })));
     }
-    return b.build({ label: 'finger' });
+    const inst = b.build({ label: 'finger' });
+    // the marks are dynamics, not chords: the staff writes them below, in bold italic
+    for (const st of inst.steps) if (st.chord) st.dyn = true;
+    return inst;
   },
 });
 

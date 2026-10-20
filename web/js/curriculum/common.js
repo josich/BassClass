@@ -424,6 +424,21 @@ export function grooveLine(b, chords, roots, pattern, { tags = true, place: popt
   emitMixed(b, pitches, popts);
 }
 
+/**
+ * Key signature (sharps +, flats −) of a scale on a tonic, or null when none applies. Modes of the
+ * major scale take their parent's signature (D Dorian: none, E♭ Lydian: two flats); harmonic and
+ * melodic minor, the minor pentatonic and the blues scale take the tonic's minor key; the major
+ * pentatonic, major blues and harmonic major its major key. Other scales are written with accidentals.
+ */
+export function keySigFor(tonic, type) {
+  const sum = (mode) => T.SCALES[mode].iv.map((iv) => T.up(tonic, iv)).reduce((a, n) => a + Math.sign(n.a), 0);
+  let ks = null;
+  if (T.MAJOR_MODES.includes(type)) ks = sum(type);
+  else if (['harmonicMinor', 'melodicMinor', 'minorPent', 'blues'].includes(type)) ks = sum('aeolian');
+  else if (['majorPent', 'majorBlues', 'harmonicMajor'].includes(type)) ks = sum('ionian');
+  return ks != null && Math.abs(ks) <= 7 ? ks : null;
+}
+
 /** Emit a list of pitches/rests (with per-item durations) placed as one melodic line. */
 export function emitMixed(b, items, popts = {}) {
   const { fold = true, ...placeOpts } = popts;
@@ -491,7 +506,7 @@ export function emitMixed(b, items, popts = {}) {
     const p = pos[k];
     const tag = it.tag ? tags[k] : it.tag;
     k++;
-    b.frets([{ s: p.s, f: p.f, finger: p.finger, n: it.n, deg: it.deg, tag, dur: it.dur, accent: it.accent }]);
+    b.frets([{ s: p.s, f: p.f, finger: p.finger, n: it.n, deg: it.deg, tag, dur: it.dur, accent: it.accent, implied: it.implied }]);
   }
 }
 

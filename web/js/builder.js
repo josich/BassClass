@@ -143,6 +143,7 @@ export class Builder {
       if (it.accent) step.accent = true;
       if (it.hide) step.hide = true;
       if (it.silent) step.silent = true;
+      if (it.implied) step.implied = it.implied;
       if (it.vel != null) step.vel = it.vel;
       if (it.chord) this.pendingChord = it.chord;
       if (it.text) this.pendingText = it.text;
@@ -202,6 +203,8 @@ export class Builder {
     return {
       uniform: true,
       beatsPerBar: 4,
+      // a single-key scale or harmony exercise writes its key signature on the staff
+      ...(this.keySig != null ? { keySig: this.keySig } : {}),
       ...meta,
       // options a build had to override (shown as "fixed" in the Options sheet)
       ...(this.fixed ? { fixed: { ...this.fixed, ...(meta.fixed || {}) } } : {}),

@@ -39,7 +39,7 @@ const GROOVES = {
       [['R', 1], ['-', 0.5], ['R', 0.25], ['b3', 0.25], ['4', 0.25], ['5', 0.25], ['b7', 0.25], ['8', 0.25], ['b7', 0.25], ['5', 0.25], ['4', 0.25], ['b3', 0.25]]],
   },
   riff: { name: 'Minor pentatonic riff (transpose it)', bars: [[['R', 0.5], ['R', 0.5], ['b3', 0.5], ['R', 0.5], ['4', 0.5], ['5', 0.5], ['b7', 0.5], ['8', 0.5]]] },
-  slowBlues: { name: '12/8 slow blues (triplets)', bars: [[['R', 2 / 3], ['R', 1 / 3], ['3', 2 / 3], ['5', 1 / 3], ['6', 2 / 3], ['5', 1 / 3], ['b7', 2 / 3], ['6', 1 / 3]]] },
+  slowBlues: { name: '12/8 slow blues (triplets)', ts: [12, 8], compound: true, bars: [[['R', 2 / 3], ['R', 1 / 3], ['3', 2 / 3], ['5', 1 / 3], ['6', 2 / 3], ['5', 1 / 3], ['b7', 2 / 3], ['6', 1 / 3]]] },
 };
 
 const STYLE_PROGS = {
@@ -66,7 +66,9 @@ function grooveEx(id, level, styleKeys, def, meta) {
         const chords = progChords(progKey, k, { S });
         grooveLine(b, chords, chordRootMidis(chords), GROOVES[p.style].bars, { place: { open: 'allow' } });
       }
-      return b.build({ uniform: false, label: 'degree' });
+      // compound grooves (12/8) are written in dotted-quarter beats
+      const g = GROOVES[p.style];
+      return b.build({ uniform: false, label: 'degree', ...(g.ts ? { timeSig: g.ts, compound: !!g.compound } : {}) });
     },
     ...meta,
   });

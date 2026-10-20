@@ -3,7 +3,7 @@ import {
   T, Builder, keysFor, chordTones, ARP_SHAPES, BROKEN_SHAPES, ex, variant, keyP, sel, nm, chordName, cycleRoot, QUALITY_TRIADS,
   ZONES, zoneP, rootStrP, orderP, pickRoot, zoneShape, emitShapeF, TRIAD_ORDERS, shapes, voiceLedItems,
   emitMixed, progChords, progP, diatonicStacks, scaleTone, DEG_SEQ, degSeqP, SCALE_TYPE_OPTS, spellMidi,
-  shapeFingers, scaleRun, rootStrLowP, dirP,
+  shapeFingers, scaleRun, rootStrLowP, dirP, keySigFor,
 } from './common.js';
 
 const M = 'triads';
@@ -104,6 +104,7 @@ export function diatonicBuild(p, ctx, S, { offsets, order, inversion = 0, sizeLa
       firstChord = false;
     }
     prev = r.midi;
+    if (!many) b.keySig = keySigFor(tonic, p.scale);
   }
   return b;
 }

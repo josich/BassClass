@@ -2,7 +2,7 @@
 import {
   T, Builder, keysFor, ex, variant, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS,
   rootStrP, dirP, octP, place, scaleShort, ZONES, zoneP, orderP, jazzAltered, plainKeyP,
-  oneStringP,
+  oneStringP, keySigFor,
 } from './common.js';
 
 const M = 'scales';
@@ -14,10 +14,10 @@ export function scaleBuild(p, ctx, S, { type = p.type, pattern = p.pattern || 's
   const b = new Builder(ctx, S, { jazz, plain });
   const keys = keysFor(p.key);
   const many = keys.length > 1;
-  let prev = null;
+  let prev = null, lastTonic = null;
   for (const k of keys) {
     const ivs = T.SCALES[type].iv;
-    const tonic = plain ? T.flatRoot(k) : T.bestRoot(k, ivs);
+    const tonic = lastTonic = plain ? T.flatRoot(k) : T.bestRoot(k, ivs);
     // one key: root on the chosen string; all keys: E or A string, whichever is nearest
     // two octaves always start on the E string (the "Root on" choice applies to one octave)
     const single = octaves > 1 ? 'E' : rootStr;
@@ -35,6 +35,8 @@ export function scaleBuild(p, ctx, S, { type = p.type, pattern = p.pattern || 's
     prev = r.midi;
   }
   if (octaves > 1) b.fixed = { root: 'E string (2 octaves start low)' };
+  // one key: its key signature on the staff (scales spelled plainly or the jazz way keep accidentals)
+  if (keys.length === 1 && !plain && !jazz) b.keySig = keySigFor(lastTonic, type);
   return b;
 }
 

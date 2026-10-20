@@ -135,6 +135,7 @@ function lickItems(lick, k, S, ctx, swing, { keyPcs, blue }) {
     const item = {
       dur: end - start, chord: first && !c.implied ? c.sym : undefined,
       text: i === 0 ? lick.name : first && c.implied ? `implies ${c.sym}` : undefined,
+      implied: first && c.implied ? c.sym : undefined,
     };
     if (x.rest) return { ...item, rest: true };
     const a = info[i];

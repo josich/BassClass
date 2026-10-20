@@ -2,7 +2,7 @@
 import {
   T, Builder, keysFor, ex, variant, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS, octP, jazzAltered,
   progChords, progP, chordRootMidis, emitMixed, modeFor,
-  rootStrLowP, chordName,
+  rootStrLowP, chordName, keySigFor,
 } from './common.js';
 import { scaleBuild } from './scales.js';
 
@@ -33,6 +33,8 @@ function relativeBuild(p, ctx, S, family) {
     if (octaves > 1) modes.forEach(({ items, rr }) => b.line(items, { place: { pin: { [rr.midi]: rr.s }, open: 'avoid', center: rr.f + 1 } }));
     else b.line(modes.flatMap((m) => m.items), { place: { open: 'avoid', center: r.f + 2 } });
     prev = r.midi;
+    // one key: the parent scale's key signature (C major's modes: none)
+    if (keysFor(p.key).length === 1) b.keySig = keySigFor(tonic, parent);
   }
   return b;
 }

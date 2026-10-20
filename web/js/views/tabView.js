@@ -25,6 +25,20 @@ export class TabView {
       }
     });
     this.cur = -1;
+    // scrolling by hand: draw the bars that come into view
+    el.addEventListener('scroll', () => {
+      if (this.scrollTimer) return;
+      this.scrollTimer = setTimeout(() => { this.scrollTimer = null; this.onScroll(); }, 60);
+    }, { passive: true });
+  }
+
+  onScroll() {
+    if (!this.cols || !this.win) return;
+    const mid = this.el.scrollLeft + this.el.clientWidth / 2;
+    if (mid > this.win[0] + 600 && mid < this.win[1] - 900) return;
+    let i = this.cols.findIndex((c) => c.x + c.w >= mid);
+    if (i < 0) i = this.cols.length - 1;
+    this.paint(i, { keepScroll: true });
   }
 
   /**
@@ -41,14 +55,21 @@ export class TabView {
   }
 
   /** Draw the window around step i (everything when the exercise is short). */
-  paint(i) {
+  paint(i, { keepScroll = false } = {}) {
     const inst = this.inst, o = this.opts;
     const anchor = this.cols?.[i]?.x ?? 0;
     const win = [anchor - WIN_BACK, anchor + WIN_AHEAD];
     let svgBody, width, h, cols;
     if (this.mode === 'staff') {
       const compact = (typeof window !== 'undefined' && window.innerHeight < 340);
-      const r = engraveStaff(inst, { beatsOf: o.beatsOf, label: o.label, beatsPerBar: o.beatsPerBar, compact, window: win });
+      // a wide-range staff (many ledger lines) gets smaller so the neck keeps its room
+      const maxH = typeof window !== 'undefined' ? Math.max(72, Math.round(window.innerHeight * 0.3)) : 999;
+      let size = compact ? 7 : 8;
+      let r = engraveStaff(inst, { beatsOf: o.beatsOf, label: o.label, beatsPerBar: o.beatsPerBar, compact, size, window: win });
+      while (r.height > maxH && size > 5) {
+        size -= 1;
+        r = engraveStaff(inst, { beatsOf: o.beatsOf, label: o.label, beatsPerBar: o.beatsPerBar, compact, size, window: win });
+      }
       ({ width, cols } = r);
       h = r.height;
       svgBody = r.svg;
@@ -56,7 +77,7 @@ export class TabView {
       if (this.cols == null || this.cols.length !== cols.length) {
         this.cols = cols;
         const a2 = cols[i]?.x ?? 0;
-        const r2 = engraveStaff(inst, { beatsOf: o.beatsOf, label: o.label, beatsPerBar: o.beatsPerBar, compact, window: [a2 - WIN_BACK, a2 + WIN_AHEAD] });
+        const r2 = engraveStaff(inst, { beatsOf: o.beatsOf, label: o.label, beatsPerBar: o.beatsPerBar, compact, size, window: [a2 - WIN_BACK, a2 + WIN_AHEAD] });
         svgBody = r2.svg;
         win[0] = a2 - WIN_BACK; win[1] = a2 + WIN_AHEAD;
       }
@@ -68,7 +89,7 @@ export class TabView {
     this.inner.innerHTML = `<svg width="${Math.max(width, this.el.clientWidth)}" height="${h}" class="tabsvg${this.mode === 'staff' ? ' staff' : ''}">
       <rect class="tcur" x="-100" y="0" width="0" height="${h}" rx="4"/>${svgBody}</svg>`;
     this.curRect = this.inner.querySelector('.tcur');
-    if (this.cur >= 0) this.placeCursor(this.cur);
+    if (this.cur >= 0) this.placeCursor(this.cur, !keepScroll);
   }
 
   tabSvg(win0, i0) {
@@ -109,7 +130,8 @@ export class TabView {
       if (c.x + c.w < win[0] || c.x > win[1]) continue;
       const out = [`<g data-i="${c.i}" class="tcol">`, `<rect x="${c.x}" y="0" width="${c.w}" height="${h}" class="hit"/>`];
       const cx = c.x + 9;
-      if (c.st.chord) out.push(`<text x="${c.x + 2}" y="11" class="tchord">${c.st.chord}</text>`);
+      if (c.st.chord) out.push(`<text x="${c.x + 2}" y="11" class="${c.st.dyn ? 'tdyn' : 'tchord'}">${c.st.chord}</text>`);
+      if (c.st.implied) out.push(`<text x="${c.x + 2}" y="11" class="timpl">(${c.st.implied})</text>`);
       if (c.st.rest) out.push(`<text x="${cx}" y="${top + rowH * (strings - 1) / 2 + 4}" class="trest">𝄽</text>`);
       // ear training: the chord and its answer stay hidden in the strip
       if (c.st.hide || c.st.silent) {
@@ -131,11 +153,12 @@ export class TabView {
     return { svgBody: lines.join('') + cells.join(''), width, h, cols };
   }
 
-  placeCursor(i) {
+  placeCursor(i, scroll = true) {
     const c = this.cols?.[i];
     if (!c || !this.curRect) { this.curRect?.setAttribute('x', -100); return; }
     this.curRect.setAttribute('x', c.x);
     this.curRect.setAttribute('width', Math.max(18, c.w - 2));
+    if (!scroll) return;
     const view = this.el.clientWidth;
     const left = this.el.scrollLeft;
     if (c.x < left + 40 || c.x + c.w > left + view - 60) {
