@@ -282,7 +282,7 @@ const threeNps = ex({
 
 const positions = ex({
   id: 'sc-positions', module: M, level: 4,
-  title: 'Major scale: the 7 positions across the neck',
+  title: 'The 7 scale positions across the neck (major and minor)',
   summary: 'Box positions that start on each degree on the E string. Link them and own the neck.',
   about: 'Each position starts on a different scale degree on the E string and covers every note of the key within one hand span. They are numbered from the root: Position 1 starts on the root, Position 2 on the next note of the scale, and so on (a position that would start above fret 12 is played an octave lower). Play each box from its lowest note to its highest and back. "All positions" climbs through them from the lowest fret up the neck. Together they connect the whole fretboard in one key.',
   tips: ['The positions overlap: the top of one box is the bottom of the next.', 'Then play the same positions in a minor key (the relative minor uses the same boxes).'],

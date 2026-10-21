@@ -248,6 +248,7 @@ export default {
         steps: [
           { ex: 'fb-quiz', p: { range: '12', strings: 'all', notes: 'all' }, sub: 0.5, from: 56, goal: 72 },
           { ex: 'fb-cycle-zone', p: { zone: '3', order: 'cycle4' }, sub: 0.25, from: 66, goal: 84 },
+          { ex: 'fb-unison', p: { string: 'A' }, sub: 2, from: 72, goal: 92 },
         ],
       },
     },
@@ -431,6 +432,7 @@ export default {
         steps: [
           { ex: 'arp-7th-qualities', p: {}, sub: 2, from: 80, goal: 100 },
           { ex: 'arp-7th', p: { quality: 'dom7', oct: '1' }, sub: 2, from: 84, goal: 104 },
+          { ex: 'hm-chord-qualities', p: { scale: 'ionian' }, sub: 2, from: 80, goal: 100 },
         ],
       },
     },
@@ -508,6 +510,7 @@ export default {
           { ex: 'hm-12-bar-blues', p: { prog: 'blues', pattern: 'r357' }, from: 100, goal: 120, backing: 'chords' },
           { ex: 'gr-blues', p: { style: 'boogie', prog: 'blues' }, from: 96, goal: 120, backing: 'chords' },
           { ex: 'hm-progression-roots', p: { prog: 'I-V-vi-IV', rhythm: '1' }, from: 96, goal: 116, backing: 'chords' },
+          { ex: 'sc-blues', p: { type: 'blues', root: 'E', oct: '1' }, sub: 1, from: 72, goal: 96 },
         ],
       },
     },

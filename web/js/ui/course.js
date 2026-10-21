@@ -6,7 +6,7 @@ import { settings } from '../store.js';
 import { byId, defaultParams } from '../curriculum/index.js';
 import { paramSummary, SUB_NAMES } from './exercise.js';
 import { exHref, go, buildRoutine, setRoutine, routineHref } from './screens.js';
-import { replaceHash, goBack } from './nav.js';
+import { replaceHash, goBack, canGoBack, nav } from './nav.js';
 import { NEXT_LEVEL, COMPLETE } from '../course/data.js';
 import {
   STAGES, LESSONS, UNITS, lessonById, SESSION_LENGTHS,
@@ -15,7 +15,7 @@ import {
   sessionMinutes, setSessionMinutes, setLast, resetCourse,
 } from '../course/progress.js';
 
-const back = (fallback) => (history.state?.depth > 0 ? goBack() : go(fallback));
+const back = (fallback) => (canGoBack() ? goBack() : go(fallback));
 const lessonHref = (l) => `#/course/${l.id}`;
 /** Opens one step of a lesson (`extra`: { demo: 1 } for the demo). */
 export const stepHref = (lesson, i, extra = {}) => exHref(lesson.steps[i].ex, { ...lesson.steps[i].p, ls: `${lesson.id}.${i}`, ...extra });
@@ -105,7 +105,10 @@ export function buildSession(minutes) {
     }
   }
   if (tail) items.push(stepItem(tail.l, tail.i, byId.get(tail.s.ex).module === 'reading' ? 'Reading' : 'Ear'));
-  const warm = handsPool.filter((x) => !has(x.s.ex));
+  // once nothing new is left, the warm-up comes from Stages 4–6 (Levels 4–6), not a beginner's drill
+  const unused = handsPool.filter((x) => !has(x.s.ex));
+  const upper = cont ? [] : unused.filter((x) => x.l.stage.level >= 4);
+  const warm = upper.length ? upper : unused;
   if (warm.length) { const w = pick(warm); items.unshift(stepItem(w.l, w.i, 'Warm-up')); }
   return items;
 }
@@ -187,16 +190,17 @@ export function courseScreen(main) {
     h('div', { class: 'page-head' }, h('button', { class: 'icon-btn', 'aria-label': 'Back', html: icon('back'), onClick: () => back('#/') }),
       h('h1', {}, 'Course'), h('span', { class: 'muted' }, `${stats.done} of ${stats.total} lessons done${stats.known ? ` · ${stats.known} known` : ''}`), h('div', { class: 'grow' }),
       cont ? h('button', { class: 'btn primary', onClick: () => go(lessonHref(cont)) }, `▶ ${lessonName(cont)}`) : null,
-      h('button', { class: 'btn', onClick: () => go('#/course/placement') }, placed() ? 'Placement check' : 'Find your level')),
+      h('button', { class: 'btn', onClick: () => go('#/course/placement') }, placed() ? 'Find your level again' : 'Find your level')),
     h('p', { class: 'muted small course-intro' }, 'Work through the lessons in order, or jump to any of them: nothing is locked. A step is done when you play a full loop from the first note at its goal tempo and tick ✓ Clean. Completed lessons come back for short reviews (after 1, 3, 7, 21 and 60 days) in today\'s session on Home.'),
     // jump to a stage (the map is long on a phone)
-    h('div', { class: 'tabs lv-jump' }, STAGES.map((stage, si) => h('button', { title: stage.title, onClick: () => main.querySelector(`#stage-${si + 1}`)?.scrollIntoView({ block: 'start' }) }, `S${si + 1}`))),
+    h('div', { class: 'tabs lv-jump map-jump' }, STAGES.map((stage, si) => h('button', { title: stage.title, onClick: () => main.querySelector(`#stage-${si + 1}`)?.scrollIntoView({ block: 'start' }) }, `S${si + 1}`))),
     ...STAGES.flatMap((stage, si) => {
       // lessons only (checkpoints and the test are not counted, as on Home)
       const list = stage.lessons.filter((l) => !l.optional && l.kind === 'lesson');
       const done = list.filter((l) => status(l) === 'done').length;
+      const known = list.filter((l) => status(l) === 'known').length;
       return [
-        h('div', { class: 'section stage-head', id: `stage-${si + 1}` }, h('span', { class: `chip lv lv${stage.level}` }, `Stage ${si + 1}`), h('h2', {}, stage.title), h('span', { class: 'muted small' }, `${done}/${list.length} lessons · ${stage.desc}`)),
+        h('div', { class: 'section stage-head', id: `stage-${si + 1}` }, h('span', { class: `chip lv lv${stage.level}` }, `Stage ${si + 1}`), h('h2', {}, stage.title), h('span', { class: 'muted small' }, `${done}/${list.length} lessons${known ? ` (${known} known)` : ''} · ${stage.desc}`)),
         h('div', { class: 'grid unit-grid' },
           UNITS.filter((u) => u.stage === stage).map((u) => h('div', { class: 'unit-card' },
             h('h3', {}, h('span', { class: 'ex-num' }, u.n), u.title),
@@ -213,9 +217,19 @@ export function courseScreen(main) {
       toast('Course progress reset');
       courseScreen(main);
     } }, 'Reset course progress')));
-  // open at the next lesson (Back keeps the place the player left, restored by the router)
+  // a fresh visit shows the next lesson when it is not on the first screen (a new player, whose next
+  // lesson is the first, sees the top: the intro and "Find your level"); Back keeps the place the
+  // player left (the router restores it, the top too); after the placement the map shows the lesson
+  // it starts at (two frames: after the router's own restore)
   const nextRow = main.querySelector('.les-row.next');
-  if (nextRow) requestAnimationFrame(() => { if (main.scrollTop < 8) nextRow.scrollIntoView({ block: 'center' }); });
+  const show = nav.showNext;
+  nav.showNext = false;
+  if (nextRow && (show || (!nav.returning && nextRow !== main.querySelector('.les-row')))) {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const r = nextRow.getBoundingClientRect(), m = main.getBoundingClientRect();
+      if (r.top < m.top + 60 || r.bottom > m.bottom) nextRow.scrollIntoView({ block: 'center' });
+    }));
+  }
 }
 
 // ---------------------------------------------------------------- lesson page
@@ -312,7 +326,7 @@ const PLACEMENT = [
   ['I read melodies with sharps, flats and a key signature.', ['u-reading2']],
   ['I play hammer-ons, pull-offs, clean shifts and string skips.', ['u-legato']],
   ['I play 16th-note funk with ghost notes, moving accents and triplet feels.', ['u-funk']],
-  ['I know every note in any position and read up to the 9th position.', ['u-positions']],
+  ['I know every note in any position and read in 5th and 7th position.', ['u-positions']],
   ['I play two-octave scales, the three scale fingerings, sequences and every key in one position.', ['u-scales3', 'u-sequences']],
   ['I know the seven modes of the major scale and the note that colours each one.', ['u-modes']],
   ['I play the triads and 7th chords of any key, in three fingerings and in inversions.', ['u-triads3', 'u-sevenths3']],
@@ -379,7 +393,8 @@ export function placementScreen(main) {
     const cont = continueLesson();
     toast(cont ? `Start here: ${lessonName(cont)}` : `You know ${stagesName()}: today's session brings Library exercises from Levels 5 and 6`, 3500);
     // back to where the check was opened from (the map or Home), which now shows the starting point
-    if (history.state?.depth > 0) goBack(); else replaceHash('#/course');
+    nav.showNext = true;
+    if (canGoBack()) goBack(); else replaceHash('#/course');
   });
   render();
   main.replaceChildren(

@@ -10,8 +10,8 @@ import * as A from '../audio.js';
 import { paramSummary, paramOptions } from './exercise.js';
 import { starButton, dragToReorder } from './favorites.js';
 import { courseBlock } from './course.js';
-import { resetCourse } from '../course/progress.js';
-import { replaceHash, goBack } from './nav.js';
+import { resetCourse, continueLesson } from '../course/progress.js';
+import { replaceHash, goBack, canGoBack } from './nav.js';
 
 export const go = (hash) => { location.hash = hash; };
 export const exHref = (id, params) => {
@@ -41,7 +41,7 @@ function moduleStats(id) {
 }
 
 /** In-app back: one step back when we came from inside the app, otherwise to `fallback`. */
-const back = (fallback) => (history.state?.depth > 0 ? goBack() : go(fallback));
+const back = (fallback) => (canGoBack() ? goBack() : go(fallback));
 
 // ---------------------------------------------------------------- home: course, daily warm-up, favorites
 export function homeScreen(main) {
@@ -100,6 +100,8 @@ function warmupBlock() {
   const today = new Date();
   const daily = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
   let level = settings.level || 3;
+  // a player who is through the course (nothing new left) and never chose a level opens at Level 6
+  if (level === DEFAULT_SETTINGS.level && !continueLesson()) level = 6;
   const listEl = h('div', { class: 'routine' });
   const lvTabs = h('div', { class: 'tabs' });
   const lvName = h('span', { class: 'lv-name' });

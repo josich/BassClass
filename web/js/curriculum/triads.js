@@ -40,14 +40,26 @@ export function arpBuild(p, ctx, S, { ivs, type, shape = 'updown', octaves = 1, 
     const tones = chordTones(root, ivs, r.midi, idxs, inversion);
     // a broken chord ends on the root, held to the bar line so the next key starts on beat 1
     if (BROKEN_SHAPES.has(shape)) tones[tones.length - 1] = { ...tones[tones.length - 1], fill: true };
-    // two octaves: the upper octave is one hand shape, reached by one shift at the octave (not a
-    // slide of the little finger up to the top note and back)
-    const pin = { [r.midi]: r.s };
+    // two octaves: each octave is one hand shape (the root on its string), with one shift at the
+    // octave on the way up and one on the way down
+    // (two octaves that run off the top of the neck are played an octave lower; an open-string root
+    // stays open)
     if (octaves === 2) {
-      const sh = chordShape(tones.map((t) => t.midi).filter((m) => m >= r.midi + 12), ctx, { home: r.f + 5 });
-      if (sh) for (const [m, q] of sh.at) pin[m] = q.s;
+      const highest = ctx.tuning[ctx.tuning.length - 1] + ctx.maxFret;
+      const drop = Math.max(...tones.map((t) => t.midi)) > highest ? 12 : 0;
+      const ts = drop ? tones.map((t) => ({ ...t, midi: t.midi - drop })) : tones;
+      const rm = r.midi - drop, open = !drop && r.f === 0;
+      const lowM = ts.map((t) => t.midi).filter((m) => m < rm + 12 && !(open && m === rm));
+      const lowOct = chordShape(lowM, ctx, { home: drop ? 5 : r.f + 1, string: drop || open ? null : r.s });
+      const upOct = chordShape(ts.map((t) => t.midi).filter((m) => m >= rm + 12), ctx, { home: (lowOct ? lowOct.mid : r.f) + 5 });
+      if (lowOct && upOct && (drop || open || lowOct.at.get(rm)?.s === r.s)) {
+        const at = (m) => (open && m === rm ? { s: r.s, f: 0, finger: 0 } : (m < rm + 12 ? lowOct : upOct).at.get(m));
+        b.frets(ts.map((t) => ({ ...t, ...at(t.midi) })));
+        prev = r.midi;
+        continue;
+      }
     }
-    b.line(tones, { place: { pin, open: 'avoid', center: r.f } });
+    b.line(tones, { place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f } });
     prev = r.midi;
   }
   return b;
@@ -102,8 +114,12 @@ export function diatonicBuild(p, ctx, S, { offsets, order, inversion = 0, sizeLa
     let center = home, firstChord = true;
     const groups = [];
     for (const it of items) { if (it.chord || !groups.length) groups.push([]); groups[groups.length - 1].push(it); }
+    // R-5-10 in root position keeps its shape: the 5th on the string above the root, the 10th
+    // two strings above that (E-A-G, A-D-C)
+    const spread = offsets.join() === '0,4,9' && !inversion;
+    const fit = spread ? (pos) => pos.length === 3 && pos[1].s === pos[0].s + 1 && pos[2].s === pos[0].s + 3 : null;
     for (const g of groups) {
-      const sh = chordShape(g.map((x) => x.midi), ctx, { home, center, string: firstChord ? r.s : null });
+      const sh = chordShape(g.map((x) => x.midi), ctx, { home, center, string: firstChord ? r.s : null, fit });
       if (!sh) { b.line(g, { pattern: true, place: { open: 'avoid', center } }); continue; }
       b.frets(g.map((x) => ({ ...x, ...sh.at.get(x.midi) })));
       center = sh.mid;
@@ -254,10 +270,10 @@ function neckShapes(k, ivs, ctx, maxFret = 15) {
 
 const threeForms = ex({
   id: 'tri-three-forms', module: M, level: 3, star: true,
-  title: 'The 3 triad fingerings (root under finger 1, 2 or 4)',
+  title: 'The 3 triad fingerings (three hand positions per triad)',
   summary: 'Every triad can be fingered three ways. Learn all three and the neck connects.',
-  about: 'A triad shape is defined by which finger plays the root. With the root under finger 2, the 3rd and 5th are on the next string. With the root under finger 1, the 3rd is on the same string and the 5th is on the next string. With the root under finger 4, the shape crosses three strings going back toward the nut. Knowing all three means there are no "dead areas" on the neck: wherever your hand is, one of the shapes fits.',
-  tips: ['Name the form out loud: "two", "one", "four".', 'The finger-1 form needs a small stretch or pivot for the 3rd.', 'Repeat with minor triads: the forms change but the rule is the same.'],
+  about: 'A triad shape is defined by which finger plays the root. With the root under finger 2, the 3rd and 5th are on the next string. With the root under finger 1, the 3rd is on the same string and the 5th is on the next string. With the root under finger 4, the shape crosses three strings going back toward the nut. Those are the major forms; in minor the root falls under fingers 3, 1 and 4. Knowing all three means there are no "dead areas" on the neck: wherever your hand is, one of the shapes fits.',
+  tips: ['Name each form by the finger on the root: "two", "one", "four" in major.', 'The finger-1 form needs a small stretch or pivot for the 3rd.', 'Repeat with minor triads: the root falls under fingers 3, 1 and 4, and each shape still sits in one hand position.'],
   source: 'SBL "3 Rule Fretboard Formula"; TalkingBass "3 fingerings per arpeggio"; LCM multi-position arpeggios',
   params: { key: keyP(['1', '3', '5'], { cycles: false }), quality: sel('Triad', QUALITY_TRIADS.slice(0, 4)), pattern: triadOrderP(['turn', 'up', 'updown'], 'turn') },
   bpm: 70, sub: 1, label: 'finger',
@@ -501,8 +517,8 @@ const diatonic = ex({
   id: 'tri-diatonic', module: M, level: 3, star: true,
   title: 'Harmonised triads: I ii iii IV V vi vii°',
   summary: 'Build a triad on every note of the scale. The core of harmony on the bass.',
-  about: 'Stack a 3rd and a 5th on every degree of a scale, using only notes from that scale. In major you get I (major), ii (minor), iii (minor), IV (major), V (major), vi (minor) and vii° (diminished). Play them in one position and hear how each chord sounds inside the key. Change the scale to harmonise natural minor, harmonic minor, melodic minor or any mode.',
-  tips: ['Say the Roman numeral of each chord as you play it.', 'The "up one, down the next" pattern keeps the hand in one place. Try it.',
+  about: 'Stack a 3rd and a 5th on every degree of a scale, using only notes from that scale. In major you get I (major), ii (minor), iii (minor), IV (major), V (major), vi (minor) and vii° (diminished). Play them through the key and hear how each chord sounds inside it. Change the scale to harmonise natural minor, harmonic minor, melodic minor or any mode.',
+  tips: ['Say the Roman numeral of each chord as you play it.', 'The "up one, down the next" pattern turns the chords into one line. Try it.',
     'Then turn on 1st or 2nd inversion: same chords, new shapes.'],
   source: 'Berklee PULSE, Berklee Online Bass 101, StudyBass Fundamentals 3, Ariane Cap Music Theory for the Bass Player',
   params: {
@@ -830,7 +846,7 @@ const upperStructures = ex({
   id: 'tri-upper-structures', module: M, level: 5,
   title: 'Upper-structure triads over a pedal',
   summary: 'Play a triad from a different root over the bass note: instant Lydian, 13♯11 or altered colours.',
-  about: 'Pianists and arrangers get rich chords by putting a simple triad on top of a bass note. D major over a C bass gives C Lydian (maj7♯11); A major over C7 gives 13♭9. Here you play the pedal root and then the upper triad, so you hear and see the whole colour. Use it for soloing, chordal bass and to understand the tensions in jazz charts.',
+  about: 'Pianists and arrangers get rich chords by putting a simple triad on top of a bass note. D major over Cmaj7 gives Cmaj7♯11 (the Lydian sound); the same D triad over C7 gives C13♯11: the lower chord decides. A major over C7 gives 13♭9. The badge shows the lower chord (the Backing plays it) and the strip names the upper triad; you play the root and then the triad, so you hear and see the whole colour. Use it for soloing, chordal bass and to understand the tensions in jazz charts.',
   tips: ['Let the low root ring while you play the triad above (thumb mute off).', 'Name the tensions: D/C = 9, ♯11, 13.'],
   source: 'Charlie Banacos (chord-on-chord), Mark Levine "The Jazz Theory Book", Berklee harmony',
   params: { key: keyP(['1', '3', '5', '7'], { cycles: true }), us: sel('Structure', Object.entries(US).map(([k, v]) => [k, v.name])) },
@@ -847,7 +863,9 @@ const upperStructures = ex({
       if (um - r.midi > 22) um -= 12;
       const highest = ctx.tuning[ctx.tuning.length - 1] + ctx.maxFret;
       if (um + 7 > highest) um -= 12;
-      const items = [{ midi: r.midi, n: bass, deg: 'R', chord: `${chordName(upRoot, u.q, S)}/${nm(bass, S)}` }];
+      // the badge is the lower chord (what the Backing plays: Cmaj7 or C7 under the same D triad), the
+      // text names the upper structure
+      const items = [{ midi: r.midi, n: bass, deg: 'R', chord: chordName(bass, u.over, S), text: `${chordName(upRoot, u.q, S)}/${nm(bass, S)}` }];
       // each upper note named against the lower chord: its own tones (3, 5, ♭7…) or a tension
       // (C♯ over C7 is the ♭9, E♭ the ♯9, never "♯1" or "♭3")
       const lower = T.CHORDS[u.over].iv;
@@ -859,7 +877,11 @@ const upperStructures = ex({
         items.push({ ...t, deg: deg || T.fmtDeg(T.ivBetween(bass, t.n)) });
       });
       items.push({ midi: r.midi, n: bass, deg: 'R' });
-      b.line(items, { pattern: false, place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 3 } });
+      // the upper triad is one hand shape near the root, not a slide along one string
+      const pin = { [r.midi]: r.s };
+      const up = chordShape(items.slice(1, -1).map((x) => x.midi), ctx, { home: r.f + 3 });
+      if (up) for (const [m, q] of up.at) pin[m] = q.s;
+      b.line(items, { pattern: false, place: { pin, open: 'avoid', center: r.f + 3 } });
       prev = r.midi;
     }
     return b.build({ label: 'degree' });

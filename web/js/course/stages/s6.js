@@ -102,7 +102,7 @@ export default {
           idea: 'Imaj7 up, iim7 down, iiim7 up… then the next key.',
           concept: [
             'Every diatonic 7th chord of every key, without stopping: Imaj7 up, iim7 down, iiim7 up, then the next key in the cycle. Switch inversions and scales (harmonic and melodic minor) for a complete workout.',
-            'Up one, down the next keeps you in position.',
+            'Up one, down the next turns the chords into one line, but they still climb the neck: plan where each key starts.',
           ],
           steps: [
             { ex: 'arp-diatonic-all-keys', p: { scale: 'ionian', order: 'up', inversion: '0' }, sub: 4, from: 56, goal: 76, do: 'Every major key, root position, in 16ths.' },

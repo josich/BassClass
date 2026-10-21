@@ -314,7 +314,7 @@ export default {
             'Say the parent before you play: "G7alt, A♭ melodic minor".',
           ],
           steps: [
-            { ex: 'md-melodic-superimposition', p: { set: 'minor251' }, from: 76, goal: 100, backing: 'chords', do: 'A minor-key ii–V–i: three melodic minors.' },
+            { ex: 'md-melodic-superimposition', p: { set: 'minor251' }, from: 76, goal: 100, backing: 'chords', do: 'Minor-key ii–V–i: three melodic minors, one per chord.' },
             { ex: 'md-melodic-superimposition', p: { set: 'dominants' }, from: 76, goal: 100, backing: 'chords', do: 'Four dominant colours on one root.' },
           ],
           mistakes: [
@@ -330,6 +330,7 @@ export default {
         steps: [
           { ex: 'md-pentatonic-superimposition', p: { prog: 'ii-V-I', choice: 'all' }, from: 84, goal: 112, backing: 'chords' },
           { ex: 'md-melodic-superimposition', p: { set: 'minor251' }, from: 80, goal: 104, backing: 'chords' },
+          { ex: 'md-melodic-superimposition', p: { set: 'dominants' }, from: 80, goal: 104, backing: 'chords' },
         ],
       },
     },

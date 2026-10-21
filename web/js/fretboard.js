@@ -104,14 +104,15 @@ function handSearch(midis, ctx, opts) {
   let prev = layers[0].map((st) => ({ cost: st.cost, back: -1 }));
   const backs = [prev];
   for (let i = 1; i < layers.length; i++) {
-    // inside one chord of a shape line the hand stays put: a shift there is dearer than between chords
+    // inside one chord of a shape line the hand stays put: a shift there costs more than two shifts at
+    // the chord changes
     const g = opts.regions?.[i]?.g;
     const inGroup = g != null && opts.regions[i - 1]?.g === g;
     const cur = layers[i].map((st) => {
       let best = Infinity, bj = 0;
       const pl = layers[i - 1];
       for (let j = 0; j < pl.length; j++) {
-        const v = prev[j].cost + trans(pl[j], st) + (inGroup && pl[j].hp != null && st.hp != null && pl[j].hp !== st.hp ? 1 : 0);
+        const v = prev[j].cost + trans(pl[j], st) + (inGroup && pl[j].hp != null && st.hp != null && pl[j].hp !== st.hp ? 2.5 : 0);
         if (v < best) { best = v; bj = j; }
       }
       return { cost: best + st.cost, back: bj };
@@ -182,14 +183,58 @@ export function assignFingers(notes) {
         if (nhi - nlo > 3) break;
         lo = nlo; hi = nhi; fit++;
       }
-      // one fret outside the hand, and a shift would serve this note alone (or one more) before
-      // shifting back: the index stretches back or the little finger forward instead
-      if (pos !== null && (n.f === pos - 1 || n.f === pos + 4) && fit <= 2) { n.finger = n.f < pos ? 1 : 4; continue; }
+      // one fret outside the hand, a shift would serve this note alone (or one more), and the line
+      // comes back under the hand (or stays on that fret): the index stretches back or the little
+      // finger forward instead
+      const nx = notes.slice(i + 1).find((q) => q.f > 0);
+      const back = !nx || nx.f === n.f || (nx.f >= pos && nx.f <= pos + 3);
+      if (pos !== null && (n.f === pos - 1 || n.f === pos + 4) && fit <= 2 && back) { n.finger = n.f < pos ? 1 : 4; continue; }
       pos = lo;
     }
     n.finger = n.f - pos + 1;
   }
   return notes;
+}
+
+/**
+ * The fingers for the frets of one hand position: one finger per fret from the lowest (index); a
+ * fifth fret is a little-finger stretch, and a finger it would share moves down one (1-2-4 for lo,
+ * lo+1, lo+4; 1-3-4 for lo, lo+3, lo+4 and for lo, lo+2, lo+4). Returns f → finger (0 for an open
+ * string), or null when the frets span more than five.
+ */
+export function handFingers(frets) {
+  const fr = frets.filter((f) => f > 0);
+  if (!fr.length) return () => 0;
+  const lo = Math.min(...fr);
+  const ds = [...new Set(fr.map((f) => f - lo))].sort((a, b) => a - b);
+  if (ds[ds.length - 1] > 4) return null;
+  const fing = ds.map((d) => Math.min(4, d + 1));
+  for (let i = fing.length - 2; i >= 0; i--) if (fing[i] >= fing[i + 1]) fing[i] = fing[i + 1] - 1;
+  if (fing[0] < 1) return null;
+  const by = new Map(ds.map((d, i) => [d, fing[i]]));
+  return (f) => (f === 0 ? 0 : by.get(f - lo));
+}
+
+/**
+ * Do these fingers show one hand position: the index's fret with a stretch of one fret either way,
+ * or the spread hand handFingers gives a five-fret shape?
+ */
+export function onePosition(ps) {
+  const fr = ps.filter((q) => q.f > 0 && q.finger >= 1);
+  const fits = (hp) => fr.every((q) => q.f - q.finger + 1 === hp || (q.finger === 4 && q.f === hp + 4) || (q.finger === 1 && q.f === hp - 1));
+  const hf = handFingers(fr.map((q) => q.f));
+  return !fr.length || fr.some((q) => fits(q.f - q.finger + 1)) || (!!hf && fr.every((q) => q.finger === hf(q.f)));
+}
+
+/**
+ * One hand position for a group of notes (the notes of one chord): when they fit five frets and
+ * their fingers show a shift inside the chord, every finger follows from its fret (handFingers).
+ * Changes ps ({f, finger}) in place.
+ */
+export function chordFingers(ps) {
+  const hf = handFingers(ps.map((q) => q.f));
+  if (hf && !onePosition(ps)) for (const q of ps) q.finger = hf(q.f);
+  return ps;
 }
 
 /**

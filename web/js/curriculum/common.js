@@ -1,7 +1,7 @@
 // Shared helpers for curriculum modules: params, key handling, zones, progressions,
 // and the groove/walking line engines.
 import * as T from '../theory.js';
-import { shapes, place, candidates } from '../fretboard.js';
+import { shapes, place, candidates, handFingers, chordFingers } from '../fretboard.js';
 import {
   Builder, keysFor, rootOn, scaleRun, scaleSeq, chordTones, ARP_SHAPES, BROKEN_SHAPES, SCALE_PATTERNS,
   diatonicChords, nearestVoicing, pitchIn, spellMidi, P, fitShift,
@@ -578,14 +578,19 @@ export function tonicFor(k, type) {
 /**
  * One hand shape for a chord's notes: four frets at most (five, or an open bass note, only when
  * nothing smaller exists), never three notes on one string, near `home` (where the exercise
- * started) and `center` (the chord before); `string` asks for the lowest note on that string.
- * One finger per fret from the lowest fret; a four-fret span gives each fret its own finger in
- * order (1-2-3-4, 1-3-4, 1-4). Returns { at: Map(midi -> {s, f, finger}), mid } or null.
+ * started) and `center` (the chord before); `string` asks for the lowest note on that string;
+ * `fit(pos)` (pos low to high) asks for a shape of its own (R-5-10: the 5th on the string above the
+ * root) when one exists. Fingers by fret (handFingers: 1-2-4 on frets lo, lo+1, lo+4).
+ * Returns { at: Map(midi -> {s, f, finger}), mid } or null.
  */
-export function chordShape(midis, ctx, { home, center = home, string = null }) {
+export function chordShape(midis, ctx, { home, center = home, string = null, fit = null }) {
   const uniq = [...new Set(midis)].sort((a, c) => a - c);
   const perString = (c) => Math.max(...[...new Set(c.pos.map((q) => q.s))].map((sv) => c.pos.filter((q) => q.s === sv).length));
-  const find = (o) => shapes(uniq, ctx, { lo: 1, hi: ctx.maxFret, ...o }).filter((c) => perString(c) <= 2);
+  const find = (o) => {
+    const all = shapes(uniq, ctx, { lo: 1, hi: ctx.maxFret, ...o }).filter((c) => perString(c) <= 2);
+    const own = fit ? all.filter((c) => fit(c.pos)) : all;
+    return own.length ? own : all;
+  };
   let cands = find({ maxSpan: 4 });
   // a chord too wide for four frets (high on a short neck) may stretch a fret, never three notes on a string
   if (!cands.length) cands = find({ maxSpan: 5 });
@@ -598,10 +603,10 @@ export function chordShape(midis, ctx, { home, center = home, string = null }) {
   const score = (c) => c.cost + Math.abs(mid(c) - home) * 0.8 + Math.abs(mid(c) - center) * 0.4
     + (spanOf(c) >= 4 ? 1.5 : 0) + (perString(c) > 1 ? 0.3 : 0) + (string != null && c.pos[0].s !== string ? 4 : 0);
   const best = cands.reduce((A, c) => (score(c) < score(A) ? c : A));
+  // (a six-fret stretch, the last resort high on a short neck: fingers spread over the frets in order)
   const fretted = best.pos.map((q) => q.f).filter((f) => f > 0);
-  const lo = Math.min(...fretted), span = Math.max(...fretted) - lo;
   const frs = [...new Set(fretted)].sort((a, c) => a - c);
-  const finger = (f) => (f === 0 ? 0 : span <= 3 ? f - lo + 1 : frs.length === 1 ? 1 : 1 + Math.round((frs.indexOf(f) * 3) / (frs.length - 1)));
+  const finger = handFingers(fretted) || ((f) => (f === 0 ? 0 : frs.length === 1 ? 1 : 1 + Math.round((frs.indexOf(f) * 3) / (frs.length - 1))));
   return { at: new Map(uniq.map((m, j) => [m, { s: best.pos[j].s, f: best.pos[j].f, finger: finger(best.pos[j].f) }])), mid: mid(best) };
 }
 
@@ -712,6 +717,11 @@ export function emitMixed(b, items, popts = {}) {
       }
     }
   }
+  // a pitch a hammer-on or pull-off plays sits where the run put it for the whole chord (plain notes
+  // only: slap thumb and pop notes keep their strings)
+  const runAt = new Map();
+  tags.forEach((t, j) => { if (t === 'H' || t === 'PO') runAt.set(`${chordOf[j]}|${midis[j]}`, pos[j]); });
+  if (runAt.size) notes.forEach((n, j) => { const q = runAt.get(`${chordOf[j]}|${midis[j]}`); if (q && !tags[j] && (q.s !== pos[j].s || q.f !== pos[j].f)) pos[j] = { s: q.s, f: q.f }; });
   // every thumbed note ends on the low strings: off the low B onto the E string, and off the pop
   // strings (D, G) onto E or A when one of them has the note within 12 frets (an unplayable
   // hammer-on or pull-off thumbed after all, or a thumb note placed up there for the hand position)
@@ -725,10 +735,13 @@ export function emitMixed(b, items, popts = {}) {
       let e = j;
       while (e + 1 < notes.length && (tags[e + 1] === 'H' || tags[e + 1] === 'PO') && pos[e + 1].s === pos[j].s) e++;
       const ref = j > 0 ? pos[j - 1].f : pos[j].f;
+      // the same pitch thumbed on a low string elsewhere in this chord: that string again
+      const sib = pos.findIndex((q, i) => i !== j && chordOf[i] === chordOf[j] && midis[i] === midis[j] && q.s >= eStr && q.s < popLo);
       let best = null;
       for (let s2 = eStr; s2 < popLo; s2++) {
         const run = pos.slice(j, e + 1).map((_, i) => midis[j + i] - T0[s2]);
         if (!run.every((f) => f >= 0 && f <= 12)) continue;
+        if (sib >= 0 && s2 === pos[sib].s) { best = { s: s2, run }; break; }
         if (!best || Math.abs(run[0] - ref) < Math.abs(best.run[0] - ref)) best = { s: s2, run };
       }
       if (best) for (let i = j; i <= e; i++) pos[i] = { s: best.s, f: best.run[i - j] };
@@ -759,6 +772,10 @@ export function emitMixed(b, items, popts = {}) {
     }
     a = e;
   }
+  // a chord whose notes fit one hand position is fingered from it (no shift shown inside the chord)
+  const byChord = new Map();
+  pos.forEach((q, j) => { if (!byChord.has(chordOf[j])) byChord.set(chordOf[j], []); byChord.get(chordOf[j]).push(q); });
+  for (const ps of byChord.values()) chordFingers(ps);
   let k = 0;
   for (const it of items) {
     if (it.chord) b.chord(it.chord);
@@ -1086,10 +1103,10 @@ export function voicings(root, ivs, lo, hi, { rootOnly = false } = {}) {
  * The tone indices for one chord: its order, continued for `m` notes by walking back and forth
  * (an arpeggio that starts upwards reaches the octave, then turns: R-3-5-7-8-7-5-3).
  */
-function fillOrder(ord, m) {
+function fillOrder(ord, m, extend = true) {
   if (m <= ord.length) return ord.slice(0, m);
   const lo = Math.min(...ord);
-  const hi = Math.max(...ord) + (ord[1] > ord[0] ? 1 : 0);
+  const hi = Math.max(...ord) + (extend && ord[1] > ord[0] ? 1 : 0);
   const seq = [...ord];
   let dir = Math.sign(seq[seq.length - 1] - seq[seq.length - 2]) || 1;
   while (seq.length < m) {
@@ -1120,7 +1137,10 @@ export function voiceLedItems(chords, { order, lo = 31, hi = 55, rootOnly = fals
       if (!best || d < best.d) best = { d, v };
     }
     if (!best) return;
-    (per ? fillOrder(ord, Math.max(1, Math.round(c.beats * per))) : ord).forEach((ti, k) => {
+    // (filling a long chord climbs one chord tone past the voicing, unless that leaves the register)
+    const nt = best.v.tones.length, ext = Math.max(...ord) + 1;
+    const extMidi = best.v.tones[ext % nt].midi + Math.floor(ext / nt) * 12;
+    (per ? fillOrder(ord, Math.max(1, Math.round(c.beats * per)), extMidi <= hi) : ord).forEach((ti, k) => {
       const t = best.v.tones[ti % best.v.tones.length];
       const up = Math.floor(ti / best.v.tones.length) * 12;
       items.push({ midi: t.midi + up, n: t.n, deg: t.deg, dur: per ? 1 / per : 1, chord: k === 0 ? c.sym : undefined });

@@ -10,12 +10,34 @@ const INTERVALS = [1, 3, 7, 21, 60];
 export const SESSION_LENGTHS = [15, 30, 45];
 // Steps are stored by index. A released step whose notes later changed is listed here: what was
 // saved for it before the change is dropped once (the store's `rev`), so an old tempo or tick
-// never counts for different notes; a ✓ Clean ticked after the change stays.
+// never counts for different notes. `at`: the change shipped before its entry did, so a ✓ Clean
+// ticked after `at` was made on the new notes and stays; without `at` (the entry ships with its
+// change) everything stored before is dropped.
 export const CHANGED_STEPS = [
   // f060af0 (v1.0.38): the Stage 1 test's first groove and the swing lesson's blues vamp
   { rev: 1, at: 1792512454000, steps: ['s1-test.0', 'swing.1'] },
-  // QA round 9 leftovers: a key fixed where the text names it or the neck needs it
-  { rev: 2, at: 1792573774000, steps: ['open-triads.0', 'u-triads4-check.1', 'upper-structures.1', 'colour-chords.0'] },
+  // QA round 9 leftovers (v1.0.45): a key fixed where the text names it or the neck needs it
+  { rev: 2, steps: ['open-triads.0', 'u-triads4-check.1', 'upper-structures.1', 'colour-chords.0'] },
+  // QA round 9 fixes, 8aa8df6 (v1.0.44): checkpoints and tests moved to the variants the lessons
+  // teach, voice-led arpeggios in written 8ths
+  { rev: 3, at: 1792572468000, steps: [
+    'u-positions-check.0', 'u-positions-check.1', 'u-scales3-check.1', 'one-string.1', 'sequences.2',
+    'inversions.0', 'harmonised-triads.1', 'u-triads3-check.1', 'u-sevenths3-check.0',
+    'u-moving-check.0', 'u-moving-check.1', 'u-jazz-first-check.0', 'u-time4-check.0',
+    'u-time4-check.1', 'u-modes4-check.0', 'u-modes4-check.1', 'ii-v-i-lines.0', 'ii-v-i-lines.1',
+    'u-voicelead-check.1', 'u-sevenths4-check.0', 'u-sevenths4-check.1', 'u-tenths-check.0',
+    'u-tenths-check.1', 'walk-mixed.1', 'u-walking4-check.1', 'u-grooves4-check.1', 's4-test.3',
+    'u-hands5-check.1', 'u-outside-check.0', 'u-outside-check.1', 'u-bebop-check.0', 'u-bebop-check.1',
+    'u-modes5-check.0', 'u-modes5-check.1', 'u-superimpose-check.0', 'u-superimpose-check.1',
+    'u-triads5-check.0', 'u-triads5-check.1', 'u-colours-check.0', 'u-colours-check.1',
+    'u-arps5-check.0', 'u-arps5-check.1', 'u-harmony5-check.0', 'u-harmony5-check.1',
+    'u-walking5-check.1', 'u-licks-check.0', 'u-licks-check.1', 'u-solo-check.0', 'u-solo-check.1',
+    's5-test.0', 's5-test.1', 's5-test.4', 'u-chords-all-keys-check.1', 'u-modern-check.0',
+    'u-modern-check.1', 'giant-steps-arps.0', 'giant-steps-arps.1', 'rhythm-changes-arps.0',
+    'u-coltrane-check.1', 'u-masters-check.0', 'u-masters-check.1', 's6-test.4',
+  ] },
+  // QA round 10: the R-5-10 checkpoint step in F (as its lesson)
+  { rev: 4, steps: ['u-triads4-check.2'] },
 ];
 const REV = CHANGED_STEPS.length;
 
@@ -32,9 +54,11 @@ function load() {
     if (!s || typeof s !== 'object') continue;
     steps[k] = { best: bpm(s.best), last: bpm(s.last), loops: num(s.loops), clean: num(s.clean) };
   }
+  // (a stored revision that is not a whole number from 0 to REV counts as none)
+  const rev = Number.isInteger(v.rev) && v.rev >= 0 && v.rev <= REV ? v.rev : 0;
   for (const c of CHANGED_STEPS) {
-    if (num(v.rev) >= c.rev) continue;
-    for (const k of c.steps) if (steps[k] && !(steps[k].clean > c.at)) delete steps[k];
+    if (rev >= c.rev) continue;
+    for (const k of c.steps) if (steps[k] && !(c.at && steps[k].clean > c.at)) delete steps[k];
   }
   const lessons = {};
   for (const [k, s] of Object.entries(obj(v.lessons))) {
@@ -166,7 +190,8 @@ export const sessionMinutes = () => state.minutes;
 export function setSessionMinutes(m) { if (SESSION_LENGTHS.includes(m)) { state.minutes = m; save(); } }
 
 export function resetCourse() {
-  state = { steps: {}, lessons: {}, can: {}, known: {}, placed: 0, minutes: state.minutes, last: '' };
+  // (a reset store is up to date: the changed steps are not dropped again at the next start)
+  state = { rev: REV, steps: {}, lessons: {}, can: {}, known: {}, placed: 0, minutes: state.minutes, last: '' };
   save();
 }
 

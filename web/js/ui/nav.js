@@ -1,5 +1,18 @@
 // Navigation shared by the router (app.js) and the screens.
-export const nav = { replacing: false, backing: false };
+// depth: how many screens deep the current one is (set by the router); returning: the screen was
+// reached with Back/Forward; showNext: the course map should show the next lesson when it opens
+export const nav = { replacing: false, backing: false, depth: -1, returning: false, showNext: false };
+
+/**
+ * Is there an in-app screen to go back to? A screen opened a moment ago may not have its depth yet
+ * (the router tags it when the hashchange runs): then there is one behind it, unless it replaced
+ * the current screen.
+ */
+export function canGoBack() {
+  const d = history.state?.depth;
+  if (typeof d === 'number') return d > 0;
+  return nav.replacing ? nav.depth > 0 : nav.depth >= 0;
+}
 
 /** Shows `hash` in place of the current screen, without a new history entry (Back skips it). */
 export function replaceHash(hash) {

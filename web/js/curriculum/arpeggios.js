@@ -68,8 +68,8 @@ const diatonic7 = ex({
   id: 'arp-diatonic-7ths', module: M, level: 3, star: true,
   title: 'Diatonic 7th arpeggios: Imaj7 ii7 iii7 IVmaj7 V7 vi7 viiø7',
   summary: 'The harmonised scale in 7th chords: the vocabulary of jazz, soul and pop.',
-  about: 'Stack four notes in thirds on each degree of the scale. In major you get Imaj7, iim7, iiim7, IVmaj7, V7, vim7 and viiø7. Every jazz standard and most soul and pop songs use these chords. Learn them in one position first, then in inversions and in every key.',
-  tips: ['"Up one, down the next" keeps you in position and sounds musical.', 'Inversions: start each chord from its 3rd, 5th or 7th.'],
+  about: 'Stack four notes in thirds on each degree of the scale. In major you get Imaj7, iim7, iiim7, IVmaj7, V7, vim7 and viiø7. Every jazz standard and most soul and pop songs use these chords. Learn them in one key first, then in inversions and in every key.',
+  tips: ['"Up one, down the next" turns the chords into one line and sounds musical.', 'Inversions: start each chord from its 3rd, 5th or 7th.'],
   source: 'Berklee PULSE & "Chord Studies for Electric Bass"; MI; LCM; StudyBass',
   params: {
     key: keyP(['1', '3', '5', '7']), scale: sel('Scale', SCALE_TYPE_OPTS(SCALES7)), order: degSeqP,
@@ -309,7 +309,7 @@ const dimToMinor = ex({
       chordTones(minor, ivsOf('min'), r.midi, [3, 2, 1, 0]).forEach((t, j) => items.push({ ...t, chord: j === 0 ? chordName(minor, 'min', S) : undefined }));
       prev = r.midi;
     }
-    emitMixed(b, items.map((x) => ({ ...x, dur: 1 })), { center: 5, open: 'avoid' });
+    emitMixed(b, items.map((x) => ({ ...x, dur: 1 })), { center: 5, open: 'avoid', shapes: true });
     return b.build({ label: 'degree' });
   },
 });

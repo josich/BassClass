@@ -85,6 +85,7 @@ export default {
         steps: [
           { ex: 'tech-alt-pluck', p: { start: 'i', reps: '4' }, sub: 2, from: 72, goal: 92 },
           { ex: 'tech-1234', p: { pos: '3' }, sub: 2, from: 66, goal: 88 },
+          { ex: 'fb-open-strings', p: { reps: '1' }, sub: 1, from: 66, goal: 84 },
         ],
       },
     },
@@ -233,6 +234,7 @@ export default {
         steps: [
           { ex: 'fb-naturals', p: { string: 'A', range: '0' }, sub: 1, from: 72, goal: 96 },
           { ex: 'fb-landmarks', p: { order: 'fret' }, sub: 1, from: 72, goal: 96 },
+          { ex: 'fb-octaves', p: { pair: '1' }, sub: 2, from: 72, goal: 92 },
         ],
       },
     },

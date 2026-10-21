@@ -1,6 +1,6 @@
 // Exercise builder + reusable musical pattern generators used by the curriculum.
 import * as T from './theory.js';
-import { place, assignFingers } from './fretboard.js';
+import { place, assignFingers, chordFingers } from './fretboard.js';
 
 const SHARP_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const FLAT_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
@@ -71,6 +71,8 @@ export class Builder {
     this.plain = plain;
     this.curChord = '';
     this.steps = [];
+    // notes whose finger the exercise chose (never re-fingered at build time)
+    this.fixedFingers = new WeakSet();
     this.pendingChord = null;
     this.pendingText = null;
   }
@@ -112,9 +114,21 @@ export class Builder {
     } else {
       positions = place(pitches.map((p) => p.midi), this.ctx, popts);
     }
+    // the notes of one chord (up to the next chord symbol) that fit one hand position are fingered
+    // from it, unless the exercise gives its own fingers
+    if (!pitches.some((p) => p.finger != null)) {
+      positions = positions.map((q) => ({ ...q }));
+      let start = 0;
+      for (let i = 1; i <= pitches.length; i++) {
+        if (i < pitches.length && !pitches[i].chord) continue;
+        chordFingers(positions.slice(start, i));
+        start = i;
+      }
+    }
     pitches.forEach((p, i) => {
       const pos = positions[i];
       const note = { midi: p.midi, n: p.n, deg: p.deg, s: pos.s, f: pos.f, finger: p.finger ?? pos.finger };
+      if (p.finger != null) this.fixedFingers.add(note);
       if (p.tag) note.tag = p.tag;
       if (p.play != null) note.play = p.play;
       const step = { notes: [note], dur: p.dur ?? dur };
@@ -138,10 +152,11 @@ export class Builder {
       const midi = this.ctx.tuning[it.s] + it.f;
       const note = { midi, n: it.n || spellMidi(midi, flats), deg: it.deg, s: it.s, f: it.f };
       if (it.tag) note.tag = it.tag;
-      if (it.finger != null) note.finger = it.finger;
+      if (it.finger != null) { note.finger = it.finger; this.fixedFingers.add(note); }
       if (it.play != null) note.play = it.play;
       const step = { notes: [note], dur: it.dur ?? dur };
       if (it.accent) step.accent = true;
+      if (it.fill) step.fill = true;
       if (it.hide) step.hide = true;
       if (it.silent) step.silent = true;
       if (it.implied) step.implied = it.implied;
@@ -190,6 +205,15 @@ export class Builder {
       if (st.notes.length === 1) flat.push(st.notes[0]);
     }
     assignFingers(flat);
+    // a chord (up to the next chord symbol) of up to five pitches whose fingers came from the line
+    // (not from the exercise) and show a shift although it fits one hand position: fingered from it
+    let group = [];
+    const settle = () => { if (group.length > 1 && new Set(group.map((n) => n.midi)).size <= 5) chordFingers(group); group = []; };
+    for (const st of this.steps) {
+      if (st.chord) settle();
+      if (st.notes.length === 1 && !this.fixedFingers.has(st.notes[0])) group.push(st.notes[0]);
+    }
+    settle();
     for (const st of this.steps) {
       if (st.notes.length > 1) {
         const fr = st.notes.filter((n) => n.f > 0).map((n) => n.f);

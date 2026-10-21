@@ -610,11 +610,16 @@ function chromaticSpell(inst, { keep = false, groups = 0 } = {}) {
     if (!BLACK.has(T.mod(n.midi, 12))) return;
     if (keep && names.has(n.midi)) { n.n = names.get(n.midi); return; }
     const after = ns.slice(i + 1).find((x) => x.midi !== n.midi);
-    const before = [...ns.slice(0, i)].reverse().find((x) => x.midi !== n.midi);
+    const prevs = ns.slice(0, i).reverse().filter((x) => x.midi !== n.midi);
+    const before = prevs[0], before2 = before && prevs.find((x) => x.midi !== before.midi);
     // groups: a figure of that many notes moves one way (a diagonal), spelled by its direction
     const g0 = groups ? i - (i % groups) : -1;
-    const down = groups && ns[g0 + groups - 1] ? ns[g0 + groups - 1].midi < ns[g0].midi
+    let down = groups && ns[g0 + groups - 1] ? ns[g0 + groups - 1].midi < ns[g0].midi
       : after ? after.midi < n.midi : before ? before.midi > n.midi : false;
+    // the top (or bottom) of a run keeps the run's direction (C C♯ D D♯, then down); a neighbour
+    // note is spelled the way it leaves (A–B♭–A)
+    if (!groups && after && before && before2 && (before.midi < n.midi) === (after.midi < n.midi)
+      && (before2.midi < before.midi) === (before.midi < n.midi)) down = before.midi > n.midi;
     n.n = spellMidi(n.midi, down);
     names.set(n.midi, n.n);
   });
