@@ -25,13 +25,14 @@ function card(t) {
   return h('div', { class: `card${pr.done ? ' done' : ''}`, onClick: () => go(exHref(t.id)) },
     starButton(t.id),
     h('h3', {}, h('span', { class: 'ex-num' }, t.num), t.title),
-    h('p', {}, t.summary || ''),
+    // the title says what it is; the description opens on request
     h('div', { class: 'meta' },
       h('span', { class: `chip lv lv${t.level}` }, `L${t.level}`),
       h('span', { class: 'chip' }, `${mod?.icon ?? ''} ${mod?.name ?? ''}`),
       t.star ? h('span', { class: 'chip core' }, 'core') : null,
       pr.done ? h('span', { class: 'chip mastered' }, '✓ mastered') : null,
-      pr.bestBpm ? h('span', { class: 'chip' }, `${pr.bestBpm} BPM`) : null));
+      pr.bestBpm ? h('span', { class: 'chip' }, `${pr.bestBpm} BPM`) : null,
+      t.summary ? infoBtn(t.summary, `About ${t.title}`) : null));
 }
 
 function moduleStats(id) {
