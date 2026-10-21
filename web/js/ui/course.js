@@ -1,7 +1,7 @@
 // The guided Course: the Home block (continue + today's session), the course map, the lesson page
 // and the placement check. Lessons open exercises with preset options and a tempo goal (see
 // course/data.js); everything stays open, the course only points at the next step.
-import { h, icon, toast, note, rng } from './dom.js';
+import { h, icon, toast, rng } from './dom.js';
 import { settings } from '../store.js';
 import { byId, defaultParams } from '../curriculum/index.js';
 import { paramSummary, SUB_NAMES } from './exercise.js';
@@ -312,7 +312,7 @@ export function placementScreen(main) {
     // units answered "yes" are marked as known; the course starts at the first lesson that is not
     setKnown(PLACEMENT.flatMap(([, units], i) => (answers[i] ? units : [])));
     const cont = continueLesson();
-    note(cont ? `Start here: ${lessonName(cont)}` : 'You know everything in Stages 1 and 2: today\'s session reviews them and adds Level 3 exercises.');
+    toast(cont ? `Start here: ${lessonName(cont)}` : 'You know Stages 1 and 2: today\'s session reviews them and adds Level 3', 3500);
     // back to where the check was opened from (the map or Home), which now shows the starting point
     if (history.state?.depth > 0) history.back(); else replaceHash('#/course');
   });

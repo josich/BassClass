@@ -1,5 +1,5 @@
 // Exercise player screen: fretboard with step-by-step dots, tab strip and transport.
-import { h, icon, toast, note, hideNote, esc } from './dom.js';
+import { h, icon, toast, esc } from './dom.js';
 import { starButton } from './favorites.js';
 import { settings, saveSettings, getProgress, updateProgress } from '../store.js';
 import { makeCtx } from '../fretboard.js';
@@ -139,7 +139,10 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const promptEl = h('div', { class: 'exv-prompt' });
   const beatsEl = h('div', { class: 'beat-dots' });
   const fbHost = h('div', { class: 'fb-host' });
-  boardEl.append(fbHost, nowEl, promptEl, beatsEl);
+  // a tip to read (the lesson step's instruction, a hint, an explanation): it belongs to this screen,
+  // stays until it is closed, and closes as soon as anything else in the exercise is pressed
+  const tipEl = h('div', { class: 'coach', role: 'status', hidden: true });
+  boardEl.append(fbHost, nowEl, promptEl, beatsEl, tipEl);
   const tabEl = h('div', { class: 'exv-tab' });
   const stage = h('div', { class: 'exv-stage' }, boardEl, tabEl);
 
@@ -159,7 +162,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   });
   // shown instead of the subdivision select when the rhythm is part of the exercise (licks, grooves…)
   const rhythmBtn = h('button', { class: 'lbl-btn written', title: 'Why can\'t I change the subdivision?',
-    onClick: () => note('The rhythm is written into this exercise, so the subdivision is fixed. Change the tempo instead.') }, '♪ Written rhythm');
+    onClick: () => tip('The rhythm is written into this exercise, so the subdivision is fixed. Change the tempo instead.') }, '♪ Written rhythm');
   const loopBtn = btn('loop', 'Loop', () => { player.loop = !player.loop; syncToggles(); });
   const metroBtn = btn('metro', 'Metronome', () => { player.metro = !player.metro; saveSettings({ metro: player.metro }); syncToggles(); });
   const soundBtn = btn('sound', 'Bass sound on/off', () => { player.sound = !player.sound; syncToggles(); });
@@ -208,7 +211,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         if (!LS.goal || played >= LS.goal) visitPassed = true;
         if (first || (reviewing && visitPassed && !passShown)) {
           passShown = true;
-          note(earStep ? (reviewing ? 'Round played: if you still got them all, tick ✓ Still got them?' : 'Round played: if you named them all before the answers, tick ✓ Got them all?')
+          tip(earStep ? (reviewing ? 'Round played: if you still got them all, tick ✓ Still got them?' : 'Round played: if you named them all before the answers, tick ✓ Got them all?')
             : reviewing ? 'Goal reached: if it is still clean, tick ✓ Still clean?' : 'Goal reached! If it felt clean, tick ✓ Clean?');
         }
         syncGoal();
@@ -216,7 +219,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     },
     onEnd: () => {
       showStep(-1);
-      if (demo) note('Your turn: tap Practise ›');
+      if (demo) tip('Your turn: tap Practise › to play it yourself.', { title: 'Demo finished' });
     },
   });
   // a lesson step starts where it was last practised (or at its starting tempo), a demo at the goal
@@ -339,7 +342,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     syncToggles();
     if (inst.overFret && inst.overFret !== warnedFret) {
       warnedFret = inst.overFret;
-      note(`This variation reaches fret ${inst.overFret}, above your highest fret (${ctx.maxFret}).`);
+      tip(`This variation reaches fret ${inst.overFret}, above your highest fret (${ctx.maxFret}).`);
     }
     if (wasPlaying) player.play();
   }
@@ -444,7 +447,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     }
     const passed = reviewing ? visitPassed : stepPassed(L, LI);
     if (!passed) {
-      note(LS.goal ? `Play a full loop from the first note at ${LS.goal} BPM or faster, then tick ✓ Clean.` : 'Play one full round from the first note, then tick ✓ if you named them all before the answers.');
+      tip(LS.goal ? `Play a full loop from the first note at ${LS.goal} BPM or faster, then tick ✓ Clean.` : 'Play one full round from the first note, then tick ✓ if you named them all before the answers.');
       return;
     }
     if (reviewing) {
@@ -453,7 +456,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       toast(`Reviewed ✓ Next review in ${days} days`, 3000);
     } else if (stepClean(L, LI)) {
       // a ticked step stays ticked here (a second tap must not undo a lesson): untick it on the lesson page
-      note('Already ticked ✓. To practise this step again from scratch, untick it on the lesson page.');
+      tip('Already ticked ✓. To practise this step again from scratch, untick it on the lesson page.');
     } else {
       const complete = setClean(L, LI, true);
       toast(complete ? `${lessonName} complete ✓` : 'Step done ✓', complete ? 3000 : 1800);
@@ -504,7 +507,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     saveSettings({ backing: order[(order.indexOf(was) + 1) % order.length] });
     applyBacking();
     syncToggles();
-    if (S.backing !== 'off' && !player.harmony?.some(Boolean)) note('This exercise has no chords or scales to back: the backing plays where there are.');
+    if (S.backing !== 'off' && !player.harmony?.some(Boolean)) tip('This exercise has no chords or scales to back: the backing plays where there are.');
   }
   /** Backing pad: the harmony of each part of the exercise (see harmony.js). */
   // backing belongs to music with harmony: not to hand, time, note-finding, interval or ear drills
@@ -535,7 +538,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     if (player.trainer.on) {
       player.trainer.target = Math.min(MAX_BPM, player.bpm + 40);
       player.loop = true;
-      note(`Speed trainer: +${player.trainer.inc} BPM every loop, up to ${player.trainer.target}.`);
+      tip(`Speed trainer: +${player.trainer.inc} BPM every loop, up to ${player.trainer.target}.`);
     }
     syncToggles();
   }
@@ -607,15 +610,30 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     drawer.classList.add('open');
   }
 
+  // ------------------------------------------------------------ tip
+  function tip(msg, { title = null } = {}) {
+    tipEl.replaceChildren(
+      h('span', { class: 'coach-ico', html: icon('info') }),
+      h('div', { class: 'coach-txt' }, title ? h('b', {}, title) : null, h('span', {}, msg)),
+      h('button', { class: 'coach-x', title: 'Close', 'aria-label': 'Close tip', onClick: () => hideTip() }, '×'));
+    tipEl.hidden = false;
+  }
+  function hideTip() { tipEl.hidden = true; }
+  // any press outside the tip closes it (and still does what it was for: play, options, goal…);
+  // a press that shows a new tip replaces it, because the click comes after this
+  function pressAnywhere(e) { if (!tipEl.hidden && !tipEl.contains(e.target)) hideTip(); }
+  document.addEventListener('pointerdown', pressAnywhere, true);
+
   // ------------------------------------------------------------ keyboard & lifecycle
   function onKey(e) {
+    if (!tipEl.hidden) hideTip();
     if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
     if (e.code === 'Space') { e.preventDefault(); player.toggle(); }
     else if (e.code === 'ArrowRight') manual(1);
     else if (e.code === 'ArrowLeft') manual(-1);
     else if (e.key === '+' || e.key === '=') setBpm(player.bpm + 2);
     else if (e.key === '-') setBpm(player.bpm - 2);
-    else if (e.key === 'Escape') { drawer.classList.remove('open'); closeOptions(); closeMore(); hideNote(); }
+    else if (e.key === 'Escape') { drawer.classList.remove('open'); closeOptions(); closeMore(); }
   }
   window.addEventListener('keydown', onKey);
 
@@ -623,6 +641,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
 
   function dispose() {
     alive = false;
+    document.removeEventListener('pointerdown', pressAnywhere, true);
+    hideTip();
     player.stop(true);
     fb.destroy();
     closeMore();
@@ -640,8 +660,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     throw err;
   }
   if (demo) {
-    toast('Demo: listen and watch the neck', 2500);
+    tip('The app plays it once at the goal tempo: listen and watch the neck.', { title: `${lessonName} · demo` });
     setTimeout(() => { if (alive && !player.playing) player.play(); }, 500);
-  } else if (LS?.do) note(LS.do);
+  } else if (LS?.do) tip(LS.do, { title: `${lessonName} · step ${LI + 1} of ${L.steps.length}` });
   return { dispose, player };
 }

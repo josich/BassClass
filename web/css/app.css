@@ -217,11 +217,19 @@ input[type=range] { accent-color: var(--accent); width: 100%; }
 
 .toast { position: fixed; left: 50%; bottom: 76px; transform: translateX(-50%); width: max-content; max-width: min(560px, 90vw); text-align: center; background: var(--panel-3); border: 1px solid var(--line); padding: 8px 14px; border-radius: 10px; font-weight: 600; z-index: 40; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
 .toast.show { opacity: 1; }
-/* a note to read stays until its × is tapped */
-.toast.sticky { display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 14px; text-align: left; }
-.toast.sticky.show { pointer-events: auto; }
-.toast-x { flex: none; width: 32px; height: 32px; border: 0; border-radius: 8px; background: var(--panel-2); color: var(--muted); font-size: 20px; line-height: 1; display: grid; place-items: center; }
-.toast-x:hover { color: var(--text); }
+/* exercise tip: a light callout on the board, clearly not part of the dark controls */
+.coach { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); z-index: 6; width: max-content; max-width: min(560px, calc(100% - 20px));
+  display: flex; align-items: flex-start; gap: 10px; padding: 9px 6px 9px 12px; border-radius: 12px;
+  background: #eafaf4; color: #0b2320; border: 1px solid #9fe3cc; border-left: 5px solid var(--accent);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55); animation: coach-in 0.18s ease-out; }
+.coach[hidden] { display: none; }
+.coach-ico { flex: none; width: 20px; height: 20px; margin-top: 1px; color: #11806a; display: grid; }
+.coach-ico svg { width: 20px; height: 20px; }
+.coach-txt { display: flex; flex-direction: column; gap: 2px; font-size: 13.5px; line-height: 1.35; font-weight: 600; user-select: text; -webkit-user-select: text; }
+.coach-txt b { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #11806a; }
+.coach-x { flex: none; width: 32px; height: 32px; margin: -4px 0 -4px 2px; border: 0; border-radius: 8px; background: rgba(11, 35, 32, 0.08); color: #0b2320; font-size: 20px; line-height: 1; display: grid; place-items: center; }
+.coach-x:hover { background: rgba(11, 35, 32, 0.16); }
+@keyframes coach-in { from { opacity: 0; transform: translate(-50%, -6px); } }
 
 /* ---------------------------------------------------------------- fretboard svg */
 svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; overflow: visible; }
