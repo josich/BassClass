@@ -772,10 +772,13 @@ export function emitMixed(b, items, popts = {}) {
     }
     a = e;
   }
-  // a chord whose notes fit one hand position is fingered from it (no shift shown inside the chord)
-  const byChord = new Map();
-  pos.forEach((q, j) => { if (!byChord.has(chordOf[j])) byChord.set(chordOf[j], []); byChord.get(chordOf[j]).push(q); });
-  for (const ps of byChord.values()) chordFingers(ps);
+  // a chord (or a named part of one) whose notes fit one hand position is fingered from it (no shift
+  // shown inside it)
+  const partOf = [];
+  items.reduce((pi, it) => { const c = pi + (it.chord || it.text ? 1 : 0); if (!it.rest) partOf.push(c); return c; }, 0);
+  const byPart = new Map();
+  pos.forEach((q, j) => { if (!byPart.has(partOf[j])) byPart.set(partOf[j], []); byPart.get(partOf[j]).push(q); });
+  for (const ps of byPart.values()) chordFingers(ps);
   let k = 0;
   for (const it of items) {
     if (it.chord) b.chord(it.chord);

@@ -114,13 +114,13 @@ export class Builder {
     } else {
       positions = place(pitches.map((p) => p.midi), this.ctx, popts);
     }
-    // the notes of one chord (up to the next chord symbol) that fit one hand position are fingered
-    // from it, unless the exercise gives its own fingers
+    // the notes of one chord (up to the next chord symbol or named part, such as "1st inv") that fit
+    // one hand position are fingered from it, unless the exercise gives its own fingers
     if (!pitches.some((p) => p.finger != null)) {
       positions = positions.map((q) => ({ ...q }));
       let start = 0;
       for (let i = 1; i <= pitches.length; i++) {
-        if (i < pitches.length && !pitches[i].chord) continue;
+        if (i < pitches.length && !pitches[i].chord && !pitches[i].text) continue;
         chordFingers(positions.slice(start, i));
         start = i;
       }
@@ -210,7 +210,7 @@ export class Builder {
     let group = [];
     const settle = () => { if (group.length > 1 && new Set(group.map((n) => n.midi)).size <= 5) chordFingers(group); group = []; };
     for (const st of this.steps) {
-      if (st.chord) settle();
+      if (st.chord || st.text) settle();
       if (st.notes.length === 1 && !this.fixedFingers.has(st.notes[0])) group.push(st.notes[0]);
     }
     settle();

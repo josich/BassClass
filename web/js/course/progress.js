@@ -40,6 +40,23 @@ export const CHANGED_STEPS = [
   { rev: 4, steps: ['u-triads4-check.2'] },
 ];
 const REV = CHANGED_STEPS.length;
+// A lesson completed stays complete when steps or "I can" lines are appended later: its record keeps
+// how many it had (`n`, `c`). Records from before that (v1.0.45 and older) take the counts of
+// v1.0.43 for the checkpoints and tests that have grown since: [steps, "I can" lines].
+const COUNTS_V143 = {
+  'u-hands-check': [2, 4], 'u-notes-check': [2, 3], 'u-neck-check': [2, 3], 'u-sevenths-check': [2, 2],
+  'u-blues-check': [3, 3], 'u-funk-check': [3, 3], 'u-positions-check': [2, 3],
+  'u-scales3-check': [2, 3], 'u-sequences-check': [2, 2], 'u-triads3-check': [2, 3],
+  'u-sevenths3-check': [2, 3], 'u-moving-check': [2, 3], 'u-jazz-first-check': [2, 3],
+  's3-test': [5, 6], 'u-stamina-check': [2, 3], 'u-time4-check': [3, 3], 'u-keys-check': [3, 3],
+  'u-minor-check': [2, 3], 'u-modes4-check': [2, 3], 'u-triads4-check': [2, 3],
+  'u-voicelead-check': [2, 3], 'u-grooves4-check': [2, 2], 's4-test': [5, 6], 'u-hands5-check': [2, 3],
+  'u-outside-check': [2, 3], 'u-bebop-check': [2, 3], 'u-modes5-check': [2, 3],
+  'u-superimpose-check': [2, 2], 'u-colours-check': [2, 3], 'u-arps5-check': [2, 3],
+  'u-walking5-check': [2, 3], 'u-licks-check': [2, 3], 'u-solo-check': [2, 3], 's5-test': [5, 6],
+  'u-chords-all-keys-check': [3, 3], 'u-modern-check': [2, 3], 'u-coltrane-check': [2, 3],
+  's6-test': [5, 5],
+};
 
 function load() {
   let v;
@@ -62,7 +79,7 @@ function load() {
   }
   const lessons = {};
   for (const [k, s] of Object.entries(obj(v.lessons))) {
-    if (s && typeof s === 'object' && lessonById.has(k)) lessons[k] = { done: num(s.done), reviews: num(s.reviews), next: num(s.next) };
+    if (s && typeof s === 'object' && lessonById.has(k)) lessons[k] = { done: num(s.done), reviews: num(s.reviews), next: num(s.next), n: num(s.n), c: num(s.c) };
   }
   const flags = (x) => Object.fromEntries(Object.entries(obj(x)).filter(([, f]) => f === true));
   return {
@@ -117,14 +134,23 @@ export function setCan(lesson, i, on) {
   return settle(lesson);
 }
 
-export const isComplete = (lesson) => lesson.steps.every((_, i) => stepClean(lesson, i)) && (lesson.can || []).every((_, i) => canTicked(lesson, i));
+/** Every step clean and every "I can" ticked; for a lesson completed before, those it had then. */
+export function isComplete(lesson) {
+  const rec = state.lessons[lesson.id];
+  const was = rec?.done ? (rec.n ? [rec.n, rec.c] : COUNTS_V143[lesson.id]) : null;
+  const n = was ? Math.min(was[0], lesson.steps.length) : lesson.steps.length;
+  const c = was ? Math.min(was[1], (lesson.can || []).length) : (lesson.can || []).length;
+  for (let i = 0; i < n; i++) if (!stepClean(lesson, i)) return false;
+  for (let i = 0; i < c; i++) if (!canTicked(lesson, i)) return false;
+  return true;
+}
 
 /** Keeps the completion record in step with the ticks; returns true when the lesson has just been completed. */
 function settle(lesson) {
   let fresh = false;
   if (isComplete(lesson) && !state.lessons[lesson.id]?.done) {
     const now = Date.now();
-    state.lessons[lesson.id] = { done: now, reviews: 0, next: now + INTERVALS[0] * DAY };
+    state.lessons[lesson.id] = { done: now, reviews: 0, next: now + INTERVALS[0] * DAY, n: lesson.steps.length, c: (lesson.can || []).length };
     fresh = true;
   }
   save();
@@ -182,6 +208,9 @@ export function continueLesson() {
   return LESSONS.find((l) => !l.optional && ['started', 'new'].includes(status(l))) || null;
 }
 
+/** The first lesson in course order that is neither done, known nor optional (where the player's level is). */
+export const firstGap = () => LESSONS.find((l) => !l.optional && ['started', 'new'].includes(status(l))) || null;
+
 /** Lessons done and known (checkpoints and tests are not counted as lessons). */
 export function courseStats() {
   const list = LESSONS.filter((l) => !l.optional && l.kind === 'lesson');
@@ -209,7 +238,9 @@ function loadSessions() {
   let v;
   try { v = JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch { v = null; }
   const obj = (x) => !!x && typeof x === 'object' && !Array.isArray(x);
-  const items = (a) => (Array.isArray(a) ? a.filter((x) => obj(x) && typeof x.id === 'string') : []);
+  const step = (x) => x.ls == null || (typeof x.ls === 'string' && /^[\w-]+\.\d+$/.test(x.ls));
+  const items = (a) => (Array.isArray(a) ? a.filter((x) => obj(x) && typeof x.id === 'string' && typeof x.slot === 'string'
+    && step(x) && (!(x.demo || x.rv) || typeof x.ls === 'string') && (x.params == null || obj(x.params))) : []);
   const whole = (x, lo, hi) => Math.min(hi, Math.max(lo, Math.round(Number(x)) || lo));
   const c = obj(v) && obj(v.cur) ? v.cur : null;
   const cur = c && Number.isFinite(c.seed) ? {

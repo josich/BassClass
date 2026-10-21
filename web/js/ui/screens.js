@@ -19,7 +19,8 @@ export const exHref = (id, params) => {
   return `#/ex/${id}${q ? `?${q}` : ''}`;
 };
 
-function card(t) {
+/** An exercise card; `level`/`topic` false leave out a chip the section already shows. */
+function card(t, { level = true, topic = true } = {}) {
   const pr = getProgress(t.id) || {};
   const mod = moduleOf(t.module);
   return h('div', { class: `card${pr.done ? ' done' : ''}`, onClick: () => go(exHref(t.id)) },
@@ -27,9 +28,9 @@ function card(t) {
     h('h3', {}, h('span', { class: 'ex-num' }, t.num), t.title),
     // the title says what it is; the description opens on request
     h('div', { class: 'meta' },
-      h('span', { class: `chip lv lv${t.level}` }, `L${t.level}`),
-      h('span', { class: 'chip' }, `${mod?.icon ?? ''} ${mod?.name ?? ''}`),
-      t.star ? h('span', { class: 'chip core' }, 'core') : null,
+      level ? h('span', { class: `chip lv lv${t.level}` }, `L${t.level}`) : null,
+      topic ? h('span', { class: 'chip' }, `${mod?.icon ?? ''} ${mod?.name ?? ''}`) : null,
+      t.star ? h('span', { class: 'chip core' }, '★ core') : null,
       pr.done ? h('span', { class: 'chip mastered' }, '✓ mastered') : null,
       pr.bestBpm ? h('span', { class: 'chip' }, `${pr.bestBpm} BPM`) : null,
       t.summary ? infoBtn(t.summary, `About ${t.title}`) : null));
@@ -146,15 +147,15 @@ function modulesGrid() {
   return h('div', { class: 'grid' }, mods.map((m) => {
     const st = moduleStats(m.id);
     return h('div', { class: 'card mod-card', onClick: () => go(`#/m/${m.id}`) },
-      h('div', { class: 'ico' }, m.icon), h('h3', {}, m.name), h('p', {}, m.desc),
-      h('div', { class: 'meta' }, h('span', { class: 'chip' }, `${st.total} exercises`), st.done ? h('span', { class: 'chip' }, `${st.done} mastered`) : null),
+      h('div', { class: 'ico' }, m.icon), h('h3', {}, m.name),
+      h('div', { class: 'meta' }, h('span', { class: 'chip' }, `${st.total} exercises`), st.done ? h('span', { class: 'chip' }, `${st.done} mastered`) : null, infoBtn(m.desc, `About ${m.name}`)),
       h('div', { class: 'bar' }, h('i', { style: { width: `${st.total ? (st.done / st.total) * 100 : 0}%` } })));
   }));
 }
 
 export function pathScreen(main) {
   main.replaceChildren(
-    h('div', { class: 'page-head' }, h('h1', {}, 'Learning path'), infoBtn('Pick a topic. Each one lists its exercises in order, from its first level to its last; mark them as mastered as you go. The Library shows every exercise by level.', 'About the path')),
+    h('div', { class: 'page-head' }, h('h1', {}, 'Learning path'), infoBtn(['🗂 One card per topic', '▶ Its exercises in order, Level 1 to 6', '✓ Mark them as mastered as you go', '📚 Library: every exercise by level'], 'About the path')),
     modulesGrid());
 }
 
@@ -167,10 +168,10 @@ export function moduleScreen(main, id) {
   const render = () => {
     tabs.replaceChildren(...[0, 1, 2, 3, 4, 5, 6].map((n) => h('button', { class: level === n ? 'on' : '', onClick: () => { level = n; render(); } }, n ? `L${n}` : 'All')));
     const items = byModule(id).filter((t) => !level || t.level === level);
-    list.replaceChildren(items.length ? h('div', { class: 'grid' }, items.map(card)) : h('p', { class: 'muted' }, 'No exercises at this level yet.'));
+    list.replaceChildren(items.length ? h('div', { class: 'grid' }, items.map((t) => card(t, { topic: false }))) : h('p', { class: 'muted' }, 'No exercises at this level yet.'));
   };
   main.replaceChildren(
-    h('div', { class: 'page-head' }, h('button', { class: 'icon-btn', 'aria-label': 'Back', html: icon('back'), onClick: () => back('#/path') }), h('h1', {}, `${m.icon} ${m.name}`), infoBtn(m.desc, `About ${m.name}`), h('div', { class: 'grow' }), tabs),
+    h('div', { class: 'page-head' }, h('button', { class: 'icon-btn', 'aria-label': 'Back', html: icon('back'), onClick: () => back('#/path') }), h('h1', {}, `${m.icon} ${m.name}`), h('div', { class: 'grow' }), tabs),
     list);
   render();
 }
@@ -184,7 +185,7 @@ function levelSections() {
     const done = list.filter((t) => (getProgress(t.id) || {}).done).length;
     return [
       h('div', { class: 'section', id: `lv-${L.n}` }, h('span', { class: `chip lv lv${L.n}` }, `Level ${L.n}`), h('h2', {}, L.name), infoBtn(L.desc, `About Level ${L.n}`), h('span', { class: 'muted small' }, `${done}/${list.length} mastered`)),
-      h('div', { class: 'grid' }, list.map(card)),
+      h('div', { class: 'grid' }, list.map((t) => card(t, { level: false }))),
     ];
   });
 }
@@ -213,7 +214,7 @@ export function libraryScreen(main, params = {}) {
       return words.every((w) => hay.includes(w));
     }).sort((a, b) => a.num - b.num);
     results.replaceChildren(list.length
-      ? h('div', {}, h('p', { class: 'muted small' }, `${list.length} exercise${list.length > 1 ? 's' : ''} found`), h('div', { class: 'grid' }, list.map(card)))
+      ? h('div', {}, h('p', { class: 'muted small' }, `${list.length} exercise${list.length > 1 ? 's' : ''} found`), h('div', { class: 'grid' }, list.map((t) => card(t))))
       : h('p', { class: 'muted' }, 'Nothing found.'));
   };
   search.addEventListener('input', () => {
@@ -221,7 +222,7 @@ export function libraryScreen(main, params = {}) {
     render();
   });
   main.replaceChildren(
-    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn(`All ${EXERCISES.length} exercises, from Level 1 to 6, each with its number. Search by name, topic or number, or jump to a level.`, 'About the Library'), h('div', { class: 'grow' }), search),
+    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '🔎 Search by name, topic or number (#42)', '★ core: a key exercise of its level', 'ⓘ on a card: what it is'], 'About the Library'), h('div', { class: 'grow' }), search),
     jumps,
     results);
   render();
@@ -336,5 +337,5 @@ export function settingsScreen(main) {
           toast('Settings restored');
         } }, 'Restore defaults')))),
     // the release number (written by the build) and the commit it was built from
-    h('p', { class: 'muted small version' }, infoBtn(`BassClass works offline once loaded. The bass sound uses recorded CC0 samples (Karoryfer "darkblack"), with a built-in synthesizer as a backup.${location.hostname === 'appassets.androidplatform.net' ? '' : ' Install it from your browser menu → "Add to Home screen" for full-screen landscape mode.'}`, 'About BassClass'), ' ', VERSION ? `BassClass ${VERSION}${COMMIT ? ` · build ${COMMIT}` : ''}` : `BassClass · development version${COMMIT ? ` · build ${COMMIT}` : ''}`));
+    h('p', { class: 'muted small version' }, infoBtn(['📴 Works offline once loaded', '🎸 Recorded CC0 bass samples (Karoryfer "darkblack"), a synth as backup', ...(location.hostname === 'appassets.androidplatform.net' ? [] : ['📲 Browser menu → Add to Home screen: full screen, landscape'])], 'About BassClass'), ' ', VERSION ? `BassClass ${VERSION}${COMMIT ? ` · build ${COMMIT}` : ''}` : `BassClass · development version${COMMIT ? ` · build ${COMMIT}` : ''}`));
 }

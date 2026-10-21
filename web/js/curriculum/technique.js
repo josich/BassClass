@@ -618,7 +618,9 @@ function chromaticSpell(inst, { keep = false, groups = 0 } = {}) {
       : after ? after.midi < n.midi : before ? before.midi > n.midi : false;
     // the top (or bottom) of a run keeps the run's direction (C C♯ D D♯, then down); a neighbour
     // note is spelled the way it leaves (A–B♭–A)
-    if (!groups && after && before && before2 && (before.midi < n.midi) === (after.midi < n.midi)
+    // (a top note played twice: the second one opens the run back down, so it goes by that run: D♯ | E♭ D D♭)
+    const again = i > 0 && ns[i - 1].midi === n.midi;
+    if (!groups && !again && after && before && before2 && (before.midi < n.midi) === (after.midi < n.midi)
       && (before2.midi < before.midi) === (before.midi < n.midi)) down = before.midi > n.midi;
     n.n = spellMidi(n.midi, down);
     names.set(n.midi, n.n);

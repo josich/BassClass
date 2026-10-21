@@ -249,7 +249,8 @@ export class Player {
         } else {
           this.endAbs = this.loopBase + this.total;
           if (this.harmony) A.padStop(this._time(this.endAbs));
-          this._q({ time: this._time(this.endAbs), type: 'end' });
+          // (`full`: the pass started on the first note, so it was played through)
+          this._q({ time: this._time(this.endAbs), type: 'end', full: this.loopFull });
         }
       } else {
         this.nextStepAbs = this.loopBase + this.starts[this.si];
@@ -274,7 +275,7 @@ export class Player {
       if (e.type === 'step') { this.cur = e.idx; this.cb.onStep?.(e.idx); }
       else if (e.type === 'beat') this.cb.onBeat?.(e.level, e.beat);
       else if (e.type === 'loop') this.cb.onLoop?.(e.n, e.bpm, e.done);
-      else if (e.type === 'end') { this.pause(); this.cur = 0; this.cb.onEnd?.(); return; }
+      else if (e.type === 'end') { this.pause(); this.cur = 0; this.cb.onEnd?.(e.full); return; }
     }
     if (this.playing) this._raf = requestAnimationFrame(() => this._frame());
   }

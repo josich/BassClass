@@ -1,7 +1,7 @@
 // Course Stage 1: First steps (Level 1). See ../data.js for the format.
 export default {
   id: 's1', title: 'First steps', level: 1,
-  desc: 'Hold the bass, keep steady time, learn the notes on the low strings and play your first scales, chords and bass lines.',
+  desc: 'Hold the bass, keep steady time, the notes on the low strings, your first scales, chords and bass lines.',
   units: [
     {
       id: 'u-hands', title: 'Your two hands',

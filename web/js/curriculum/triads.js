@@ -441,6 +441,13 @@ const inversions = ex({
       const root = T.bestRoot(k, ivs);
       let r = pickRoot(ctx, k, { strings: keys.length > 1 || p.mode === 'climb' ? [p.root, 'E', 'A'] : [p.root], hi: p.mode === 'climb' ? 7 : keys.length > 1 ? 10 : 12, prev, prefer: p.root });
       if (keys.length === 1 && p.mode !== 'climb') { const pl = placeRoot(ctx, k, p.root, r); r = pl.r; if (pl.note) b.fixed = { root: pl.note }; }
+      // in one position the 2nd inversion takes the 5th from the string below the root: a root on the
+      // lowest string moves up one
+      if (p.mode !== 'climb' && r.s === 0) {
+        const up = ctx.names[1];
+        const r2 = pickRoot(ctx, k, { strings: [up], lo: 2, hi: 10, prev, prefer: up });
+        if (r2.s === 1) { r = r2; b.fixed = { root: `${up} string (the 2nd inversion needs the string below the root)` }; }
+      }
       const groups = p.mode === 'climb'
         ? [[0, 1, 2], [1, 2, 3], [2, 3, 4], [3, 4, 5], [5, 4, 3], [4, 3, 2], [3, 2, 1], [2, 1, 0]]
         : [[0, 1, 2], [1, 2, 3], [-1, 0, 1], [1, 0, -1], [3, 2, 1], [2, 1, 0]];
@@ -859,8 +866,8 @@ const upperStructures = ex({
       const bass = T.bestRoot(k, T.CHORDS[u.over].iv);
       const r = pickRoot(ctx, k, { strings: ['E', 'A'], hi: 8, prev, prefer: 'E' });
       const upRoot = T.bestRoot(T.mod(k + u.off, 12), ivsOf(u.q));
-      let um = r.midi + 12 + T.mod(u.off, 12);
-      if (um - r.midi > 22) um -= 12;
+      // the triad from a 5th to an octave and a 5th above the bass, next to the root (G2-B2-D3 over C2)
+      let um = r.midi + T.mod(u.off, 12) + (T.mod(u.off, 12) < 7 ? 12 : 0);
       const highest = ctx.tuning[ctx.tuning.length - 1] + ctx.maxFret;
       if (um + 7 > highest) um -= 12;
       // the badge is the lower chord (what the Backing plays: Cmaj7 or C7 under the same D triad), the

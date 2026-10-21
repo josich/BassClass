@@ -230,9 +230,10 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         syncGoal();
       }
     },
-    onEnd: () => {
+    onEnd: (full) => {
       showStep(-1);
-      if (demo) routine?.played?.();
+      // played through without the loop: today's session ticks it too
+      if (demo || full) routine?.played?.();
       if (demo) tip(`Your turn: tap ${routine ? 'Next' : 'Practise'} › to play it yourself.`, { title: 'Demo finished' });
     },
   });

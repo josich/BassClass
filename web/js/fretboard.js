@@ -216,24 +216,13 @@ export function handFingers(frets) {
 }
 
 /**
- * Do these fingers show one hand position: the index's fret with a stretch of one fret either way,
- * or the spread hand handFingers gives a five-fret shape?
- */
-export function onePosition(ps) {
-  const fr = ps.filter((q) => q.f > 0 && q.finger >= 1);
-  const fits = (hp) => fr.every((q) => q.f - q.finger + 1 === hp || (q.finger === 4 && q.f === hp + 4) || (q.finger === 1 && q.f === hp - 1));
-  const hf = handFingers(fr.map((q) => q.f));
-  return !fr.length || fr.some((q) => fits(q.f - q.finger + 1)) || (!!hf && fr.every((q) => q.finger === hf(q.f)));
-}
-
-/**
- * One hand position for a group of notes (the notes of one chord): when they fit five frets and
- * their fingers show a shift inside the chord, every finger follows from its fret (handFingers).
- * Changes ps ({f, finger}) in place.
+ * One hand position for a group of notes (the notes of one chord): when they fit five frets, every
+ * finger follows from its fret (handFingers), so the labels never show a shift or a needless
+ * stretch inside the chord. Changes ps ({f, finger}) in place.
  */
 export function chordFingers(ps) {
   const hf = handFingers(ps.map((q) => q.f));
-  if (hf && !onePosition(ps)) for (const q of ps) q.finger = hf(q.f);
+  if (hf) for (const q of ps) q.finger = hf(q.f);
   return ps;
 }
 

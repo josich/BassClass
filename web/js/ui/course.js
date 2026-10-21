@@ -2,17 +2,18 @@
 // and the placement check. Lessons open exercises with preset options and a tempo goal (see
 // course/data.js); everything stays open, the course only points at the next step.
 import { h, icon, toast, rng, infoBtn } from './dom.js';
+import { settings } from '../store.js';
 import { EXERCISES, byId } from '../curriculum/index.js';
-import { SUB_NAMES } from './exercise.js';
+import { SUB_NAMES, paramOptions } from './exercise.js';
 import { exHref, go, buildRoutine, routineParams, setRoutine, routineHref } from './screens.js';
 import { replaceHash, goBack, canGoBack, nav } from './nav.js';
 import { NEXT_LEVEL, COMPLETE } from '../course/data.js';
 import {
   STAGES, LESSONS, UNITS, lessonById, SESSION_LENGTHS,
   stepPassed, stepClean, setClean, canTicked, setCan, isComplete, isDue, nextReview, dueLessons,
-  status, started, anyProgress, continueLesson, courseStats, knownUnits, setKnown, placed,
+  status, started, anyProgress, continueLesson, firstGap, courseStats, knownUnits, setKnown, placed,
   sessionMinutes, setSessionMinutes, setLast, resetCourse,
-  sessionStore, setSession, sessionPractised,
+  sessionStore, setSession, sessionPractised, clearSession,
 } from '../course/progress.js';
 
 const back = (fallback) => (canGoBack() ? goBack() : go(fallback));
@@ -53,15 +54,50 @@ export const FOCUS = [
   { name: 'Lines and grooves', of: (t) => ['grooves', 'walking', 'licks', 'slap'].includes(t.module) },
   { name: 'Ear and reading', of: (t) => isEar(t.id) },
 ];
-/** The player's level: the stage of the next lesson (6 once nothing new is left). */
-export const playerLevel = () => continueLesson()?.stage.level ?? 6;
+/** The player's level: the stage of the first lesson not done or known (6 once nothing new is left). */
+export const playerLevel = () => firstGap()?.stage.level ?? 6;
 const stepItem = (l, i, slot, extra = {}) => ({ id: l.steps[i].ex, params: l.steps[i].p, ls: `${l.id}.${i}`, slot, ...extra });
 const libItem = (t, level, rand, slot) => ({ id: t.id, params: routineParams(t, level, rand), slot });
-/** The tag of a session item: its slot, and for a lesson step which one ("Lesson 1.2 · 2/3"). */
-const stepTag = (it) => {
+/** A few words for an option's value: its label without the parentheses ("Index (i)" → "Index"). */
+const optWords = (def, v) => {
+  const lab = String((paramOptions(def, settings).find((o) => String(o[0]) === String(v)) || [, v])[1]);
+  return lab.replace(/\s*\([^)]*\)/g, '').trim() || lab;
+};
+/**
+ * What tells apart the rows of one exercise in a list ("Beats 2 & 4", "5/4"): the options that
+ * differ between them, else the notes per beat; '' for an exercise listed once.
+ * `list`: [{ ex, p, sub }].
+ */
+function variants(list) {
+  const out = list.map(() => '');
+  const byEx = new Map();
+  list.forEach((x, i) => { if (!byEx.has(x.ex)) byEx.set(x.ex, []); byEx.get(x.ex).push(i); });
+  for (const [ex, idx] of byEx) {
+    const t = byId.get(ex);
+    if (idx.length < 2 || !t) continue;
+    // (an option a step leaves to the player reads "any key")
+    const full = idx.map((i) => Object.fromEntries(Object.keys(t.params || {}).map((k) => [k, k in (list[i].p || {}) ? list[i].p[k] : '*'])));
+    // the differing options in order, as many as it takes for every row to read differently (three at most)
+    const keys = [];
+    const sig = () => idx.map((_, j) => keys.map((k) => String(full[j][k])).join('|'));
+    for (const k of Object.keys(t.params || {}).filter((k2) => new Set(full.map((p) => String(p[k2]))).size > 1)) {
+      if (keys.length >= 3 || (keys.length && new Set(sig()).size === idx.length)) break;
+      keys.push(k);
+    }
+    idx.forEach((i, j) => {
+      let w = keys.map((k) => (full[j][k] === '*' ? `any ${(t.params[k].label || k).toLowerCase()}` : optWords(t.params[k], full[j][k]))).join(' · ');
+      if (!w && list[i].sub && new Set(idx.map((x) => list[x].sub)).size > 1) w = SUB_NAMES[list[i].sub];
+      out[i] = w.length > 24 ? `${w.slice(0, 23)}…` : w;
+    });
+  }
+  return out;
+}
+/** The tag of a session item: its slot, with what tells it apart from a row of the same exercise (else which step it is). */
+const stepTag = (it, variant = '') => {
   const l = lessonOf(it);
   const course = /^(Lesson|Checkpoint|Stage test)/.test(it.slot);
-  return course && !it.demo && l.steps.length > 1 ? `${it.slot} · ${Number(it.ls.split('.')[1]) + 1}/${l.steps.length}` : it.slot;
+  if (variant) return it.warm ? variant : `${it.slot} · ${variant}`;
+  return course && l && !it.demo && l.steps.length > 1 ? `${it.slot} · ${Number(it.ls.split('.')[1]) + 1}/${l.steps.length}` : it.slot;
 };
 /** An item's identity inside its session (what gets ticked when it is played). */
 const itemKey = (it) => [it.id, it.ls || '', it.demo ? 'demo' : '', it.rv ? 'review' : ''].join('|');
@@ -92,15 +128,22 @@ function pickFor(of, n, { level, rand, slot, skip, withGoal = false }) {
   }
   return out;
 }
-/** Warm-ups: hands first, then the neck or time; `taken` are the ids already in the session. */
+/** Warm-ups: one for the hands first, then the neck or time; `taken` are the ids already in the session. */
 function warmUps(n, { level, rand, recent, taken }) {
   const skip = (id) => recent.has(id) || taken.has(id);
   const out = [];
-  for (const of of [(t) => t.module === 'technique', (t) => WARM.includes(t.module)]) {
-    if (out.length >= n) break;
-    out.push(...pickFor(of, out.length ? n - out.length : 1, { level, rand, slot: 'Warm-up', skip: (id) => skip(id) || out.some((x) => x.id === id), withGoal: true }));
-  }
+  [(t) => t.module === 'technique', (t) => WARM.includes(t.module)].forEach((of, k) => {
+    if (out.length >= n) return;
+    out.push(...pickFor(of, k ? n - out.length : 1, { level, rand, slot: 'Warm-up', skip: (id) => skip(id) || out.some((x) => x.id === id), withGoal: true }));
+  });
   return out.map((x) => ({ ...x, warm: 1 }));
+}
+/** The exercises of the next lessons of the course (a warm-up never plays one of them first). */
+function upcoming() {
+  const cont = continueLesson();
+  if (!cont) return new Set();
+  const next = LESSONS.slice(LESSONS.indexOf(cont)).filter((l) => !l.optional && !practised(l)).slice(0, 4);
+  return new Set(next.flatMap((l) => l.steps.map((s) => s.ex)));
 }
 
 function buildSession(minutes, cur, history) {
@@ -117,7 +160,7 @@ function buildSession(minutes, cur, history) {
   const n = Math.max(1, Math.round((minutes - 6) / 5));
   // a new player (nothing met yet) gets the first lessons after the warm-ups, nothing beside them
   const fresh = !LESSONS.some(practised);
-  items.push(...warmUps(2, { level, rand: rng(cur.seed), recent, taken: new Set() }));
+  items.push(...warmUps(2, { level, rand: rng(cur.seed), recent, taken: upcoming() }));
   // the focus topic: one exercise from 30 minutes, two from 45
   const focusN = fresh ? 0 : n >= 8 ? 2 : n >= 4 ? 1 : 0;
   // reviews that are due: up to a quarter of the session while there is new material, half once not
@@ -147,8 +190,9 @@ function buildSession(minutes, cur, history) {
       items.push(stepItem(l, reviewStep(l), 'Review', isComplete(l) ? { rv: 1 } : {}));
     }
   }
-  if (count() < n && !fresh) {
-    for (const it of buildRoutine(cont ? level : NEXT_LEVEL, cur.seed + minutes)) {
+  // (a routine has one exercise of each kind: as many as the room needs)
+  for (let k = 0; count() < n && !fresh && k < 6; k++) {
+    for (const it of buildRoutine(cont ? level : NEXT_LEVEL, cur.seed + minutes + k * 7919)) {
       if (count() >= n) break;
       if (!has(it.id) && !recent.has(it.id)) items.push({ id: it.id, params: it.params, slot: `Library · L${byId.get(it.id).level}` });
     }
@@ -160,13 +204,16 @@ function buildSession(minutes, cur, history) {
 function todaysSession(minutes) {
   const store = sessionStore();
   let cur = store.cur;
-  if (!cur) {
-    cur = { seed: Math.floor(Math.random() * 2 ** 31), at: Date.now(), level: playerLevel(), focus: ((store.history[0]?.focus ?? -1) + 1) % FOCUS.length, lists: {}, extra: [], played: [] };
-    setSession(cur);
-  }
-  if (!cur.lists[minutes]) { cur.lists[minutes] = buildSession(minutes, cur, store.history); setSession(cur); }
-  // (an item whose exercise or lesson step no longer exists is left out)
+  // a plan from an earlier day with nothing played is planned again (new reviews, the course moved on);
+  // one started stays until ✓ Practised (its focus too)
+  const day = (t) => new Date(t).toDateString();
+  if (cur && !cur.played.length && !cur.extra.length && day(cur.at) !== day(Date.now())) cur = { ...cur, seed: Math.floor(Math.random() * 2 ** 31), at: Date.now(), level: playerLevel(), lists: {} };
+  if (!cur) cur = { seed: Math.floor(Math.random() * 2 ** 31), at: Date.now(), level: playerLevel(), focus: ((store.history[0]?.focus ?? -1) + 1) % FOCUS.length, lists: {}, extra: [], played: [] };
+  if (cur !== store.cur) setSession(cur);
+  // (an item whose exercise or lesson step no longer exists is left out; a list with nothing left is
+  // planned again)
   const live = (it) => byId.has(it.id) && (!it.ls || lessonOf(it)?.steps[Number(it.ls.split('.')[1])]?.ex === it.id);
+  if (!cur.lists[minutes]?.some(live)) { cur.lists[minutes] = buildSession(minutes, cur, store.history); setSession(cur); }
   const list = cur.lists[minutes].filter(live);
   const warm = [...list.filter((x) => x.warm), ...cur.extra.filter(live)];
   return { cur, warm, main: list.filter((x) => !x.warm) };
@@ -177,8 +224,8 @@ const SESSION_INFO = [
   '🔥 2 warm-ups · + More warm-up for another',
   '↻ The reviews that are due',
   '▶ The next steps of the course',
-  '🎯 A focus topic, a new one each session',
-  '⏱ About 5 min each · ✓ once played through',
+  '🧭 A focus topic, a new one each session',
+  '⏱ Warm-ups ~3 min, the rest ~5 min · ✓ once played through',
   '✓ Practised: the next session follows on',
 ];
 const COURSE_INFO = [
@@ -187,6 +234,9 @@ const COURSE_INFO = [
   '✓ A checkpoint after every unit, a test after every stage',
   '🔓 Nothing is locked · Map: every lesson',
 ];
+
+/** A description that lists things ("Hold the bass, keep steady time and …") as one short line each. */
+const listLines = (text) => text.replace(/\.$/, '').split(/,\s+(?:and\s+)?/).map((x) => `• ${x[0].toUpperCase()}${x.slice(1)}`);
 
 // ---------------------------------------------------------------- Home blocks
 /** Where the course goes on: one button, and the map in the corner. */
@@ -210,15 +260,19 @@ export function sessionBlock() {
     const { cur, warm, main } = todaysSession(minutes);
     const all = [...warm, ...main].map((it) => ({ ...it, key: itemKey(it) }));
     const played = new Set(cur.played);
-    const isPlayed = (it) => played.has(it.key) || (!!it.ls && !it.demo && !it.rv && stepClean(lessonOf(it), Number(it.ls.split('.')[1])));
+    // ticked once played in this session; the course's own next steps also once they are clean (a demo
+    // once its lesson is started), never a warm-up, review or focus step of a lesson done before
+    const courseItem = (it) => !!it.ls && !it.warm && !it.rv && /^(Lesson|Checkpoint|Stage test)/.test(it.slot);
+    const isPlayed = (it) => played.has(it.key) || (courseItem(it) && (it.demo ? started(lessonOf(it)) : stepClean(lessonOf(it), Number(it.ls.split('.')[1]))));
     const start = (i) => { setRoutine(all, 'Session'); go(routineHref(all[i], i)); };
+    const vs = variants(all.map((it) => ({ ex: it.id, p: it.params, sub: lessonOf(it)?.steps[Number(it.ls?.split('.')[1])]?.sub })));
     const row = (it, i) => {
       const done = isPlayed(it);
       const title = it.demo ? `Hear it: ${lessonOf(it).title}` : byId.get(it.id).title;
       return h('div', { class: `item${done ? ' played' : ''}${it.demo ? ' demo' : ''}`, onClick: () => start(i) },
         h('div', { class: 'n' }, done ? '✓' : i + 1),
         h('div', { class: 't' }, h('b', {}, title)),
-        it.warm ? null : h('span', { class: 'tag' }, stepTag(it)));
+        it.warm && !vs[i] ? null : h('span', { class: 'tag' }, stepTag(it, it.demo ? '' : vs[i])));
     };
     const more = () => {
       const taken = new Set(all.map((x) => x.id));
@@ -232,8 +286,6 @@ export function sessionBlock() {
     section.replaceChildren(
       h('div', { class: 'block-head' }, h('h2', {}, '📅 Today\'s session'), infoBtn(SESSION_INFO, 'About today\'s session'), h('div', { class: 'grow' }),
         h('div', { class: 'seg' }, SESSION_LENGTHS.map((m) => h('button', { class: m === minutes ? 'on' : '', onClick: () => { setSessionMinutes(m); render(); } }, `${m}′`)))),
-      h('div', { class: 'session-path' }, h('span', { class: `chip lv lv${cur.level}` }, `Level ${cur.level}`),
-        main.some((x) => x.slot === FOCUS[cur.focus % FOCUS.length].name) ? h('span', { class: 'chip' }, `Focus: ${FOCUS[cur.focus % FOCUS.length].name}`) : null),
       h('h4', { class: 'session-sub' }, 'Warm-up'),
       h('div', { class: 'routine session-list' }, all.slice(0, warm.length).map((it, i) => row(it, i)),
         h('button', { class: 'btn more-warm', onClick: more }, '+ More warm-up')),
@@ -243,12 +295,18 @@ export function sessionBlock() {
         h('button', { class: 'btn primary', disabled: !all.length, onClick: () => start(Math.max(0, next)) }, next > 0 ? '▶ Carry on' : '▶ Start'),
         h('div', { class: 'grow' }),
         h('button', { class: `btn${next < 0 ? ' primary' : ''}`, onClick: () => {
+          // (nothing played yet: ask first, so a double tap never files a plan unseen)
+          if (!all.some(isPlayed) && !confirm('Nothing played yet. Mark this session as practised anyway?')) return;
           sessionPractised(all.map((x) => x.id));
           toast('Practised ✓ The next session is ready.', 2500);
           render();
         } }, '✓ Practised')));
   };
-  render();
+  // (a stored plan that cannot be shown is planned again instead of leaving Home empty)
+  const safe = () => {
+    try { render(); } catch (err) { console.error(err); clearSession(); render(); }
+  };
+  safe();
   return section;
 }
 
@@ -269,7 +327,7 @@ export function courseScreen(main) {
   };
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('button', { class: 'icon-btn', 'aria-label': 'Back', html: icon('back'), onClick: () => back('#/') }),
-      h('h1', {}, 'Course'), infoBtn(['▶ next lesson · ◐ started · ✓ done or known', '🔓 In order, or jump anywhere', '🎯 A step: one full loop at its goal tempo, then ✓ Clean', '↻ Done lessons come back as reviews (1, 3, 7, 21, 60 days)'], 'About the course map'),
+      h('h1', {}, 'Course map'), infoBtn(['▶ next lesson · ◐ started · ✓ done or known', '🔓 In order, or jump anywhere', '🎯 A step: one full loop at its goal tempo, then ✓ Clean', '↻ Done lessons come back as reviews (1, 3, 7, 21, 60 days)'], 'About the course map'),
       h('span', { class: 'muted' }, `${stats.done} of ${stats.total} lessons done${stats.known ? ` · ${stats.known} known` : ''}`)),
     // jump to a stage (the map is long on a phone)
     h('div', { class: 'tabs lv-jump map-jump' }, STAGES.map((stage, si) => h('button', { title: stage.title, onClick: () => main.querySelector(`#stage-${si + 1}`)?.scrollIntoView({ block: 'start' }) }, `S${si + 1}`))),
@@ -279,7 +337,7 @@ export function courseScreen(main) {
       const done = list.filter((l) => status(l) === 'done').length;
       const known = list.filter((l) => status(l) === 'known').length;
       return [
-        h('div', { class: 'section stage-head', id: `stage-${si + 1}` }, h('span', { class: `chip lv lv${stage.level}` }, `Stage ${si + 1}`), h('h2', {}, stage.title), infoBtn(stage.desc, `About Stage ${si + 1}`), h('span', { class: 'muted small' }, `${done}/${list.length} lessons${known ? ` (${known} known)` : ''}`)),
+        h('div', { class: 'section stage-head', id: `stage-${si + 1}` }, h('span', { class: `chip lv lv${stage.level}` }, `Stage ${si + 1}`), h('h2', {}, stage.title), infoBtn(listLines(stage.desc), `About Stage ${si + 1}`), h('span', { class: 'muted small' }, `${done}/${list.length} lessons${known ? ` (${known} known)` : ''}`)),
         h('div', { class: 'grid unit-grid' },
           UNITS.filter((u) => u.stage === stage).map((u) => h('div', { class: 'unit-card' },
             h('h3', {}, h('span', { class: 'ex-num' }, u.n), u.title, infoBtn(u.goal, `About unit ${u.n}`)),
@@ -290,7 +348,7 @@ export function courseScreen(main) {
     }),
     ...(COMPLETE ? [] : [h('p', { class: 'muted small', style: { marginTop: '18px' } }, `More stages (Level ${NEXT_LEVEL} onward) are on the way. The Library and the Path have every exercise in the meantime.`)]),
     h('div', { class: 'row', style: { marginTop: '18px' } }, h('button', { class: 'btn', onClick: () => {
-      if (!confirm('Reset all course progress (tempos, ticks, reviews and your placement)?')) return;
+      if (!confirm('Reset all course progress (tempos, ticks, reviews and your level)?')) return;
       resetCourse();
       toast('Course progress reset');
       courseScreen(main);
@@ -318,6 +376,8 @@ export function lessonScreen(main, id) {
   const st = status(l);
   const due = isDue(l);
   const rv = reviewStep(l);
+  // rows of the same exercise are told apart by a chip ("Beats 2 & 4")
+  const vars = variants(l.steps);
   const stepRow = (s, i) => {
     const t = byId.get(s.ex);
     const clean = stepClean(l, i), passed = stepPassed(l, i);
@@ -335,7 +395,7 @@ export function lessonScreen(main, id) {
       h('span', { class: 'n' }, clean ? '✓' : i + 1),
       h('span', { class: 't' },
         s.music ? h('small', { class: 'music-tag' }, '🎵 Make music') : null,
-        h('b', {}, t.title, due && i === rv ? h('span', { class: 'chip due' }, 'review') : null),
+        h('b', {}, t.title, vars[i] ? h('span', { class: 'chip var' }, vars[i]) : null, due && i === rv ? h('span', { class: 'chip due' }, 'review') : null),
         h('span', { class: 'tempo' }, tempo)),
       untick,
       h('span', { class: 'go', html: icon('next') }));
@@ -366,13 +426,14 @@ export function lessonScreen(main, id) {
       h('button', { class: 'icon-btn', 'aria-label': 'Back', html: icon('back'), onClick: () => back('#/course') }),
       h('div', { class: 'les-title' }, h('small', {}, where(l)), h('h1', {}, lessonName(l))),
       h('div', { class: 'grow' }),
-      st === 'known' ? h('span', { class: 'chip' }, 'known (placement)') : null,
+      st === 'known' ? h('span', { class: 'chip' }, 'known (My level)') : null,
       prev ? h('button', { class: 'icon-btn', title: `Previous: ${lessonName(prev)}`, 'aria-label': 'Previous lesson', html: icon('prev'), onClick: () => go(lessonHref(prev)) }) : null,
       nextL ? h('button', { class: 'icon-btn', title: `Next: ${lessonName(nextL)}`, 'aria-label': 'Next lesson', html: icon('next'), onClick: () => go(lessonHref(nextL)) }) : null),
     h('div', { class: 'les-cols' },
       h('div', { class: 'les-main' },
         l.idea ? h('div', { class: 'idea-box' }, l.idea) : null,
-        l.concept?.length ? h('details', { class: 'les-read' }, h('summary', {}, '📖 Read more'), ...l.concept.map((para) => h('p', {}, para))) : null,
+        // (open on the first stage: the basics a beginner needs to read)
+        l.concept?.length ? h('details', { class: 'les-read', open: l.stage === STAGES[0] }, h('summary', {}, '📖 Read more'), ...l.concept.map((para) => h('p', {}, para))) : null,
         l.tuner ? h('div', { class: 'row' }, h('button', { class: 'btn', onClick: () => go('#/tuner') }, 'Open the tuner')) : null,
         intro,
         canList.length ? h('div', { class: 'can-list' }, h('h4', {}, 'I can…', infoBtn(canInfo, 'About this list')), ...canList) : null),
