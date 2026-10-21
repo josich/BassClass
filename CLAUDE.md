@@ -13,6 +13,7 @@
   - **Publish web app (GitHub Pages):** deploys `web/` to https://josich.github.io/BassClass/, only once Pages → Source is "GitHub Actions"; until then it skips.
 - Commits that change nothing in the app (QA reports, notes) end their first line with `[skip ci]` so no identical APK release is published.
 - After pushing, check the runs at `https://api.github.com/repos/josich/BassClass/actions/runs` and fix any failure before reporting the work as done.
+- Tell the user after every push, once the runs have finished: the commit, that CI passed, and the build version, `v1.0.<run_number>` of the "Build Android APK" run (user, 2026-10-21). A `[skip ci]` commit has no build: say so.
 
 ## Before committing
 
