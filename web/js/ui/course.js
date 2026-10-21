@@ -2,15 +2,14 @@
 // and the placement check. Lessons open exercises with preset options and a tempo goal (see
 // course/data.js); everything stays open, the course only points at the next step.
 import { h, icon, toast, rng, infoBtn } from './dom.js';
-import { settings } from '../store.js';
-import { EXERCISES, byId, defaultParams } from '../curriculum/index.js';
-import { paramSummary, SUB_NAMES } from './exercise.js';
+import { EXERCISES, byId } from '../curriculum/index.js';
+import { SUB_NAMES } from './exercise.js';
 import { exHref, go, buildRoutine, routineParams, setRoutine, routineHref } from './screens.js';
 import { replaceHash, goBack, canGoBack, nav } from './nav.js';
 import { NEXT_LEVEL, COMPLETE } from '../course/data.js';
 import {
   STAGES, LESSONS, UNITS, lessonById, SESSION_LENGTHS,
-  stepState, stepPassed, stepClean, setClean, canTicked, setCan, isComplete, isDue, nextReview, dueLessons,
+  stepPassed, stepClean, setClean, canTicked, setCan, isComplete, isDue, nextReview, dueLessons,
   status, started, anyProgress, continueLesson, courseStats, knownUnits, setKnown, placed,
   sessionMinutes, setSessionMinutes, setLast, resetCourse,
   sessionStore, setSession, sessionPractised,
@@ -25,14 +24,7 @@ const lessonName = (l) => (l.kind === 'lesson' ? `Lesson ${l.num} · ${l.title}`
 const STATUS_ICON = { done: '✓', known: '✓', started: '◐', new: '○' };
 /** "Stages 1 and 2", "Stages 1–3"… */
 const stagesName = () => (STAGES.length === 2 ? 'Stages 1 and 2' : `Stages 1–${STAGES.length}`);
-/** "goal 96 BPM in 8ths", or "one full round" for an ear or note-finding step. */
-const goalText = (s) => (s.goal ? `goal ${s.goal} BPM${s.sub ? ` in ${SUB_NAMES[s.sub]}` : ''}` : 'one full round');
 
-/** The step's own options in words ("Major (Ionian) · Root on: A string"): the rest stay the player's. */
-function presetSummary(tpl, p) {
-  const defs = Object.fromEntries(Object.keys(p).filter((k) => tpl.params?.[k]).map((k) => [k, tpl.params[k]]));
-  return paramSummary({ params: defs }, { ...defaultParams(tpl), ...p }, settings);
-}
 const daysUntil = (t) => Math.max(0, Math.ceil((t - Date.now()) / 86400000));
 const reviewWhen = (l) => { const d = daysUntil(nextReview(l)); return d <= 1 ? 'Next review tomorrow' : `Next review in ${d} days`; };
 /** The step a review plays: the last practice step with a tempo goal shows whether the lesson stuck. */
@@ -328,9 +320,9 @@ export function lessonScreen(main, id) {
   const rv = reviewStep(l);
   const stepRow = (s, i) => {
     const t = byId.get(s.ex);
-    const ss = stepState(l.id, i);
     const clean = stepClean(l, i), passed = stepPassed(l, i);
-    const tempo = `Exercise ${t.num} · ${s.goal ? `from ${s.from} → ${goalText(s)}${ss.best ? ` · best ${ss.best}` : ''}` : `one full round${ss.loops ? ' · played' : ''}`}`;
+    // the essentials only: the Library number and the goal (the step's text is the exercise's tip)
+    const tempo = `#${t.num} · ${s.goal ? `🎯 ${s.goal} BPM${s.sub ? ` in ${SUB_NAMES[s.sub]}` : ''}` : 'one full round'}`;
     // a tick can be taken back here (not in the exercise, where a second tap would undo a lesson)
     const untick = clean ? h('button', { class: 'icon-btn untick', title: 'Untick: practise this step again', 'aria-label': 'Untick this step', onClick: (e) => {
       e.preventDefault();
@@ -344,7 +336,6 @@ export function lessonScreen(main, id) {
       h('span', { class: 't' },
         s.music ? h('small', { class: 'music-tag' }, '🎵 Make music') : null,
         h('b', {}, t.title, due && i === rv ? h('span', { class: 'chip due' }, 'review') : null),
-        h('span', { class: 'do' }, s.do || presetSummary(t, s.p)),
         h('span', { class: 'tempo' }, tempo)),
       untick,
       h('span', { class: 'go', html: icon('next') }));
