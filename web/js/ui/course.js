@@ -315,6 +315,14 @@ const PLACEMENT = [
   ['I play the chords of a key in inversions and in 4ths, voice-lead triads and 7ths, and play guide tones.', ['u-triads4', 'u-voicelead', 'u-sevenths4']],
   ['I play diatonic 10ths and scales in octaves.', ['u-tenths']],
   ['I walk complete lines through a jazz blues and play soul and odd-meter grooves.', ['u-walking4', 'u-grooves4']],
+  ['I play finger permutations across the strings, p-i-m arpeggios and polyrhythms such as 3:2 and 5:4.', ['u-hands5']],
+  ['I use interval cycles, the diminished and whole-tone scales, side-stepping and world scales.', ['u-outside']],
+  ['I play bebop scales, the 6th-diminished scale and chromatic approaches and enclosures.', ['u-bebop']],
+  ['I know the modes of melodic and harmonic minor and superimpose pentatonics and melodic minor over chords.', ['u-modes5', 'u-superimpose']],
+  ['I play triad permutations and pairs, quartal stacks, upper structures and extended or altered arpeggios.', ['u-triads5', 'u-colours', 'u-arps5']],
+  ['I outline secondary dominants, borrowed chords and tritone subs, and keep funk grooves through changes.', ['u-harmony5']],
+  ['I walk with enclosures, two chords per bar and in minor keys.', ['u-walking5']],
+  ['I play jazz licks in all keys and build solos from bass-line devices and motifs.', ['u-licks', 'u-solo']],
 ];
 
 export function placementScreen(main) {
