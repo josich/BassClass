@@ -4,6 +4,7 @@
 // Run in the browser console:  (await import('./js/selftest.js')).run()
 import { EXERCISES, byNumber, byId, defaultParams } from './curriculum/index.js';
 import { LESSONS } from './course/data.js';
+import { CYCLE_OPTS } from './curriculum/common.js';
 import { makeCtx } from './fretboard.js';
 import * as T from './theory.js';
 
@@ -49,7 +50,7 @@ function checkCourse(problems, strings) {
         const def = t.params?.[k];
         if (!def) { problems.push(`${where}: ${st.ex} has no option ${k}`); continue; }
         // (an option that needs a 5- or 6-string bass would not open on a 4-string)
-        const ok = typeof v === 'string' && (def.kind === 'key' ? /^(\d|1[01])$/.test(v) : def.options.some((o) => o[0] === v && !o[2]?.minStrings));
+        const ok = typeof v === 'string' && (def.kind === 'key' ? /^(\d|1[01])$/.test(v) || (!!def.cycles && CYCLE_OPTS.some((o) => o[0] === v)) : def.options.some((o) => o[0] === v && !o[2]?.minStrings));
         if (!ok) problems.push(`${where}: ${k}=${v} is not an option of ${st.ex}`);
       }
       if (st.goal != null && !(st.from >= 30 && st.goal <= 260 && st.from <= st.goal)) problems.push(`${where}: tempo ${st.from} → ${st.goal}`);

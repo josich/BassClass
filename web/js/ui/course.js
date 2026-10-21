@@ -307,6 +307,14 @@ const PLACEMENT = [
   ['I know the seven modes of the major scale and the note that colours each one.', ['u-modes']],
   ['I play the triads and 7th chords of any key, in three fingerings and in inversions.', ['u-triads3', 'u-sevenths3']],
   ['I play chord-tone lines, approach notes, double stops, world grooves and a basic walking line.', ['u-moving', 'u-jazz-first']],
+  ['I stretch one finger per fret low on the neck, play 16ths for minutes and play natural harmonics.', ['u-stamina']],
+  ['I play groupings over 4/4, displaced figures and in 5/4, 7/8 and 7/4, and keep time with a sparse click.', ['u-time4']],
+  ['I know the 7 major and 5 pentatonic positions in any key and read in every key.', ['u-keys']],
+  ['I play harmonic and melodic minor, their chords and minor-key progressions.', ['u-minor']],
+  ['I know each mode on its own, choose the right scale for each chord and hear common progressions.', ['u-modes4']],
+  ['I play the chords of a key in inversions and in 4ths, voice-lead triads and 7ths, and play guide tones.', ['u-triads4', 'u-voicelead', 'u-sevenths4']],
+  ['I play diatonic 10ths and scales in octaves.', ['u-tenths']],
+  ['I walk complete lines through a jazz blues and play soul and odd-meter grooves.', ['u-walking4', 'u-grooves4']],
 ];
 
 export function placementScreen(main) {
