@@ -538,7 +538,7 @@ export default {
           ],
           steps: [
             { ex: 'gr-octaves', p: { style: 'r5b7', prog: 'blues' }, from: 92, goal: 112, backing: 'chords', do: 'R-5-♭7-8 through a 12-bar blues.' },
-            { ex: 'gr-octaves', p: { style: 'riff', prog: 'i-iv-v-min' }, from: 92, goal: 112, backing: 'chords', music: true, do: 'A minor pentatonic riff moved to each chord.' },
+            { ex: 'gr-octaves', p: { style: 'riff', prog: 'i-iv-v-min' }, from: 92, goal: 112, backing: 'chords', music: true, do: 'One minor-pentatonic riff, moved to each chord.' },
           ],
           mistakes: [
             'Changing the riff on each chord. The shape stays; only the root moves.',

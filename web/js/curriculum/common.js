@@ -316,9 +316,12 @@ export function progChords(progKey, tonicPc, { triads, S = {} } = {}) {
 
 /** Pick bass-register root midis: each nearest to the previous within [lo, hi]. */
 export function chordRootMidis(chords, { lo = 28, hi = 45, firstLo = 28, firstHi = 39, near = null } = {}) {
-  let prev = near;
-  return chords.map((c) => {
+  let prev = near, first = null;
+  return chords.map((c, i) => {
     const pcv = T.pc(c.root);
+    // the first chord coming back keeps its octave, so the loop closes where it started (I–IV–V–I
+    // falls a 5th to the I, not up a 4th to an octave above bar 1)
+    if (i > 0 && pcv === T.mod(first, 12)) { prev = first; return first; }
     let best = null;
     const a = prev == null ? firstLo : lo, z = prev == null ? firstHi : hi;
     for (let m = a; m <= z; m++) {
@@ -328,6 +331,7 @@ export function chordRootMidis(chords, { lo = 28, hi = 45, firstLo = 28, firstHi
     }
     if (!best) best = { m: lo + T.mod(pcv - lo, 12) };
     prev = best.m;
+    if (i === 0) first = best.m;
     return best.m;
   });
 }
@@ -411,6 +415,7 @@ export function resolveToken(tok, chord, rootMidi, nextRoot, nextMidi) {
     case '7': iv = seventh; break;
     case '10': iv = third === 'b3' ? 'b10' : '10'; break;
     case '5_': iv = fifth; below = true; break;
+    case '8_': iv = '1'; below = true; break;
     case '3_': iv = third; below = true; break;
     case 'b7_': iv = 'b7'; below = true; break;
     case '6_': iv = '6'; below = true; break;
@@ -481,9 +486,9 @@ export function grooveLine(b, chords, roots, pattern, { tags = true, place: popt
   const regionOf = (ci, isRoot) => {
     if (!rootAt) return undefined;
     const r = rootAt[ci];
-    if (!r) return { lo: 0, hi: 4 };
-    if (r.f === 0) return { lo: 1, hi: 4, ...(isRoot ? { s: r.s, open: true } : {}) };
-    return { lo: Math.max(1, r.f - 1), hi: r.f + 4, ...(isRoot ? { s: r.s } : {}) };
+    if (!r) return { lo: 0, hi: 4, g: ci };
+    if (r.f === 0) return { lo: 1, hi: 4, g: ci, ...(isRoot ? { s: r.s, open: true } : {}) };
+    return { lo: Math.max(1, r.f - 1), hi: r.f + 4, g: ci, ...(isRoot ? { s: r.s } : {}) };
   };
   let at = 0; // beats from the start of the line: a two-bar pattern alternates bar by bar across chords
   chords.forEach((c, ci) => {
@@ -570,8 +575,38 @@ export function tonicFor(k, type) {
 }
 
 /** Emit a list of pitches/rests (with per-item durations) placed as one melodic line. */
+/**
+ * One hand shape for a chord's notes: four frets at most (five, or an open bass note, only when
+ * nothing smaller exists), never three notes on one string, near `home` (where the exercise
+ * started) and `center` (the chord before); `string` asks for the lowest note on that string.
+ * One finger per fret from the lowest fret; a four-fret span gives each fret its own finger in
+ * order (1-2-3-4, 1-3-4, 1-4). Returns { at: Map(midi -> {s, f, finger}), mid } or null.
+ */
+export function chordShape(midis, ctx, { home, center = home, string = null }) {
+  const uniq = [...new Set(midis)].sort((a, c) => a - c);
+  const perString = (c) => Math.max(...[...new Set(c.pos.map((q) => q.s))].map((sv) => c.pos.filter((q) => q.s === sv).length));
+  const find = (o) => shapes(uniq, ctx, { lo: 1, hi: ctx.maxFret, ...o }).filter((c) => perString(c) <= 2);
+  let cands = find({ maxSpan: 4 });
+  // a chord too wide for four frets (high on a short neck) may stretch a fret, never three notes on a string
+  if (!cands.length) cands = find({ maxSpan: 5 });
+  // a bass note on the open string (low E in F or G major, 2nd inversion): the open string
+  if (!cands.length) cands = find({ maxSpan: 4, open: true });
+  if (!cands.length) return null;
+  const mid = (c) => c.pos.reduce((a, q) => a + q.f, 0) / c.pos.length;
+  const spanOf = (c) => { const fr = c.pos.map((q) => q.f); return Math.max(...fr) - Math.min(...fr); };
+  // a compact shape beats a four-fret stretch; the hand stays near where it started
+  const score = (c) => c.cost + Math.abs(mid(c) - home) * 0.8 + Math.abs(mid(c) - center) * 0.4
+    + (spanOf(c) >= 4 ? 1.5 : 0) + (perString(c) > 1 ? 0.3 : 0) + (string != null && c.pos[0].s !== string ? 4 : 0);
+  const best = cands.reduce((A, c) => (score(c) < score(A) ? c : A));
+  const fretted = best.pos.map((q) => q.f).filter((f) => f > 0);
+  const lo = Math.min(...fretted), span = Math.max(...fretted) - lo;
+  const frs = [...new Set(fretted)].sort((a, c) => a - c);
+  const finger = (f) => (f === 0 ? 0 : span <= 3 ? f - lo + 1 : frs.length === 1 ? 1 : 1 + Math.round((frs.indexOf(f) * 3) / (frs.length - 1)));
+  return { at: new Map(uniq.map((m, j) => [m, { s: best.pos[j].s, f: best.pos[j].f, finger: finger(best.pos[j].f) }])), mid: mid(best) };
+}
+
 export function emitMixed(b, items, popts = {}) {
-  const { fold = true, ...placeOpts } = popts;
+  const { fold = true, shapes: byShape = false, ...placeOpts } = popts;
   const notes = items.filter((x) => !x.rest);
   // fold single notes that fall off either end of the neck by an octave
   // (phrases that must keep their shape pass fold:false and are shifted as a whole)
@@ -584,8 +619,44 @@ export function emitMixed(b, items, popts = {}) {
     while (m > highest) m -= 12;
     return m;
   });
-  const regions = notes.some((n) => n.region) ? notes.map((n) => n.region || null) : undefined;
-  const pos = place(midis, b.ctx, { open: 'allow', center: 4, ...placeOpts, ...(regions ? { regions } : {}) }).map((q) => ({ ...q }));
+  const chordOf = [];
+  items.reduce((ci, it) => { const c = ci + (it.chord ? 1 : 0); if (!it.rest) chordOf.push(c); return c; }, 0);
+  let regions = notes.some((n) => n.region) ? notes.map((n) => n.region || null) : undefined;
+  let pos;
+  if (byShape) {
+    // a voice-led line: every chord is one hand shape (chordShape) and the hand moves only as far
+    // as the next chord needs; a chord with no shape is placed as a line
+    pos = new Array(midis.length);
+    const home = placeOpts.center ?? 5;
+    let center = home;
+    const groups = new Map();
+    midis.forEach((m, j) => { if (!groups.has(chordOf[j])) groups.set(chordOf[j], []); groups.get(chordOf[j]).push(j); });
+    for (const js of groups.values()) {
+      const sh = chordShape(js.map((j) => midis[j]), b.ctx, { home, center });
+      const q = sh ? js.map((j) => sh.at.get(midis[j])) : place(js.map((j) => midis[j]), b.ctx, { open: 'avoid', center: Math.round(center) });
+      js.forEach((j, k) => { pos[j] = { ...q[k] }; });
+      if (sh) center = sh.mid;
+    }
+  } else pos = place(midis, b.ctx, { open: 'allow', center: 4, ...placeOpts, ...(regions ? { regions } : {}) }).map((q) => ({ ...q }));
+  // a pitch played twice inside one chord sits in one place, the one it takes most often (a root is
+  // not played at the 5th fret and then on the open string in the same bar)
+  const moved = regions ? [...regions] : notes.map(() => null);
+  let again = false;
+  const seen = new Map();
+  if (!byShape) midis.forEach((m, j) => { const k = `${chordOf[j]}|${m}`; if (!seen.has(k)) seen.set(k, []); seen.get(k).push(j); });
+  // (every repeated pitch is held where it is, so placing the others again cannot split it)
+  for (const js of seen.values()) {
+    if (js.length < 2) continue;
+    if (js.some((j) => pos[j].s !== pos[js[0]].s || pos[j].f !== pos[js[0]].f)) again = true;
+    const count = new Map();
+    for (const j of js) { const k = `${pos[j].s}|${pos[j].f}`; count.set(k, (count.get(k) || 0) + 1); }
+    const [s, f] = [...count.entries()].reduce((a, c) => (c[1] > a[1] ? c : a))[0].split('|').map(Number);
+    for (const j of js) moved[j] = { lo: 0, hi: 99, ...(moved[j] || {}), s, ...(f === 0 ? { open: true } : {}) };
+  }
+  if (again) {
+    regions = moved;
+    pos = place(midis, b.ctx, { open: 'allow', center: 4, ...placeOpts, regions }).map((q) => ({ ...q }));
+  }
   // slap: a hammer-on (H) goes up on the same string as the note before, a pull-off (PO) down on
   // it; a pop (P) leaves the thumb's string (the octave pop is two strings up, not fret 12)
   const tags = notes.map((n) => n.tag);
@@ -663,6 +734,16 @@ export function emitMixed(b, items, popts = {}) {
       if (best) for (let i = j; i <= e; i++) pos[i] = { s: best.s, f: best.run[i - j] };
       j = e;
     }
+    // a hammer-on or pull-off run left on a pop string starts with a pop (pop, then hammer), unless
+    // the thumb has just played that string; a single note there with no low-string place within
+    // reach stays thumbed (the thumb on the D string)
+    for (let j = 0; j + 1 < notes.length; j++) {
+      if (!(tags[j] && tags[j].startsWith('T')) || pos[j].s < popLo) continue;
+      if (!(tags[j + 1] === 'H' || tags[j + 1] === 'PO') || pos[j + 1].s !== pos[j].s) continue;
+      const pr = j > 0 ? tags[j - 1] : null;
+      if (pr && (pr.startsWith('T') || pr === 'x') && pos[j - 1].s === pos[j].s) continue;
+      tags[j] = 'P';
+    }
   }
   // a run of hammer-ons and pull-offs is one hand position: one finger per fret from the lowest
   // fret (index), the highest under the little finger when the run spans more than four frets
@@ -734,15 +815,17 @@ export function modeFor(c, next) {
   return MODE_FOR[c.type] || 'ionian';
 }
 // semitones above the root for each walking token (approach notes go with the next root)
-const WALK_OFF = { R: 0, 2: 2, 3: 4, 5: 7, 6: 9, 7: 11, 8: 12, '5_': -5, 'b7_': -2, '6_': -3, '7_': -2, '3_': -8 };
+const WALK_OFF = { R: 0, 2: 2, 3: 4, 5: 7, 6: 9, 7: 11, 8: 12, '8_': -12, '5_': -5, 'b7_': -2, '6_': -3, '7_': -2, '3_': -8 };
 
 /**
  * A cell walked down from the root instead of up: the same chord tones or scale steps below it
- * (R 3 5 8 → R 7 5 3, R 2 3 5 → R 7 6 5, R 3 5 A → R 7 5 A). Cells that open on the octave
- * already come down; null when the cell has no downward form.
+ * (R 3 5 8 → R 7 5 3, R 2 3 5 → R 7 6 5, R 3 5 A → R 7 5 A); a leap to the octave drops to the
+ * octave below (R 8 5 A → R 8_ 5_ A) or steps down (R 8 7 5 → R 7 6 5). Cells that open on the
+ * octave already come down; null when the cell has no downward form.
  */
 function mirrorCell(cell) {
-  if (cell[0] !== 'R' || cell[1] === '8') return null;
+  if (cell[0] !== 'R') return null;
+  if (cell[1] === '8') return { 'R,8,5,A': ['R', '8_', '5_', 'A'], 'R,8,7,5': ['R', '7_', '6_', '5_'] }[cell.join()] ?? null;
   const map = cell.includes('2') || cell.includes('6') ? { 2: '7_', 3: '6_', 5: '5_' } : { 3: '7_', 5: '5_', 8: '3_' };
   const out = cell.map((t) => map[t] ?? t);
   return out.join() === cell.join() ? null : out;
@@ -787,11 +870,11 @@ function walkRegisters(ctx, chords, roots, cells, formula, { firstFixed = false,
     return out.length ? out : [{ m: roots[ci], dir: 'up', sh: shapeOf(c, cs) }];
   });
   // leaving bar i on its last chord tone, entering bar j on its first note: a 5th or less is free
-  // of penalty, anything wider costs more and more; high bars cost a little, and a chord walks
-  // down only when that reads better
+  // of penalty, anything wider costs more and more; a bar above G3 (the 12th fret of the G string)
+  // costs more for each semitone, and a chord walks down only when that reads better
   const cost = (a, b2) => {
     const d = Math.abs(a.m + a.sh.last - (b2.m + b2.sh.first));
-    return d + 3 * Math.max(0, d - 7) + 0.15 * Math.max(0, b2.m + b2.sh.hi - 55) + (b2.dir === 'down' ? 0.5 : 0);
+    return d + 3 * Math.max(0, d - 7) + 0.5 * Math.max(0, b2.m + b2.sh.hi - 55) + (b2.dir === 'down' ? 0.5 : 0);
   };
   let fin = null;
   for (const s0 of states[0]) {

@@ -5,7 +5,7 @@ import {
   emitMixed, progChords, progP, diatonicStacks, scaleTone, DEG_SEQ, degSeqP, SCALE_TYPE_OPTS, spellMidi,
   shapeFingers, scaleRun, rootStrLowP, dirP, keySigFor,
   stepSpell, placeRoot,
-  tonicFor,
+  tonicFor, chordShape,
 } from './common.js';
 
 const M = 'triads';
@@ -40,7 +40,14 @@ export function arpBuild(p, ctx, S, { ivs, type, shape = 'updown', octaves = 1, 
     const tones = chordTones(root, ivs, r.midi, idxs, inversion);
     // a broken chord ends on the root, held to the bar line so the next key starts on beat 1
     if (BROKEN_SHAPES.has(shape)) tones[tones.length - 1] = { ...tones[tones.length - 1], fill: true };
-    b.line(tones, { place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f } });
+    // two octaves: the upper octave is one hand shape, reached by one shift at the octave (not a
+    // slide of the little finger up to the top note and back)
+    const pin = { [r.midi]: r.s };
+    if (octaves === 2) {
+      const sh = chordShape(tones.map((t) => t.midi).filter((m) => m >= r.midi + 12), ctx, { home: r.f + 5 });
+      if (sh) for (const [m, q] of sh.at) pin[m] = q.s;
+    }
+    b.line(tones, { place: { pin, open: 'avoid', center: r.f } });
     prev = r.midi;
   }
   return b;
@@ -96,29 +103,10 @@ export function diatonicBuild(p, ctx, S, { offsets, order, inversion = 0, sizeLa
     const groups = [];
     for (const it of items) { if (it.chord || !groups.length) groups.push([]); groups[groups.length - 1].push(it); }
     for (const g of groups) {
-      const uniq = [...new Set(g.map((x) => x.midi))].sort((a, c) => a - c);
-      const perString = (c) => Math.max(...[...new Set(c.pos.map((q) => q.s))].map((sv) => c.pos.filter((q) => q.s === sv).length));
-      let cands = shapes(uniq, ctx, { lo: 1, hi: ctx.maxFret, maxSpan: 4 }).filter((c) => perString(c) <= 2);
-      // a chord too wide for four frets (high on a short neck) may stretch a fret, never three notes on a string
-      if (!cands.length) cands = shapes(uniq, ctx, { lo: 1, hi: ctx.maxFret, maxSpan: 5 }).filter((c) => perString(c) <= 2);
-      // a bass note on the open string (low E in F or G major, 2nd inversion): the open string
-      if (!cands.length) cands = shapes(uniq, ctx, { lo: 1, hi: ctx.maxFret, maxSpan: 4, open: true }).filter((c) => perString(c) <= 2);
-      if (!cands.length) { b.line(g, { pattern: true, place: { open: 'avoid', center } }); continue; }
-      const mid = (c) => c.pos.reduce((a, q) => a + q.f, 0) / c.pos.length;
-      const spanOf = (c) => { const fr = c.pos.map((q) => q.f); return Math.max(...fr) - Math.min(...fr); };
-      // a compact shape beats a four-fret stretch; the hand stays near where it started
-      const score = (c) => c.cost + Math.abs(mid(c) - home) * 0.8 + Math.abs(mid(c) - center) * 0.4
-        + (spanOf(c) >= 4 ? 1.5 : 0) + (perString(c) > 1 ? 0.3 : 0) + (firstChord && c.pos[0].s !== r.s ? 4 : 0);
-      const best = cands.reduce((A, c) => (score(c) < score(A) ? c : A));
-      const at = new Map(uniq.map((m, j) => [m, best.pos[j]]));
-      // one finger per fret from the lowest fret; a four-fret span puts the little finger on the top
-      const fretted = best.pos.map((q) => q.f).filter((f) => f > 0);
-      const lo = Math.min(...fretted), span = Math.max(...fretted) - lo;
-      // one finger per fret; a four-fret span gives each fret its own finger in order (1-2-3-4, 1-3-4, 1-4)
-      const frs = [...new Set(fretted)].sort((a, c) => a - c);
-      const finger = (f) => (f === 0 ? 0 : span <= 3 ? f - lo + 1 : frs.length === 1 ? 1 : 1 + Math.round((frs.indexOf(f) * 3) / (frs.length - 1)));
-      b.frets(g.map((x) => { const q = at.get(x.midi); return { ...x, s: q.s, f: q.f, finger: finger(q.f) }; }));
-      center = mid(best);
+      const sh = chordShape(g.map((x) => x.midi), ctx, { home, center, string: firstChord ? r.s : null });
+      if (!sh) { b.line(g, { pattern: true, place: { open: 'avoid', center } }); continue; }
+      b.frets(g.map((x) => ({ ...x, ...sh.at.get(x.midi) })));
+      center = sh.mid;
       firstChord = false;
     }
     prev = r.midi;
@@ -606,7 +594,7 @@ const voiceLedCycle = ex({
     const pcs = orders[p.order] ? [...orders[p.order], ...orders[p.order], 0] : keysFor(p.order);
     const chords = pcs.map((k) => { const root = cycleRoot(k, ivs); return { root, ivs, sym: chordName(root, p.quality, S) }; });
     const [lo, hi] = REGISTERS[p.register];
-    emitMixed(b, voiceLedItems(chords, { order: TRIAD_ORDERS[p.pattern].f, lo, hi, rootOnly: p.voicing === 'root', start: lo + 8 }), { center: 5 });
+    emitMixed(b, voiceLedItems(chords, { order: TRIAD_ORDERS[p.pattern].f, lo, hi, rootOnly: p.voicing === 'root', start: lo + 8 }), { center: 5, shapes: true });
     return b.build({ label: 'degree' });
   },
 });
@@ -627,7 +615,7 @@ const progressions = ex({
     const chords = [];
     for (const k of keysFor(p.key)) chords.push(...progChords(p.prog, k, { triads: true, S }));
     const [lo, hi] = REGISTERS[p.register];
-    emitMixed(b, voiceLedItems(chords, { order: TRIAD_ORDERS[p.pattern].f, lo, hi, rootOnly: p.voicing === 'root', start: lo + 8 }), { center: 5 });
+    emitMixed(b, voiceLedItems(chords, { order: TRIAD_ORDERS[p.pattern].f, lo, hi, rootOnly: p.voicing === 'root', start: lo + 8 }), { center: 5, shapes: true });
     return b.build({ label: 'degree' });
   },
 });
@@ -893,7 +881,7 @@ const coltrane = ex({
     const k = Number(p.key);
     const step = p.dir === 'down' ? -4 : 4;
     const chords = [0, 1, 2, 3, 4, 5, 6].map((i) => { const root = T.bestRoot(T.mod(k + step * i, 12), ivs); return { root, ivs, sym: chordName(root, p.quality, S) }; });
-    emitMixed(b, voiceLedItems(chords, { order: TRIAD_ORDERS.alt.f, lo: 31, hi: 55, start: 40 }), { center: 5 });
+    emitMixed(b, voiceLedItems(chords, { order: TRIAD_ORDERS.alt.f, lo: 31, hi: 55, start: 40 }), { center: 5, shapes: true });
     return b.build({ label: 'degree' });
   },
 });

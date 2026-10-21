@@ -397,8 +397,8 @@ export default {
             'A triad over two octaves needs a shift at the octave: plan it, and use the same shift on the way down.',
           ],
           steps: [
-            { ex: 'tri-open-spread', p: { scale: 'ionian', order: 'up', pattern: 'up', inversion: '0', root: 'E' }, sub: 2, from: 60, goal: 88, do: 'R-5-10 through the key, from the E string.' },
-            { ex: 'tri-two-octaves', p: { quality: 'maj', root: 'E' }, sub: 2, from: 60, goal: 88, do: 'A major triad over two octaves. Shift on the octave.' },
+            { ex: 'tri-open-spread', p: { key: '5', scale: 'ionian', order: 'up', pattern: 'up', inversion: '0', root: 'E' }, sub: 2, from: 60, goal: 88, do: 'R-5-10 through F major, from the E string: frets 1 to 15.' },
+            { ex: 'tri-two-octaves', p: { quality: 'maj', root: 'E' }, sub: 2, from: 60, goal: 88, do: 'A major triad (any key) over two octaves. Shift on the octave.' },
           ],
           mistakes: [
             'Jumping for the shift. Slide on the finger that just played.',
@@ -413,7 +413,7 @@ export default {
         ],
         steps: [
           { ex: 'tri-diatonic-inversions', p: { scale: 'ionian', order: 'fourths', pattern: 'alt', inversion: '1' }, sub: 2, from: 72, goal: 100 },
-          { ex: 'tri-two-octaves', p: { quality: 'min', root: 'E' }, sub: 2, from: 72, goal: 96 },
+          { ex: 'tri-two-octaves', p: { key: '7', quality: 'min', root: 'E' }, sub: 2, from: 72, goal: 96 },
           { ex: 'tri-open-spread', p: { scale: 'ionian', order: 'up', pattern: 'up', inversion: '0', root: 'E' }, sub: 2, from: 66, goal: 92 },
         ],
       },

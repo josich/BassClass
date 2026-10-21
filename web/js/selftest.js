@@ -3,7 +3,8 @@
 // the guided course opens an exercise with options it has.
 // Run in the browser console:  (await import('./js/selftest.js')).run()
 import { EXERCISES, byNumber, byId, defaultParams } from './curriculum/index.js';
-import { LESSONS } from './course/data.js';
+import { LESSONS, lessonById } from './course/data.js';
+import { CHANGED_STEPS } from './course/progress.js';
 import { CYCLE_OPTS } from './curriculum/common.js';
 import { NO_BACKING } from './harmony.js';
 import { makeCtx } from './fretboard.js';
@@ -36,6 +37,11 @@ function combos(params, limit = 400, strings = 4) {
 
 /** The course: unique lesson ids, real exercises and options (on any bass), sane tempos, every step builds. */
 function checkCourse(problems, strings) {
+  // a changed step must exist (its stored records are dropped once)
+  CHANGED_STEPS.forEach((c, i) => {
+    if (c.rev !== i + 1) problems.push(`course: CHANGED_STEPS[${i}] needs rev ${i + 1}`);
+    for (const k of c.steps) { const [lid, n] = k.split('.'); if (!lessonById.get(lid)?.steps[+n]) problems.push(`course: changed step ${k} does not exist`); }
+  });
   const ids = new Set();
   for (const l of LESSONS) {
     if (ids.has(l.id)) problems.push(`course: duplicate lesson id ${l.id}`);

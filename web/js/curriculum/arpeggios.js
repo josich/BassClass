@@ -169,7 +169,7 @@ const iiVI = ex({
     for (const k of keysFor(p.key)) chords.push(...progChords(p.type === 'major' ? 'ii-V-I' : 'minor-ii-V-i', k, { S }).slice(0, 3));
     const [lo, hi] = REG[p.register];
     // written 8ths: every chord fills its own length, so the form stays the tune's
-    emitMixed(b, voiceLedItems(chords, { order: SEVENTH_ORDERS[p.pattern].f, lo, hi, rootOnly: p.voicing === 'root', start: lo + 8, per: 2 }), { center: 5, open: 'avoid' });
+    emitMixed(b, voiceLedItems(chords, { order: SEVENTH_ORDERS[p.pattern].f, lo, hi, rootOnly: p.voicing === 'root', start: lo + 8, per: 2 }), { center: 5, open: 'avoid', shapes: true });
     return b.build({ label: 'degree', uniform: false });
   },
 });
@@ -191,7 +191,7 @@ const voiceLed = ex({
     for (const k of keys) chords.push(...progChords(p.prog, k, { S }));
     const [lo, hi] = REG[p.register];
     // written 8ths: every chord fills its own length (a jazz blues keeps its 12 bars, Giant Steps its 16)
-    emitMixed(b, voiceLedItems(chords, { order: SEVENTH_ORDERS[p.pattern].f, lo, hi, start: lo + 8, per: 2 }), { center: 5, open: 'avoid' });
+    emitMixed(b, voiceLedItems(chords, { order: SEVENTH_ORDERS[p.pattern].f, lo, hi, start: lo + 8, per: 2 }), { center: 5, open: 'avoid', shapes: true });
     return b.build({ label: 'degree', uniform: false });
   },
 });
@@ -449,7 +449,7 @@ const altered = ex({
       const V = T.up(I, '5');
       chords.push({ root: V, ivs: ivsOf(p.alt), sym: chordName(V, p.alt, S) }, { root: I, ivs: ivsOf('maj7'), sym: chordName(I, 'maj7', S) });
     }
-    emitMixed(b, voiceLedItems(chords, { order: (i, n) => (i % 2 ? [3, 2, 1, 0] : [...Array(n).keys()]), lo: 33, hi: 60, start: 40 }), { center: 5, open: 'avoid' });
+    emitMixed(b, voiceLedItems(chords, { order: (i, n) => (i % 2 ? [3, 2, 1, 0] : [...Array(n).keys()]), lo: 33, hi: 60, start: 40 }), { center: 5, open: 'avoid', shapes: true });
     return b.build({ label: 'degree' });
   },
 });

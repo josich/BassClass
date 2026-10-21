@@ -11,7 +11,7 @@ import {
 } from './ui/screens.js';
 import { courseScreen, lessonScreen, placementScreen, stepHref } from './ui/course.js';
 import { lessonById } from './course/data.js';
-import { nav, replaceHash } from './ui/nav.js';
+import { nav, replaceHash, goBack } from './ui/nav.js';
 
 const app = document.getElementById('app');
 const NAV = [
@@ -46,7 +46,7 @@ function trackDepth() {
 const scrollMem = new Map();
 let scrollKey = null;
 let curMain = null;
-const back = () => (depth > 0 ? history.back() : go('#/'));
+const back = () => (depth > 0 ? goBack() : go('#/'));
 
 function shell(navKey) {
   const rail = h('nav', { class: 'rail' },

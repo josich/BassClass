@@ -6,7 +6,7 @@ import { settings } from '../store.js';
 import { byId, defaultParams } from '../curriculum/index.js';
 import { paramSummary, SUB_NAMES } from './exercise.js';
 import { exHref, go, buildRoutine, setRoutine, routineHref } from './screens.js';
-import { replaceHash } from './nav.js';
+import { replaceHash, goBack } from './nav.js';
 import { NEXT_LEVEL, COMPLETE } from '../course/data.js';
 import {
   STAGES, LESSONS, UNITS, lessonById, SESSION_LENGTHS,
@@ -15,7 +15,7 @@ import {
   sessionMinutes, setSessionMinutes, setLast, resetCourse,
 } from '../course/progress.js';
 
-const back = (fallback) => (history.state?.depth > 0 ? history.back() : go(fallback));
+const back = (fallback) => (history.state?.depth > 0 ? goBack() : go(fallback));
 const lessonHref = (l) => `#/course/${l.id}`;
 /** Opens one step of a lesson (`extra`: { demo: 1 } for the demo). */
 export const stepHref = (lesson, i, extra = {}) => exHref(lesson.steps[i].ex, { ...lesson.steps[i].p, ls: `${lesson.id}.${i}`, ...extra });
@@ -379,7 +379,7 @@ export function placementScreen(main) {
     const cont = continueLesson();
     toast(cont ? `Start here: ${lessonName(cont)}` : `You know ${stagesName()}: today's session brings Library exercises from Levels 5 and 6`, 3500);
     // back to where the check was opened from (the map or Home), which now shows the starting point
-    if (history.state?.depth > 0) history.back(); else replaceHash('#/course');
+    if (history.state?.depth > 0) goBack(); else replaceHash('#/course');
   });
   render();
   main.replaceChildren(

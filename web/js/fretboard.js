@@ -48,7 +48,8 @@ export function candidates(midi, ctx, { maxFret = ctx.maxFret, strings = null, o
  *   open: 'allow' | 'avoid' | 'prefer'
  *   strings: [indices]  allowed strings
  *   pin: { midi: stringIndex }  force a pitch onto a string
- *   regions: [{lo, hi, s?, open?}|null]  per note: like region (s pins that note's string, open allows an open string)
+ *   regions: [{lo, hi, s?, open?, g?}|null]  per note: like region (s pins that note's string, open allows an open string;
+ *                      notes of one group g, a chord, move the hand only when they must)
  *   string: index       put every note on one string (linear playing)
  * Returns [{s, f, finger}]
  */
@@ -103,11 +104,14 @@ function handSearch(midis, ctx, opts) {
   let prev = layers[0].map((st) => ({ cost: st.cost, back: -1 }));
   const backs = [prev];
   for (let i = 1; i < layers.length; i++) {
+    // inside one chord of a shape line the hand stays put: a shift there is dearer than between chords
+    const g = opts.regions?.[i]?.g;
+    const inGroup = g != null && opts.regions[i - 1]?.g === g;
     const cur = layers[i].map((st) => {
       let best = Infinity, bj = 0;
       const pl = layers[i - 1];
       for (let j = 0; j < pl.length; j++) {
-        const v = prev[j].cost + trans(pl[j], st);
+        const v = prev[j].cost + trans(pl[j], st) + (inGroup && pl[j].hp != null && st.hp != null && pl[j].hp !== st.hp ? 1 : 0);
         if (v < best) { best = v; bj = j; }
       }
       return { cost: best + st.cost, back: bj };
@@ -159,8 +163,9 @@ function trans(a, b) {
 
 /**
  * Assign left-hand fingers (one finger per fret) to notes that lack one.
- * When a note leaves the current 4-fret window the hand shifts to the window
- * that fits the most upcoming notes.
+ * A note one fret outside the current 4-fret window is a stretch when the line
+ * stays there or comes back; otherwise the hand shifts to the window that fits
+ * the most upcoming notes.
  */
 export function assignFingers(notes) {
   let pos = null;
@@ -169,14 +174,17 @@ export function assignFingers(notes) {
     if (n.f === 0) { if (n.finger == null) n.finger = 0; continue; }
     if (n.finger != null) { pos = n.f - n.finger + 1; continue; }
     if (pos === null || n.f < pos || n.f > pos + 3) {
-      let lo = n.f, hi = n.f;
+      let lo = n.f, hi = n.f, fit = 1;
       for (let j = i + 1; j < notes.length && j < i + 12; j++) {
         const f = notes[j].f;
         if (f === 0) continue;
         const nlo = Math.min(lo, f), nhi = Math.max(hi, f);
         if (nhi - nlo > 3) break;
-        lo = nlo; hi = nhi;
+        lo = nlo; hi = nhi; fit++;
       }
+      // one fret outside the hand, and a shift would serve this note alone (or one more) before
+      // shifting back: the index stretches back or the little finger forward instead
+      if (pos !== null && (n.f === pos - 1 || n.f === pos + 4) && fit <= 2) { n.finger = n.f < pos ? 1 : 4; continue; }
       pos = lo;
     }
     n.finger = n.f - pos + 1;

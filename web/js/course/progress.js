@@ -8,6 +8,16 @@ const DAY = 86400000;
 // days until the next review of a completed lesson, by how many reviews are done
 const INTERVALS = [1, 3, 7, 21, 60];
 export const SESSION_LENGTHS = [15, 30, 45];
+// Steps are stored by index. A released step whose notes later changed is listed here: what was
+// saved for it before the change is dropped once (the store's `rev`), so an old tempo or tick
+// never counts for different notes; a ✓ Clean ticked after the change stays.
+export const CHANGED_STEPS = [
+  // f060af0 (v1.0.38): the Stage 1 test's first groove and the swing lesson's blues vamp
+  { rev: 1, at: 1792512454000, steps: ['s1-test.0', 'swing.1'] },
+  // QA round 9 leftovers: a key fixed where the text names it or the neck needs it
+  { rev: 2, at: 1792573774000, steps: ['open-triads.0', 'u-triads4-check.1', 'upper-structures.1', 'colour-chords.0'] },
+];
+const REV = CHANGED_STEPS.length;
 
 function load() {
   let v;
@@ -22,13 +32,17 @@ function load() {
     if (!s || typeof s !== 'object') continue;
     steps[k] = { best: bpm(s.best), last: bpm(s.last), loops: num(s.loops), clean: num(s.clean) };
   }
+  for (const c of CHANGED_STEPS) {
+    if (num(v.rev) >= c.rev) continue;
+    for (const k of c.steps) if (steps[k] && !(steps[k].clean > c.at)) delete steps[k];
+  }
   const lessons = {};
   for (const [k, s] of Object.entries(obj(v.lessons))) {
     if (s && typeof s === 'object' && lessonById.has(k)) lessons[k] = { done: num(s.done), reviews: num(s.reviews), next: num(s.next) };
   }
   const flags = (x) => Object.fromEntries(Object.entries(obj(x)).filter(([, f]) => f === true));
   return {
-    steps, lessons, can: flags(v.can), known: flags(v.known),
+    rev: REV, steps, lessons, can: flags(v.can), known: flags(v.known),
     placed: num(v.placed),
     minutes: SESSION_LENGTHS.includes(v.minutes) ? v.minutes : 30,
     last: typeof v.last === 'string' && lessonById.has(v.last) ? v.last : '',

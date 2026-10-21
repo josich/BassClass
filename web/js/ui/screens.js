@@ -11,7 +11,7 @@ import { paramSummary, paramOptions } from './exercise.js';
 import { starButton, dragToReorder } from './favorites.js';
 import { courseBlock } from './course.js';
 import { resetCourse } from '../course/progress.js';
-import { replaceHash } from './nav.js';
+import { replaceHash, goBack } from './nav.js';
 
 export const go = (hash) => { location.hash = hash; };
 export const exHref = (id, params) => {
@@ -41,7 +41,7 @@ function moduleStats(id) {
 }
 
 /** In-app back: one step back when we came from inside the app, otherwise to `fallback`. */
-const back = (fallback) => (history.state?.depth > 0 ? history.back() : go(fallback));
+const back = (fallback) => (history.state?.depth > 0 ? goBack() : go(fallback));
 
 // ---------------------------------------------------------------- home: course, daily warm-up, favorites
 export function homeScreen(main) {

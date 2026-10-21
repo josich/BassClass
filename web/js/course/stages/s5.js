@@ -314,7 +314,7 @@ export default {
             'Say the parent before you play: "G7alt, A♭ melodic minor".',
           ],
           steps: [
-            { ex: 'md-melodic-superimposition', p: { set: 'minor251' }, from: 76, goal: 100, backing: 'chords', do: 'A minor ii–V–i: three melodic minors.' },
+            { ex: 'md-melodic-superimposition', p: { set: 'minor251' }, from: 76, goal: 100, backing: 'chords', do: 'A minor-key ii–V–i: three melodic minors.' },
             { ex: 'md-melodic-superimposition', p: { set: 'dominants' }, from: 76, goal: 100, backing: 'chords', do: 'Four dominant colours on one root.' },
           ],
           mistakes: [
@@ -437,7 +437,7 @@ export default {
           ],
           steps: [
             { ex: 'tri-upper-structures', p: { us: 'II/I' }, sub: 2, from: 60, goal: 84, do: 'D over C: Lydian.' },
-            { ex: 'tri-upper-structures', p: { us: 'VI/7' }, sub: 2, from: 60, goal: 84, do: 'A over C7: 13♭9.' },
+            { ex: 'tri-upper-structures', p: { key: '0', us: 'VI/7' }, sub: 2, from: 60, goal: 84, do: 'A over C7: 13♭9.' },
           ],
           mistakes: [
             'Muting the pedal. The colour is the triad against the ringing bass note.',
@@ -547,7 +547,7 @@ export default {
             'Outline each progression and listen for the chord that is not in the key.',
           ],
           steps: [
-            { ex: 'hm-colour-chords', p: { prog: 'I-VI7-ii-V', pattern: 'r357' }, from: 84, goal: 104, backing: 'chords', do: 'I–VI7–ii–V: find the C♯ in A7 (in C).' },
+            { ex: 'hm-colour-chords', p: { key: '0', prog: 'I-VI7-ii-V', pattern: 'r357' }, from: 84, goal: 104, backing: 'chords', do: 'I–VI7–ii–V in C: find the C♯ in A7.' },
             { ex: 'hm-colour-chords', p: { prog: 'I-bVI-bVII-I', pattern: 'r357' }, from: 84, goal: 104, backing: 'chords', do: 'Borrowed ♭VI and ♭VII.' },
             { ex: 'hm-colour-chords', p: { prog: 'ii-bII7-I', pattern: 'r357' }, from: 84, goal: 104, backing: 'chords', do: 'The tritone substitute.' },
           ],
@@ -702,7 +702,7 @@ export default {
             'Lay back slightly behind the click on blues phrases.',
           ],
           steps: [
-            { ex: 'lk-blues', p: { lick: '0', feel: 'swing' }, from: 92, goal: 112, backing: 'chords', do: 'A major-blues riff into the IV.' },
+            { ex: 'lk-blues', p: { lick: '0', feel: 'swing' }, from: 92, goal: 112, backing: 'chords', do: 'A riff from the major blues scale, into the IV.' },
             { ex: 'lk-turnarounds', p: { lick: '0', feel: 'swing' }, from: 96, goal: 120, backing: 'chords', do: 'A turnaround with ♭9s: it loops.' },
           ],
           mistakes: [
@@ -766,7 +766,7 @@ export default {
             'Resolve by step: the ♭9 of the V falls to the 5th, its 3rd rises to the root. Once or twice a chorus is plenty.',
           ],
           steps: [
-            { ex: 'lk-implied', p: { lick: '1', feel: 'swing' }, from: 88, goal: 112, backing: 'chords', do: 'A minor vamp with an implied V7♭9.' },
+            { ex: 'lk-implied', p: { lick: '1', feel: 'swing' }, from: 88, goal: 112, backing: 'chords', do: 'A vamp on the minor i, with an implied V7♭9.' },
             { ex: 'lk-implied', p: { lick: '3', feel: 'swing' }, from: 88, goal: 112, backing: 'chords', do: 'A dominant vamp with an implied cadence.' },
           ],
           mistakes: [
