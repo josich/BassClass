@@ -13,8 +13,9 @@ import s2 from './stages/s2.js';
 import s3 from './stages/s3.js';
 import s4 from './stages/s4.js';
 import s5 from './stages/s5.js';
+import s6 from './stages/s6.js';
 
-export const STAGES = [s1, s2, s3, s4, s5];
+export const STAGES = [s1, s2, s3, s4, s5, s6];
 /** The Library level after the last stage (the course reaches Level 6 when it is complete). */
 export const NEXT_LEVEL = Math.min(6, STAGES[STAGES.length - 1].level + 1);
 export const COMPLETE = STAGES[STAGES.length - 1].level >= 6;

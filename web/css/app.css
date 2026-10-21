@@ -496,6 +496,9 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .place-row { display: flex; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 6px 8px 6px 12px; }
 .place-row > span { flex: 1; min-width: 0; }
 .place-row .seg { flex: none; }
+.place-stage { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0 2px; }
+.place-stage:first-child { margin-top: 0; }
+.place-stage .btn { padding: 6px 12px; }
 
 /* ---------------------------------------------------------------- exercise: lesson step */
 .goal-btn { flex: none; min-width: 92px; justify-content: center; padding: 6px 8px; font-size: 12.5px; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--muted); }

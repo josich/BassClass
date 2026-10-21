@@ -323,6 +323,10 @@ const PLACEMENT = [
   ['I outline secondary dominants, borrowed chords and tritone subs, and keep funk grooves through changes.', ['u-harmony5']],
   ['I walk with enclosures, two chords per bar and in minor keys.', ['u-walking5']],
   ['I play jazz licks in all keys and build solos from bass-line devices and motifs.', ['u-licks', 'u-solo']],
+  ['I play scales, triads and 7th chords through all 12 keys without stopping, in odd groupings and inversions.', ['u-all-keys', 'u-chords-all-keys']],
+  ['I know Messiaen\'s modes, the modes of harmonic major and the altered chord-scales.', ['u-modern']],
+  ['I can arpeggiate and walk Giant Steps and rhythm changes at tempo.', ['u-coltrane']],
+  ['I play chordal bass across the strings and bebop and modern jazz vocabulary in every key.', ['u-chordal', 'u-masters']],
 ];
 
 export function placementScreen(main) {
@@ -330,10 +334,23 @@ export function placementScreen(main) {
   const answers = PLACEMENT.map(([, units]) => (placed() ? units.every((u) => known[u]) : null));
   const rows = h('div', { class: 'place-list' });
   const done = h('button', { class: 'btn primary' }, 'See my starting point');
+  // the questions grouped by the stage of their units, each stage with "all yes" / "all not yet"
+  const stageOf = (i) => UNITS.find((u) => u.id === PLACEMENT[i][1][0])?.stage;
   const render = () => {
-    rows.replaceChildren(...PLACEMENT.map(([text], i) => h('div', { class: 'place-row' },
-      h('span', {}, text),
-      h('div', { class: 'seg' }, [[true, 'Yes'], [false, 'Not yet']].map(([v, lab]) => h('button', { class: answers[i] === v ? 'on' : '', onClick: () => { answers[i] = v; render(); } }, lab))))));
+    const out = [];
+    STAGES.forEach((stage, si) => {
+      const idx = PLACEMENT.map((_, i) => i).filter((i) => stageOf(i) === stage);
+      if (!idx.length) return;
+      const all = (v) => { for (const i of idx) answers[i] = v; render(); };
+      out.push(h('div', { class: 'place-stage' }, h('span', { class: `chip lv lv${stage.level}` }, `Stage ${si + 1}`), h('b', {}, stage.title), h('div', { class: 'grow' }),
+        h('button', { class: 'btn', onClick: () => all(true) }, 'All yes'), h('button', { class: 'btn', onClick: () => all(false) }, 'All not yet')));
+      for (const i of idx) {
+        out.push(h('div', { class: 'place-row' },
+          h('span', {}, PLACEMENT[i][0]),
+          h('div', { class: 'seg' }, [[true, 'Yes'], [false, 'Not yet']].map(([v, lab]) => h('button', { class: answers[i] === v ? 'on' : '', onClick: () => { answers[i] = v; render(); } }, lab)))));
+      }
+    });
+    rows.replaceChildren(...out);
     done.disabled = answers.some((a) => a == null);
   };
   done.addEventListener('click', () => {
@@ -347,7 +364,7 @@ export function placementScreen(main) {
   render();
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('button', { class: 'icon-btn', 'aria-label': 'Back', html: icon('back'), onClick: () => back('#/course') }),
-      h('h1', {}, 'Find your level'), h('span', { class: 'muted' }, 'Answer honestly. Units you already know are marked as known and the course starts at the first gap. You can change this any time.')),
+      h('h1', {}, 'Find your level'), h('span', { class: 'muted' }, 'Answer honestly, stage by stage ("All not yet" once a stage is new to you). Units you already know are marked as known and the course starts at the first gap. You can change this any time.')),
     rows,
     h('div', { class: 'row', style: { marginTop: '12px' } }, done));
 }
