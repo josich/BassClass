@@ -77,3 +77,44 @@ export function rng(seed) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+
+/**
+ * A small ⓘ button that explains a screen or a section on request (instead of grey text on the
+ * screen): `text` is a paragraph or a list of them. The bubble closes on a second tap, a tap anywhere
+ * else, Escape, scrolling or a screen change.
+ */
+export function infoBtn(text, label = 'About this') {
+  const btn = h('button', { class: 'info-btn', type: 'button', title: label, 'aria-label': label, 'aria-expanded': 'false', html: icon('info') });
+  let pop = null;
+  const close = () => {
+    if (!pop) return;
+    pop.remove();
+    pop = null;
+    btn.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('pointerdown', outside, true);
+    document.removeEventListener('keydown', onKey, true);
+    document.removeEventListener('scroll', close, true);
+    window.removeEventListener('hashchange', close);
+  };
+  const outside = (e) => { if (!pop.contains(e.target) && !btn.contains(e.target)) close(); };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (pop) { close(); return; }
+    pop = h('div', { class: 'info-pop', role: 'note' }, [].concat(text).map((t) => h('p', {}, t)));
+    document.body.append(pop);
+    // under the button (above it when there is no room), inside the window
+    const r = btn.getBoundingClientRect();
+    const w = Math.min(340, innerWidth - 24);
+    pop.style.width = `${w}px`;
+    pop.style.left = `${Math.max(12, Math.min(innerWidth - w - 12, r.left + r.width / 2 - w / 2))}px`;
+    const ph = pop.offsetHeight;
+    pop.style.top = `${r.bottom + 6 + ph > innerHeight - 8 && r.top - ph - 6 > 8 ? r.top - ph - 6 : r.bottom + 6}px`;
+    btn.setAttribute('aria-expanded', 'true');
+    document.addEventListener('pointerdown', outside, true);
+    document.addEventListener('keydown', onKey, true);
+    document.addEventListener('scroll', close, true);
+    window.addEventListener('hashchange', close);
+  });
+  return btn;
+}

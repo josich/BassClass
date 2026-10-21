@@ -7,7 +7,7 @@ const KEY = 'bassclass.course.v1';
 const DAY = 86400000;
 // days until the next review of a completed lesson, by how many reviews are done
 const INTERVALS = [1, 3, 7, 21, 60];
-export const SESSION_LENGTHS = [15, 30, 45];
+export const SESSION_LENGTHS = [15, 30, 45, 60];
 // Steps are stored by index. A released step whose notes later changed is listed here: what was
 // saved for it before the change is dropped once (the store's `rev`), so an old tempo or tick
 // never counts for different notes. `at`: the change shipped before its entry did, so a ✓ Clean
@@ -154,6 +154,8 @@ export function setKnown(ids) {
   state.known = Object.fromEntries(ids.map((id) => [id, true]));
   state.placed = Date.now();
   save();
+  // a new level: today's session is planned again for it
+  clearSession();
 }
 export const placed = () => state.placed > 0;
 
@@ -193,6 +195,52 @@ export function resetCourse() {
   // (a reset store is up to date: the changed steps are not dropped again at the next start)
   state = { rev: REV, steps: {}, lessons: {}, can: {}, known: {}, placed: 0, minutes: state.minutes, last: '' };
   save();
+  sessions = { cur: null, history: [] };
+  saveSessions();
 }
+
+// ---------------------------------------------------------------- today's session (Home)
+// The session as it was planned (one list per length, kept from its first view), the warm-ups added
+// to it and the items played. It stays until it is marked as practised; the last sessions practised
+// plan the next one. (localStorage, failure-tolerant)
+const SKEY = 'bassclass.session.v1';
+const HISTORY = 12;
+function loadSessions() {
+  let v;
+  try { v = JSON.parse(localStorage.getItem(SKEY) || 'null'); } catch { v = null; }
+  const obj = (x) => !!x && typeof x === 'object' && !Array.isArray(x);
+  const items = (a) => (Array.isArray(a) ? a.filter((x) => obj(x) && typeof x.id === 'string') : []);
+  const whole = (x, lo, hi) => Math.min(hi, Math.max(lo, Math.round(Number(x)) || lo));
+  const c = obj(v) && obj(v.cur) ? v.cur : null;
+  const cur = c && Number.isFinite(c.seed) ? {
+    seed: c.seed >>> 0, at: Number(c.at) || Date.now(), level: whole(c.level, 1, 6), focus: whole(c.focus, 0, 99),
+    lists: Object.fromEntries(Object.entries(obj(c.lists) ? c.lists : {}).filter(([m]) => SESSION_LENGTHS.includes(Number(m))).map(([m, a]) => [m, items(a)])),
+    extra: items(c.extra), played: Array.isArray(c.played) ? c.played.filter((k) => typeof k === 'string') : [],
+  } : null;
+  const history = (obj(v) && Array.isArray(v.history) ? v.history : []).filter(obj).slice(0, HISTORY)
+    .map((s) => ({ at: Number(s.at) || 0, focus: whole(s.focus, 0, 99), ids: Array.isArray(s.ids) ? s.ids.filter((x) => typeof x === 'string') : [] }));
+  return { cur, history };
+}
+let sessions = loadSessions();
+function saveSessions() {
+  try { localStorage.setItem(SKEY, JSON.stringify(sessions)); } catch { /* storage unavailable */ }
+}
+/** The session being worked on (null: none planned yet) and the last ones practised, newest first. */
+export const sessionStore = () => sessions;
+export function setSession(cur) { sessions.cur = cur; saveSessions(); }
+/** An item of the session was played through once. */
+export function sessionPlayed(key) {
+  const c = sessions.cur;
+  if (c && !c.played.includes(key)) { c.played.push(key); saveSessions(); }
+}
+/** The session is done: it joins the history (its exercises, `ids`) and the next one gets planned. */
+export function sessionPractised(ids) {
+  const c = sessions.cur;
+  if (c) sessions.history = [{ at: Date.now(), focus: c.focus, ids }, ...sessions.history].slice(0, HISTORY);
+  sessions.cur = null;
+  saveSessions();
+}
+/** Plan today's session again (a new level). */
+export function clearSession() { sessions.cur = null; saveSessions(); }
 
 export { STAGES, LESSONS, UNITS, lessonById };

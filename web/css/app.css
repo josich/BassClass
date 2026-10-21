@@ -386,14 +386,36 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .card h3 { padding-right: 28px; }
 .chip.core { background: rgba(70, 201, 162, 0.14); color: var(--accent); }
 .chip.mastered { background: rgba(70, 201, 162, 0.2); color: var(--good); }
-.btn.continue { max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
 
 .home-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 14px; align-items: start; }
 .home-cols .course-block { grid-column: 1 / -1; background: linear-gradient(135deg, #1d3a45, var(--panel) 65%); border-color: #2d5560; }
 .lv-name { font-size: 12.5px; font-weight: 700; color: var(--muted); }
 .lv-jump { margin: -4px 0 6px; }
 /* one column (narrow phones): favourites first once there are some, so they are not below the fold */
-@media (max-width: 669px) { .home-cols .favs-block.has-items { order: -1; } .home-cols .course-block { order: -2; } }
+/* Home: the course on one row, today's session and the favourites side by side when there is room */
+.level-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; }
+.level-btn .chip { margin: 0; }
+.course-block .map-btn { display: inline-flex; align-items: center; gap: 6px; }
+.course-block .map-btn span { display: grid; }
+.course-block .map-btn svg { width: 18px; height: 18px; }
+.block-head.course-row { flex-wrap: nowrap; }
+.course-row h2 { flex: none; }
+.course-go { flex: 1 1 auto; display: flex; align-items: baseline; gap: 10px; text-align: left; padding: 8px 14px; min-width: 0; }
+.course-go b { flex: none; }
+.course-go span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.course-done { font-weight: 700; color: var(--accent); }
+.session-path { display: flex; gap: 6px; flex-wrap: wrap; }
+.session-path .chip { margin: 0; }
+.session-sub { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 4px 0 -2px; }
+.session-list .item .t b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.session-list .item .tag { flex: none; color: var(--muted); font-size: 11.5px; white-space: nowrap; }
+.session-list .item.played .n { background: var(--accent); color: var(--accent-ink); }
+.session-list .item.played .t b { color: var(--muted); }
+.session-list .more-warm { align-self: flex-start; padding: 4px 10px; font-size: 12.5px; min-height: 32px; }
+.session-foot { margin-top: 4px; }
+.session-block .seg button { min-height: 32px; padding: 4px 10px; font-size: 12.5px; }
+.field-head { display: flex; align-items: center; gap: 4px; }
+.page-head .info-btn, .section .info-btn { margin-left: -4px; }
 .block { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .block-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .block-head h2 { font-size: 16px; }
@@ -415,19 +437,6 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .ex-num { display: inline-block; min-width: 1.6em; margin-right: 6px; padding: 0 5px; border-radius: 6px; background: rgba(70, 201, 162, 0.16); color: var(--accent); font-size: 0.82em; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; vertical-align: 1px; }
 
 /* ---------------------------------------------------------------- course: Home block */
-.course-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 12px; align-items: start; }
-.course-next { display: flex; flex-direction: column; gap: 5px; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; cursor: pointer; min-width: 0; }
-.course-next:hover { border-color: var(--accent); }
-.course-next small { color: var(--muted); font-size: 11.5px; }
-.course-next b { font-size: 15px; }
-.course-next .idea { color: var(--muted); font-size: 12.5px; }
-.course-next .bar { height: 4px; background: var(--panel-3); border-radius: 2px; overflow: hidden; }
-.course-next .bar i { display: block; height: 100%; background: var(--accent); }
-.course-next.done { cursor: default; }
-.session { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.session-head { gap: 8px; }
-.session-head .seg button { min-height: 34px; padding: 4px 10px; font-size: 12.5px; }
-.session-head .btn { padding: 6px 12px; }
 .block .session-list .item { padding: 6px 10px; }
 .session-list .item .n { width: 24px; height: 24px; font-size: 12px; }
 .session-list .item.demo .n { background: rgba(70, 201, 162, 0.2); color: var(--accent); }
@@ -531,3 +540,19 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 @media (max-width: 700px) {
   .exv-top.lesson .exv-title span { font-size: 10.5px; letter-spacing: -0.01em; }
 }
+
+/* ---------------------------------------------------------------- ⓘ: explanations on request */
+.info-btn { width: 30px; height: 30px; flex: none; border: 0; border-radius: 50%; background: transparent; color: var(--muted); display: inline-grid; place-items: center; padding: 0; cursor: pointer; vertical-align: middle; }
+.info-btn svg { width: 19px; height: 19px; }
+.info-btn:hover, .info-btn[aria-expanded="true"] { color: var(--accent); background: rgba(70, 201, 162, 0.12); }
+.info-pop { position: fixed; z-index: 60; max-height: 60vh; overflow: auto; background: var(--panel-3); color: var(--text); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 12px; padding: 10px 14px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5); font-size: 13px; line-height: 1.45; }
+.info-pop p { margin: 0 0 5px; }
+/* the lesson page: the explanation and the mistakes open on request */
+details.les-read, details.les-more { border: 1px solid var(--line); border-radius: 10px; padding: 0 12px; background: var(--panel); }
+details.les-read > summary, details.les-more > summary { cursor: pointer; padding: 9px 0; font-weight: 700; color: var(--muted); list-style: none; }
+details.les-read > summary::-webkit-details-marker, details.les-more > summary::-webkit-details-marker { display: none; }
+details.les-read[open] > summary, details.les-more[open] > summary { color: var(--text); }
+details.les-read > p { margin: 0 0 10px; }
+details.les-more > ul { margin: 0 0 10px; }
+.unit-card h3 .info-btn { margin: -6px 0 -6px 2px; }
+.info-pop p:last-child { margin: 0; }

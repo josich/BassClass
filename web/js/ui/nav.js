@@ -1,7 +1,7 @@
 // Navigation shared by the router (app.js) and the screens.
 // depth: how many screens deep the current one is (set by the router); returning: the screen was
-// reached with Back/Forward; showNext: the course map should show the next lesson when it opens
-export const nav = { replacing: false, backing: false, depth: -1, returning: false, showNext: false };
+// reached with Back/Forward
+export const nav = { replacing: false, backing: false, depth: -1, returning: false };
 
 /**
  * Is there an in-app screen to go back to? A screen opened a moment ago may not have its depth yet

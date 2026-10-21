@@ -212,6 +212,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       // `done`: the slowest tempo of the loop just played, or null when it did not start on the first
       // note (not a full loop). A lesson step leaves the exercise's own progress alone.
       const played = done;
+      if (played != null && !demo) routine?.played?.();
       if (!lesson) {
         const pr = getProgress(tpl.id) || {};
         updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, ...(played != null ? { bestBpm: Math.max(pr.bestBpm || 0, played) } : {}), ...keep(), lastBpm: player.bpm });
@@ -231,6 +232,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     },
     onEnd: () => {
       showStep(-1);
+      if (demo) routine?.played?.();
       if (demo) tip(`Your turn: tap ${routine ? 'Next' : 'Practise'} › to play it yourself.`, { title: 'Demo finished' });
     },
   });
@@ -273,7 +275,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         fixed[k] ? h('p', { class: 'opt-note' }, `Fixed for this choice: ${fixed[k]}.`) : null, chips);
     });
     const panel = h('div', { class: 'panel' },
-      h('header', {}, h('div', {}, h('h2', {}, 'Options'), h('span', { class: 'muted small' }, 'Changes apply instantly.')),
+      h('header', {}, h('div', {}, h('h2', {}, 'Options')),
         h('button', { class: 'btn primary', onClick: () => closeOptions() }, 'Done')),
       ...groups);
     sheet.replaceChildren(panel);

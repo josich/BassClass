@@ -1,5 +1,5 @@
 // Chromatic bass tuner using the device microphone.
-import { h, icon, toast } from './dom.js';
+import { h, icon, toast, infoBtn } from './dom.js';
 import { settings, saveSettings } from '../store.js';
 import { TUNINGS } from '../fretboard.js';
 import * as A from '../audio.js';
@@ -45,7 +45,7 @@ export function tunerScreen(main) {
   main.replaceChildren(h('div', { class: 'tuner' },
     h('div', { class: 'page-head' },
       h('h1', {}, 'Tuner'),
-      h('span', { class: 'muted' }, 'Uses the microphone. Pluck one string at a time, near the neck, and let it ring.'),
+      infoBtn(['🎤 Uses the microphone', 'Pluck one string at a time, near the neck, and let it ring', 'Tap a string to tune it even when it is far off; tap it again to hear its note'], 'About the tuner'),
       h('div', { class: 'grow' }),
       h('div', { class: 'row tn-ref' }, h('span', { class: 'muted small' }, 'A4 ='),
         h('button', { class: 'lbl-btn', onClick: () => setA4(S.a4 - 1) }, '−'), a4El,
@@ -55,8 +55,7 @@ export function tunerScreen(main) {
       h('div', { class: 'tn-read' },
         h('div', { class: 'row' }, h('div', { class: 'tn-name' }, noteEl, octEl), h('div', { class: 'grow' }), startBtn),
         hzEl, statusEl,
-        strings,
-        h('div', { class: 'muted small' }, 'Pick a string to tune it even when it is far off; tap it again to hear its reference note.')))));
+        strings))));
   drawStrings();
 
   function setA4(v) {

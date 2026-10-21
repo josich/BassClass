@@ -11,6 +11,7 @@ import {
 } from './ui/screens.js';
 import { courseScreen, lessonScreen, placementScreen, stepHref } from './ui/course.js';
 import { lessonById } from './course/data.js';
+import { sessionPlayed } from './course/progress.js';
 import { nav, replaceHash, goBack, canGoBack } from './ui/nav.js';
 
 const app = document.getElementById('app');
@@ -92,6 +93,8 @@ function route() {
         index: wu,
         total: list.length,
         label: routineLabel,
+        // today's session ticks an item once it has been played through
+        played: item.key ? () => sessionPlayed(item.key) : null,
         next: () => {
           const nx = list[wu + 1];
           // the routine replaces one exercise with the next; Finish steps back to where it started

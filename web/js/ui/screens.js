@@ -1,16 +1,16 @@
 // Browsing screens: home (course, daily warm-up, favorites), learning path (topics), library (every exercise), module list, explorer, settings.
 import { VERSION, COMMIT } from '../version.js';
-import { h, icon, toast, rng, esc } from './dom.js';
-import { settings, saveSettings, getProgress, allProgress, resetProgress, DEFAULT_SETTINGS, getFavorites } from '../store.js';
+import { h, icon, toast, rng, esc, infoBtn } from './dom.js';
+import { settings, saveSettings, getProgress, resetProgress, DEFAULT_SETTINGS, getFavorites } from '../store.js';
 import { EXERCISES, MODULES, LEVELS, byModule, byLevel, moduleOf, byId, byNumber, defaultParams, topicRank as rank } from '../curriculum/index.js';
 import { makeCtx, MAX_FRET } from '../fretboard.js';
 import { FretboardView, degKey } from '../views/fretboardView.js';
 import * as T from '../theory.js';
 import * as A from '../audio.js';
-import { paramSummary, paramOptions } from './exercise.js';
+import { paramOptions } from './exercise.js';
 import { starButton, dragToReorder } from './favorites.js';
-import { courseBlock } from './course.js';
-import { resetCourse, continueLesson } from '../course/progress.js';
+import { courseBlock, sessionBlock, playerLevel } from './course.js';
+import { resetCourse, placed, anyProgress } from '../course/progress.js';
 import { replaceHash, goBack, canGoBack } from './nav.js';
 
 export const go = (hash) => { location.hash = hash; };
@@ -43,18 +43,19 @@ function moduleStats(id) {
 /** In-app back: one step back when we came from inside the app, otherwise to `fallback`. */
 const back = (fallback) => (canGoBack() ? goBack() : go(fallback));
 
-// ---------------------------------------------------------------- home: course, daily warm-up, favorites
+// ---------------------------------------------------------------- home: my level, course, today's session, favourites
 export function homeScreen(main) {
-  const prog = allProgress();
-  const last = Object.entries(prog).filter(([id]) => byId.has(id)).sort((a, b) => (b[1].last || 0) - (a[1].last || 0))[0];
-  const lastT = last ? byId.get(last[0]) : null;
+  // "My level" (the placement survey) lives here only: it sets where the course starts and what
+  // today's session holds
+  const known = placed() || anyProgress();
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('h1', {}, 'BassClass'), h('div', { class: 'grow' }),
-      lastT ? h('button', { class: 'btn continue', title: `Back to the last exercise you opened: ${lastT.title}`, onClick: () => go(exHref(lastT.id)) }, `↺ Last exercise: ${lastT.title}`) : null),
-    h('div', { class: 'home-cols' }, courseBlock(), warmupBlock(), favoritesBlock()));
+      h('button', { class: 'btn level-btn', title: 'My level: a short survey that sets where the course starts and what today\'s session holds', onClick: () => go('#/course/placement') },
+        'My level', known ? h('span', { class: `chip lv lv${playerLevel()}` }, `L${playerLevel()}`) : null)),
+    h('div', { class: 'home-cols' }, courseBlock(), sessionBlock(), favoritesBlock()));
 }
 
-// ---------------------------------------------------------------- warm-up (daily random routine)
+// ---------------------------------------------------------------- routines (session fill-ins)
 const WARMUP_SLOTS = [
   { label: 'Hands', modules: ['technique', 'slap'] },
   { label: 'Fretboard', modules: ['fretboard', 'intervals'] },
@@ -70,8 +71,23 @@ export let routineLabel = 'Warm-up';
 export function setRoutine(items, label = 'Warm-up') { currentRoutine = items; routineLabel = label; }
 /** Opens item `i` of a routine (its preset options, and for course items the lesson step, demo or review). */
 export const routineHref = (it, i) => exHref(it.id, { ...it.params, ...(it.ls ? { ls: it.ls } : {}), ...(it.demo ? { demo: 1 } : {}), ...(it.rv ? { rv: 1 } : {}), wu: i });
-let shuffled = null; // a shuffle lasts until the app is closed
+/** Options for an exercise picked at `level`: a random key and a few other options. */
+export function routineParams(t, level, rand) {
+  const params = defaultParams(t);
+  for (const [k, def] of Object.entries(t.params || {})) {
+    // Levels 1–2 stay in the first grades' keys (C G F D A E); later any key
+    if (def.kind === 'key') params[k] = String(level <= 2 ? [0, 7, 5, 2, 9, 4][Math.floor(rand() * 6)] : Math.floor(rand() * 12));
+    // Levels 1–2: keep the range, position and string at their defaults (no surprise 2-octave run)
+    else if (level <= 2 && ['oct', 'range', 'pos', 'zone', 'root', 'string', 'layout'].includes(k)) continue;
+    else if (rand() < 0.5) {
+      const opts = paramOptions(def, settings);
+      if (opts.length > 1) params[k] = opts[Math.floor(rand() * opts.length)][0];
+    }
+  }
+  return params;
+}
 
+/** One exercise of each kind (hands, fretboard, scales, triads, arpeggios, groove) at `level`. */
 export function buildRoutine(level, seed) {
   const rand = rng(seed);
   const items = [];
@@ -80,51 +96,9 @@ export function buildRoutine(level, seed) {
     if (!pool.length) pool = EXERCISES.filter((t) => slot.modules.includes(t.module) && t.level <= level);
     if (!pool.length) continue;
     const t = pool[Math.floor(rand() * pool.length)];
-    const params = defaultParams(t);
-    for (const [k, def] of Object.entries(t.params || {})) {
-      // Levels 1–2 warm-ups stay in the first grades' keys (C G F D A E); later any key
-      if (def.kind === 'key') params[k] = String(level <= 2 ? [0, 7, 5, 2, 9, 4][Math.floor(rand() * 6)] : Math.floor(rand() * 12));
-      // Levels 1–2: keep the range, position and string at their defaults (no surprise 2-octave run)
-      else if (level <= 2 && ['oct', 'range', 'pos', 'zone', 'root', 'string', 'layout'].includes(k)) continue;
-      else if (k !== 'key' && rand() < 0.5) {
-        const opts = paramOptions(def, settings);
-        if (opts.length > 1) params[k] = opts[Math.floor(rand() * opts.length)][0];
-      }
-    }
-    items.push({ slot: slot.label, id: t.id, params });
+    items.push({ slot: slot.label, id: t.id, params: routineParams(t, level, rand) });
   }
   return items;
-}
-
-function warmupBlock() {
-  const today = new Date();
-  const daily = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-  let level = settings.level || 3;
-  // a player who is through the course (nothing new left) and never chose a level opens at Level 6
-  if (level === DEFAULT_SETTINGS.level && !continueLesson()) level = 6;
-  const listEl = h('div', { class: 'routine' });
-  const lvTabs = h('div', { class: 'tabs' });
-  const lvName = h('span', { class: 'lv-name' });
-  const render = () => {
-    const items = buildRoutine(level, (shuffled ?? daily) + level * 7);
-    lvTabs.replaceChildren(...LEVELS.map((L) => h('button', { class: L.n === level ? 'on' : '', title: L.name, onClick: () => { level = L.n; saveSettings({ level }); render(); } }, `L${L.n}`)));
-    lvName.textContent = `Level ${level} · ${LEVELS[level - 1].name}`;
-    listEl.replaceChildren(...items.map((it, i) => {
-      const t = byId.get(it.id);
-      return h('div', { class: 'item', onClick: () => { setRoutine(items); go(exHref(it.id, { ...it.params, wu: i })); } },
-        h('div', { class: 'n' }, i + 1),
-        h('div', { class: 't' }, h('b', {}, `${it.slot}: `, h('span', { class: 'ex-num' }, t.num), t.title), h('span', {}, paramSummary(t, it.params, settings))),
-        h('span', { class: `chip lv lv${t.level}` }, `L${t.level}`));
-    }));
-  };
-  render();
-  return h('section', { class: 'block' },
-    h('div', { class: 'block-head' }, h('h2', {}, '🔥 Daily warm-up'), h('div', { class: 'grow' }),
-      h('button', { class: 'icon-btn shuffle', title: 'Shuffle: a new random routine', 'aria-label': 'Shuffle', html: icon('dice'), onClick: () => { shuffled = Math.floor(Math.random() * 1e9); render(); } }),
-      h('button', { class: 'btn primary', onClick: () => { const items = buildRoutine(level, (shuffled ?? daily) + level * 7); setRoutine(items); go(exHref(items[0].id, { ...items[0].params, wu: 0 })); } }, '▶ Start warm-up')),
-    h('p', { class: 'muted small' }, 'A random routine outside the course, fresh every day: hands, fretboard, scales, triads, arpeggios and groove from the level you pick. About 5 minutes each.'),
-    h('div', { class: 'row lv-row' }, lvTabs, lvName),
-    listEl);
 }
 
 // ---------------------------------------------------------------- favorites (starred exercises, drag to reorder)
@@ -139,7 +113,7 @@ function favoritesBlock() {
     if (!list.length) {
       listEl.replaceChildren(h('div', { class: 'empty' },
         h('b', {}, 'No favourites yet'),
-        h('span', {}, 'Tap the ☆ on an exercise card (in the Library, or inside a topic of the Path) or in an exercise\'s header to pin it here.')));
+        h('span', {}, 'Tap ☆ on any exercise to pin it here.')));
       return;
     }
     listEl.replaceChildren(...list.map((t) => favRow(t, render)));
@@ -179,7 +153,7 @@ function modulesGrid() {
 
 export function pathScreen(main) {
   main.replaceChildren(
-    h('div', { class: 'page-head' }, h('h1', {}, 'Learning path'), h('span', { class: 'muted' }, 'Pick a topic. Each one lists its exercises in order, from its first level to its last; mark them as mastered as you go. The Library shows every exercise by level.')),
+    h('div', { class: 'page-head' }, h('h1', {}, 'Learning path'), infoBtn('Pick a topic. Each one lists its exercises in order, from its first level to its last; mark them as mastered as you go. The Library shows every exercise by level.', 'About the path')),
     modulesGrid());
 }
 
@@ -195,7 +169,7 @@ export function moduleScreen(main, id) {
     list.replaceChildren(items.length ? h('div', { class: 'grid' }, items.map(card)) : h('p', { class: 'muted' }, 'No exercises at this level yet.'));
   };
   main.replaceChildren(
-    h('div', { class: 'page-head' }, h('button', { class: 'icon-btn', 'aria-label': 'Back', html: icon('back'), onClick: () => back('#/path') }), h('h1', {}, `${m.icon} ${m.name}`), h('span', { class: 'muted' }, m.desc), h('div', { class: 'grow' }), tabs),
+    h('div', { class: 'page-head' }, h('button', { class: 'icon-btn', 'aria-label': 'Back', html: icon('back'), onClick: () => back('#/path') }), h('h1', {}, `${m.icon} ${m.name}`), infoBtn(m.desc, `About ${m.name}`), h('div', { class: 'grow' }), tabs),
     list);
   render();
 }
@@ -208,7 +182,7 @@ function levelSections() {
     if (!list.length) return [];
     const done = list.filter((t) => (getProgress(t.id) || {}).done).length;
     return [
-      h('div', { class: 'section', id: `lv-${L.n}` }, h('span', { class: `chip lv lv${L.n}` }, `Level ${L.n}`), h('h2', {}, L.name), h('span', { class: 'muted small' }, `${L.desc} · ${done}/${list.length} mastered`)),
+      h('div', { class: 'section', id: `lv-${L.n}` }, h('span', { class: `chip lv lv${L.n}` }, `Level ${L.n}`), h('h2', {}, L.name), infoBtn(L.desc, `About Level ${L.n}`), h('span', { class: 'muted small' }, `${done}/${list.length} mastered`)),
       h('div', { class: 'grid' }, list.map(card)),
     ];
   });
@@ -246,7 +220,7 @@ export function libraryScreen(main, params = {}) {
     render();
   });
   main.replaceChildren(
-    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), h('span', { class: 'muted' }, `All ${EXERCISES.length} exercises, from level 1 to 6.`), h('div', { class: 'grow' }), search),
+    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn(`All ${EXERCISES.length} exercises, from Level 1 to 6, each with its number. Search by name, topic or number, or jump to a level.`, 'About the Library'), h('div', { class: 'grow' }), search),
     jumps,
     results);
   render();
@@ -340,7 +314,7 @@ export function settingsScreen(main) {
     });
     return h('div', { class: 'range-row' }, el, pct);
   };
-  const field = (label, control, hint) => h('div', { class: 'field' }, h('label', {}, label), control, hint ? h('div', { class: 'hint' }, hint) : null);
+  const field = (label, control, hint) => h('div', { class: 'field' }, h('div', { class: 'field-head' }, h('label', {}, label), hint ? infoBtn(hint, `About ${label.toLowerCase()}`) : null), control);
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('h1', {}, 'Settings')),
     h('div', { class: 'form' },
@@ -360,7 +334,6 @@ export function settingsScreen(main) {
           settingsScreen(main);
           toast('Settings restored');
         } }, 'Restore defaults')))),
-    h('p', { class: 'muted small', style: { marginTop: '18px' } }, `BassClass works offline once loaded. The bass sound uses recorded CC0 samples (Karoryfer "darkblack"), with a built-in synthesizer as a backup.${location.hostname === 'appassets.androidplatform.net' ? '' : ' Install it from your browser menu → "Add to Home screen" for full-screen landscape mode.'}`),
     // the release number (written by the build) and the commit it was built from
-    h('p', { class: 'muted small version' }, VERSION ? `BassClass ${VERSION}${COMMIT ? ` · build ${COMMIT}` : ''}` : `BassClass · development version${COMMIT ? ` · build ${COMMIT}` : ''}`));
+    h('p', { class: 'muted small version' }, infoBtn(`BassClass works offline once loaded. The bass sound uses recorded CC0 samples (Karoryfer "darkblack"), with a built-in synthesizer as a backup.${location.hostname === 'appassets.androidplatform.net' ? '' : ' Install it from your browser menu → "Add to Home screen" for full-screen landscape mode.'}`, 'About BassClass'), ' ', VERSION ? `BassClass ${VERSION}${COMMIT ? ` · build ${COMMIT}` : ''}` : `BassClass · development version${COMMIT ? ` · build ${COMMIT}` : ''}`));
 }
