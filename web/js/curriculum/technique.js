@@ -599,7 +599,7 @@ const muting = ex({
 
 // chromatic finger drills name their black keys by direction: sharps going up, flats coming down
 const BLACK = new Set([1, 3, 6, 8, 10]);
-function chromaticSpell(inst, { keep = false } = {}) {
+function chromaticSpell(inst, { keep = false, groups = 0 } = {}) {
   // the direction a note is moving: towards the next different note (or from the one before, at the end)
   // keep: a fret keeps one name while the figure stays on its string (finger pairs go back and forth:
   // A–B♭–A–B♭, not A–B♭–A–A♯)
@@ -611,7 +611,10 @@ function chromaticSpell(inst, { keep = false } = {}) {
     if (keep && names.has(n.midi)) { n.n = names.get(n.midi); return; }
     const after = ns.slice(i + 1).find((x) => x.midi !== n.midi);
     const before = [...ns.slice(0, i)].reverse().find((x) => x.midi !== n.midi);
-    const down = after ? after.midi < n.midi : before ? before.midi > n.midi : false;
+    // groups: a figure of that many notes moves one way (a diagonal), spelled by its direction
+    const g0 = groups ? i - (i % groups) : -1;
+    const down = groups && ns[g0 + groups - 1] ? ns[g0 + groups - 1].midi < ns[g0].midi
+      : after ? after.midi < n.midi : before ? before.midi > n.midi : false;
     n.n = spellMidi(n.midi, down);
     names.set(n.midi, n.n);
   });
@@ -619,7 +622,7 @@ function chromaticSpell(inst, { keep = false } = {}) {
 }
 for (const t of [c1234, climb, perms, spider, diagonal, fingerPairs, dynamics, legato, shifting, stretch]) {
   const build = t.build;
-  t.build = (p, ctx, S) => chromaticSpell(build(p, ctx, S), { keep: t === fingerPairs });
+  t.build = (p, ctx, S) => chromaticSpell(build(p, ctx, S), { keep: t === fingerPairs, groups: t === diagonal ? 4 : 0 });
 }
 
 export default [permStrings, altPluck, c1234, raking, muting, climb, perms, spider, diagonal, fingerPairs, octaveRun, dynamics, trills, legato, stringSkip, shifting, simandl, accents, ghost16, stretch, harmonics, endurance, pim];

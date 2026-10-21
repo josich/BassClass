@@ -474,7 +474,7 @@ const stringSets = ex({
   title: 'Triads on every string set',
   summary: 'One note per string: root, 1st and 2nd inversion on E-A-D and A-D-G.',
   about: 'Here each note of the triad sits on its own string, across three adjacent strings. On each string set you play root position, 1st inversion and 2nd inversion, moving up the neck. These one-note-per-string shapes are the ones chordal bassists and soloists use.',
-  tips: ['Use one finger per note and let the notes ring as a chord at the end.', 'On a 5-string you also get the B-E-A set.'],
+  tips: ['Use one finger per note, so each shape could ring as a chord.', 'On a 5-string you also get the B-E-A set.'],
   source: 'Common chord-study practice (Berklee Chord Studies for Electric Bass, MI)',
   params: { key: keyP(['1', '3', '5'], { cycles: false }), quality: sel('Triad', QUALITY_TRIADS.slice(0, 4)) },
   bpm: 70, sub: 3, label: 'degree',
@@ -558,7 +558,7 @@ const diatonicModes = variant(diatonic, {
   id: 'tri-diatonic-modes', level: 5,
   title: 'Harmonised triads in all scales & modes',
   summary: 'Melodic and harmonic minor modes, Phrygian dominant, Lydian dominant, altered…',
-  about: 'Any 7-note scale can be harmonised. Unusual scales produce unusual chord sets: Lydian dominant contains a major II, the altered scale is full of diminished and augmented triads, and Phrygian dominant has a major I with a major ♭II above it. Use this to hear and own the chords behind modern jazz and film-music colours.',
+  about: 'Any 7-note scale can be harmonised. Unusual scales produce unusual chord sets: Lydian dominant contains a major II, the altered scale has several diminished and augmented triads, and Phrygian dominant has a major I with a major ♭II above it. Use this to hear and own the chords behind modern jazz and film-music colours.',
   params: { ...diatonic.params, scale: sel('Scale', SCALE_TYPE_OPTS(SCALES_ALL7), 'lydianDom') },
 });
 
@@ -860,10 +860,15 @@ const upperStructures = ex({
       const highest = ctx.tuning[ctx.tuning.length - 1] + ctx.maxFret;
       if (um + 7 > highest) um -= 12;
       const items = [{ midi: r.midi, n: bass, deg: 'R', chord: `${chordName(upRoot, u.q, S)}/${nm(bass, S)}` }];
+      // each upper note named against the lower chord: its own tones (3, 5, ♭7…) or a tension
+      // (C♯ over C7 is the ♭9, E♭ the ♯9, never "♯1" or "♭3")
+      const lower = T.CHORDS[u.over].iv;
       chordTones(upRoot, ivsOf(u.q), um, [0, 1, 2, 1, 0]).forEach((t) => {
-        const iv = T.ivBetween(bass, t.n);
-        const ext = { '2': '9', 'b2': '♭9', '#2': '♯9', '4': '11', '#4': '♯11', '6': '13', 'b6': '♭13', 'b5': '♭5', '#5': '♯5' }[iv];
-        items.push({ ...t, deg: ext || T.fmtDeg(iv) });
+        // by pitch class: a lead-sheet spelling (E over A♭7) can make an interval with no name
+        const st = T.mod(T.pc(t.n) - T.pc(bass), 12);
+        const own = lower.find((iv) => T.mod(T.semis(iv), 12) === st);
+        const deg = own ? T.fmtDeg(own === '8' ? '1' : own) : { 1: '♭9', 2: '9', 3: '♯9', 5: '11', 6: '♯11', 8: '♭13', 9: '13' }[st];
+        items.push({ ...t, deg: deg || T.fmtDeg(T.ivBetween(bass, t.n)) });
       });
       items.push({ midi: r.midi, n: bass, deg: 'R' });
       b.line(items, { pattern: false, place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 3 } });

@@ -203,7 +203,7 @@ const cycles = ex({
   id: 'iv-cycles', module: M, level: 5,
   title: 'Interval cycles (Slonimsky-style)',
   summary: 'Chains of the same interval: 4ths, minor 3rds, major 3rds, whole tones… across the neck.',
-  about: 'Stack the same interval again and again: 4ths give C F B♭ E♭…, minor 3rds give the diminished cycle C E♭ G♭ A, major 3rds give the augmented C E G♯. These symmetrical chains appear throughout modern jazz (Coltrane, Brecker) and are perfect for hand-to-ear coordination. The line climbs for two octaves and comes back.',
+  about: 'Stack the same interval again and again: 4ths give C F B♭ E♭…, minor 3rds give the diminished cycle C E♭ G♭ A, major 3rds give the augmented C E G♯. These symmetrical chains appear throughout modern jazz (Coltrane, Brecker) and are perfect for hand-to-ear coordination. The line climbs up to two octaves and comes back.',
   tips: ['Find the repeating hand shape; the cycles are geometric on the bass.', 'Groups of 3 or 4 notes in 16ths sound very modern.'],
   source: 'Nicolas Slonimsky "Thesaurus of Scales and Melodic Patterns"; Coltrane/Brecker practice',
   params: { iv: sel('Interval', Object.entries(CYC).map(([k, v]) => [k, v[1]])), key: keyP(['1'], { cycles: false }) },

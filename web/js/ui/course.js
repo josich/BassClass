@@ -47,7 +47,10 @@ const demoStep = (l) => l.steps.findIndex((s) => s.goal);
 // About five minutes per item: a warm-up, the reviews that are due, the next steps of the course
 // (a lesson not started yet opens with its demo), and at 30 and 45 minutes an ear or reading drill.
 // The warm-up and the drill come from lessons already done (or known), so nothing untaught turns up.
-const EAR_MODULES = ['ear', 'reading', 'intervals'];
+// Once nothing new is left, the reviews that are due come first and random Library exercises from
+// Levels 5–6 fill the rest.
+// (the ear slot: ear training, reading and the interval quiz, never a playing drill)
+const isEar = (id) => ['ear', 'reading'].includes(byId.get(id).module) || id === 'iv-ear-quiz';
 const practised = (l) => ['done', 'known'].includes(status(l));
 
 export function buildSession(minutes) {
@@ -64,12 +67,14 @@ export function buildSession(minutes) {
 
   // what the player has already met: the source of the warm-up and the ear or reading drill
   const met = LESSONS.filter(practised).flatMap((l) => l.steps.map((s, i) => ({ l, s, i }))).filter((x) => !x.s.music);
-  const earPool = met.filter((x) => EAR_MODULES.includes(byId.get(x.s.ex).module));
-  const handsPool = met.filter((x) => !EAR_MODULES.includes(byId.get(x.s.ex).module) && x.s.goal);
+  const earPool = met.filter((x) => isEar(x.s.ex));
+  const handsPool = met.filter((x) => !isEar(x.s.ex) && x.s.goal && byId.get(x.s.ex).module !== 'intervals');
   const tail = n >= 6 && earPool.length ? pick(earPool) : null;
   const room = n - (handsPool.length ? 1 : 0) - (tail ? 1 : 0);
 
-  for (const l of dueLessons().slice(0, Math.max(1, Math.floor(n / 3)))) items.push(stepItem(l, reviewStep(l), 'Review', { rv: 1 }));
+  // reviews that are due: up to a third of the session while there is new material, all of them
+  // (as far as the session reaches) once there is not
+  for (const l of dueLessons().slice(0, cont ? Math.max(1, Math.floor(n / 3)) : room)) items.push(stepItem(l, reviewStep(l), 'Review', { rv: 1 }));
   if (cont) {
     // new material: one lesson (or checkpoint) per 15 minutes, so each gets its time
     let lessons = 0;
@@ -82,22 +87,21 @@ export function buildSession(minutes) {
       l.steps.forEach((s, i) => { if (count() < room && !stepClean(l, i)) items.push(stepItem(l, i, slot)); });
     }
   }
-  // nothing new left (the course is done, or known from the placement): early reviews, then the
-  // Library's next level until the next stage of the course exists
-  if (count() < room) {
+  // a short course stretch (the next lessons are all done): early reviews of lessons met before
+  if (count() < room && cont) {
     const fresh = LESSONS.filter((l) => practised(l) && !l.optional && !items.some((x) => x.lesson === l))
       .sort((a, b) => (nextReview(a) || Infinity) - (nextReview(b) || Infinity) || rand() - 0.5);
-    // with nothing new in the course, about half the room goes to the Library's next level
-    const upTo = cont ? room : Math.max(1, Math.ceil(room / 2));
     for (const l of fresh) {
-      if (count() >= upTo) break;
+      if (count() >= room) break;
       items.push(stepItem(l, reviewStep(l), 'Review', isComplete(l) ? { rv: 1 } : {}));
     }
   }
+  // nothing new left (the course is done, or known from the placement): random Library exercises
+  // from Levels 5–6, each labelled with its own level
   if (count() < room && !cont) {
     for (const it of buildRoutine(NEXT_LEVEL, day + 21)) {
       if (count() >= room) break;
-      if (!has(it.id)) items.push({ id: it.id, params: it.params, slot: `Level ${NEXT_LEVEL}` });
+      if (!has(it.id)) items.push({ id: it.id, params: it.params, slot: `Library · L${byId.get(it.id).level}` });
     }
   }
   if (tail) items.push(stepItem(tail.l, tail.i, byId.get(tail.s.ex).module === 'reading' ? 'Reading' : 'Ear'));
@@ -134,7 +138,7 @@ export function courseBlock() {
     : h('div', { class: 'course-next done' },
       h('b', {}, stats.known ? `✓ ${stagesName()}: ${stats.done} done, ${stats.known} known` : `✓ ${stagesName()} complete`),
       h('span', { class: 'muted small' }, COMPLETE
-        ? `Today's session keeps the lessons fresh and adds Level ${NEXT_LEVEL} exercises from the Library.`
+        ? 'Today\'s session brings back the reviews that are due and adds random Library exercises from Levels 5 and 6.'
         : `More stages are on the way. Until then, today's session mixes reviews of these lessons with Level ${NEXT_LEVEL} exercises from the Library.`));
   section.append(head, h('div', { class: 'course-cols' }, next, sessionPanel()));
   return section;
@@ -185,11 +189,14 @@ export function courseScreen(main) {
       cont ? h('button', { class: 'btn primary', onClick: () => go(lessonHref(cont)) }, `▶ ${lessonName(cont)}`) : null,
       h('button', { class: 'btn', onClick: () => go('#/course/placement') }, placed() ? 'Placement check' : 'Find your level')),
     h('p', { class: 'muted small course-intro' }, 'Work through the lessons in order, or jump to any of them: nothing is locked. A step is done when you play a full loop from the first note at its goal tempo and tick ✓ Clean. Completed lessons come back for short reviews (after 1, 3, 7, 21 and 60 days) in today\'s session on Home.'),
+    // jump to a stage (the map is long on a phone)
+    h('div', { class: 'tabs lv-jump' }, STAGES.map((stage, si) => h('button', { title: stage.title, onClick: () => main.querySelector(`#stage-${si + 1}`)?.scrollIntoView({ block: 'start' }) }, `S${si + 1}`))),
     ...STAGES.flatMap((stage, si) => {
-      const list = stage.lessons.filter((l) => !l.optional);
+      // lessons only (checkpoints and the test are not counted, as on Home)
+      const list = stage.lessons.filter((l) => !l.optional && l.kind === 'lesson');
       const done = list.filter((l) => status(l) === 'done').length;
       return [
-        h('div', { class: 'section' }, h('span', { class: `chip lv lv${stage.level}` }, `Stage ${si + 1}`), h('h2', {}, stage.title), h('span', { class: 'muted small' }, `${done}/${list.length} · ${stage.desc}`)),
+        h('div', { class: 'section stage-head', id: `stage-${si + 1}` }, h('span', { class: `chip lv lv${stage.level}` }, `Stage ${si + 1}`), h('h2', {}, stage.title), h('span', { class: 'muted small' }, `${done}/${list.length} lessons · ${stage.desc}`)),
         h('div', { class: 'grid unit-grid' },
           UNITS.filter((u) => u.stage === stage).map((u) => h('div', { class: 'unit-card' },
             h('h3', {}, h('span', { class: 'ex-num' }, u.n), u.title),
@@ -199,13 +206,16 @@ export function courseScreen(main) {
             h('h3', {}, '★ Stage test'), h('p', {}, 'Everything from this stage at once.'), h('div', { class: 'les-list' }, row(l))))),
       ];
     }),
-    COMPLETE ? null : h('p', { class: 'muted small', style: { marginTop: '18px' } }, `More stages (Level ${NEXT_LEVEL} onward) are on the way. The Library and the Path have every exercise in the meantime.`),
-    h('div', { class: 'row' }, h('button', { class: 'btn', onClick: () => {
+    ...(COMPLETE ? [] : [h('p', { class: 'muted small', style: { marginTop: '18px' } }, `More stages (Level ${NEXT_LEVEL} onward) are on the way. The Library and the Path have every exercise in the meantime.`)]),
+    h('div', { class: 'row', style: { marginTop: '18px' } }, h('button', { class: 'btn', onClick: () => {
       if (!confirm('Reset all course progress (tempos, ticks, reviews and your placement)?')) return;
       resetCourse();
       toast('Course progress reset');
       courseScreen(main);
     } }, 'Reset course progress')));
+  // open at the next lesson (Back keeps the place the player left, restored by the router)
+  const nextRow = main.querySelector('.les-row.next');
+  if (nextRow) requestAnimationFrame(() => { if (main.scrollTop < 8) nextRow.scrollIntoView({ block: 'center' }); });
 }
 
 // ---------------------------------------------------------------- lesson page
@@ -314,7 +324,7 @@ const PLACEMENT = [
   ['I know each mode on its own, choose the right scale for each chord and hear common progressions.', ['u-modes4']],
   ['I play the chords of a key in inversions and in 4ths, voice-lead triads and 7ths, and play guide tones.', ['u-triads4', 'u-voicelead', 'u-sevenths4']],
   ['I play diatonic 10ths and scales in octaves.', ['u-tenths']],
-  ['I walk complete lines through a jazz blues and play soul and odd-meter grooves.', ['u-walking4', 'u-grooves4']],
+  ['I walk complete lines through a jazz blues and play soul and odd-metre grooves.', ['u-walking4', 'u-grooves4']],
   ['I play finger permutations across the strings, p-i-m arpeggios and polyrhythms such as 3:2 and 5:4.', ['u-hands5']],
   ['I use interval cycles, the diminished and whole-tone scales, side-stepping and world scales.', ['u-outside']],
   ['I play bebop scales, the 6th-diminished scale and chromatic approaches and enclosures.', ['u-bebop']],
@@ -325,7 +335,7 @@ const PLACEMENT = [
   ['I play jazz licks in all keys and build solos from bass-line devices and motifs.', ['u-licks', 'u-solo']],
   ['I play scales, triads and 7th chords through all 12 keys without stopping, in odd groupings and inversions.', ['u-all-keys', 'u-chords-all-keys']],
   ['I know Messiaen\'s modes, the modes of harmonic major and the altered chord-scales.', ['u-modern']],
-  ['I can arpeggiate and walk Giant Steps and rhythm changes at tempo.', ['u-coltrane']],
+  ['I arpeggiate and walk Giant Steps and rhythm changes at tempo.', ['u-coltrane']],
   ['I play chordal bass across the strings and bebop and modern jazz vocabulary in every key.', ['u-chordal', 'u-masters']],
 ];
 
@@ -334,6 +344,7 @@ export function placementScreen(main) {
   const answers = PLACEMENT.map(([, units]) => (placed() ? units.every((u) => known[u]) : null));
   const rows = h('div', { class: 'place-list' });
   const done = h('button', { class: 'btn primary' }, 'See my starting point');
+  const hint = h('span', { class: 'muted small' });
   // the questions grouped by the stage of their units, each stage with "all yes" / "all not yet"
   const stageOf = (i) => UNITS.find((u) => u.id === PLACEMENT[i][1][0])?.stage;
   const render = () => {
@@ -341,7 +352,14 @@ export function placementScreen(main) {
     STAGES.forEach((stage, si) => {
       const idx = PLACEMENT.map((_, i) => i).filter((i) => stageOf(i) === stage);
       if (!idx.length) return;
-      const all = (v) => { for (const i of idx) answers[i] = v; render(); };
+      // "All not yet" also answers the later stages; "All yes" the earlier ones that are still open
+      const all = (v) => {
+        PLACEMENT.forEach((_, i) => {
+          const s2 = STAGES.indexOf(stageOf(i));
+          if (s2 === si || (v === false && s2 > si) || (v === true && s2 < si && answers[i] == null)) answers[i] = v;
+        });
+        render();
+      };
       out.push(h('div', { class: 'place-stage' }, h('span', { class: `chip lv lv${stage.level}` }, `Stage ${si + 1}`), h('b', {}, stage.title), h('div', { class: 'grow' }),
         h('button', { class: 'btn', onClick: () => all(true) }, 'All yes'), h('button', { class: 'btn', onClick: () => all(false) }, 'All not yet')));
       for (const i of idx) {
@@ -351,13 +369,15 @@ export function placementScreen(main) {
       }
     });
     rows.replaceChildren(...out);
-    done.disabled = answers.some((a) => a == null);
+    const open = answers.filter((a) => a == null).length;
+    done.disabled = open > 0;
+    hint.textContent = open ? `${open} statement${open > 1 ? 's' : ''} still to answer (the stage buttons answer a whole stage).` : '';
   };
   done.addEventListener('click', () => {
     // units answered "yes" are marked as known; the course starts at the first lesson that is not
     setKnown(PLACEMENT.flatMap(([, units], i) => (answers[i] ? units : [])));
     const cont = continueLesson();
-    toast(cont ? `Start here: ${lessonName(cont)}` : `You know ${stagesName()}: today's session reviews them and adds Level ${NEXT_LEVEL}`, 3500);
+    toast(cont ? `Start here: ${lessonName(cont)}` : `You know ${stagesName()}: today's session brings Library exercises from Levels 5 and 6`, 3500);
     // back to where the check was opened from (the map or Home), which now shows the starting point
     if (history.state?.depth > 0) history.back(); else replaceHash('#/course');
   });
@@ -366,5 +386,5 @@ export function placementScreen(main) {
     h('div', { class: 'page-head' }, h('button', { class: 'icon-btn', 'aria-label': 'Back', html: icon('back'), onClick: () => back('#/course') }),
       h('h1', {}, 'Find your level'), h('span', { class: 'muted' }, 'Answer honestly, stage by stage ("All not yet" once a stage is new to you). Units you already know are marked as known and the course starts at the first gap. You can change this any time.')),
     rows,
-    h('div', { class: 'row', style: { marginTop: '12px' } }, done));
+    h('div', { class: 'row', style: { marginTop: '12px' } }, done, hint));
 }

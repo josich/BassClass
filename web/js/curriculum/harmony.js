@@ -173,7 +173,7 @@ const shells = ex({
   id: 'hm-shells', module: M, level: 4,
   title: 'Shell voicings: R-7-10 chords on bass',
   summary: 'Root, 7th and 3rd (as a 10th): full jazz chords with three fingers.',
-  about: 'A shell voicing keeps only the essential notes: root, 7th and 3rd. On bass the root goes on the E or A string, the 7th two strings up and the 3rd (as a 10th) on the top string. These voicings let you comp chords, play chord melody and understand guide tones. Each chord is played as an arpeggio, then strummed together.',
+  about: 'A shell voicing keeps only the essential notes: root, 7th and 3rd. On bass the root goes on the E string, the 7th two strings up (on the D string) and the 3rd, as a 10th, on the G string. These voicings let you comp chords, play chord melody and understand guide tones. Each chord is played as an arpeggio, then strummed together.',
   tips: ['maj7: 7th = two strings up, one fret up. Dom7/m7: same fret.', 'The 3rd sits one fret up (major) or on the same fret (minor) as the root, on the G string.'],
   source: 'RSL Grades 6–8 (chord shapes); MI 151E; Berklee Online Bass 101 L10',
   params: { prog: progP(['ii-V-I', 'I-vi-ii-V', 'autumn', 'jazz-blues', 'minor-ii-V-i']), key: keyP(['1', '3', '5', '7']) },

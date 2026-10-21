@@ -168,8 +168,9 @@ const iiVI = ex({
     const chords = [];
     for (const k of keysFor(p.key)) chords.push(...progChords(p.type === 'major' ? 'ii-V-I' : 'minor-ii-V-i', k, { S }).slice(0, 3));
     const [lo, hi] = REG[p.register];
-    emitMixed(b, voiceLedItems(chords, { order: SEVENTH_ORDERS[p.pattern].f, lo, hi, rootOnly: p.voicing === 'root', start: lo + 8 }), { center: 5, open: 'avoid' });
-    return b.build({ label: 'degree' });
+    // written 8ths: every chord fills its own length, so the form stays the tune's
+    emitMixed(b, voiceLedItems(chords, { order: SEVENTH_ORDERS[p.pattern].f, lo, hi, rootOnly: p.voicing === 'root', start: lo + 8, per: 2 }), { center: 5, open: 'avoid' });
+    return b.build({ label: 'degree', uniform: false });
   },
 });
 
@@ -189,8 +190,9 @@ const voiceLed = ex({
     const chords = [];
     for (const k of keys) chords.push(...progChords(p.prog, k, { S }));
     const [lo, hi] = REG[p.register];
-    emitMixed(b, voiceLedItems(chords, { order: SEVENTH_ORDERS[p.pattern].f, lo, hi, start: lo + 8 }), { center: 5, open: 'avoid' });
-    return b.build({ label: 'degree' });
+    // written 8ths: every chord fills its own length (a jazz blues keeps its 12 bars, Giant Steps its 16)
+    emitMixed(b, voiceLedItems(chords, { order: SEVENTH_ORDERS[p.pattern].f, lo, hi, start: lo + 8, per: 2 }), { center: 5, open: 'avoid' });
+    return b.build({ label: 'degree', uniform: false });
   },
 });
 
@@ -318,7 +320,7 @@ const extended = ex({
   id: 'arp-extended', module: M, level: 5,
   title: 'Extended arpeggios: 9ths, 11ths, 13ths',
   summary: 'Keep stacking 3rds past the 7th, through the harmonised scale.',
-  about: 'Above the 7th the stack continues: 9, 11, 13. Through the harmonised scale this gives maj9, m9, m11, dominant 13 and other colours. These arpeggios cover two octaves and are a great reach and shifting workout, and they reveal the tensions behind jazz and neo-soul chords.',
+  about: 'Above the 7th the stack continues: 9, 11, 13. Through the harmonised scale this gives maj9, m9, m11, dominant 13 and other colours. These arpeggios reach well beyond the octave (a 13th almost two octaves) and are a great reach and shifting workout, and they reveal the tensions behind jazz and neo-soul chords.',
   tips: ['The 9 is the 2nd an octave up, the 11 is the 4th, the 13 is the 6th.', 'Watch out for the "avoid note" 11 on major chords: hear the clash.'],
   source: 'RSL Grade 7 (9ths), LCM Grade 8 (11ths/13ths); TalkingBass Chord Tone Essentials',
   params: { key: keyP(T.SCALES.ionian.iv), ext: sel('Up to', [['9', '9ths'], ['11', '11ths'], ['13', '13ths']]), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'dorian', 'melodicMinor'])), order: sel('Chords', [['up', 'I → I'], ['fourths', 'In 4ths']]) },

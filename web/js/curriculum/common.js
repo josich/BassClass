@@ -444,9 +444,12 @@ export function resolveToken(tok, chord, rootMidi, nextRoot, nextMidi) {
  * a fretted note on a string with two strings above it (the 5th and the octave go up from there),
  * near the previous root, not on the low B when the E string has the note; the open string when
  * only an open string has it (the low E). A root that would sit above fret 9 drops an octave, so a
- * shape line stays in the lower positions. Returns the roots (moved) and their places.
+ * shape line stays in the lower positions, and the lower frets win where the same pitch has two
+ * places. `below`: the pattern also plays notes under the root (the low 5th of a two-feel), so the
+ * root takes a string with one below it (the 5th then sits at the same fret, a string lower).
+ * Returns the roots (moved) and their places.
  */
-function shapeRoots(roots, ctx) {
+function shapeRoots(roots, ctx, { below = false } = {}) {
   const eStr = Math.max(0, ctx.str('E'));
   const top = ctx.tuning.length - 3;
   let prev = 5;
@@ -461,9 +464,10 @@ function shapeRoots(roots, ctx) {
       pos.push(so >= 0 ? { s: so, f: 0 } : null);
       return m;
     }
-    c.sort((a, b) => (a.s > top) - (b.s > top) || Math.abs(a.f - prev) - Math.abs(b.f - prev) || a.s - b.s);
-    prev = c[0].f;
-    pos.push(c[0]);
+    const pool = below && c.some((x) => x.s > 0) ? c.filter((x) => x.s > 0) : c;
+    pool.sort((a, b) => (a.s > top) - (b.s > top) || (a.f > 9) - (b.f > 9) || Math.abs(a.f - prev) - Math.abs(b.f - prev) || a.s - b.s);
+    prev = pool[0].f;
+    pos.push(pool[0]);
     return m;
   });
   return { midis, pos };
@@ -473,7 +477,7 @@ export function grooveLine(b, chords, roots, pattern, { tags = true, place: popt
   const pitches = [];
   // a shape line keeps each chord's notes around its root: fret window from one below to four above
   let rootAt = null;
-  if (shape) ({ midis: roots, pos: rootAt } = shapeRoots(roots, b.ctx));
+  if (shape) ({ midis: roots, pos: rootAt } = shapeRoots(roots, b.ctx, { below: pattern.some((bar) => bar.some(([tok]) => /_$/.test(tok))) }));
   const regionOf = (ci, isRoot) => {
     if (!rootAt) return undefined;
     const r = rootAt[ci];
@@ -995,7 +999,30 @@ export function voicings(root, ivs, lo, hi, { rootOnly = false } = {}) {
  * played tone (per `order`) lands as close as possible to the previous note.
  * order(i, n) -> tone indices. Returns pitch items for emitMixed.
  */
-export function voiceLedItems(chords, { order, lo = 31, hi = 55, rootOnly = false, start = 40 }) {
+/**
+ * The tone indices for one chord: its order, continued for `m` notes by walking back and forth
+ * (an arpeggio that starts upwards reaches the octave, then turns: R-3-5-7-8-7-5-3).
+ */
+function fillOrder(ord, m) {
+  if (m <= ord.length) return ord.slice(0, m);
+  const lo = Math.min(...ord);
+  const hi = Math.max(...ord) + (ord[1] > ord[0] ? 1 : 0);
+  const seq = [...ord];
+  let dir = Math.sign(seq[seq.length - 1] - seq[seq.length - 2]) || 1;
+  while (seq.length < m) {
+    let next = seq[seq.length - 1] + dir;
+    if (next > hi || next < lo) { dir = -dir; next = seq[seq.length - 1] + dir; }
+    seq.push(next);
+  }
+  return seq;
+}
+
+/**
+ * A voice-led line: each chord starts on the voicing whose first note is nearest the last note.
+ * `per`: notes per beat, so each chord fills its own length (written 8ths: per 2); without it,
+ * one pass of the order per chord, one step each.
+ */
+export function voiceLedItems(chords, { order, lo = 31, hi = 55, rootOnly = false, start = 40, per = 0 }) {
   const items = [];
   let prev = null;
   chords.forEach((c, i) => {
@@ -1010,10 +1037,10 @@ export function voiceLedItems(chords, { order, lo = 31, hi = 55, rootOnly = fals
       if (!best || d < best.d) best = { d, v };
     }
     if (!best) return;
-    ord.forEach((ti, k) => {
+    (per ? fillOrder(ord, Math.max(1, Math.round(c.beats * per))) : ord).forEach((ti, k) => {
       const t = best.v.tones[ti % best.v.tones.length];
       const up = Math.floor(ti / best.v.tones.length) * 12;
-      items.push({ midi: t.midi + up, n: t.n, deg: t.deg, dur: 1, chord: k === 0 ? c.sym : undefined });
+      items.push({ midi: t.midi + up, n: t.n, deg: t.deg, dur: per ? 1 / per : 1, chord: k === 0 ? c.sym : undefined });
     });
     prev = items[items.length - 1].midi;
   });

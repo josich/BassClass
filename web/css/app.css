@@ -218,7 +218,7 @@ input[type=range] { accent-color: var(--accent); width: 100%; }
 .toast { position: fixed; left: 50%; bottom: 76px; transform: translateX(-50%); width: max-content; max-width: min(560px, 90vw); text-align: center; background: var(--panel-3); border: 1px solid var(--line); padding: 8px 14px; border-radius: 10px; font-weight: 600; z-index: 40; opacity: 0; transition: opacity 0.2s; pointer-events: none; }
 .toast.show { opacity: 1; }
 /* exercise tip: a light callout on the board, clearly not part of the dark controls */
-.coach { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); z-index: 6; width: max-content; max-width: min(560px, calc(100% - 20px));
+.coach { position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); z-index: 6; width: max-content; max-width: min(560px, calc(100% - 20px));
   display: flex; align-items: flex-start; gap: 10px; padding: 9px 6px 9px 12px; border-radius: 12px;
   background: #eafaf4; color: #0b2320; border: 1px solid #9fe3cc; border-left: 5px solid var(--accent);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55); animation: coach-in 0.18s ease-out; }
@@ -229,7 +229,7 @@ input[type=range] { accent-color: var(--accent); width: 100%; }
 .coach-txt b { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #11806a; }
 .coach-x { flex: none; width: 32px; height: 32px; margin: -4px 0 -4px 2px; border: 0; border-radius: 8px; background: rgba(11, 35, 32, 0.08); color: #0b2320; font-size: 20px; line-height: 1; display: grid; place-items: center; }
 .coach-x:hover { background: rgba(11, 35, 32, 0.16); }
-@keyframes coach-in { from { opacity: 0; transform: translate(-50%, -6px); } }
+@keyframes coach-in { from { opacity: 0; transform: translate(-50%, 6px); } }
 
 /* ---------------------------------------------------------------- fretboard svg */
 svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; overflow: visible; }
@@ -433,6 +433,9 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 
 /* ---------------------------------------------------------------- course map */
 .course-intro { max-width: 900px; margin: -4px 0 4px; }
+.stage-head { flex-wrap: wrap; }
+.stage-head h2 { white-space: nowrap; }
+.stage-head .muted { flex: 1 1 280px; min-width: 0; }
 .unit-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 .unit-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .unit-card h3 { font-size: 14.5px; }
@@ -501,7 +504,7 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .place-stage .btn { padding: 6px 12px; }
 
 /* ---------------------------------------------------------------- exercise: lesson step */
-.goal-btn { flex: none; min-width: 92px; justify-content: center; padding: 6px 8px; font-size: 12.5px; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--muted); }
+.goal-btn { flex: none; min-width: 92px; min-height: 34px; justify-content: center; padding: 6px 8px; font-size: 12.5px; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--muted); }
 .goal-btn.ready { color: var(--accent); border-color: var(--accent); animation: goal-pulse 1.6s ease-in-out infinite; }
 .goal-btn.clean { background: rgba(70, 201, 162, 0.18); color: var(--accent); border-color: rgba(70, 201, 162, 0.5); }
 .goal-btn.off { color: #f2c35b; border-color: rgba(242, 195, 91, 0.5); }
@@ -510,8 +513,10 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .les-step-box p { margin: 4px 0 0; }
 .drawer .les-idea { font-weight: 600; border-left: 3px solid var(--accent); padding-left: 10px; }
 /* in a lesson the header holds the goal and Next too: on narrow screens Options is just its icon */
-@media (max-width: 760px) {
-  .exv-top.lesson .opts-btn { flex: none; padding: 0 9px; }
+/* in a lesson the header also holds the goal and Next: below 900 px Options is just its icon, so
+   the title and the goal ("goal 96 BPM in 8ths") stay readable */
+@media (max-width: 900px) {
+  .exv-top.lesson .opts-btn { flex: none; padding: 0 9px; min-height: 34px; }
   .exv-top.lesson .opts-txt { display: none; }
   .exv-top.lesson .exv-title { flex: 1 1 auto; }
   .exv-top.lesson .exv-title b, .exv-top.lesson .exv-title span { max-width: none; }

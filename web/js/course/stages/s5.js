@@ -30,8 +30,8 @@ export default {
             'Keep the thumb slightly ahead of the fingers so the hand does not collapse, and let the notes ring.',
           ],
           steps: [
-            { ex: 'tech-pim', p: { prog: 'I-vi-IV-V' }, sub: 2, from: 66, goal: 92, backing: 'chords', do: 'p-i-m-i on each chord, in 8ths.' },
-            { ex: 'tech-pim', p: { prog: 'ii-V-I' }, sub: 4, from: 56, goal: 72, backing: 'chords', do: 'The same in 16ths over ii–V–I.' },
+            { ex: 'tech-pim', p: { prog: 'I-vi-IV-V' }, sub: 2, from: 66, goal: 92, do: 'p-i-m-i on each chord, in 8ths.' },
+            { ex: 'tech-pim', p: { prog: 'ii-V-I' }, sub: 4, from: 56, goal: 72, do: 'The same in 16ths over ii–V–I.' },
           ],
           mistakes: [
             'Plucking every string with i and m. The thumb takes the bass note.',
@@ -62,7 +62,8 @@ export default {
         ],
         steps: [
           { ex: 'tech-permutations-across', p: { perm: 'all', pos: '5' }, sub: 2, from: 60, goal: 76 },
-          { ex: 'rh-polyrhythm', p: { ratio: '7:4' }, from: 50, goal: 64 },
+          { ex: 'rh-polyrhythm', p: { ratio: '5:4' }, from: 56, goal: 72 },
+          { ex: 'tech-pim', p: { prog: 'I-vi-IV-V' }, sub: 2, from: 76, goal: 100 },
         ],
       },
     },
@@ -78,7 +79,7 @@ export default {
             'Find the repeating hand shape: on the bass the cycles are geometric.',
           ],
           steps: [
-            { ex: 'iv-cycles', p: { iv: '4' }, sub: 2, from: 66, goal: 88, do: 'The cycle of 4ths for two octaves and back.' },
+            { ex: 'iv-cycles', p: { iv: '4' }, sub: 2, from: 66, goal: 88, do: 'The cycle of 4ths, up and back.' },
             { ex: 'iv-cycles', p: { iv: 'b3' }, sub: 2, from: 66, goal: 88, do: 'Minor 3rds: the diminished cycle.' },
           ],
           mistakes: [
@@ -140,8 +141,9 @@ export default {
           'I know the sound of double harmonic and Phrygian dominant.',
         ],
         steps: [
-          { ex: 'sc-symmetric', p: { type: 'dimWH', pattern: 'g4', oct: '1' }, sub: 2, from: 72, goal: 96 },
-          { ex: 'sc-pent-sidestep', p: { side: '-1', oct: '1' }, from: 84, goal: 108, backing: 'chords' },
+          { ex: 'sc-symmetric', p: { type: 'dimHW', pattern: 'skip', oct: '1' }, sub: 2, from: 72, goal: 96 },
+          { ex: 'sc-pent-sidestep', p: { side: '1', oct: '1' }, from: 84, goal: 108, backing: 'chords' },
+          { ex: 'sc-exotic', p: { type: 'phrygianDom', pattern: 'straight', oct: '1' }, sub: 2, from: 72, goal: 96, backing: 'drone' },
         ],
       },
     },
@@ -218,8 +220,9 @@ export default {
           'I can approach and enclose chord tones through a ii–V–I.',
         ],
         steps: [
-          { ex: 'sc-bebop', p: { type: 'bebopDom', oct: '2' }, sub: 2, from: 84, goal: 112 },
-          { ex: 'arp-approach', p: { approach: 'enclosure', prog: 'minor-ii-V-i' }, from: 72, goal: 96, backing: 'chords' },
+          { ex: 'sc-bebop', p: { type: 'bebopDom', oct: '1' }, sub: 2, from: 84, goal: 112 },
+          { ex: 'arp-approach', p: { approach: 'enclosure', prog: 'ii-V-I' }, from: 72, goal: 96, backing: 'chords' },
+          { ex: 'arp-dim-dominants', p: {}, sub: 2, from: 66, goal: 92 },
         ],
       },
     },
@@ -278,8 +281,9 @@ export default {
           'I can play the modes of harmonic minor.',
         ],
         steps: [
-          { ex: 'md-pitch-axis', p: { set: 'melodic', oct: '1' }, sub: 2, from: 80, goal: 104, backing: 'drone' },
-          { ex: 'md-melodic-modes', p: { dir: 'updown', oct: '1' }, sub: 2, from: 80, goal: 104 },
+          { ex: 'md-pitch-axis', p: { set: 'mix', oct: '1' }, sub: 2, from: 80, goal: 104, backing: 'drone' },
+          { ex: 'md-melodic-modes', p: { dir: 'up', oct: '1' }, sub: 2, from: 80, goal: 104 },
+          { ex: 'md-harmonic-modes', p: { dir: 'up', oct: '1' }, sub: 2, from: 80, goal: 104 },
         ],
       },
     },
@@ -324,8 +328,8 @@ export default {
           'I know which melodic minor to play over 7alt, 7♯11 and m7♭5.',
         ],
         steps: [
-          { ex: 'md-pentatonic-superimposition', p: { prog: 'ii-V7alt-I', choice: 'all' }, from: 84, goal: 108, backing: 'chords' },
-          { ex: 'md-melodic-superimposition', p: { set: 'all' }, from: 80, goal: 104, backing: 'chords' },
+          { ex: 'md-pentatonic-superimposition', p: { prog: 'ii-V-I', choice: 'all' }, from: 84, goal: 112, backing: 'chords' },
+          { ex: 'md-melodic-superimposition', p: { set: 'minor251' }, from: 80, goal: 104, backing: 'chords' },
         ],
       },
     },
@@ -385,8 +389,8 @@ export default {
           'I can play triad pairs and hear the mode they suggest.',
         ],
         steps: [
-          { ex: 'tri-permutations', p: { scale: 'aeolian', perm: 'rotate', order: 'fourths' }, sub: 3, from: 60, goal: 80 },
-          { ex: 'tri-pairs', p: { pair: 'bVI-bVII', dir: 'updown' }, sub: 3, from: 60, goal: 84 },
+          { ex: 'tri-permutations', p: { scale: 'ionian', perm: 'rotate', order: 'up' }, sub: 3, from: 60, goal: 84 },
+          { ex: 'tri-pairs', p: { pair: 'I-II', dir: 'updown' }, sub: 3, from: 60, goal: 84 },
         ],
       },
     },
@@ -398,7 +402,7 @@ export default {
           id: 'modal-triads', title: 'The triads of unusual scales',
           idea: 'Unusual scales make unusual chord sets.',
           concept: [
-            'Any seven-note scale can be harmonised. Lydian dominant contains a major II, the altered scale is full of diminished and augmented triads, and Phrygian dominant has a major I with a major ♭II above it. Use it to hear and own the chords behind modern jazz and film music.',
+            'Any seven-note scale can be harmonised. Lydian dominant contains a major II, the altered scale has several diminished and augmented triads, and Phrygian dominant has a major I with a major ♭II above it. Use it to hear and own the chords behind modern jazz and film music.',
             'Say the Roman numeral of each chord as you play it.',
           ],
           steps: [
@@ -428,7 +432,7 @@ export default {
           id: 'upper-structures', title: 'Upper-structure triads',
           idea: 'A simple triad on top of a bass note makes a rich chord.',
           concept: [
-            'Pianists and arrangers get rich chords by putting a simple triad on top of a bass note. D major over a C bass gives C Lydian (maj7♯11); A major over C7 gives 13♭9. Play the pedal root, then the upper triad, so you hear and see the whole colour.',
+            'Pianists and arrangers get rich chords by putting a simple triad on top of a bass note. D major over C gives the 9, ♯11 and 13: over a Cmaj7 chord that is C Lydian (maj7♯11), over C7 it is C13♯11, so the lower chord decides. A major over C7 gives 13♭9. Play the pedal root, then the upper triad, so you hear and see the whole colour.',
             'Let the low root ring while you play the triad, and name the tensions: D/C = 9, ♯11, 13.',
           ],
           steps: [
@@ -447,8 +451,9 @@ export default {
           'I can name the tensions an upper-structure triad adds.',
         ],
         steps: [
-          { ex: 'tri-diatonic-modes', p: { scale: 'altered', order: 'up', pattern: 'alt', inversion: '0' }, sub: 2, from: 72, goal: 96 },
-          { ex: 'tri-upper-structures', p: { us: 'bVI/7' }, sub: 2, from: 66, goal: 88 },
+          { ex: 'tri-diatonic-modes', p: { scale: 'lydianDom', order: 'up', pattern: 'alt', inversion: '0' }, sub: 2, from: 72, goal: 96 },
+          { ex: 'tri-upper-structures', p: { us: 'VI/7' }, sub: 2, from: 66, goal: 88 },
+          { ex: 'tri-sus-quartal', p: { scale: 'dorian', order: 'up', pattern: 'up', inversion: '0', stack: 'quartal' }, sub: 2, from: 72, goal: 96 },
         ],
       },
     },
@@ -460,7 +465,7 @@ export default {
           id: 'extended', title: '9ths, 11ths and 13ths',
           idea: 'Above the 7th the stack continues: 9, 11, 13.',
           concept: [
-            'Above the 7th the stack goes on: 9, 11, 13. Through the harmonised scale this gives maj9, m9, m11, dominant 13 and other colours. These arpeggios span two octaves: a reach and shifting workout that reveals the tensions behind jazz and neo-soul chords.',
+            'Above the 7th the stack goes on: 9, 11, 13. Through the harmonised scale this gives maj9, m9, m11, dominant 13 and other colours. These arpeggios reach well beyond the octave: a reach and shifting workout that reveals the tensions behind jazz and neo-soul chords.',
             'The 9 is the 2nd an octave up, the 11 the 4th, the 13 the 6th. Listen for the clash of the 11 on major chords.',
           ],
           steps: [
@@ -523,8 +528,10 @@ export default {
           'I can hear an altered dominant resolve.',
         ],
         steps: [
-          { ex: 'arp-extended', p: { ext: '11', scale: 'dorian', order: 'up' }, sub: 2, from: 60, goal: 84 },
-          { ex: 'arp-altered-dominants', p: { alt: 'dom7s9', key: 'cycle4' }, sub: 2, from: 66, goal: 88 },
+          { ex: 'arp-extended', p: { ext: '13', scale: 'dorian', order: 'up' }, sub: 2, from: 60, goal: 84 },
+          { ex: 'arp-altered-dominants', p: { alt: 'dom7b9' }, sub: 2, from: 66, goal: 92 },
+          { ex: 'arp-upper-structure', p: { scale: 'ionian', pattern: 'alt' }, sub: 2, from: 72, goal: 100 },
+          { ex: 'arp-permutations', p: { scale: 'ionian', perm: '1032', order: 'up' }, sub: 2, from: 72, goal: 100 },
         ],
       },
     },
@@ -570,8 +577,8 @@ export default {
           'I keep a funk groove through a progression.',
         ],
         steps: [
-          { ex: 'hm-colour-chords', p: { prog: 'I-III7-vi', pattern: 'r3575' }, from: 84, goal: 104, backing: 'chords' },
-          { ex: 'gr-funk-changes', p: { style: 'funkOct', prog: 'blues', key: 'cycle4' }, from: 84, goal: 100, backing: 'chords' },
+          { ex: 'hm-colour-chords', p: { prog: 'I-VI7-ii-V', pattern: 'r3575' }, from: 84, goal: 104, backing: 'chords' },
+          { ex: 'gr-funk-changes', p: { style: 'funkOct', prog: 'blues' }, from: 84, goal: 104, backing: 'chords' },
         ],
       },
     },
@@ -646,7 +653,10 @@ export default {
         ],
         steps: [
           { ex: 'wk-two-per-bar', p: { prog: 'rhythm-A' }, from: 112, goal: 144, backing: 'chords' },
-          { ex: 'wk-enclosures', p: { prog: 'autumn' }, from: 112, goal: 140, backing: 'chords' },
+          { ex: 'wk-enclosures', p: { prog: 'ii-V-I' }, from: 112, goal: 140, backing: 'chords' },
+          { ex: 'wk-minor', p: { prog: 'minor-ii-V-i' }, from: 112, goal: 140, backing: 'chords' },
+          { ex: 'wk-triplet-skips', p: { prog: 'jazz-blues' }, from: 112, goal: 140, backing: 'chords' },
+          { ex: 'wk-minor', p: { prog: 'minor-blues' }, from: 112, goal: 140, backing: 'chords' },
         ],
       },
     },
@@ -688,7 +698,7 @@ export default {
           id: 'licks-blues', title: 'Blues licks and turnarounds',
           idea: 'The blue ♭3 bends into the major 3rd.',
           concept: [
-            'Over a dominant 7th you can mix the major 3rd with the blue ♭3, use the blues scale and approach chord tones chromatically. A turnaround is the two-bar link at the end of a chorus that leads back to the start: Imaj7 – VI7 – iim7 – V7, often with tritone substitutes.',
+            'Over a dominant 7th you can mix the major 3rd with the blue ♭3, use the blues scale and approach chord tones chromatically. A turnaround is the two-bar link at the end of a chorus that leads back to the start: Imaj7 – VI7 – iim7 – V7 in a standard (in a blues the I is a 7th chord, I7 – VI7 – ii7 – V7), often with tritone substitutes.',
             'Lay back slightly behind the click on blues phrases.',
           ],
           steps: [
@@ -707,8 +717,10 @@ export default {
           'I can play a blues lick and a turnaround in time.',
         ],
         steps: [
-          { ex: 'lk-ii-v-i', p: { lick: '4', key: 'cycle4', feel: 'swing' }, from: 100, goal: 126, backing: 'chords' },
-          { ex: 'lk-turnarounds', p: { lick: '3', feel: 'swing' }, from: 100, goal: 126, backing: 'chords' },
+          { ex: 'lk-ii-v-i', p: { lick: '0', key: 'cycle4', feel: 'swing' }, from: 100, goal: 126, backing: 'chords' },
+          { ex: 'lk-turnarounds', p: { lick: '0', feel: 'swing' }, from: 100, goal: 126, backing: 'chords' },
+          { ex: 'lk-minor-ii-v-i', p: { lick: '0', feel: 'swing' }, from: 100, goal: 124, backing: 'chords' },
+          { ex: 'lk-blues', p: { lick: '0', feel: 'swing' }, from: 100, goal: 120, backing: 'chords' },
         ],
       },
     },
@@ -784,8 +796,9 @@ export default {
           'I can imply a cadence over a vamp and resolve it.',
         ],
         steps: [
-          { ex: 'lk-motif', p: { lick: '1', feel: 'swing' }, from: 96, goal: 120, backing: 'chords' },
-          { ex: 'lk-implied', p: { lick: '5', feel: 'swing' }, from: 92, goal: 116, backing: 'chords' },
+          { ex: 'lk-motif', p: { lick: '0', feel: 'swing' }, from: 96, goal: 124, backing: 'chords' },
+          { ex: 'lk-implied', p: { lick: '1', feel: 'swing' }, from: 92, goal: 120, backing: 'chords' },
+          { ex: 'lk-bass-solo', p: { lick: '0', feel: 'swing' }, from: 100, goal: 124, backing: 'chords' },
         ],
       },
     },
@@ -800,11 +813,15 @@ export default {
       'I can play jazz licks in all keys and develop a motif.',
     ],
     steps: [
-      { ex: 'rh-polyrhythm', p: { ratio: '3:4' }, from: 60, goal: 80 },
-      { ex: 'sc-bebop', p: { type: 'bebopDorian', oct: '1' }, sub: 2, from: 84, goal: 112 },
+      { ex: 'rh-polyrhythm', p: { ratio: '4:3' }, from: 60, goal: 80 },
+      { ex: 'sc-bebop', p: { type: 'bebopMajor', oct: '1' }, sub: 2, from: 84, goal: 112 },
       { ex: 'md-melodic-superimposition', p: { set: 'minor251' }, from: 88, goal: 112, backing: 'chords' },
       { ex: 'wk-minor', p: { prog: 'minor-blues' }, from: 112, goal: 140, backing: 'chords' },
-      { ex: 'lk-minor-ii-v-i', p: { lick: '3', key: 'cycle4', feel: 'swing' }, from: 100, goal: 120, backing: 'chords' },
+      { ex: 'lk-minor-ii-v-i', p: { lick: '0', key: 'cycle4', feel: 'swing' }, from: 100, goal: 120, backing: 'chords' },
+      { ex: 'tech-permutations-across', p: { perm: '1324', pos: '5' }, sub: 2, from: 66, goal: 84 },
+      { ex: 'sc-symmetric', p: { type: 'wholeTone', pattern: 'straight', oct: '1' }, sub: 2, from: 80, goal: 104 },
+      { ex: 'lk-motif', p: { lick: '0', feel: 'swing' }, from: 100, goal: 128, backing: 'chords' },
+      { ex: 'wk-two-per-bar', p: { prog: 'rhythm-A' }, from: 120, goal: 152, backing: 'chords' },
     ],
   },
 };

@@ -25,7 +25,7 @@ export const LEVELS = [
 export const MODULES = [
   { id: 'fretboard', name: 'Fretboard & Notes', icon: '🧭', desc: 'Know every note on the neck.' },
   { id: 'technique', name: 'Technique & Rudiments', icon: '✋', desc: 'Permutations, spider, shifting, legato, dynamics.' },
-  { id: 'rhythm', name: 'Rhythm & Time', icon: '⏱', desc: 'Subdivisions, syncopation, odd groupings, odd meters.' },
+  { id: 'rhythm', name: 'Rhythm & Time', icon: '⏱', desc: 'Subdivisions, syncopation, odd groupings, odd metres.' },
   { id: 'reading', name: 'Reading', icon: '📖', desc: 'Bass clef from the first position to every key, with key signatures.' },
   { id: 'intervals', name: 'Intervals', icon: '↕', desc: 'Every interval shape, diatonic intervals, 10ths.' },
   { id: 'ear', name: 'Ear training', icon: '👂', desc: 'Hear and name chord qualities, 7th chords and progressions.' },
@@ -34,7 +34,7 @@ export const MODULES = [
   { id: 'triads', name: 'Triads', icon: '🔺', desc: 'From the first shape to triad pairs, rudiments and upper structures.' },
   { id: 'arpeggios', name: 'Arpeggios & 7ths', icon: '🪜', desc: '7th chords, broken chords, inversions, ii–V–I, extensions, Giant Steps.' },
   { id: 'harmony', name: 'Chords & Harmony', icon: '🎹', desc: 'How chords work, progressions, double stops, shells.' },
-  { id: 'grooves', name: 'Grooves & Bass Lines', icon: '🥁', desc: 'Rock, blues, Motown, funk, soul, reggae, Latin, country, afrobeat, pick playing, odd meters.' },
+  { id: 'grooves', name: 'Grooves & Bass Lines', icon: '🥁', desc: 'Rock, blues, Motown, funk, soul, reggae, Latin, country, afrobeat, pick playing, odd metres.' },
   { id: 'walking', name: 'Walking Bass', icon: '🚶', desc: 'Two-feel to bebop: chord tones, approaches, enclosures.' },
   { id: 'licks', name: 'Jazz Licks', icon: '🎷', desc: 'Advanced vocabulary: ii–V–I, minor, blues, bebop, modern, bass solos, motifs, implied changes.' },
   { id: 'slap', name: 'Slap & Pop', icon: '👍', desc: 'Thumb, pop, hammer, ghost notes, double thumb.' },

@@ -121,6 +121,8 @@ const chromatic = ex({
     const half = Math.ceil(run.length / 2);
     run.forEach((x, i) => { x.n = i < half ? x.n : T.N(['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'][T.mod(x.midi, 12)]); });
     run.forEach((x, i) => { if (i < half) x.n = T.N(['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][T.mod(x.midi, 12)]); });
+    const tonic = T.bestRoot(k, ['1']);
+    run.forEach((x) => { if (x.n.a) x.deg = T.fmtDeg(T.ivBetween(tonic, x.n)); });
     b.line(run, { place: p.layout === 'string' ? { string: r.s } : { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
     return b.build({ label: 'note', fixed: p.layout === 'string' ? { oct: '1 octave (a string has 12 frets for it)' } : {} });
   },
@@ -330,9 +332,26 @@ const positions = ex({
       for (const f of frets) { if (f !== join + 1) finger++; map.set(f, Math.min(4, finger)); }
       return map;
     };
+    // a pentatonic box is two notes on every string from the E string up, starting on the position's
+    // note (the index may reach a fret below it on the higher strings): the five standard boxes
+    const pentBox = (st) => {
+      const pcs = ivs.map((iv) => T.pc(T.up(tonic, iv)));
+      const out = [];
+      let m = ctx.tuning[e] + st.f;
+      for (let s = e; s < ctx.tuning.length; s++) {
+        for (let j = 0; j < 2; j++) {
+          while (!pcs.includes(T.mod(m, 12))) m++;
+          const i = pcs.indexOf(T.mod(m, 12));
+          out.push({ s, f: m - ctx.tuning[s], midi: m, n: T.up(tonic, ivs[i]), deg: T.scaleLabel(p.type, i) });
+          m++;
+        }
+      }
+      return out;
+    };
     chosen.forEach((st, i) => {
-      const lo = st.f, hi = st.f + (len === 5 ? 3 : 4);
-      const box = notesIn(lo, hi).filter((q) => !(q.s === e && q.f < st.f));
+      const box = len === 5 ? pentBox(st) : notesIn(st.f, st.f + 4).filter((q) => !(q.s === e && q.f < st.f));
+      const lo = len === 5 ? Math.min(...box.map((q) => q.f)) : st.f;
+      const hi = len === 5 ? Math.max(...box.map((q) => q.f)) : st.f + 4;
       const fingerOf = boxFingers(box, lo, hi);
       box.forEach((q) => { q.finger = q.f === 0 ? 0 : fingerOf.get(q.f); });
       b.chord(`Pos ${st.n}`, `${nm(tonic, S)} ${scaleShort(p.type)}`);

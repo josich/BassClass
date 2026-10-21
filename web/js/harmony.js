@@ -66,6 +66,9 @@ function padSemis(badge) {
  * For each step that starts a new harmony, the MIDI notes of the pad (null elsewhere).
  * mode: 'drone' (root, 5th and octave) or 'chords' (the chord, or the scale's triad).
  */
+/** Modules whose exercises have no backing: hands, time, note-finding, intervals and ear training. */
+export const NO_BACKING = ['technique', 'rhythm', 'fretboard', 'intervals', 'ear'];
+
 export function harmonyTrack(inst, mode) {
   const out = new Array(inst.steps.length).fill(null);
   if (mode !== 'drone' && mode !== 'chords') return out;

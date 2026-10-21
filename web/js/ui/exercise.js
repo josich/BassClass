@@ -10,7 +10,7 @@ import * as A from '../audio.js';
 import * as T from '../theory.js';
 import { moduleOf, LEVELS, defaultParams } from '../curriculum/index.js';
 import { CYCLE_OPTS, PROGS, tonicFor } from '../curriculum/common.js';
-import { harmonyTrack, harmonyAt } from '../harmony.js';
+import { harmonyTrack, harmonyAt, NO_BACKING } from '../harmony.js';
 import { recordLoop, rememberTempo, stepState, stepPassed, stepClean, setClean, isDue, isComplete, reviewed } from '../course/progress.js';
 
 // what a lesson step's goal tempo counts in ("goal 96 BPM in 8ths")
@@ -83,6 +83,15 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   for (const [k, def] of Object.entries(tpl.params || {})) {
     if (!paramOptions(def, S, p).some((o) => o[0] === p[k])) p[k] = def.default;
   }
+  // a lesson step that leaves the key free stays as long as the lesson meant it: a saved
+  // "All 12 keys" would multiply a one-key step by 12, and an all-keys step keeps its cycle
+  if (lesson) {
+    const cycle = (v) => CYCLE_OPTS.some((o) => o[0] === v);
+    for (const [k, def] of Object.entries(tpl.params || {})) {
+      if (def.kind !== 'key' || k in (lesson.step.p || {})) continue;
+      if (cycle(def.default) !== cycle(p[k])) p[k] = def.default;
+    }
+  }
   let ctx = makeCtx(S);
   let inst = null;
   // a lesson step plays in its own subdivision (part of the lesson's options, never saved to the exercise)
@@ -93,6 +102,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   let segStart = [], segEnd = [], chordAt = [], textAt = [];
   let cur = -1;
   let warnedFret = 0;
+  // (a lesson's own tip replaces the fret notice when the step opens, so it repeats it)
+  const fretNote = () => (warnedFret ? ` This variation reaches fret ${warnedFret}, above your highest fret.` : '');
 
   document.body.classList.add('in-ex');
   const mod = moduleOf(tpl.module);
@@ -142,9 +153,10 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   // a tip to read (the lesson step's instruction, a hint, an explanation): it belongs to this screen,
   // stays until it is closed, and closes as soon as anything else in the exercise is pressed
   const tipEl = h('div', { class: 'coach', role: 'status', hidden: true });
-  boardEl.append(fbHost, nowEl, promptEl, beatsEl, tipEl);
+  boardEl.append(fbHost, nowEl, promptEl, beatsEl);
   const tabEl = h('div', { class: 'exv-tab' });
-  const stage = h('div', { class: 'exv-stage' }, boardEl, tabEl);
+  // (the tip sits low, over the strip, so it never hides the first notes on the neck)
+  const stage = h('div', { class: 'exv-stage' }, boardEl, tabEl, tipEl);
 
   const bpmVal = h('div', { class: 'bpm' });
   const bpmRange = h('input', { type: 'range', min: MIN_BPM, max: MAX_BPM, step: 1, 'aria-label': 'Tempo' });
@@ -219,7 +231,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     },
     onEnd: () => {
       showStep(-1);
-      if (demo) tip('Your turn: tap Practise › to play it yourself.', { title: 'Demo finished' });
+      if (demo) tip(`Your turn: tap ${routine ? 'Next' : 'Practise'} › to play it yourself.`, { title: 'Demo finished' });
     },
   });
   // a lesson step starts where it was last practised (or at its starting tempo), a demo at the goal
@@ -511,7 +523,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   }
   /** Backing pad: the harmony of each part of the exercise (see harmony.js). */
   // backing belongs to music with harmony: not to hand, time, note-finding, interval or ear drills
-  const BACKS = !['technique', 'rhythm', 'fretboard', 'intervals', 'ear'].includes(tpl.module);
+  const BACKS = !NO_BACKING.includes(tpl.module);
   function applyBacking() {
     player.harmony = backing() === 'off' || !BACKS ? null : harmonyTrack(inst, backing());
     if (!player.playing) return;
@@ -569,7 +581,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   /** In a lesson the drawer starts with the step, then the lesson's idea, explanation and pitfalls. */
   function lessonBox() {
     const step = demo
-      ? '<p>Demo: the app plays it once at the goal tempo. Watch the neck and listen, then tap Practise.</p>'
+      ? `<p>Demo: the app plays it once at the goal tempo. Watch the neck and listen, then tap ${routine ? 'Next' : 'Practise'}.</p>`
       : `<p>Step ${LI + 1} of ${L.steps.length}${LS.do ? `: ${esc(LS.do)}` : ''}</p><p class="muted small">${LS.goal
         ? `Goal: a full loop from the first note at ${LS.goal} BPM or faster${LS.sub ? ` in ${SUB_NAMES[LS.sub]}` : ''}. Then tick ✓ Clean if it really was clean: every note in time, even and clear.`
         : 'Goal: one full round from the first note. Then tick ✓ if you named (or sang) every answer before it appeared.'}</p>`;
@@ -660,8 +672,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     throw err;
   }
   if (demo) {
-    tip('The app plays it once at the goal tempo: listen and watch the neck.', { title: `${lessonName} · demo` });
+    tip(`The app plays it once at the goal tempo: listen and watch the neck.${fretNote()}`, { title: `${lessonName} · demo` });
     setTimeout(() => { if (alive && !player.playing) player.play(); }, 500);
-  } else if (LS?.do) tip(LS.do, { title: `${lessonName} · step ${LI + 1} of ${L.steps.length}` });
+  } else if (LS?.do) tip(`${LS.do}${fretNote()}`, { title: `${lessonName} · step ${LI + 1} of ${L.steps.length}` });
   return { dispose, player };
 }

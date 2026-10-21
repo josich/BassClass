@@ -1,4 +1,4 @@
-// Rhythm & time: subdivisions, rests, syncopation, odd groupings, polyrhythms, odd meters.
+// Rhythm & time: subdivisions, rests, syncopation, odd groupings, polyrhythms, odd metres.
 import { T, Builder, ex, sel, spellMidi } from './common.js';
 
 const M = 'rhythm';
@@ -302,9 +302,9 @@ const poly = ex({
 
 const oddMeter = ex({
   id: 'rh-odd-meters', module: M, level: 4,
-  title: 'Odd meters: 5/4, 7/8, 7/4',
+  title: 'Odd metres: 5/4, 7/8, 7/4',
   summary: 'Count in 3+2, 2+2+3 and 4+3 and lock the accents.',
-  about: 'Odd meters group beats unevenly. 5/4 is usually felt as 3+2, 7/8 as 2+2+3 (or 3+2+2), and 7/4 as 4+3. The accented notes mark the groups. In 7/8 the metronome clicks every 8th note, so set a fast tempo. Learn to feel the "limp" of each meter until it sounds natural.',
+  about: 'Odd metres group beats unevenly. 5/4 is usually felt as 3+2, 7/8 as 2+2+3 (or 3+2+2), and 7/4 as 4+3. The accented notes mark the groups. In 7/8 the metronome clicks every 8th note, so set a fast tempo. Learn to feel the "limp" of each metre until it sounds natural.',
   tips: ['Count the groups out loud: "1-2-3-1-2" for 5/4.', 'Think of "Take Five" (5/4) or "Money" (7/4).'],
   source: 'Trinity Grades 5–8; RSL Grade 8; MI; Berklee Online Rock Bass L10',
   params: { note: noteP, meter: sel('Meter', [['5', '5/4 (3+2)'], ['78', '7/8 (2+2+3)'], ['78b', '7/8 (3+2+2)'], ['74', '7/4 (4+3)']]) },

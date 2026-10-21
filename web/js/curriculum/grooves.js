@@ -44,7 +44,7 @@ const GROOVES = {
 
 const STYLE_PROGS = {
   rock8: 'I-V-vi-IV', pop8: 'I-vi-IV-V', rootFifth: 'I-IV-V-I', r585: 'I-vi-IV-V', octaves: 'vi-IV-I-V', r5b7: 'blues', boogie: 'blues', shuffle: 'blues',
-  boogieSwing: 'blues-quick', approach: 'I-vi-IV-V', fifthApproach: 'I-vi-ii-V', motown: 'I-vi-IV-V', reggae: 'I-IV-V-I', bossa: 'ii-V-I', tumbao: 'ii-V-I',
+  boogieSwing: 'blues-quick', approach: 'I-vi-IV-V', fifthApproach: 'I-V-vi-IV', motown: 'I-vi-IV-V', reggae: 'I-IV-V-I', bossa: 'ii-V-I', tumbao: 'ii-V-I',
   funk16: 'vamp-dom', funkOct: 'vamp-min', fill: 'vamp-min', riff: 'i-iv-v-min', slowBlues: 'blues',
   countryTwo: 'I-IV-V-I', samba: 'ii-V-I', secondLine: 'blues', afrobeat: 'vamp-min', neoSoul: 'I-vi-ii-V', soulBallad: 'I-vi-IV-V',
   pickDown: 'I-V-vi-IV', pickAlt: 'I-IV-V-I', gallop: 'i-bVI-bIII-bVII',
@@ -164,9 +164,9 @@ const ODD = {
 };
 const oddGroove = ex({
   id: 'gr-odd-meters', module: G, level: 4,
-  title: 'Odd and compound meters: 5/4, 7/8, 7/4, 6/8',
+  title: 'Odd and compound metres: 5/4, 7/8, 7/4, 6/8',
   summary: 'Feel the groups, not the count: 3+2, 2+2+3, 4+3, 3+3.',
-  about: 'Odd meters (5/4, 7/8, 7/4) are everywhere in prog, fusion, Balkan and film music, and 6/8 is the compound meter of ballads and Afro-Cuban grooves. Each groove places its strongest notes on the start of the beat groups. Loop it until it feels natural rather than counted. In 7/8 and 6/8 the click marks every 8th note.',
+  about: 'Odd metres (5/4, 7/8, 7/4) are everywhere in prog, fusion, Balkan and film music, and 6/8 is the compound metre of ballads and Afro-Cuban grooves. Each groove places its strongest notes on the start of the beat groups. Loop it until it feels natural rather than counted. In 7/8 and 6/8 the click marks every 8th note.',
   tips: ['Say the groups: "1-2-3 1-2" for 5/4.', 'Record yourself; the last group is where most players rush.'],
   source: 'Trinity Grades 5–8; RSL Grade 8; MI 069E; Berklee Online Rock Bass L10',
   params: { meter: sel('Meter', Object.entries(ODD).map(([k, v]) => [k, v.name])), key: keyP(['1', 'b3', '5'], { def: '4', cycles: false }) },
@@ -239,7 +239,7 @@ const scalarWalk = walkEx('wk-scalar', 4, 'scalar', 'autumn', {
   title: 'Scalar walking lines',
   summary: 'R-2-3-5, R-2-3-approach, 8-7-6-5: stepwise lines between chord tones.',
   about: 'Scale steps connect chord tones smoothly. Lines like R-2-3-5 or descending 8-7-6-5 are the melodic side of walking, and they balance the jumps of arpeggio lines.',
-  tips: ['Use the scale of each chord (Dorian on m7, Mixolydian on 7). A 7 that resolves to a minor chord takes ♭9 and ♭13 instead (Phrygian dominant), and the line follows that.', 'Land chord tones on beats 1 and 3.'],
+  tips: ['Use the scale of each chord (Dorian on m7, Mixolydian on 7). A 7 that resolves to a minor chord takes ♭9 and ♭13 instead (Phrygian dominant), and the line follows that.', 'Land a chord tone on beat 1; let the scale steps lead into the next chord.'],
   source: 'Ed Friedland; Chuck Sher "The Improviser\'s Bass Method"', bpm: 108,
 });
 

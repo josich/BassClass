@@ -74,11 +74,11 @@ export default {
           id: 'chromatic', title: 'The chromatic scale and the X',
           idea: 'Every fret, every string, one finger per fret.',
           concept: [
-            'The chromatic scale uses every fret: in position it is a pure one-finger-per-fret workout, sharps going up and flats coming down. Chromatic notes are also the glue of walking bass and Motown lines.',
+            'The chromatic scale uses every fret: a one-finger-per-fret workout that stays around one position (the index moves a fret on the higher strings), sharps going up and flats coming down. Chromatic notes are also the glue of walking bass and Motown lines.',
             'The diagonal "X" puts each finger on a different string: finger 1 on the E string, 2 on the A, 3 on the D, 4 on the G, then back the other way, and a fret higher after each X. It trains the fretting hand to cross strings.',
           ],
           steps: [
-            { ex: 'sc-chromatic', p: { layout: 'pos', oct: '1' }, sub: 2, from: 60, goal: 84, do: 'One octave in one position. Keep the volume even across the strings.' },
+            { ex: 'sc-chromatic', p: { layout: 'pos', oct: '1' }, sub: 2, from: 60, goal: 84, do: 'One octave around one position. Keep the volume even across the strings.' },
             { ex: 'tech-diagonal', p: { pos: '5' }, sub: 2, from: 60, goal: 80, do: 'The diagonal X: lift each finger as the next note sounds.' },
           ],
           mistakes: [

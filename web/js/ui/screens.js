@@ -221,7 +221,7 @@ export function libraryScreen(main, params = {}) {
   const jumps = h('div', { class: 'tabs lv-jump' }, LEVELS.map((L) => h('button', { title: L.name, onClick: () => jump(L.n) }, `L${L.n}`)));
   // "ii-V" must find "ii–V" (every kind of dash counts as a hyphen), "7#5" and "dorian b5" find
   // 7♯5 and Dorian ♭5 (phone keyboards have no ♯ or ♭), "harmonized" finds "harmonised"
-  const norm = (x) => x.toLowerCase().replace(/[\u2010-\u2015\u2212]/g, '-').replace(/♯/g, '#').replace(/♭/g, 'b').replace(/iz(e|ed|es|ing)\b/g, 'is$1');
+  const norm = (x) => x.toLowerCase().replace(/[\u2010-\u2015\u2212]/g, '-').replace(/♯/g, '#').replace(/♭/g, 'b').replace(/iz(e|ed|es|ing)\b/g, 'is$1').replace(/meter/g, 'metre');
   // option names count too ("spanish" finds the world scales, "augmented 7" the arpeggio study)
   const optionText = (t) => Object.values(t.params || {}).flatMap((d) => (d.kind === 'select' ? d.options.map((o) => o[1]) : [])).join(' ');
   const render = () => {

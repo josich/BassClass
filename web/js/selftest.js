@@ -5,6 +5,7 @@
 import { EXERCISES, byNumber, byId, defaultParams } from './curriculum/index.js';
 import { LESSONS } from './course/data.js';
 import { CYCLE_OPTS } from './curriculum/common.js';
+import { NO_BACKING } from './harmony.js';
 import { makeCtx } from './fretboard.js';
 import * as T from './theory.js';
 
@@ -55,6 +56,8 @@ function checkCourse(problems, strings) {
       }
       if (st.goal != null && !(st.from >= 30 && st.goal <= 260 && st.from <= st.goal)) problems.push(`${where}: tempo ${st.from} → ${st.goal}`);
       if (st.backing && !['off', 'drone', 'chords'].includes(st.backing)) problems.push(`${where}: backing ${st.backing}`);
+      // (hands, time, note-finding, interval and ear drills have no backing to turn on)
+      if (st.backing && NO_BACKING.includes(t.module)) problems.push(`${where}: ${st.ex} has no backing`);
       for (const n of strings) {
         const S = { strings: n, notation: 'letters', maxFret: 20 };
         try {

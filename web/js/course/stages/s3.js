@@ -43,7 +43,7 @@ export default {
           idea: 'Move the whole hand, thumb included, on the last note before the shift.',
           concept: [
             'Smooth lines depend on clean shifts. Play 1-2-3-4, then move the whole hand so the index lands on the next group, and carry on up the string and back. Slide on the finger that just played, with light contact, and look at the target fret before you move.',
-            'Low on the neck the frets are wide. Double bassists use fingers 1, 2 and 4 there (the Simandl fingering), with fingers 3 and 4 working together across three frets, and many electric players do the same in the first positions.',
+            'Low on the neck the frets are wide. Double bassists use fingers 1, 2 and 4 there (the Simandl fingering): three fingers for three frets, with fingers 3 and 4 working together on the third. Many electric players do the same in the first positions.',
           ],
           steps: [
             { ex: 'tech-shifting', p: { string: 'A', shift: '3' }, sub: 2, from: 60, goal: 88, do: 'Shift on the last note of each group: slide the whole hand, thumb included.' },
@@ -99,7 +99,7 @@ export default {
             { ex: 'rh-triplets', p: {}, from: 60, goal: 84, do: 'Straight 8ths, 8th-note triplets and quarter-note triplets in turn. Feel where each one meets the beat.' },
           ],
           mistakes: [
-            'Quarter-note triplets that turn into straight quarters: the second note comes before beat 2.',
+            'Quarter-note triplets that turn into straight quarters. The second note should come before beat 2.',
             'Rushing the triplets. Count "1 trip let 2 trip let".',
           ],
         },
@@ -161,6 +161,7 @@ export default {
           { ex: 'rh-16th-grid', p: {}, from: 66, goal: 84 },
           { ex: 'tech-ghost-16ths', p: { pattern: 'b' }, sub: 4, from: 66, goal: 88 },
           { ex: 'gr-funk', p: { style: 'fill' }, from: 80, goal: 96, backing: 'chords' },
+          { ex: 'rh-triplets', p: {}, from: 72, goal: 96 },
         ],
       },
     },
@@ -222,8 +223,9 @@ export default {
           'I can read a simple melody in 5th position.',
         ],
         steps: [
-          { ex: 'fb-position-notes', p: { zone: '9' }, sub: 2, from: 66, goal: 88 },
-          { ex: 'rd-upper', p: { pos: '9', key: '5' }, from: 56, goal: 72 },
+          { ex: 'fb-position-notes', p: { zone: '7' }, sub: 2, from: 66, goal: 92 },
+          { ex: 'rd-upper', p: { pos: '5', key: '0' }, from: 56, goal: 72 },
+          { ex: 'fb-all-octaves', p: {}, sub: 1, from: 66, goal: 96 },
         ],
       },
     },
@@ -286,7 +288,8 @@ export default {
         ],
         steps: [
           { ex: 'sc-two-octaves', p: { type: 'ionian', dir: 'updown' }, sub: 2, from: 76, goal: 100 },
-          { ex: 'sc-keys-one-position', p: { type: 'ionian', zone: '3', order: 'cycle5' }, sub: 2, from: 66, goal: 88 },
+          { ex: 'sc-keys-one-position', p: { type: 'ionian', zone: '2', order: 'cycle4' }, sub: 2, from: 66, goal: 88 },
+          { ex: 'tri-scale-forms', p: { type: 'ionian', form: 'all', root: 'E' }, sub: 1, from: 72, goal: 96 },
         ],
       },
     },
@@ -303,7 +306,7 @@ export default {
           ],
           steps: [
             { ex: 'sc-one-string', p: { type: 'ionian', string: 'A' }, sub: 2, from: 60, goal: 88, do: 'The major scale along the A string.' },
-            { ex: 'sc-one-string', p: { type: 'aeolian', string: 'D' }, sub: 2, from: 60, goal: 88, do: 'Natural minor along the D string: where are the half steps now?' },
+            { ex: 'sc-one-string', p: { type: 'aeolian', string: 'D', key: '7' }, sub: 2, from: 60, goal: 88, do: 'G natural minor along the D string: where are the half steps now?' },
           ],
           mistakes: [
             'Sliding one finger from note to note. Shift in groups (fingers 1-2-4 or 1-3-4).',
@@ -317,7 +320,7 @@ export default {
             'Some strings need a five-fret stretch: pivot on the thumb instead of straining.',
           ],
           steps: [
-            { ex: 'sc-3nps', p: { type: 'ionian', oct: 'all' }, sub: 3, from: 56, goal: 76, do: 'Triplets fit the fingering: one group of three on each string.' },
+            { ex: 'sc-3nps', p: { type: 'ionian', oct: 'all' }, sub: 3, from: 56, goal: 76, do: 'Triplets fit the fingering on the way up: one group of three on each string.' },
           ],
           mistakes: [
             'Stretching with a stiff hand. Let the thumb pivot.',
@@ -333,7 +336,7 @@ export default {
           steps: [
             { ex: 'sc-sequences', p: { pattern: 'g3', type: 'ionian', oct: '1' }, sub: 3, from: 60, goal: 84, do: 'Groups of 3 as triplets: each cell starts on the beat.' },
             { ex: 'sc-sequences', p: { pattern: 'g4', type: 'ionian', oct: '1' }, sub: 2, from: 72, goal: 100, do: 'Groups of 4 in 8ths.' },
-            { ex: 'sc-sequences', p: { pattern: 'thirds', type: 'ionian', oct: '1' }, sub: 2, from: 72, goal: 100, do: 'In 3rds: 1-3, 2-4, 3-5…' },
+            { ex: 'sc-sequences', p: { pattern: 'turn', type: 'ionian', oct: '1' }, sub: 2, from: 72, goal: 100, do: '1-2-3-1 turns: a cell that turns back on itself.' },
           ],
           mistakes: [
             'Losing the cell halfway up. Say the first degree of each group.',
@@ -358,11 +361,12 @@ export default {
       check: {
         can: [
           'I can play a major scale along one string.',
-          'I can play a scale in groups of 3 and 4 and in 3rds.',
+          'I can play a scale in groups of 4 and in alternating 3rds.',
         ],
         steps: [
           { ex: 'sc-sequences', p: { pattern: 'g4', type: 'aeolian', oct: '1' }, sub: 2, from: 80, goal: 104 },
           { ex: 'iv-diatonic', p: { pattern: 'thirdsAlt', scale: 'ionian', oct: '1' }, sub: 2, from: 72, goal: 96 },
+          { ex: 'sc-one-string', p: { type: 'ionian', string: 'A' }, sub: 2, from: 72, goal: 100 },
         ],
       },
     },
@@ -416,14 +420,14 @@ export default {
       lessons: [
         {
           id: 'triad-forms', title: 'The three triad fingerings',
-          idea: 'Root under finger 1, 2 or 4: no dead areas on the neck.',
+          idea: 'Three fingerings for every triad, named by the finger on the root: no dead areas on the neck.',
           concept: [
-            'A triad shape is named by the finger on its root. Root under finger 2: the 3rd and 5th are on the next string. Root under finger 1: the 3rd is on the same string and the 5th on the next. Root under finger 4: the shape crosses back towards the nut over three strings.',
+            'A triad shape is named by the finger on its root. In major, root under finger 2: the 3rd and 5th are on the next string; root under finger 1: the 3rd is on the same string and the 5th on the next; root under finger 4: the shape crosses back towards the nut over three strings. In minor the three forms put the root under fingers 3, 1 and 4.',
             'Knowing all three means that wherever your hand is, one of the shapes fits. Name the form out loud as you play it.',
           ],
           steps: [
             { ex: 'tri-three-forms', p: { quality: 'maj', pattern: 'turn' }, sub: 1, from: 66, goal: 96, do: 'The three major fingerings, R-3-5-3. Say "two", "one", "four".' },
-            { ex: 'tri-three-forms', p: { quality: 'min', pattern: 'turn' }, sub: 1, from: 66, goal: 96, do: 'The same with minor triads: the forms change, the rule stays.' },
+            { ex: 'tri-three-forms', p: { quality: 'min', pattern: 'turn' }, sub: 1, from: 66, goal: 96, do: 'The three minor fingerings: say "three", "one", "four".' },
           ],
           mistakes: [
             'Always reaching for the shape you know best. Use the one that fits where your hand is.',
@@ -437,7 +441,7 @@ export default {
             'Keep the degree labels on: always know where the root is.',
           ],
           steps: [
-            { ex: 'tri-inversions', p: { quality: 'maj', mode: 'position', root: 'E' }, sub: 2, from: 66, goal: 92, do: 'Root position, 1st and 2nd inversion around one root.' },
+            { ex: 'tri-inversions', p: { quality: 'maj', mode: 'position', root: 'A' }, sub: 2, from: 66, goal: 92, do: 'Root position, 1st and 2nd inversion around one root on the A string.' },
             { ex: 'tri-inversions', p: { quality: 'min', mode: 'climb', root: 'E' }, sub: 2, from: 66, goal: 92, do: 'Minor inversions climbing the neck.' },
           ],
           mistakes: [
@@ -462,12 +466,12 @@ export default {
           id: 'harmonised-triads', title: 'The triads of a key',
           idea: 'I ii iii IV V vi vii°: every chord built from the scale.',
           concept: [
-            'Stack a 3rd and a 5th on every degree of the scale, using only notes from the scale: in major you get I, ii, iii, IV, V, vi and vii°. Play them in one position and hear how each chord sounds inside the key.',
+            'Stack a 3rd and a 5th on every degree of the scale, using only notes from the scale: in major you get I, ii, iii, IV, V, vi and vii°. Play them and hear how each chord sounds inside the key.',
             'Say the Roman numeral of each chord as you play it.',
           ],
           steps: [
-            { ex: 'tri-diatonic', p: { scale: 'ionian', order: 'up', pattern: 'up', inversion: '0', root: 'A' }, sub: 2, from: 66, goal: 96, do: 'I to I in one position. Say each numeral.' },
-            { ex: 'tri-diatonic', p: { scale: 'ionian', order: 'fourths', pattern: 'alt', inversion: '0', root: 'A' }, sub: 2, from: 66, goal: 92, do: 'In 4ths (1-4-7-3-6-2-5-1), the order chords most often move in, up one and down the next.' },
+            { ex: 'tri-diatonic', p: { scale: 'ionian', order: 'up', pattern: 'up', inversion: '0', root: 'A' }, sub: 2, from: 66, goal: 96, do: 'I to I up the neck. Say each numeral.' },
+            { ex: 'tri-diatonic', p: { scale: 'ionian', order: 'fourths', pattern: 'turn', inversion: '0', root: 'A' }, sub: 2, from: 66, goal: 92, do: 'In 4ths (1-4-7-3-6-2-5-1), the order chords most often move in.' },
           ],
           mistakes: [
             'Playing vii° as a minor chord. Its 5th is a fret lower: diminished.',
@@ -476,13 +480,14 @@ export default {
       ],
       check: {
         can: [
-          'I can play major and minor triads with the root under finger 1, 2 or 4.',
+          'I can play major and minor triads in all three fingerings.',
+          'I can play the triads of a major key.',
           'I can play any triad in root position and both inversions.',
-          'I can play the triads of a major key in one position.',
         ],
         steps: [
           { ex: 'tri-three-forms', p: { quality: 'min', pattern: 'turn' }, sub: 1, from: 76, goal: 104 },
-          { ex: 'tri-diatonic', p: { scale: 'ionian', order: 'fifths', pattern: 'turn', inversion: '0', root: 'A' }, sub: 2, from: 72, goal: 96 },
+          { ex: 'tri-diatonic', p: { scale: 'ionian', order: 'up', pattern: 'turn', inversion: '0', root: 'A' }, sub: 2, from: 72, goal: 100 },
+          { ex: 'tri-inversions', p: { quality: 'min', mode: 'position', root: 'A' }, sub: 2, from: 72, goal: 96 },
         ],
       },
     },
@@ -495,7 +500,7 @@ export default {
           idea: 'Imaj7 iim7 iiim7 IVmaj7 V7 vim7 viiø7.',
           concept: [
             'Stack four notes in 3rds on each degree of the scale: in major you get Imaj7, iim7, iiim7, IVmaj7, V7, vim7 and viiø7. Every jazz standard and most soul and pop songs use these chords.',
-            '"Up one, down the next" keeps you in one position and sounds like a bass line.',
+            '"Up one, down the next" turns the chords into a bass line.',
           ],
           steps: [
             { ex: 'arp-diatonic-7ths', p: { scale: 'ionian', order: 'up', pattern: 'up' }, sub: 2, from: 66, goal: 92, do: 'Imaj7 to Imaj7. Name each chord.' },
@@ -540,26 +545,27 @@ export default {
           idea: 'First the triad, then the 7th.',
           concept: [
             'Major 7 is soft and dreamy, dominant 7 wants to move, minor 7 is mellow, half-diminished is dark and searching, diminished 7 is tense and symmetrical.',
-            'Decide the triad first (major, minor or diminished), then the 7th: a major 7th sits a half step under the octave, a minor 7th a whole step under it.',
+            'Decide the triad first (major, minor or diminished), then the 7th, the third note of these voicings: a major 7th sits a half step under the root\'s octave, a minor 7th a whole step under it, a diminished 7th a step and a half.',
           ],
           steps: [
             { ex: 'ear-sevenths', p: { set: 'basic' }, do: 'maj7, 7 and m7, notes hidden. Name each before the answer appears.' },
             { ex: 'ear-sevenths', p: { set: 'five' }, do: 'All five 7th chords.' },
           ],
           mistakes: [
-            'Mixing up maj7 and 7. Listen to the top note: close to the octave (maj7) or a step below it (7).',
+            'Mixing up maj7 and 7. Listen to the third note, the 7th: right under the octave (maj7) or a whole step under it (7). The top note is the 3rd in both.',
           ],
         },
       ],
       check: {
         can: [
-          'I can play the 7th chords of any major key in one position.',
+          'I can play the 7th chords of any major key.',
           'I can start a 7th chord from any of its notes.',
           'I can hear the difference between maj7, 7, m7, m7♭5 and °7.',
         ],
         steps: [
-          { ex: 'arp-diatonic-7ths', p: { scale: 'ionian', order: 'fourths', pattern: 'alt' }, sub: 2, from: 72, goal: 96 },
+          { ex: 'arp-diatonic-7ths', p: { scale: 'ionian', order: 'up', pattern: 'alt' }, sub: 2, from: 72, goal: 100 },
           { ex: 'ear-sevenths', p: { set: 'five' } },
+          { ex: 'arp-broken', p: { quality: 'maj7', shape: 'broken', oct: '1' }, sub: 2, from: 72, goal: 100 },
         ],
       },
     },
@@ -636,8 +642,9 @@ export default {
           'I can play reggae, bossa nova and tumbao grooves.',
         ],
         steps: [
-          { ex: 'hm-chord-tones', p: { prog: 'I-vi-ii-V', pattern: 'r358' }, from: 92, goal: 116, backing: 'chords' },
-          { ex: 'gr-approach', p: { style: 'fifthApproach' }, from: 92, goal: 112, backing: 'chords' },
+          { ex: 'hm-chord-tones', p: { prog: 'I-vi-IV-V', pattern: 'r353' }, from: 92, goal: 116, backing: 'chords' },
+          { ex: 'gr-approach', p: { style: 'fifthApproach', prog: 'I-V-vi-IV' }, from: 92, goal: 112, backing: 'chords' },
+          { ex: 'gr-world', p: { style: 'tumbao' }, from: 92, goal: 112, backing: 'chords' },
         ],
       },
     },
@@ -654,7 +661,7 @@ export default {
           ],
           steps: [
             { ex: 'wk-two-feel', p: { prog: 'ii-V-I' }, from: 96, goal: 132, backing: 'chords', do: 'ii–V–I in two. Let every note ring.' },
-            { ex: 'wk-two-feel', p: { prog: 'autumn' }, from: 96, goal: 132, backing: 'chords', do: 'A longer form: ii–V–I–IV–iiø–V–i.' },
+            { ex: 'wk-two-feel', p: { prog: 'autumn' }, from: 96, goal: 132, backing: 'chords', do: 'A longer form: ii–V–I–IV, then a minor ii–V–i (iiø–V–i) into the relative minor. Unit 30 looks at minor keys.' },
           ],
           mistakes: [
             'Cutting the half notes short. They last until the next note.',
@@ -715,8 +722,9 @@ export default {
           'I can play country, samba and second-line grooves.',
         ],
         steps: [
-          { ex: 'wk-chord-tones', p: { prog: 'autumn' }, from: 104, goal: 132, backing: 'chords' },
+          { ex: 'wk-chord-tones', p: { prog: 'jazz-blues' }, from: 104, goal: 132, backing: 'chords' },
           { ex: 'gr-genres', p: { style: 'samba' }, from: 88, goal: 108, backing: 'chords' },
+          { ex: 'wk-two-feel', p: { prog: 'ii-V-I' }, from: 110, goal: 144, backing: 'chords' },
         ],
       },
     },
@@ -725,7 +733,7 @@ export default {
     can: [
       'I play legato runs and shift without gaps.',
       'I play 16th-note funk with ghost notes.',
-      'I know every note in any position and read in 5th position.',
+      'I can read in 5th position.',
       'I play two-octave scales, sequences and the modes.',
       'I play the triads and 7th chords of any key, in any fingering.',
       'I can walk a jazz blues with chord tones.',
@@ -736,6 +744,7 @@ export default {
       { ex: 'sc-sequences', p: { pattern: 'g3', type: 'dorian', oct: '1' }, sub: 3, from: 72, goal: 88 },
       { ex: 'arp-diatonic-7ths', p: { scale: 'ionian', order: 'fourths', pattern: 'alt' }, sub: 2, from: 80, goal: 104 },
       { ex: 'wk-chord-tones', p: { prog: 'jazz-blues' }, from: 110, goal: 138, backing: 'chords' },
+      { ex: 'rd-upper', p: { pos: '5', key: '0' }, from: 60, goal: 76 },
     ],
   },
 };

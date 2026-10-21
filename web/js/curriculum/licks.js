@@ -314,7 +314,7 @@ const modern = lickTemplate({
   title: 'Jazz licks: modern sounds',
   summary: 'Pentatonic superimposition, triad pairs, the altered scale, Coltrane changes, side-slipping, 16th-note runs.',
   about: 'Post-bop and fusion players stretch the harmony. They superimpose pentatonic scales a step apart over one chord (Coltrane, McCoy Tyner), alternate two triads (triad pairs), play the altered scale over dominants, move through Coltrane\'s major-3rd key centres, "side-slip" a half step outside and back, and run fast 16th-note arpeggios across the neck in the style of Jaco Pastorius.',
-  tips: ['Side-slipping only works if you come back in clearly: land the resolution on a strong beat. The badge shows the chord the line slips to (in C: E♭m7 over Dm7).', 'The 16th-note licks are played straight (no swing).'],
+  tips: ['Side-slipping only works if you come back in clearly: land the resolution on a strong beat. The line implies the chord it slips to (in C: E♭m7 over Dm7), while the band stays on Dm7.', 'The 16th-note licks are played straight (no swing).'],
   source: 'Original licks inspired by John Coltrane, McCoy Tyner, triad-pair studies (Gary Campbell) and Jaco Pastorius\' 16th-note style.',
   bpm: 96,
   licks: [
@@ -323,7 +323,7 @@ const modern = lickTemplate({
     { name: 'Altered scale run', prog: V_I, notes: 'Ab2 Bb2 B2 Db3 Eb3 F3 G3 Ab3 | G3:q E3 C3 B2 G2 E2:q' },
     { name: '16th-note arpeggio run (Jaco-inspired)', prog: [['1', 'dom7', 8]], feel: 'straight', notes: 'C2:s E2:s G2:s Bb2:s C3:s E3:s G3:s Bb3:s A3:s G3:s E3:s C3:s Bb2:s G2:s E2:s C2:s | Db2:s D2:s Eb2:s E2:s G2:s A2:s Bb2:s C3:s Bb2 G2 C2:q' },
     { name: 'Coltrane major-3rd cycle', prog: [['1', 'maj7', 2], [3, 'dom7', 2], [8, 'maj7', 4]], notes: 'C2 D2 E2 G2 | Eb2 F2 G2 Bb2 | Ab2 Bb2 C3 Eb3 G3:q Eb3:q' },
-    { name: 'Side-slipping (out and back in)', prog: [['2', 'min7', 2], [3, 'min7', 2], ['2', 'min7', 4]], notes: 'D2 F2 A2 C3 Db3 Bb2 Gb2 Eb2 | D2 E2 F2 A2 C3:h' },
+    { name: 'Side-slipping (out and back in)', prog: [['2', 'min7', 2], [3, 'min7', 2, { implied: true }], ['2', 'min7', 4]], notes: 'D2 F2 A2 C3 Db3 Bb2 Gb2 Eb2 | D2 E2 F2 A2 C3:h' },
   ],
 });
 

@@ -1,7 +1,7 @@
 // Course Stage 4: The whole neck (Level 4). See ../data.js for the format.
 export default {
   id: 's4', title: 'The whole neck', level: 4,
-  desc: 'Stamina and harmonics, advanced time and odd meters, every key across the neck, minor harmony, the modes at work, triads and 7ths in inversions and voice leading, 10ths, walking bass, and soul, odd-meter and slap grooves.',
+  desc: 'Stamina and harmonics, advanced time and odd metres, every key across the neck, minor harmony, the modes at work, triads and 7ths in inversions and voice leading, 10ths, walking bass, and soul, odd-metre and slap grooves.',
   units: [
     {
       id: 'u-stamina', title: 'Stamina, stretch and harmonics',
@@ -64,15 +64,16 @@ export default {
         steps: [
           { ex: 'tech-endurance', p: { prog: 'i-iv-v-min' }, sub: 4, from: 88, goal: 104 },
           { ex: 'tech-harmonics', p: { order: 'fret' }, sub: 1, from: 60, goal: 80 },
+          { ex: 'tech-stretch', p: { from: '9', to: '1' }, sub: 2, from: 60, goal: 80 },
         ],
       },
     },
     {
       id: 'u-time4', title: 'Advanced time',
-      goal: 'Odd groupings, displacement, odd meters and keeping time through the gaps.',
+      goal: 'Odd groupings, displacement, odd metres and keeping time through the gaps.',
       lessons: [
         {
-          id: 'groupings', title: 'Groups of 3, 5 and 7 over 4/4',
+          id: 'groupings', title: 'Groups of 3 and 5 over 4/4',
           idea: 'The shape stays the same; where it starts moves around the bar.',
           concept: [
             'Play a 3-note shape (R-5-8) in continuous 16ths and it starts on a different 16th each time: "3 over 4". It takes 3 bars to come back to beat 1; groups of 5 and 7 take 5 and 7 bars. Fusion players and drummers use this to build tension without leaving the time.',
@@ -102,10 +103,10 @@ export default {
           ],
         },
         {
-          id: 'odd-meters', title: 'Odd meters',
+          id: 'odd-meters', title: 'Odd metres',
           idea: '5/4 as 3+2, 7/8 as 2+2+3, 7/4 as 4+3.',
           concept: [
-            'Odd meters group the beats unevenly: 5/4 is usually felt as 3+2, 7/8 as 2+2+3 (or 3+2+2) and 7/4 as 4+3. The accented notes mark the groups. Think of "Take Five" (5/4) or "Money" (7/4).',
+            'Odd metres group the beats unevenly: 5/4 is usually felt as 3+2, 7/8 as 2+2+3 (or 3+2+2) and 7/4 as 4+3. The accented notes mark the groups. Think of "Take Five" (5/4) or "Money" (7/4).',
             'In 7/8 the metronome clicks every 8th note, so the tempo number is higher. Count the groups out loud until the "limp" feels natural.',
           ],
           steps: [
@@ -140,9 +141,11 @@ export default {
           'I keep time with a click only every 4 bars.',
         ],
         steps: [
-          { ex: 'rh-groupings', p: { group: '7' }, sub: 4, from: 60, goal: 76 },
-          { ex: 'rh-odd-meters', p: { meter: '78b' }, from: 130, goal: 170 },
+          { ex: 'rh-groupings', p: { group: '5' }, sub: 4, from: 60, goal: 76 },
+          { ex: 'rh-odd-meters', p: { meter: '78' }, from: 130, goal: 170 },
           { ex: 'rh-sparse-click', p: { every: '4' }, from: 84, goal: 108 },
+          { ex: 'rh-odd-meters', p: { meter: '5' }, from: 100, goal: 132 },
+          { ex: 'rh-odd-meters', p: { meter: '74' }, from: 100, goal: 132 },
         ],
       },
     },
@@ -221,6 +224,7 @@ export default {
           { ex: 'sc-positions', p: { pos: 'all', type: 'ionian' }, sub: 2, from: 72, goal: 100 },
           { ex: 'sc-pent-positions', p: { pos: 'all', type: 'minorPent' }, sub: 2, from: 80, goal: 104 },
           { ex: 'rd-keys', p: { mode: 'major' }, from: 60, goal: 80 },
+          { ex: 'fb-key-box', p: { zone: '5' }, sub: 2, from: 66, goal: 92 },
         ],
       },
     },
@@ -263,7 +267,7 @@ export default {
           idea: 'The leading tone (the 3rd of V7) resolves up to the root.',
           concept: [
             'In a minor key the V chord is usually made major (V7) by raising the 7th. Play the chord tones of the most common minor progressions and hear the leading tone pull back to the root.',
-            'The Andalusian cadence (i–♭VII–♭VI–V) is the sound of flamenco and countless rock songs.',
+            'The Andalusian cadence (i–♭VII–♭VI–V) is the sound of flamenco and countless rock songs. In jazz the i chord is often m6 or m(maj7): the minor triad with the major 6th or the raised 7th on top.',
           ],
           steps: [
             { ex: 'hm-minor-keys', p: { prog: 'i-iv-V-i', pattern: 'r357' }, from: 84, goal: 104, backing: 'chords', do: 'i–iv–V–i with R-3-5-7. Find the raised 7th in the V chord.' },
@@ -283,6 +287,7 @@ export default {
         steps: [
           { ex: 'sc-minor-family', p: { pattern: 'thirds', type: 'harmonicMinor', oct: '1' }, sub: 2, from: 72, goal: 96 },
           { ex: 'hm-minor-keys', p: { prog: 'minor-ii-V-i', pattern: 'r357' }, from: 92, goal: 112, backing: 'chords' },
+          { ex: 'tri-diatonic-minor', p: { scale: 'harmonicMinor', order: 'up', pattern: 'up' }, sub: 2, from: 72, goal: 100 },
         ],
       },
     },
@@ -310,7 +315,7 @@ export default {
           id: 'chord-scale', title: 'The right scale on every chord',
           idea: 'Each chord implies a scale, chosen by its job in the key.',
           concept: [
-            'Each chord implies a scale, chosen by its function in the key: I Ionian, ii Dorian, iii Phrygian, IV Lydian, V Mixolydian, vi Aeolian, viiø Locrian; in a minor key a V7 that resolves to a minor chord takes Phrygian dominant (♭9, ♭13). Chords from outside the key take the scale of their quality.',
+            'Each chord implies a scale, chosen by its function in the key: I Ionian, ii Dorian, iii Phrygian, IV Lydian, V Mixolydian, vi Aeolian, viiø Locrian; in a minor key a V7 that resolves to a minor chord takes Phrygian dominant (harmonic minor from its 5th note, with ♭9 and ♭13; Stage 5 looks at it closely). Chords from outside the key take the scale of their quality.',
             'Notice how few notes change between neighbouring chords: that is why scalar lines flow.',
           ],
           steps: [
@@ -344,8 +349,9 @@ export default {
           'I can name common progressions by ear.',
         ],
         steps: [
-          { ex: 'md-chord-scale', p: { prog: 'I-vi-ii-V' }, from: 88, goal: 108, backing: 'chords' },
-          { ex: 'ear-progressions', p: { set: 'minor' } },
+          { ex: 'md-chord-scale', p: { prog: 'ii-V-I' }, from: 88, goal: 112, backing: 'chords' },
+          { ex: 'ear-progressions', p: { set: 'jazz' } },
+          { ex: 'md-study', p: { type: 'dorian', pattern: 'g4', oct: '1', root: 'E' }, sub: 2, from: 72, goal: 100 },
         ],
       },
     },
@@ -373,7 +379,7 @@ export default {
           idea: 'I-IV-vii°-iii-vi-ii-V-I: the order real progressions move in.',
           concept: [
             'Root movement by 4ths (or 5ths down) is the backbone of real progressions: vi–ii–V–I, iii–vi–ii–V. This drills the cycle inside one key, so the progressions you meet later already feel familiar.',
-            'Up one, down the next keeps the hand in one place.',
+            'Up one, down the next turns the cycle into a line.',
           ],
           steps: [
             { ex: 'tri-diatonic-4ths', p: { scale: 'ionian', pattern: 'alt', inversion: '0' }, sub: 2, from: 66, goal: 96, do: 'The triads of the key in 4ths.' },
@@ -408,6 +414,7 @@ export default {
         steps: [
           { ex: 'tri-diatonic-inversions', p: { scale: 'ionian', order: 'fourths', pattern: 'alt', inversion: '1' }, sub: 2, from: 72, goal: 100 },
           { ex: 'tri-two-octaves', p: { quality: 'min', root: 'E' }, sub: 2, from: 72, goal: 96 },
+          { ex: 'tri-open-spread', p: { scale: 'ionian', order: 'up', pattern: 'up', inversion: '0', root: 'E' }, sub: 2, from: 66, goal: 92 },
         ],
       },
     },
@@ -419,8 +426,8 @@ export default {
           id: 'string-sets', title: 'Triads on every string set',
           idea: 'One note per string, three strings at a time.',
           concept: [
-            'Here each note of the triad sits on its own string, across three neighbouring strings. On each string set you play root position, 1st and 2nd inversion, moving up the neck. These are the shapes chordal bassists and soloists use.',
-            'Use one finger per note and let the notes ring together at the end.',
+            'Here each note of the triad sits on its own string, across three neighbouring strings. On each string set you play root position and both inversions. These are the shapes chordal bassists and soloists use.',
+            'Use one finger per note, so each shape could ring as a chord.',
           ],
           steps: [
             { ex: 'tri-string-sets', p: { quality: 'maj' }, sub: 2, from: 60, goal: 84, do: 'Major triads on each string set.' },
@@ -453,8 +460,8 @@ export default {
             'Listen for the guide tones (3rds and 7ths): they move by step.',
           ],
           steps: [
-            { ex: 'arp-ii-v-i', p: { type: 'major', key: 'cycle4', pattern: 'alt', voicing: 'nearest' }, sub: 2, from: 72, goal: 96, do: 'Major ii–V–I in all 12 keys.' },
-            { ex: 'arp-voice-led', p: { prog: 'cycle-251', pattern: 'alt' }, sub: 2, from: 72, goal: 96, backing: 'chords', do: 'Voice-led 7th arpeggios through ii–V–I in all keys.' },
+            { ex: 'arp-ii-v-i', p: { type: 'major', key: 'cycle4', pattern: 'alt', voicing: 'nearest' }, from: 72, goal: 96, do: 'Major ii–V–I in all 12 keys.' },
+            { ex: 'arp-voice-led', p: { prog: 'autumn', pattern: 'alt' }, from: 72, goal: 96, backing: 'chords', do: 'Voice-led 7th arpeggios through a longer form, every chord its full length.' },
           ],
           mistakes: [
             'Restarting every chord from its root. Continue from the nearest chord tone.',
@@ -465,7 +472,7 @@ export default {
           idea: 'The 3rd and 7th tell you the chord; they move by half steps.',
           concept: [
             'The 3rd and the 7th define a chord\'s quality. In a ii–V–I the 7th of one chord falls a half step to the 3rd of the next, and the 3rd stays to become the 7th. Playing only these guide tones shows how harmony moves.',
-            'A shell voicing keeps root, 7th and 3rd: root on the E or A string, the 7th two strings up and the 3rd, as a 10th, on the top string.',
+            'A shell voicing keeps root, 7th and 3rd: the root on the E string, the 7th two strings up on the D string and the 3rd, as a 10th, on the G string.',
           ],
           steps: [
             { ex: 'arp-guide-tones', p: { prog: 'ii-V-I', start: '3' }, from: 72, goal: 96, backing: 'chords', do: 'Guide tones from the 3rd. Sing the line.' },
@@ -484,7 +491,9 @@ export default {
         ],
         steps: [
           { ex: 'tri-progressions', p: { prog: 'I-vi-ii-V', pattern: 'turn', voicing: 'nearest' }, sub: 1, from: 96, goal: 116, backing: 'chords' },
-          { ex: 'arp-guide-tones', p: { prog: 'autumn', start: '7' }, from: 80, goal: 104, backing: 'chords' },
+          { ex: 'arp-guide-tones', p: { prog: 'ii-V-I', start: '3' }, from: 80, goal: 104, backing: 'chords' },
+          { ex: 'tri-string-sets', p: { quality: 'maj' }, sub: 2, from: 66, goal: 92 },
+          { ex: 'hm-shells', p: { prog: 'ii-V-I' }, from: 66, goal: 88, backing: 'chords' },
         ],
       },
     },
@@ -544,8 +553,8 @@ export default {
           'I can play 7th arpeggios over two octaves.',
         ],
         steps: [
-          { ex: 'arp-inversions', p: { quality: 'dom7' }, sub: 2, from: 72, goal: 96 },
-          { ex: 'arp-two-octaves', p: { quality: 'min7', shape: 'updown' }, sub: 2, from: 72, goal: 96 },
+          { ex: 'arp-inversions', p: { quality: 'min7' }, sub: 2, from: 72, goal: 96 },
+          { ex: 'arp-two-octaves', p: { quality: 'dom7', shape: 'updown' }, sub: 2, from: 72, goal: 96 },
         ],
       },
     },
@@ -577,7 +586,7 @@ export default {
           ],
           steps: [
             { ex: 'iv-scale-octaves', p: { scale: 'ionian', root: 'E' }, sub: 1, from: 60, goal: 84, do: 'The major scale in octaves.' },
-            { ex: 'iv-scale-octaves', p: { scale: 'minorPent', root: 'E' }, sub: 1, from: 60, goal: 84, music: true, do: 'Minor pentatonic in octaves: riff material.' },
+            { ex: 'iv-scale-octaves', p: { scale: 'minorPent', root: 'E' }, sub: 1, from: 60, goal: 84, do: 'Minor pentatonic in octaves: riff material.' },
           ],
           mistakes: [
             'One note louder than the other. Both at the same volume.',
@@ -590,8 +599,8 @@ export default {
           'I can play a scale in octaves with the middle string silent.',
         ],
         steps: [
-          { ex: 'iv-tenths', p: { mode: 'stop', scale: 'mixolydian' }, sub: 2, from: 60, goal: 80 },
-          { ex: 'iv-scale-octaves', p: { scale: 'aeolian', root: 'E' }, sub: 1, from: 66, goal: 92 },
+          { ex: 'iv-tenths', p: { mode: 'stop', scale: 'ionian' }, sub: 2, from: 60, goal: 84 },
+          { ex: 'iv-scale-octaves', p: { scale: 'minorPent', root: 'E' }, sub: 1, from: 66, goal: 92 },
         ],
       },
     },
@@ -617,8 +626,8 @@ export default {
           id: 'walk-scalar', title: 'Scale steps in walking lines',
           idea: 'Scale steps connect the chord tones smoothly.',
           concept: [
-            'Lines like R-2-3-5, or 8-7-6-5 coming down, are the melodic side of walking and balance the jumps of arpeggio lines. Use the scale of each chord: Dorian on m7, Mixolydian on 7, and Phrygian dominant on a 7 that resolves to a minor chord.',
-            'Land chord tones on beats 1 and 3.',
+            'Lines like R-2-3-5, or 8-7-6-5 coming down, are the melodic side of walking and balance the jumps of arpeggio lines. Each chord takes its scale by function, as in Lesson 31.2: Dorian on a ii, Mixolydian on a V, Aeolian on a minor i, and Phrygian dominant on a V7 that resolves to a minor chord.',
+            'Land a chord tone on beat 1; the scale steps lead into the next chord.',
           ],
           steps: [
             { ex: 'wk-scalar', p: { prog: 'autumn' }, from: 100, goal: 126, backing: 'chords', do: 'Scalar lines through ii–V–I–IV–iiø–V–i.' },
@@ -636,7 +645,7 @@ export default {
           ],
           steps: [
             { ex: 'wk-mixed', p: { prog: 'jazz-blues' }, from: 104, goal: 132, backing: 'chords', music: true, do: 'A jazz blues walking line with every device.' },
-            { ex: 'wk-mixed', p: { prog: 'rhythm-A' }, from: 104, goal: 132, backing: 'chords', do: 'Rhythm changes, A section: two chords per bar.' },
+            { ex: 'wk-mixed', p: { prog: 'I-vi-ii-V' }, from: 104, goal: 132, backing: 'chords', do: 'A turnaround, I–vi–ii–V, one chord per bar.' },
           ],
           mistakes: [
             'Playing the same device every bar. Mix them, and listen to the shape of the line.',
@@ -650,13 +659,13 @@ export default {
         ],
         steps: [
           { ex: 'wk-mixed', p: { prog: 'autumn' }, from: 112, goal: 140, backing: 'chords' },
-          { ex: 'wk-approach', p: { prog: 'minor-blues' }, from: 108, goal: 132, backing: 'chords' },
+          { ex: 'wk-approach', p: { prog: 'jazz-blues' }, from: 108, goal: 132, backing: 'chords' },
         ],
       },
     },
     {
-      id: 'u-grooves4', title: 'Soul, odd meters and slap',
-      goal: 'Soul and neo-soul feel, grooves in odd meters, and slap with hammers and pull-offs.',
+      id: 'u-grooves4', title: 'Soul, odd metres and slap',
+      goal: 'Soul and neo-soul feel, grooves in odd metres, and slap with hammers and pull-offs.',
       lessons: [
         {
           id: 'soul', title: 'Soul and neo-soul',
@@ -674,10 +683,10 @@ export default {
           ],
         },
         {
-          id: 'odd-grooves', title: 'Grooves in odd meters',
+          id: 'odd-grooves', title: 'Grooves in odd metres',
           idea: 'Loop it until it feels natural rather than counted.',
           concept: [
-            'Odd meters (5/4, 7/8, 7/4) are everywhere in prog, fusion, Balkan and film music, and 6/8 is the compound meter of ballads and Afro-Cuban grooves. Each groove puts its strongest notes at the start of the beat groups.',
+            'Odd metres (5/4, 7/8, 7/4) are everywhere in prog, fusion, Balkan and film music, and 6/8 is the compound metre of ballads and Afro-Cuban grooves. Each groove puts its strongest notes at the start of the beat groups.',
             'Say the groups as you play, and watch the last group: that is where most players rush.',
           ],
           steps: [
@@ -712,7 +721,8 @@ export default {
         ],
         steps: [
           { ex: 'gr-soul', p: { style: 'neoSoul' }, from: 76, goal: 92, backing: 'chords' },
-          { ex: 'gr-odd-meters', p: { meter: '74' }, from: 110, goal: 140 },
+          { ex: 'gr-odd-meters', p: { meter: '78' }, from: 130, goal: 170 },
+          { ex: 'gr-soul', p: { style: 'soulBallad' }, from: 66, goal: 84, backing: 'chords' },
         ],
       },
     },
@@ -720,7 +730,7 @@ export default {
   check: {
     can: [
       'I can play 16ths for minutes and keep time with a sparse click.',
-      'I can play in odd meters and with displaced figures.',
+      'I can play in odd metres and with displaced figures.',
       'I can play any key in any position, and read in every key.',
       'I can choose the right scale for every chord of a progression.',
       'I connect chords by voice leading, and I can play guide tones.',
@@ -730,8 +740,10 @@ export default {
       { ex: 'rh-sparse-click', p: { every: '4' }, from: 90, goal: 116 },
       { ex: 'sc-positions', p: { pos: 'all', type: 'aeolian' }, sub: 2, from: 80, goal: 104 },
       { ex: 'md-chord-scale', p: { prog: 'minor-ii-V-i' }, from: 92, goal: 112, backing: 'chords' },
-      { ex: 'arp-voice-led', p: { prog: 'jazz-blues', pattern: 'alt' }, sub: 2, from: 84, goal: 108, backing: 'chords' },
+      { ex: 'arp-voice-led', p: { prog: 'jazz-blues', pattern: 'alt' }, from: 84, goal: 108, backing: 'chords' },
       { ex: 'wk-mixed', p: { prog: 'jazz-blues' }, from: 120, goal: 148, backing: 'chords' },
+      { ex: 'rh-displacement', p: { step: '0.25' }, from: 72, goal: 92 },
+      { ex: 'rd-keys', p: { mode: 'minor' }, from: 60, goal: 80 },
     ],
   },
 };

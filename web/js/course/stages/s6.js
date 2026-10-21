@@ -121,8 +121,9 @@ export default {
         ],
         steps: [
           { ex: 'tri-diatonic-all-keys', p: { scale: 'ionian', order: 'fourths', pattern: 'alt', inversion: '2' }, sub: 3, from: 72, goal: 100 },
-          { ex: 'tri-rudiments-all-keys', p: { scale: 'aeolian', rudiment: 'fivestroke', order: 'up' }, sub: 4, from: 64, goal: 90 },
+          { ex: 'tri-rudiments-all-keys', p: { scale: 'ionian', rudiment: 'paradiddle', order: 'up' }, sub: 4, from: 64, goal: 90 },
           { ex: 'arp-diatonic-all-keys', p: { scale: 'harmonicMinor', order: 'up', inversion: '0' }, sub: 4, from: 60, goal: 80 },
+          { ex: 'tri-cycle-all-inversions', p: { quality: 'maj', order: 'cycle4' }, sub: 3, from: 66, goal: 92 },
         ],
       },
     },
@@ -182,8 +183,9 @@ export default {
           'I choose the right scale for each altered dominant.',
         ],
         steps: [
-          { ex: 'md-altered-chord-scale', p: { prog: 'ii-V7s5-I' }, from: 92, goal: 112, backing: 'chords' },
-          { ex: 'md-harmonic-major-modes', p: { dir: 'updown', oct: '1' }, sub: 2, from: 80, goal: 104 },
+          { ex: 'md-altered-chord-scale', p: { prog: 'ii-V7b9-I' }, from: 92, goal: 112, backing: 'chords' },
+          { ex: 'md-harmonic-major-modes', p: { dir: 'up', oct: '1' }, sub: 2, from: 80, goal: 104 },
+          { ex: 'sc-messiaen', p: { type: 'messiaen3', pattern: 'straight', oct: '1' }, sub: 2, from: 72, goal: 100 },
         ],
       },
     },
@@ -214,8 +216,8 @@ export default {
             'Know the three tonics (B, G, E♭) and keep the 8ths even.',
           ],
           steps: [
-            { ex: 'arp-giant-steps', p: { pattern: 'up' }, sub: 2, from: 80, goal: 120, backing: 'chords', do: 'R-3-5-7 on every chord of Giant Steps.' },
-            { ex: 'arp-giant-steps', p: { pattern: 'alt' }, sub: 2, from: 80, goal: 120, backing: 'chords', do: 'Up one, down the next.' },
+            { ex: 'arp-giant-steps', p: { pattern: 'up' }, from: 80, goal: 120, backing: 'chords', do: 'R-3-5-7 on every chord of Giant Steps.' },
+            { ex: 'arp-giant-steps', p: { pattern: 'alt' }, from: 80, goal: 120, backing: 'chords', do: 'Up one, down the next.' },
           ],
           mistakes: [
             'Getting lost in the form. Say the key centres as you reach them.',
@@ -243,7 +245,7 @@ export default {
             'Let the line breathe at the ends of phrases.',
           ],
           steps: [
-            { ex: 'arp-rhythm-changes', p: { pattern: 'alt' }, sub: 2, from: 104, goal: 144, backing: 'chords', do: 'Voice-led arpeggios through the A section.' },
+            { ex: 'arp-rhythm-changes', p: { pattern: 'alt' }, from: 104, goal: 144, backing: 'chords', do: 'Voice-led arpeggios through the A section.' },
           ],
           mistakes: [
             'Arpeggiating every chord from its root. Continue from the nearest chord tone.',
@@ -258,7 +260,9 @@ export default {
         ],
         steps: [
           { ex: 'wk-giant-steps', p: {}, from: 128, goal: 160, backing: 'chords' },
-          { ex: 'arp-rhythm-changes', p: { pattern: 'alt', key: 'cycle4' }, sub: 2, from: 112, goal: 152, backing: 'chords' },
+          { ex: 'arp-rhythm-changes', p: { pattern: 'alt' }, from: 112, goal: 152, backing: 'chords' },
+          { ex: 'tri-major-thirds', p: { quality: 'maj', dir: 'down' }, sub: 3, from: 80, goal: 120 },
+          { ex: 'arp-giant-steps', p: { pattern: 'up' }, from: 96, goal: 132, backing: 'chords' },
         ],
       },
     },
@@ -348,8 +352,8 @@ export default {
           'I use modern devices and resolve them clearly.',
         ],
         steps: [
-          { ex: 'lk-bebop', p: { lick: '5', key: 'cycle4', feel: 'swing' }, from: 108, goal: 138, backing: 'chords' },
-          { ex: 'lk-modern', p: { lick: '5', feel: 'swing' }, from: 92, goal: 116, backing: 'chords' },
+          { ex: 'lk-bebop', p: { lick: '2', key: 'cycle4', feel: 'swing' }, from: 108, goal: 138, backing: 'chords' },
+          { ex: 'lk-modern', p: { lick: '1', feel: 'swing' }, from: 92, goal: 116, backing: 'chords' },
         ],
       },
     },
@@ -367,7 +371,8 @@ export default {
       { ex: 'tri-diatonic-all-keys', p: { scale: 'melodicMinor', order: 'fourths', pattern: 'alt', inversion: '1' }, sub: 3, from: 76, goal: 100 },
       { ex: 'md-altered-chord-scale', p: { prog: 'ii-V7alt-I', key: 'cycle4' }, from: 96, goal: 120, backing: 'chords' },
       { ex: 'wk-giant-steps', p: {}, from: 140, goal: 180, backing: 'chords' },
-      { ex: 'lk-modern', p: { lick: '2', key: 'cycle4', feel: 'swing' }, from: 96, goal: 120, backing: 'chords' },
+      { ex: 'lk-modern', p: { lick: '4', key: 'cycle4', feel: 'swing' }, from: 96, goal: 120, backing: 'chords' },
+      { ex: 'hm-chordal-bass', p: { voicing: '7', prog: 'ii-V-I' }, from: 66, goal: 88, backing: 'chords' },
     ],
   },
 };
