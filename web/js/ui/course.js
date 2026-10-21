@@ -7,6 +7,7 @@ import { byId, defaultParams } from '../curriculum/index.js';
 import { paramSummary, SUB_NAMES } from './exercise.js';
 import { exHref, go, buildRoutine, setRoutine, routineHref } from './screens.js';
 import { replaceHash } from './nav.js';
+import { NEXT_LEVEL, COMPLETE } from '../course/data.js';
 import {
   STAGES, LESSONS, UNITS, lessonById, SESSION_LENGTHS,
   stepState, stepPassed, stepClean, setClean, canTicked, setCan, isComplete, isDue, nextReview, dueLessons,
@@ -21,6 +22,8 @@ export const stepHref = (lesson, i, extra = {}) => exHref(lesson.steps[i].ex, { 
 const where = (l) => [`Stage ${STAGES.indexOf(l.stage) + 1} · ${l.stage.title}`, l.unit ? `Unit ${UNITS.find((u) => u.id === l.unit.id).n} · ${l.unit.title}` : null].filter(Boolean).join(' · ');
 const lessonName = (l) => (l.kind === 'lesson' ? `Lesson ${l.num} · ${l.title}` : l.title);
 const STATUS_ICON = { done: '✓', known: '✓', started: '◐', new: '○' };
+/** "Stages 1 and 2", "Stages 1–3"… */
+const stagesName = () => (STAGES.length === 2 ? 'Stages 1 and 2' : `Stages 1–${STAGES.length}`);
 /** "goal 96 BPM in 8ths", or "one full round" for an ear or note-finding step. */
 const goalText = (s) => (s.goal ? `goal ${s.goal} BPM${s.sub ? ` in ${SUB_NAMES[s.sub]}` : ''}` : 'one full round');
 
@@ -84,7 +87,7 @@ export function buildSession(minutes) {
   if (count() < room) {
     const fresh = LESSONS.filter((l) => practised(l) && !l.optional && !items.some((x) => x.lesson === l))
       .sort((a, b) => (nextReview(a) || Infinity) - (nextReview(b) || Infinity) || rand() - 0.5);
-    // with nothing new in the course, about half the room goes to the Library's Level 3
+    // with nothing new in the course, about half the room goes to the Library's next level
     const upTo = cont ? room : Math.max(1, Math.ceil(room / 2));
     for (const l of fresh) {
       if (count() >= upTo) break;
@@ -92,9 +95,9 @@ export function buildSession(minutes) {
     }
   }
   if (count() < room && !cont) {
-    for (const it of buildRoutine(3, day + 21)) {
+    for (const it of buildRoutine(NEXT_LEVEL, day + 21)) {
       if (count() >= room) break;
-      if (!has(it.id)) items.push({ id: it.id, params: it.params, slot: 'Level 3' });
+      if (!has(it.id)) items.push({ id: it.id, params: it.params, slot: `Level ${NEXT_LEVEL}` });
     }
   }
   if (tail) items.push(stepItem(tail.l, tail.i, byId.get(tail.s.ex).module === 'reading' ? 'Reading' : 'Ear'));
@@ -129,8 +132,10 @@ export function courseBlock() {
         h('span', { class: 'muted small' }, `${reached}/${stats.total} lessons`)),
       h('div', { class: 'bar' }, h('i', { style: { width: `${(reached / stats.total) * 100}%` } })))
     : h('div', { class: 'course-next done' },
-      h('b', {}, stats.known ? `✓ Stages 1 and 2: ${stats.done} done, ${stats.known} known` : '✓ Stages 1 and 2 complete'),
-      h('span', { class: 'muted small' }, 'More stages are on the way. Until then, today\'s session mixes reviews of these lessons with Level 3 exercises from the Library.'));
+      h('b', {}, stats.known ? `✓ ${stagesName()}: ${stats.done} done, ${stats.known} known` : `✓ ${stagesName()} complete`),
+      h('span', { class: 'muted small' }, COMPLETE
+        ? `Today's session keeps the lessons fresh and adds Level ${NEXT_LEVEL} exercises from the Library.`
+        : `More stages are on the way. Until then, today's session mixes reviews of these lessons with Level ${NEXT_LEVEL} exercises from the Library.`));
   section.append(head, h('div', { class: 'course-cols' }, next, sessionPanel()));
   return section;
 }
@@ -194,7 +199,7 @@ export function courseScreen(main) {
             h('h3', {}, '★ Stage test'), h('p', {}, 'Everything from this stage at once.'), h('div', { class: 'les-list' }, row(l))))),
       ];
     }),
-    h('p', { class: 'muted small', style: { marginTop: '18px' } }, 'More stages (Level 3 onward) are on the way. The Library and the Path have every exercise in the meantime.'),
+    COMPLETE ? null : h('p', { class: 'muted small', style: { marginTop: '18px' } }, `More stages (Level ${NEXT_LEVEL} onward) are on the way. The Library and the Path have every exercise in the meantime.`),
     h('div', { class: 'row' }, h('button', { class: 'btn', onClick: () => {
       if (!confirm('Reset all course progress (tempos, ticks, reviews and your placement)?')) return;
       resetCourse();
@@ -295,6 +300,13 @@ const PLACEMENT = [
   ['I know the four triad types, the five 7th chords and the chords of a major key.', ['u-triads2', 'u-sevenths']],
   ['I play the 12-bar blues with boogie and shuffle lines, octave grooves and riffs.', ['u-blues', 'u-grooves']],
   ['I read melodies with sharps, flats and a key signature.', ['u-reading2']],
+  ['I play hammer-ons, pull-offs, clean shifts and string skips.', ['u-legato']],
+  ['I play 16th-note funk with ghost notes, moving accents and triplet feels.', ['u-funk']],
+  ['I know every note in any position and read up to the 9th position.', ['u-positions']],
+  ['I play two-octave scales, the three scale fingerings, sequences and every key in one position.', ['u-scales3', 'u-sequences']],
+  ['I know the seven modes of the major scale and the note that colours each one.', ['u-modes']],
+  ['I play the triads and 7th chords of any key, in three fingerings and in inversions.', ['u-triads3', 'u-sevenths3']],
+  ['I play chord-tone lines, approach notes, double stops, world grooves and a basic walking line.', ['u-moving', 'u-jazz-first']],
 ];
 
 export function placementScreen(main) {
@@ -312,7 +324,7 @@ export function placementScreen(main) {
     // units answered "yes" are marked as known; the course starts at the first lesson that is not
     setKnown(PLACEMENT.flatMap(([, units], i) => (answers[i] ? units : [])));
     const cont = continueLesson();
-    toast(cont ? `Start here: ${lessonName(cont)}` : 'You know Stages 1 and 2: today\'s session reviews them and adds Level 3', 3500);
+    toast(cont ? `Start here: ${lessonName(cont)}` : `You know ${stagesName()}: today's session reviews them and adds Level ${NEXT_LEVEL}`, 3500);
     // back to where the check was opened from (the map or Home), which now shows the starting point
     if (history.state?.depth > 0) history.back(); else replaceHash('#/course');
   });
