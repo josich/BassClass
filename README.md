@@ -82,8 +82,10 @@ web/                    the app (static HTML/CSS/JS, no build step)
 android/                Android Studio WebView wrapper (Kotlin)
 tools/serve.py          local dev server (also saves files for the dev tools in web/js/dev/:
                         sampleprep.js processes the bass samples, iconprep.js renders the PNG icons
-                        from web/icons/icon.svg)
-.claude/agents/         the two QA agents (qa-reviewer, qa-user); reports go to qa/reports/
+                        and Android layers from web/icons/icon.svg; icons.html previews an icon at
+                        launcher sizes, masks and wallpapers)
+.claude/agents/         the two QA agents (qa-reviewer, qa-user; reports in qa/reports/) and the
+                        designer (design reviews; reports in design/reports/)
 docs/                   research summary and generated exercise catalogue
 ```
 

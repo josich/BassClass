@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="18 18 72 72">
+  <!-- Concept A "Neck": a navy fretboard set diagonally over a periwinkle-to-teal sky, holding a real
+       R-5-8-10 chord shape in the app's markers. 108-unit adaptive canvas (see js/dev/iconprep.js). -->
+  <defs>
+    <clipPath id="tile"><rect x="18" y="18" width="72" height="72" rx="16"/></clipPath>
+    <linearGradient id="sky" x1="18" y1="18" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8a9af2"/><stop offset="0.5" stop-color="#5a8fd6"/><stop offset="1" stop-color="#3fc19c"/>
+    </linearGradient>
+    <linearGradient id="board" x1="0" y1="27" x2="0" y2="81" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2a2f5e"/><stop offset="0.5" stop-color="#1b1f42"/><stop offset="1" stop-color="#252a55"/>
+    </linearGradient>
+    <linearGradient id="str" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6a6f88"/><stop offset="0.38" stop-color="#f4f5fb"/><stop offset="0.62" stop-color="#c7cad8"/><stop offset="1" stop-color="#585c70"/>
+    </linearGradient>
+    <linearGradient id="fret" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#363c6c"/><stop offset="0.5" stop-color="#7d84b9"/><stop offset="1" stop-color="#3b4172"/>
+    </linearGradient>
+    <radialGradient id="teal" cx="36%" cy="30%" r="78%"><stop offset="0" stop-color="#8ad8c1"/><stop offset="0.55" stop-color="#3fc19c"/><stop offset="1" stop-color="#2d8b70"/></radialGradient>
+    <radialGradient id="gold" cx="36%" cy="30%" r="78%"><stop offset="0" stop-color="#e8c896"/><stop offset="0.55" stop-color="#dba85a"/><stop offset="1" stop-color="#9e7941"/></radialGradient>
+    <radialGradient id="peri" cx="36%" cy="30%" r="78%"><stop offset="0" stop-color="#a8b3f1"/><stop offset="0.55" stop-color="#6e80e8"/><stop offset="1" stop-color="#4f5ca7"/></radialGradient>
+    <filter id="blur" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="2.4"/></filter>
+    <mask id="gaps" maskUnits="userSpaceOnUse" x="-60" y="-60" width="228" height="228">
+      <rect x="-60" y="-60" width="228" height="228" fill="#fff"/>
+      <g fill="#000"><rect x="28.6" y="66.1" width="14.8" height="14.8" rx="4.2"/><rect x="64.6" y="40.1" width="14.8" height="14.8" rx="4.2"/><circle cx="72" cy="60.5" r="7.4"/><circle cx="54" cy="34.5" r="7.4"/></g>
+    </mask>
+  </defs>
+
+  <g id="art" clip-path="url(#tile)">
+    <g id="bg"><rect width="108" height="108" fill="url(#sky)"/></g>
+    <g id="fg" transform="rotate(-20 54 54)">
+      <rect x="-60" y="30" width="228" height="54" fill="#0b0d22" fill-opacity="0.45" filter="url(#blur)"/>
+      <rect x="-60" y="27" width="228" height="54" fill="url(#board)"/>
+      <rect x="-60" y="27" width="228" height="0.8" fill="#4d5599"/>
+      <!-- frets -->
+      <g fill="url(#fret)"><rect x="8.1" y="27" width="1.8" height="54"/><rect x="26.1" y="27" width="1.8" height="54"/><rect x="44.1" y="27" width="1.8" height="54"/><rect x="62.1" y="27" width="1.8" height="54"/><rect x="80.1" y="27" width="1.8" height="54"/><rect x="98.1" y="27" width="1.8" height="54"/></g>
+      <!-- strings G D A E, real gauge proportions -->
+      <g fill="url(#str)"><rect x="-60" y="33.8" width="228" height="1.4"/><rect x="-60" y="46.5" width="228" height="2"/><rect x="-60" y="59.2" width="228" height="2.6"/><rect x="-60" y="71.9" width="228" height="3.2"/></g>
+      <!-- R (E string), 10 (G string, a fret up), 5 and 8 (A and D strings, two frets up) -->
+      <g stroke="#fff" stroke-width="1.1">
+        <rect x="30.1" y="67.6" width="11.8" height="11.8" rx="2.5" fill="url(#teal)"/>
+        <circle cx="54" cy="34.5" r="5.9" fill="url(#peri)"/>
+        <circle cx="72" cy="60.5" r="5.9" fill="url(#gold)"/>
+        <rect x="66.1" y="41.6" width="11.8" height="11.8" rx="2.5" fill="url(#teal)"/>
+      </g>
+    </g>
+  </g>
+
+  <g id="mono" display="none" fill="#000" transform="rotate(-20 54 54)">
+    <g mask="url(#gaps)"><rect x="-60" y="33" width="228" height="3"/><rect x="-60" y="46" width="228" height="3"/><rect x="-60" y="58.9" width="228" height="3.2"/><rect x="-60" y="71.7" width="228" height="3.6"/></g>
+    <rect x="30.1" y="67.6" width="11.8" height="11.8" rx="2.5"/><circle cx="54" cy="34.5" r="5.9"/><circle cx="72" cy="60.5" r="5.9"/><rect x="66.1" y="41.6" width="11.8" height="11.8" rx="2.5"/>
+  </g>
+</svg>

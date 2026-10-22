@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Icon preview</title>
+<!-- Dev tool (not used by the app): shows icons where they live, for design reviews.
+     /js/dev/icons.html                      the app's icon (web/icons/icon.svg)
+     /js/dev/icons.html?src=/a.svg,/b.svg    candidates side by side
+     Layered SVGs (see iconprep.js) also show the adaptive layers, the maskable crop and the themed icon. -->
+<style>
+  :root { --page: #e9eaf0; --ink: #1d2033; --soft: #6b7199; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: var(--page); color: var(--ink); font: 13px/1.4 system-ui, sans-serif; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  h2 { font-size: 15px; margin: 28px 0 8px; padding-top: 12px; border-top: 2px solid #c9cbd8; }
+  h3 { font-size: 12px; margin: 14px 0 6px; color: var(--soft); text-transform: uppercase; letter-spacing: .06em; }
+  .row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
+  figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  figcaption { font-size: 11px; color: var(--soft); text-align: center; }
+  img, canvas { display: block; }
+  .mask { position: relative; width: 144px; height: 144px; overflow: hidden; }
+  .mask img { width: 100%; height: 100%; }
+  .safe { position: absolute; inset: 0; pointer-events: none; }
+  .canvas108 { position: relative; width: 216px; height: 216px; background: repeating-conic-gradient(#d5d6df 0 25%, #f4f4f8 0 50%) 0 0 / 16px 16px; }
+  .canvas108 img { width: 100%; height: 100%; }
+  .pix canvas { image-rendering: pixelated; }
+  .home { width: 330px; padding: 18px 12px 12px; border-radius: 18px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 6px; }
+  .app { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 11px; }
+  .app img, .app svg { width: 56px; height: 56px; }
+  .app span { max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .themed { width: 144px; height: 144px; border-radius: 50%; position: relative; overflow: hidden; }
+  .themed i { position: absolute; inset: 0; -webkit-mask: var(--m) center / 100% 100% no-repeat; mask: var(--m) center / 100% 100% no-repeat; }
+  .rail { width: 68px; height: 210px; background: #1a1d38; border-right: 1px solid #2f345c; display: flex; flex-direction: column; align-items: center; padding-top: 8px; gap: 10px; }
+  .rail img { width: 40px; height: 40px; margin: 4px 0 4px; }
+  .rail b { width: 22px; height: 22px; border-radius: 6px; background: #2c3158; }
+  .splash { width: 200px; height: 140px; background: #12142a; display: grid; place-items: center; border-radius: 10px; }
+  .splash img { width: 96px; height: 96px; border-radius: 50%; }
+  .cmp { padding: 16px; border-radius: 14px; }
+  .cmp .app span { color: inherit; }
+  label { user-select: none; }
+</style>
+</head>
+<body>
+<h1>Icon preview</h1>
+<div class="soft">Sources: <code id="srcs"></code> · <label><input type="checkbox" id="safeT" checked> safe-zone guides</label></div>
+<svg width="0" height="0" style="position:absolute">
+  <filter id="protan"><feColorMatrix values="0.567 0.433 0 0 0  0.558 0.442 0 0 0  0 0.242 0.758 0 0  0 0 0 1 0"/></filter>
+  <filter id="deutan"><feColorMatrix values="0.625 0.375 0 0 0  0.7 0.3 0 0 0  0 0.3 0.7 0 0  0 0 0 1 0"/></filter>
+  <filter id="tritan"><feColorMatrix values="0.95 0.05 0 0 0  0 0.433 0.567 0 0  0 0.475 0.525 0 0  0 0 0 1 0"/></filter>
+</svg>
+<main id="out"></main>
+
+<script type="module">
+import { variant, render } from './iconprep.js';
+
+const params = new URLSearchParams(location.search);
+const SRCS = (params.get('src') || '/icons/icon.svg').split(',').map((s) => s.trim()).filter(Boolean);
+document.getElementById('srcs').textContent = SRCS.join(', ');
+const out = document.getElementById('out');
+
+const el = (tag, attrs = {}, ...kids) => {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'style' && typeof v === 'object') Object.assign(e.style, v);
+    else e.setAttribute(k, v);
+  }
+  for (const k of kids) e.append(k);
+  return e;
+};
+const url = (svg) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+const img = (svg, attrs = {}) => el('img', { src: url(svg), alt: '', ...attrs });
+const fig = (node, cap) => el('figure', {}, node, el('figcaption', {}, cap));
+
+// Android launcher masks (on the visible 72 dp) and the 66 dp safe circle as a guide
+const squircle = (() => {
+  const pts = [];
+  for (let i = 0; i < 72; i++) {
+    const t = (i / 72) * 2 * Math.PI, c = Math.cos(t), s = Math.sin(t);
+    const x = Math.sign(c) * Math.abs(c) ** (2 / 5), y = Math.sign(s) * Math.abs(s) ** (2 / 5);
+    pts.push(`${(50 + 50 * x).toFixed(2)}% ${(50 + 50 * y).toFixed(2)}%`);
+  }
+  return `polygon(${pts.join(',')})`;
+})();
+const MASKS = [
+  ['Circle', { borderRadius: '50%' }],
+  ['Squircle', { clipPath: squircle }],
+  ['Rounded square', { borderRadius: '22%' }],
+  ['Teardrop', { borderRadius: '50% 50% 14% 50%' }],
+];
+const safeGuide = (r) => {
+  const s = el('div', { class: 'safe' });
+  s.innerHTML = `<svg viewBox="0 0 72 72" width="100%" height="100%"><circle cx="36" cy="36" r="${r}" fill="none" stroke="#ff3d7f" stroke-width="0.5" stroke-dasharray="1.5 1.2"/></svg>`;
+  return s;
+};
+
+// generic neighbours for the home screens (plain shapes, no real brands)
+const NEIGHBOURS = [
+  ['Camera', '#e8eaf2', '#3a3f55', '<circle cx="28" cy="28" r="10" fill="none" stroke="currentColor" stroke-width="4"/>'],
+  ['Mail', '#d94c3d', '#fff', '<path d="M14 19h28v18H14z M14 19l14 11 14-11" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/>'],
+  ['Maps', '#2f9e5b', '#fff', '<path d="M28 14c-6 0-10 4.5-10 10 0 7 10 18 10 18s10-11 10-18c0-5.5-4-10-10-10z" fill="currentColor"/>'],
+  ['Notes', '#f2c230', '#5b4a00', '<path d="M17 20h22M17 28h22M17 36h14" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>'],
+  ['Clock', '#20232f', '#fff', '<circle cx="28" cy="28" r="12" fill="none" stroke="currentColor" stroke-width="3.5"/><path d="M28 21v8l5 3" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>'],
+  ['Music', '#e24a8d', '#fff', '<path d="M23 36V18l14-3v18" fill="none" stroke="currentColor" stroke-width="3.5"/><circle cx="20" cy="36" r="4" fill="currentColor"/><circle cx="34" cy="33" r="4" fill="currentColor"/>'],
+  ['Phone', '#3b7be8', '#fff', '<path d="M20 15l5 0 3 7-3 3c2 4 5 7 9 9l3-3 7 3v5c0 2-2 3-4 3-13-1-23-11-24-24 0-2 2-3 4-3z" fill="currentColor"/>'],
+];
+const neighbour = ([name, bg, fg, glyph], shape) => {
+  const r = shape === 'circle' ? 28 : 15;
+  const d = el('div', { class: 'app' });
+  d.innerHTML = `<svg viewBox="0 0 56 56" style="color:${fg}"><rect width="56" height="56" rx="${r}" fill="${bg}"/>${glyph}</svg><span>${name}</span>`;
+  return d;
+};
+const WALLS = [
+  ['Dark', '#0b0b0f', '#fff'],
+  ['Light', '#f3f3f6', '#222'],
+  ['Photo', 'linear-gradient(160deg, #f7b267 0%, #f4845f 30%, #8e5ca8 65%, #2b2d6e 100%)', '#fff'],
+  ['Busy', 'radial-gradient(circle at 20% 30%, #4fd1c5 0 12%, transparent 13%), radial-gradient(circle at 75% 60%, #f6ad55 0 16%, transparent 17%), radial-gradient(circle at 40% 85%, #9f7aea 0 14%, transparent 15%), linear-gradient(135deg, #2d3748, #4a5568)', '#fff'],
+  ['Material light', '#dfe3f5', '#1b1d2b'],
+];
+
+async function canvasAt(text, size) {
+  const c = await render(text, 'icon', size);
+  return c;
+}
+async function zoomed(text, size, k) {
+  const c = await render(text, 'icon', size);
+  c.style.width = c.style.height = `${size * k}px`;
+  return el('div', { class: 'pix' }, c);
+}
+
+async function section(src, text) {
+  const layered = text.includes('id="art"');
+  const name = src.split('/').pop();
+  const sec = el('section');
+  sec.append(el('h2', {}, `${name}${layered ? '' : ' (flat icon: no adaptive layers)'}`));
+
+  sec.append(el('h3', {}, 'Launcher masks (72 dp visible, dashed: 66 dp safe circle)'));
+  const masks = el('div', { class: 'row' });
+  for (const [cap, style] of MASKS) {
+    const m = el('div', { class: 'mask', style }, img(variant(text, 'visible')), safeGuide(33));
+    masks.append(fig(m, cap));
+  }
+  if (layered) {
+    const full = el('div', { class: 'canvas108' }, img(variant(text, 'fg')));
+    full.style.backgroundImage = `url("${url(variant(text, 'bg'))}")`;
+    full.style.backgroundSize = 'cover';
+    const g = el('div', { class: 'safe' });
+    g.innerHTML = '<svg viewBox="0 0 108 108" width="100%" height="100%"><rect x="18" y="18" width="72" height="72" fill="none" stroke="#fff" stroke-width="0.6"/><circle cx="54" cy="54" r="33" fill="none" stroke="#ff3d7f" stroke-width="0.6" stroke-dasharray="2 1.5"/></svg>';
+    full.append(g);
+    masks.append(fig(full, 'Full 108 dp layers (square: visible 72)'));
+    masks.append(fig(el('div', { class: 'canvas108' }, img(variant(text, 'fg'))), 'Foreground layer only'));
+  }
+  sec.append(masks);
+
+  sec.append(el('h3', {}, 'Sizes (actual pixels; small ones also enlarged)'));
+  const sizes = el('div', { class: 'row' });
+  for (const s of [192, 144, 96, 72, 48, 40, 32, 24, 16]) sizes.append(fig(await canvasAt(text, s), `${s}px`));
+  for (const s of [32, 24, 16]) sizes.append(fig(await zoomed(text, s, 4), `${s}px ×4`));
+  sec.append(sizes);
+
+  sec.append(el('h3', {}, 'Home screens (56 px, beside generic apps)'));
+  const homes = el('div', { class: 'row' });
+  WALLS.forEach(([cap, bg, ink], i) => {
+    const shape = i % 2 ? 'squircle' : 'circle';
+    const h = el('div', { class: 'home', style: { background: bg, color: ink } });
+    const ours = el('div', { class: 'app' });
+    const m = el('div', { style: { width: '56px', height: '56px', overflow: 'hidden', ...(shape === 'circle' ? { borderRadius: '50%' } : { clipPath: squircle }) } }, img(variant(text, 'visible')));
+    ours.append(m, el('span', {}, 'BassClass'));
+    NEIGHBOURS.forEach((n, j) => { h.append(neighbour(n, shape)); if (j === 4) h.append(ours); });
+    homes.append(fig(h, `${cap} · ${shape}`));
+  });
+  sec.append(homes);
+
+  sec.append(el('h3', {}, 'Value and colour-blind checks'));
+  const cb = el('div', { class: 'row' });
+  const base = variant(text, 'icon');
+  for (const [cap, filter] of [['Normal', 'none'], ['Grey (values)', 'grayscale(1)'], ['Protanopia', 'url(#protan)'], ['Deuteranopia', 'url(#deutan)'], ['Tritanopia', 'url(#tritan)'], ['Blurred (squint)', 'blur(3px)']]) {
+    cb.append(fig(img(base, { width: 144, height: 144, style: `filter:${filter}` }), cap));
+  }
+  sec.append(cb);
+
+  const extra = el('div', { class: 'row' });
+  if (layered) {
+    const mono = variant(text, 'mono', '18 18 72 72');
+    for (const [cap, bg, fg] of [['Themed (light)', '#dfe3fd', '#26357e'], ['Themed (dark)', '#2b2e45', '#c6cdfb']]) {
+      const t = el('div', { class: 'themed', style: { background: bg } }, el('i', { style: { background: fg, '--m': `url("${url(mono)}")` } }));
+      t.firstChild.style.setProperty('--m', `url("${url(mono)}")`);
+      extra.append(fig(t, cap));
+    }
+    extra.append(fig(el('div', { class: 'mask', style: { borderRadius: '50%', width: '144px', height: '144px' } }, img(variant(text, 'maskable')), safeGuide(28.8)), 'PWA maskable (dashed: 80% safe circle)'));
+  }
+  for (const px of [40, 30]) {
+    const rail = el('div', { class: 'rail' }, img(base, { style: `width:${px}px;height:${px}px` }), el('b'), el('b'), el('b'));
+    extra.append(fig(rail, `In-app rail logo (${px} px${px === 30 ? ', short phones' : ''})`));
+  }
+  extra.append(fig(el('div', { class: 'splash' }, img(variant(text, 'visible'))), 'Android 12 splash'));
+  sec.append(el('h3', {}, 'Themed icon, maskable, in the app'), extra);
+  return sec;
+}
+
+if (SRCS.length > 1) {
+  out.append(el('h2', {}, 'Side by side'));
+  const texts = await Promise.all(SRCS.map((s) => fetch(s, { cache: 'no-store' }).then((r) => r.text())));
+  for (const [cap, bg, ink] of [WALLS[0], WALLS[1], WALLS[2]]) {
+    const row = el('div', { class: 'row cmp', style: { background: bg, color: ink, marginBottom: '8px' } });
+    texts.forEach((t, i) => {
+      const a = el('div', { class: 'app' });
+      a.append(el('div', { style: { width: '56px', height: '56px', overflow: 'hidden', clipPath: squircle } }, img(variant(t, 'visible'))), el('span', {}, SRCS[i].split('/').pop().replace('.svg', '')));
+      row.append(a);
+    });
+    out.append(fig(row, cap));
+  }
+}
+for (const src of SRCS) {
+  const text = await fetch(src, { cache: 'no-store' }).then((r) => r.text());
+  out.append(await section(src, text));
+}
+const sync = () => document.querySelectorAll('.safe').forEach((s) => { s.style.display = document.getElementById('safeT').checked ? '' : 'none'; });
+document.getElementById('safeT').addEventListener('change', sync);
+document.body.dataset.ready = '1';
+</script>
+</body>
+</html>

@@ -18,6 +18,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["tools/serve.py", "8890"],
       "port": 8890
+    },
+    {
+      "name": "design",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["tools/serve.py", "8899"],
+      "port": 8899
     }
   ]
 }

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="18 18 72 72">
+  <!-- Concept B "Clef on strings": a teal bass clef on the four strings of a bass, which read as a staff
+       and as bass tab at once; the clef's F line is the D string, as on the staff. 108-unit canvas. -->
+  <defs>
+    <clipPath id="tile"><rect x="18" y="18" width="72" height="72" rx="16"/></clipPath>
+    <radialGradient id="night" cx="38%" cy="22%" r="95%">
+      <stop offset="0" stop-color="#343b80"/><stop offset="0.45" stop-color="#1c2045"/><stop offset="1" stop-color="#0f1126"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#46c9a2" stop-opacity="0.32"/><stop offset="1" stop-color="#46c9a2" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="str" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5a5f7e"/><stop offset="0.38" stop-color="#e9ebf8"/><stop offset="0.62" stop-color="#b8bcd6"/><stop offset="1" stop-color="#4c5070"/>
+    </linearGradient>
+    <linearGradient id="clefG" x1="0" y1="28" x2="0" y2="82" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7cecc9"/><stop offset="1" stop-color="#2fae8a"/>
+    </linearGradient>
+    <g id="clef">
+      <circle cx="30" cy="42" r="8.5"/>
+      <path d="M22.5 40 C23 24 40 15 54 18 C68 21 74 34 72 47 C70 62 56 76 27 90 C26.2 90.3 25.6 89.4 26.4 88.8 C47 76 58 64 60 49 C61.5 37 57 26 47 25.5 C38 25 31.5 31 31 37 Z"/>
+      <circle cx="81" cy="33" r="5.6"/>
+      <circle cx="81" cy="52" r="5.6"/>
+    </g>
+    <mask id="gaps" maskUnits="userSpaceOnUse" x="0" y="0" width="108" height="108">
+      <rect width="108" height="108" fill="#fff"/>
+      <use href="#clef" transform="translate(17.03 18.43) scale(0.684)" fill="#000" stroke="#000" stroke-width="4.4" stroke-linejoin="round"/>
+    </mask>
+  </defs>
+
+  <g id="art" clip-path="url(#tile)">
+    <g id="bg">
+      <rect width="108" height="108" fill="url(#night)"/>
+      <circle cx="50" cy="52" r="34" fill="url(#glow)"/>
+    </g>
+    <g id="fg">
+      <!-- strings G D A E (gauge proportions), cut around the clef -->
+      <g fill="url(#str)" mask="url(#gaps)"><rect y="33.8" width="108" height="1.5"/><rect y="46.4" width="108" height="2.2"/><rect y="59.1" width="108" height="2.8"/><rect y="71.8" width="108" height="3.4"/></g>
+      <use href="#clef" transform="translate(17.03 18.43) scale(0.684)" fill="url(#clefG)"/>
+    </g>
+  </g>
+
+  <g id="mono" display="none" fill="#000">
+    <g mask="url(#gaps)"><rect y="33.2" width="108" height="2.6"/><rect y="46" width="108" height="3"/><rect y="58.9" width="108" height="3.2"/><rect y="71.7" width="108" height="3.6"/></g>
+    <use href="#clef" transform="translate(17.03 18.43) scale(0.684)"/>
+  </g>
+</svg>

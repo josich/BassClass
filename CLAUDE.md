@@ -35,6 +35,11 @@
 - Downloading anything new (samples, packages, SDKs) needs the user's explicit OK first.
 - Jazz licks (`curriculum/licks.js`) are ORIGINAL phrases in standard jazz vocabulary, notated in C (or C minor) and transposed. Never paste note-for-note transcriptions of copyrighted recorded solos.
 
+## Designer agent (user, 2026-10-22)
+
+- `designer` (`.claude/agents/designer.md`): judges design work (app icon, splash, screens). It researches references (Pinterest, Dribbble, Behance, the Android/Apple/W3C icon rules), checks the design at real sizes, masks and wallpapers, scores it on 10 design principles and writes `design/reports/<date>-<subject>.md` with exact fixes. Read-only on the app; writes only to `design/`. Server `design`, port 8899. Launch it when the user asks for design work to be judged (in a session where it is not listed, launch `general-purpose` with "Read and follow .claude/agents/designer.md exactly").
+- The app icon (2026-10-22, designed with the designer, rounds 1–3 in `design/reports/2026-10-22-app-icon.md`): "Next note": a navy neck at −20° over a periwinkle-to-teal gradient; the teal root square on the A string hops along the app's dotted motion arc to the gold 5th two frets up on the D string. No clefs, letters, instrument bodies or headstocks (category clichés). `web/icons/icon.svg` is the only source, drawn on the 108-unit adaptive canvas with layers `#bg`, `#fg` and `#mono` (Android 13+ themed icon); `web/js/dev/iconprep.js` renders every PNG and Android layer, `/js/dev/icons.html` previews it (masks, sizes, wallpapers, themed, colour-blind, rail logo).
+
 ## QA agents (on request, 2026-10-14)
 
 - Two agents, read-only on the app, writing only to `qa/`:

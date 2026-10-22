@@ -44,9 +44,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             out = os.path.join(ROOT, '..', 'docs', 'CATALOGUE.md')
         elif re.fullmatch(r'/__write/audio/bass/(?:(?:reg|ghost)/\d{2}\.wav|manifest\.json|LICENSE\.txt)', self.path):
             out = os.path.join(ROOT, *self.path[len('/__write/'):].split('/'))
-        elif re.fullmatch(r'/__write/icons/icon-(?:192|512|maskable-512)\.png', self.path):
+        elif re.fullmatch(r'/__write/icons/(?:icon-(?:192|512|maskable-512)|apple-touch-icon)\.png', self.path):
             out = os.path.join(ROOT, *self.path[len('/__write/'):].split('/'))
-        elif re.fullmatch(r'/__write/android/mipmap-(?:mdpi|hdpi|xhdpi|xxhdpi|xxxhdpi)/ic_launcher(?:_foreground)?\.png', self.path):
+        elif re.fullmatch(r'/__write/android/mipmap-(?:mdpi|hdpi|xhdpi|xxhdpi|xxxhdpi)/ic_launcher(?:_foreground|_background|_monochrome)?\.png', self.path):
             out = os.path.join(ROOT, '..', 'android', 'app', 'src', 'main', 'res', *self.path[len('/__write/android/'):].split('/'))
         else:
             self.send_error(403)
