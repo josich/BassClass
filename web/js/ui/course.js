@@ -490,10 +490,12 @@ const PLACEMENT = [
 
 export function placementScreen(main) {
   const known = knownUnits();
-  const answers = PLACEMENT.map(([, units]) => (placed() ? units.every((u) => known[u]) : null));
+  // every line starts at "Not yet": the player taps Yes for what they already play (an earlier
+  // placement shows its own answers). `set` holds the lines the player has answered themselves.
+  const answers = PLACEMENT.map(([, units]) => placed() && units.every((u) => known[u]));
+  const set = new Set(placed() ? PLACEMENT.map((_, i) => i) : []);
   const rows = h('div', { class: 'place-list' });
   const done = h('button', { class: 'btn primary' }, 'See my starting point');
-  const hint = h('span', { class: 'muted small' });
   // the questions grouped by the stage of their units, each stage with "all yes" / "all not yet"
   const stageOf = (i) => UNITS.find((u) => u.id === PLACEMENT[i][1][0])?.stage;
   const render = () => {
@@ -501,11 +503,11 @@ export function placementScreen(main) {
     STAGES.forEach((stage, si) => {
       const idx = PLACEMENT.map((_, i) => i).filter((i) => stageOf(i) === stage);
       if (!idx.length) return;
-      // "All not yet" also answers the later stages; "All yes" the earlier ones that are still open
+      // "All not yet" also answers the later stages; "All yes" the earlier lines not answered yet
       const all = (v) => {
         PLACEMENT.forEach((_, i) => {
           const s2 = STAGES.indexOf(stageOf(i));
-          if (s2 === si || (v === false && s2 > si) || (v === true && s2 < si && answers[i] == null)) answers[i] = v;
+          if (s2 === si || (v === false && s2 > si) || (v === true && s2 < si && !set.has(i))) { answers[i] = v; set.add(i); }
         });
         render();
       };
@@ -514,13 +516,10 @@ export function placementScreen(main) {
       for (const i of idx) {
         out.push(h('div', { class: 'place-row' },
           h('span', {}, PLACEMENT[i][0]),
-          h('div', { class: 'seg' }, [[true, 'Yes'], [false, 'Not yet']].map(([v, lab]) => h('button', { class: answers[i] === v ? 'on' : '', onClick: () => { answers[i] = v; render(); } }, lab)))));
+          h('div', { class: 'seg' }, [[true, 'Yes'], [false, 'Not yet']].map(([v, lab]) => h('button', { class: answers[i] === v ? 'on' : '', onClick: () => { answers[i] = v; set.add(i); render(); } }, lab)))));
       }
     });
     rows.replaceChildren(...out);
-    const open = answers.filter((a) => a == null).length;
-    done.disabled = open > 0;
-    hint.textContent = open ? `${open} statement${open > 1 ? 's' : ''} still to answer (the stage buttons answer a whole stage).` : '';
   };
   done.addEventListener('click', () => {
     // units answered "yes" are marked as known; the course starts at the first lesson that is not
@@ -533,7 +532,7 @@ export function placementScreen(main) {
   render();
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('button', { class: 'icon-btn', 'aria-label': 'Back', html: icon('back'), onClick: () => back('#/') }),
-      h('h1', {}, 'My level'), infoBtn(['Yes / Not yet for each line · All yes / All not yet for a stage', '✓ What you know is marked as known', '▶ The course starts at the first gap', '↻ Change it any time'], 'About this survey')),
+      h('h1', {}, 'My level'), infoBtn(['☐ Every line starts at Not yet', '✓ Tap Yes for what you already play', '⇈ All yes on a stage: the stages before it too', '✓ What you know is marked as known', '▶ The course starts at the first gap', '↻ Change it any time'], 'About this survey')),
     rows,
-    h('div', { class: 'row', style: { marginTop: '12px' } }, done, hint));
+    h('div', { class: 'row', style: { marginTop: '12px' } }, done));
 }
