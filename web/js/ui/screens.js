@@ -222,7 +222,8 @@ export function libraryScreen(main, params = {}) {
   const jumps = h('div', { class: 'tabs lv-jump' }, LEVELS.map((L) => h('button', { title: L.name, onClick: () => jump(L.n) }, `L${L.n}`)));
   // "ii-V" must find "ii–V" (every kind of dash counts as a hyphen), "7#5" and "dorian b5" find
   // 7♯5 and Dorian ♭5 (phone keyboards have no ♯ or ♭), "harmonized" finds "harmonised"
-  const norm = (x) => x.toLowerCase().replace(/[\u2010-\u2015\u2212]/g, '-').replace(/♯/g, '#').replace(/♭/g, 'b').replace(/iz(e|ed|es|ing)\b/g, 'is$1').replace(/meter/g, 'metre');
+  const norm = (x) => x.toLowerCase().replace(/[\u2010-\u2015\u2212]/g, '-').replace(/♯/g, '#').replace(/♭/g, 'b').replace(/iz(e|ed|es|ing)\b/g, 'is$1').replace(/meter/g, 'metre')
+    .replace(/colou?r/g, 'colour').replace(/practi[cs]e/g, 'practise');
   // option names count too ("spanish" finds the world scales, "augmented 7" the arpeggio study)
   const optionText = (t) => Object.values(t.params || {}).flatMap((d) => (d.kind === 'select' ? d.options.map((o) => o[1]) : [])).join(' ');
   const render = () => {
@@ -246,12 +247,15 @@ export function libraryScreen(main, params = {}) {
     try { history.replaceState({ ...(history.state || {}), q: search.value }, ''); } catch { /* ignore */ }
     render();
   });
+  // (a level the player has just reached opens: the page scrolls to it once, when it is not the first)
+  const reached = settings.libOpen != null && settings.libAt !== playerLevel() && !params.l ? playerLevel() : null;
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '▸ Tap a level to open or fold it', '🔎 Search by name, topic, song, artist or number (#42)', '★ core: a key exercise of its level', 'ⓘ on a card: what it is'], 'About the Library'), h('div', { class: 'grow' }), search),
     jumps,
     results);
   render();
   if (params.l) requestAnimationFrame(() => jump(Number(params.l)));
+  else if (reached && !search.value) requestAnimationFrame(() => jump(reached));
 }
 
 // ---------------------------------------------------------------- explorer

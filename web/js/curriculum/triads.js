@@ -851,7 +851,7 @@ const US = {
   'iii/I': { name: 'Em/C → Cmaj7', over: 'maj7', off: 4, iv: '3', q: 'min' },
   'II/7': { name: 'D/C7 → C13♯11', over: 'dom7', off: 2, iv: '2', q: 'maj' },
   'VI/7': { name: 'A/C7 → C13♭9', over: 'dom7', off: 9, iv: '6', q: 'maj' },
-  'bVI/7': { name: 'A♭/C7 → C7♯5♯9', over: 'dom7', off: 8, iv: 'b6', q: 'maj' },
+  'bVI/7': { name: 'A♭/C7 → C7♯9♭13', over: 'dom7', off: 8, iv: 'b6', q: 'maj' },
   'bIII/7': { name: 'E♭/C7 → C7♯9', over: 'dom7', off: 3, iv: 'b3', q: 'maj' },
   'bV/7': { name: 'G♭/C7 → C7♭9♯11', over: 'dom7', off: 6, iv: 'b5', q: 'maj' },
   'bVII/m': { name: 'B♭/Cm → Cm11', over: 'min7', off: 10, iv: 'b7', q: 'maj' },
@@ -873,10 +873,12 @@ const upperStructures = ex({
       const u = US[p.us];
       const bass = T.bestRoot(k, T.CHORDS[u.over].iv);
       let r = pickRoot(ctx, k, { strings: ['E', 'A'], hi: 8, prev, prefer: 'E' });
-      // the upper triad is named by its interval above the bass (F♯/B, not G♭/B), plainly when that
-      // would need a double accidental (A/D♭7, not B𝄫/D♭7)
+      // the upper triad is named by its interval above the bass (F♯/B, not G♭/B), and by its lead-sheet
+      // name when that would need C♭, F♭, E♯, B♯ or a double accidental (E/A♭7, not F♭/A♭7); a triad
+      // renamed so is spelled as its name (E G♯ B), the way charts write upper structures
       let upRoot = T.up(bass, u.iv);
-      if (Math.abs(upRoot.a) > 1) upRoot = T.bestRoot(T.mod(k + u.off, 12), ivsOf(u.q));
+      const renamed = T.awkward(upRoot);
+      if (renamed) upRoot = T.bestRoot(T.mod(k + u.off, 12), ivsOf(u.q));
       // the triad from a 5th to an octave and a 5th above the bass, next to the root (G2-B2-D3 over C2);
       // when the top would pass the highest fret, the bass goes an octave lower rather than the triad
       const above = T.mod(u.off, 12) + (T.mod(u.off, 12) < 7 ? 12 : 0);
@@ -903,14 +905,16 @@ const upperStructures = ex({
       const lower = T.CHORDS[u.over].iv;
       // a triad note that is a tone of the lower chord keeps that chord's spelling (the 3rd of E7 is G♯)
       const lowerNote = new Map(lower.map((iv) => [T.pc(T.up(bass, iv)), T.up(bass, iv)]));
-      chordTones(upRoot, ivsOf(u.q), tm, tg).map((t) => ({ ...t, n: lowerNote.get(T.pc(t.n)) || t.n })).forEach((t) => {
+      chordTones(upRoot, ivsOf(u.q), tm, tg).map((t) => ({ ...t, n: (!renamed && lowerNote.get(T.pc(t.n))) || t.n })).forEach((t) => {
         // by pitch class: a lead-sheet spelling (E over A♭7) can make an interval with no name
         const st = T.mod(T.pc(t.n) - T.pc(bass), 12);
         const own = lower.find((iv) => T.mod(T.semis(iv), 12) === st);
         const deg = own ? T.fmtDeg(own === '8' ? '1' : own) : { 1: '♭9', 2: '9', 3: '♯9', 5: '11', 6: '♯11', 8: '♭13', 9: '13' }[st];
         items.push({ ...t, deg: deg || T.fmtDeg(T.ivBetween(bass, t.n)) });
       });
-      items.push({ midi: r.midi, n: bass, deg: 'R' });
+      // (the triad is fingered as one hand shape of its own: the bass below it is a separate reach)
+      items[1].text = items[0].text;
+      items.push({ midi: r.midi, n: bass, deg: 'R', text: items[0].text });
       // the upper triad is one hand shape near the root, not a slide along one string
       const pin = { [r.midi]: r.s };
       const up = chordShape(items.slice(1, -1).map((x) => x.midi), ctx, { home: r.f + 3 });

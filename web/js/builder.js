@@ -221,9 +221,11 @@ export class Builder {
         for (const n of st.notes) n.finger = n.f === 0 ? 0 : Math.min(4, n.f - lo + 1);
       }
     }
-    // a note played again at once (rests between allowed) keeps its finger: the hand does not move on it
+    // a note played again at once (rests between allowed) keeps its finger inside one chord: the hand does
+    // not move on it (a new chord or named part may shift on the repeated note, the way a pivot does)
     let last = null;
     for (const st of this.steps) {
+      if (st.chord || st.text) last = null;
       if (!st.notes.length) continue;
       const n = st.notes.length === 1 ? st.notes[0] : null;
       if (n && last && last.s === n.s && last.f === n.f && n.f > 0 && !this.fixedFingers.has(n)) n.finger = last.finger;

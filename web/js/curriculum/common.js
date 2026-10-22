@@ -758,6 +758,18 @@ export function emitMixed(b, items, popts = {}) {
       tags[j] = 'P';
     }
   }
+  // double thumbing: the thumb's up-stroke (TV) comes back through the string of its down-stroke (T⊓),
+  // and a hammer-on or pull-off after it stays on that string
+  for (let j = 1; j < notes.length; j++) {
+    if (tags[j] !== 'TV' || tags[j - 1] !== 'T⊓' || pos[j].s === pos[j - 1].s) continue;
+    const s = pos[j - 1].s, f = midis[j] - T0[s];
+    if (f < 0 || f > b.ctx.maxFret) continue;
+    pos[j] = { s, f };
+    for (let k = j + 1; k < notes.length && (tags[k] === 'H' || tags[k] === 'PO'); k++) {
+      const f2 = midis[k] - T0[s];
+      if (f2 >= 0 && f2 <= b.ctx.maxFret) pos[k] = { s, f: f2 };
+    }
+  }
   // a run of hammer-ons and pull-offs is one hand position: one finger per fret from the lowest
   // fret (index), the highest under the little finger when the run spans more than four frets
   for (let a = 0; a < notes.length; a++) {

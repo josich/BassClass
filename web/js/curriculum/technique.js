@@ -660,13 +660,13 @@ const SWEEPS = {
 const sweep = ex({
   id: 'tech-sweep', module: M, level: 5,
   title: 'Sweep picking: arpeggios across the strings',
-  summary: 'One note per string in one motion: down-strokes (⊓) through the strings going up, up-strokes (V) coming down, or rakes with the fingers.',
-  about: 'An arpeggio with one note per string can be played in a single motion. With a pick, the pick falls through the strings going up in pitch, all down-strokes (⊓ ⊓ ⊓ ⊓), and comes back through them going down, all up-strokes (V V V): a sweep. With the fingers the same economy is raking: alternate i and m going up the strings, and let one finger fall through them coming down. Each shape is one hand position per chord, and each note must stop as the next one sounds, or the arpeggio blurs into a strummed chord. Four-string shapes run in sextuplets (one sweep up and down per beat); the five-string shape, from the low B, in 16ths.',
+  summary: 'One note per string in one motion: down-strokes (Π) through the strings going up, up-strokes (V) coming down, or rakes with the fingers.',
+  about: 'An arpeggio with one note per string can be played in a single motion. With a pick, the pick falls through the strings going up in pitch, all down-strokes (Π Π Π Π), and comes back through them going down, all up-strokes (V V V): a sweep. With the fingers the same economy is raking: alternate i and m going up the strings, and let one finger fall through them coming down. Each shape is one hand position per chord, and each note must stop as the next one sounds, or the arpeggio blurs into a strummed chord. Four-string shapes run in sextuplets (one sweep up and down per beat); the five-string shape, from the low B, in 16ths.',
   tips: ['Lift (or roll) each fretting finger as soon as its note has sounded: a sweep is a line, not a chord.', 'Slow and even first: the turn at the top gets the same time as every other note.'],
   source: 'Sweep picking from rock and fusion guitar (Frank Gambale, Yngwie Malmsteen), adapted to the bass; finger raking after Gary Willis',
   params: {
     shape: sel('Shape', Object.entries(SWEEPS).map(([k, v]) => [k, v.name, ...(v.minStrings ? [{ minStrings: v.minStrings }] : [])])),
-    hand: sel('Right hand', [['pick', 'Pick (⊓ up the strings, V down)'], ['fingers', 'Fingers (alternate up, rake down)']]),
+    hand: sel('Right hand', [['pick', 'Pick (Π up the strings, V down)'], ['fingers', 'Fingers (alternate up, rake down)']]),
     prog: progP(HAND_PROGS, 'i-bVI-bIII-bVII'),
     key: keyP(['1', 'b3', '5'], { def: '9' }),
   },
@@ -691,8 +691,8 @@ const sweep = ex({
           if (T.mod(ctx.tuning[s0] + f, 12) !== T.pc(c.root)) continue;
           const frets = semis.map((x, i) => ctx.tuning[s0] + f + x - ctx.tuning[s0 + i]);
           if (Math.min(...frets) < 0 || Math.max(...frets) > ctx.maxFret) continue;
-          // (open strings ring on under the next notes: they count as three frets of travel)
-          const cost = Math.abs(f - prev) + (frets.includes(0) ? 3 : 0);
+          // (an open string rings on under the next notes: between two equal places, the fretted one)
+          const cost = Math.abs(f - prev) + (frets.includes(0) ? 1 : 0);
           if (!best || cost < best.cost) best = { f, frets, cost };
         }
         prev = best.f;

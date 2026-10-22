@@ -129,8 +129,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const goalText = () => (LS?.goal ? `goal ${LS.goal} BPM${LS.sub ? ` in ${SUB_NAMES[LS.sub]}` : ''}` : 'one full round');
   const subtitle = L
     ? `${lessonName} · ${demo ? 'demo: listen and watch' : `step ${LI + 1}/${L.steps.length} · ${goalText()}`}`
-    : `${mod?.name ?? ''} · Level ${tpl.level} ${lvl ? lvl.name : ''}`;
-  const titleEl = h('div', { class: 'exv-title' }, h('b', {}, h('span', { class: 'ex-num' }, tpl.num), tpl.title), h('span', { title: subtitle }, subtitle));
+    : `${mod?.name ?? ''}${tpl.song ? ' · style study' : ''} · Level ${tpl.level} ${lvl ? lvl.name : ''}`;
+  const titleEl = h('div', { class: 'exv-title' }, h('b', { title: tpl.title }, h('span', { class: 'ex-num' }, tpl.num), tpl.short || tpl.title), h('span', { title: subtitle }, subtitle));
   let nextBtn = null;
   if (routine) {
     const last = routine.index + 1 >= routine.total;
@@ -575,7 +575,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   function toggleDone() {
     const pr = getProgress(tpl.id) || {};
     const done = !pr.done;
-    updateProgress(tpl.id, done ? { done, bestBpm: Math.max(pr.bestBpm || 0, player.bpm) } : { done });
+    // (in a lesson step the exercise's own best tempo stays as it was: lessons do not change it)
+    updateProgress(tpl.id, done ? { done, ...(lesson ? {} : { bestBpm: Math.max(pr.bestBpm || 0, player.bpm) }) } : { done });
     toast(done ? `Mastered at ${player.bpm} BPM ✓` : 'Unmarked');
     syncToggles();
   }

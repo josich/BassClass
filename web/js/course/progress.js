@@ -41,8 +41,13 @@ export const CHANGED_STEPS = [
   // QA round 12: song studies whose notes changed (Seven Nation Army without dotted notes, Teen Spirit's
   // verse, Californication's F, Feel Good's D octave, Money's middle part, Classical Thump's strokes)
   { rev: 5, steps: ['u-scales-check.2', 's1-test.6', 's2-test.6', 's2-test.7', 'u-time4-check.5', 's6-test.8'] },
+  // QA round 13: Billie Jean's C♯m7 bar, Longview in E, Classical Thump's A7 and B7 pops
+  { rev: 6, steps: ['u-triads3-check.3', 's3-test.7', 's6-test.8'] },
 ];
 const REV = CHANGED_STEPS.length;
+// a step whose notes changed after the player finished its lesson asks to be played again, but the
+// lesson stays finished (level, Continue and reviews do not move): see isComplete
+const CHANGED_KEYS = new Set(CHANGED_STEPS.flatMap((c) => c.steps));
 // A lesson completed stays complete when steps or "I can" lines are appended later: its record keeps
 // how many it had (`n`, `c`). Records from before that (v1.0.49 and older) take these counts (v1.0.43,
 // the same through v1.0.49) for the checkpoints and tests that have grown since: [steps, "I can" lines].
@@ -159,7 +164,7 @@ export function isComplete(lesson) {
   const was = rec?.done ? (rec.n ? [rec.n, rec.c] : COUNTS_V143[lesson.id]) : null;
   const n = was ? Math.min(was[0], lesson.steps.length) : lesson.steps.length;
   const c = was ? Math.min(was[1], (lesson.can || []).length) : (lesson.can || []).length;
-  for (let i = 0; i < n; i++) if (!stepClean(lesson, i)) return false;
+  for (let i = 0; i < n; i++) if (!stepClean(lesson, i) && !(rec?.done && CHANGED_KEYS.has(skey(lesson.id, i)))) return false;
   for (let i = 0; i < c; i++) if (!canTicked(lesson, i)) return false;
   return true;
 }
@@ -227,12 +232,14 @@ export function continueLesson() {
   return LESSONS.find(open) || null;
 }
 
-// A lesson added to a unit whose checkpoint the player has already passed is new material, not a gap: it
-// does not lower the level, and Continue does not go back for it (the map shows it as new)
+// A lesson added to a unit after the player passed its checkpoint (`added`: when it shipped) is new
+// material, not a gap: it does not lower the level, and Continue does not go back for it (the map
+// shows it as new). A lesson the unit always had stays in the course order.
 function addedLater(l) {
-  if (l.kind !== 'lesson' || !l.unit) return false;
+  if (l.kind !== 'lesson' || !l.unit || !l.added) return false;
   const check = LESSONS.find((x) => x.kind === 'check' && x.unit === l.unit);
-  return !!check && status(check) === 'done';
+  const rec = check && state.lessons[check.id];
+  return !!rec?.done && rec.done < l.added && status(check) === 'done';
 }
 const open = (l) => !l.optional && ['started', 'new'].includes(status(l)) && !addedLater(l);
 

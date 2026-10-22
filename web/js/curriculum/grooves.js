@@ -30,7 +30,7 @@ const GROOVES = {
   neoSoul: { name: 'Neo-soul (laid back, ghost notes)', bars: [[['R', 1], ['x', 0.25], ['5', 0.25], ['-', 0.5], ['7', 0.75], ['8', 0.25], ['-', 0.5], ['5', 0.5]]] },
   soulBallad: { name: 'Soul ballad (long roots, passing tones)', bars: [[['R', 2], ['3', 1], ['A', 1]]] },
   pickDown: { name: 'Pick: down-strokes only (punk 8ths)', bars: [e8('R').map(([t, d]) => [t, d, '⊓'])] },
-  pickAlt: { name: 'Pick: alternate picking (⊓ V) with the 5th', bars: [[['R', 0.5, '⊓'], ['R', 0.5, 'V'], ['R', 0.5, '⊓'], ['R', 0.5, 'V'], ['5', 0.5, '⊓'], ['5', 0.5, 'V'], ['8', 0.5, '⊓'], ['5', 0.5, 'V']]] },
+  pickAlt: { name: 'Pick: alternate picking (Π V) with the 5th', bars: [[['R', 0.5, '⊓'], ['R', 0.5, 'V'], ['R', 0.5, '⊓'], ['R', 0.5, 'V'], ['5', 0.5, '⊓'], ['5', 0.5, 'V'], ['8', 0.5, '⊓'], ['5', 0.5, 'V']]] },
   gallop: { name: 'Pick: the metal gallop (8th + two 16ths)', bars: [[['R', 0.5, '⊓'], ['R', 0.25, '⊓'], ['R', 0.25, 'V'], ['R', 0.5, '⊓'], ['R', 0.25, '⊓'], ['R', 0.25, 'V'], ['R', 0.5, '⊓'], ['R', 0.25, '⊓'], ['R', 0.25, 'V'], ['5', 0.5, '⊓'], ['8', 0.25, '⊓'], ['5', 0.25, 'V']]] },
   funkOct: { shape: true, name: 'Octave funk 16ths', bars: [[['R', 0.25], ['x', 0.25], ['8', 0.25], ['x', 0.25], ['x', 0.25], ['R', 0.25], ['8', 0.25], ['x', 0.25], ['R', 0.25], ['x', 0.25], ['8', 0.25], ['b7', 0.25], ['x', 0.25], ['8', 0.25], ['R', 0.25], ['x', 0.25]]] },
   fill: {
@@ -141,9 +141,9 @@ const soul = grooveEx('gr-soul', 4, ['neoSoul', 'soulBallad', 'motown'], 'neoSou
 
 const pick = grooveEx('gr-pick', 2, ['pickDown', 'pickAlt', 'gallop'], 'pickDown', {
   title: 'Playing with a pick: down-strokes, alternate picking & the gallop',
-  summary: '⊓ = down-stroke, V = up-stroke: punk 8ths, alternate picking and the metal gallop.',
-  about: 'Many rock, punk and metal bassists play with a pick for a sharp, even attack. Down-strokes only (⊓) give the driving punk sound and need a relaxed wrist; alternate picking (⊓ V) is faster and smoother; the gallop (8th + two 16ths) is the classic metal rhythm. Mute with the side of the picking hand (palm mute) for a tighter sound.',
-  tips: ['Hold the pick between the thumb and the side of the index finger; move from the wrist, not the elbow.', 'Palm mute: rest the edge of the hand lightly on the strings near the bridge.', 'Gallop: ⊓ on the 8th, then ⊓ V on the two 16ths.'],
+  summary: 'Π = down-stroke, V = up-stroke: punk 8ths, alternate picking and the metal gallop.',
+  about: 'Many rock, punk and metal bassists play with a pick for a sharp, even attack. Down-strokes only (Π) give the driving punk sound and need a relaxed wrist; alternate picking (Π V) is faster and smoother; the gallop (8th + two 16ths) is the classic metal rhythm. Mute with the side of the picking hand (palm mute) for a tighter sound.',
+  tips: ['Hold the pick between the thumb and the side of the index finger; move from the wrist, not the elbow.', 'Palm mute: rest the edge of the hand lightly on the strings near the bridge.', 'Gallop: Π on the 8th, then Π V on the two 16ths.'],
   source: 'Pick technique from rock and metal bass teaching (Hal Leonard Bass Method; TalkingBass "Playing Bass with a Pick")', bpm: 100,
 });
 
@@ -305,7 +305,7 @@ const SLAPS = {
   triad: { name: 'Slap arpeggio (T R, T 5, P 8, P 10)', bars: [[['R', 0.5, 'T'], ['5', 0.5, 'T'], ['8', 0.5, 'P'], ['10', 0.5, 'P'], ['R', 0.5, 'T'], ['5', 0.5, 'T'], ['8', 0.5, 'P'], ['5', 0.5, 'T']]] },
   ghostFunk: { name: 'Ghost-note funk: thumb ghosts, hammer-ons, pop and pull-off', bars: [[['R', 0.25, 'T'], ['x', 0.25, 'T'], ['b3', 0.25, 'H'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['5', 0.25, 'T'], ['b7', 0.25, 'H'], ['8', 0.25, 'P'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['b3', 0.25, 'H'], ['4', 0.25, 'T'], ['8', 0.25, 'P'], ['b7', 0.25, 'PO'], ['5', 0.25, 'T'], ['x', 0.25, 'T']]] },
   popFill: { name: 'Pop fill down the minor pentatonic (pull-offs)', bars: [[['R', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['b7', 0.25, 'PO'], ['5', 0.25, 'T'], ['4', 0.25, 'PO'], ['b3', 0.25, 'PO'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['R', 0.25, 'T']]] },
-  double: { name: 'Double thumb (down T⊓ / up TV) + pop', bars: [[['R', 0.25, 'T⊓'], ['R', 0.25, 'TV'], ['8', 0.25, 'P'], ['10', 0.25, 'P'], ['R', 0.25, 'T⊓'], ['R', 0.25, 'TV'], ['8', 0.25, 'P'], ['b7', 0.25, 'P'], ['5', 0.25, 'T⊓'], ['5', 0.25, 'TV'], ['8', 0.25, 'P'], ['10', 0.25, 'P'], ['b3', 0.25, 'T⊓'], ['b3', 0.25, 'TV'], ['4', 0.25, 'H'], ['8', 0.25, 'P']]] },
+  double: { name: 'Double thumb (down TΠ / up TV) + pop', bars: [[['R', 0.25, 'T⊓'], ['R', 0.25, 'TV'], ['8', 0.25, 'P'], ['10', 0.25, 'P'], ['R', 0.25, 'T⊓'], ['R', 0.25, 'TV'], ['8', 0.25, 'P'], ['b7', 0.25, 'P'], ['5', 0.25, 'T⊓'], ['5', 0.25, 'TV'], ['8', 0.25, 'P'], ['10', 0.25, 'P'], ['b3', 0.25, 'T⊓'], ['b3', 0.25, 'TV'], ['4', 0.25, 'H'], ['8', 0.25, 'P']]] },
 };
 
 function slapEx(id, level, styles, def, prog, meta) {
@@ -350,7 +350,7 @@ const slapAdvanced = slapEx('sl-advanced', 5, ['ghostFunk', 'popFill'], 'ghostFu
 
 const doubleThumb = slapEx('sl-double-thumb', 6, ['double'], 'double', 'vamp-min', {
   title: 'Double thumbing',
-  summary: 'Thumb down (T⊓) and up (TV) like a pick: Victor Wooten\'s signature technique.',
+  summary: 'Thumb down (TΠ) and up (TV) like a pick: Victor Wooten\'s signature technique.',
   about: 'Double thumbing uses the thumb in both directions: a downstroke that rests on the next string, then an upstroke with the thumbnail side. Combined with pops it allows continuous 16th-note slap lines at high speed.',
   tips: ['Start painfully slow, thumb only: down–up on one string.', 'Keep the wrist loose; the thumb moves like a pick.'],
   source: 'Victor Wooten; TalkingBass Slap (double thumb); SBL Slap Accelerator', bpm: 60,

@@ -435,9 +435,13 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .session-path .chip { margin: 0; }
 .session-sub { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 4px 0 -2px; }
 .session-list .item .t b { font-weight: 600; white-space: normal; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-@media (max-width: 480px) { .session-list .item .t b { -webkit-line-clamp: 3; } }
 .lesson-page .chip.opt, .les-title .chip.opt { margin-left: 8px; font-size: 10.5px; vertical-align: 1px; }
 .session-list .item .tag { flex: none; color: var(--muted); font-size: 11.5px; white-space: nowrap; }
+@media (max-width: 480px) {
+  .session-list .item .t b { -webkit-line-clamp: 3; }
+  /* (a long tag wraps under itself instead of squeezing the title) */
+  .session-list .item .tag { white-space: normal; max-width: 38%; text-align: right; }
+}
 .session-list .item.played .n { background: var(--accent); color: var(--accent-ink); }
 .session-list .item.played .t b { color: var(--muted); }
 .session-list .more-warm { align-self: flex-start; padding: 4px 10px; font-size: 12.5px; min-height: 32px; }

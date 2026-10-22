@@ -62,8 +62,9 @@ const libItem = (t, level, rand, slot) => ({ id: t.id, params: routineParams(t, 
 const optWords = (def, v) => {
   const lab = String((paramOptions(def, settings).find((o) => String(o[0]) === String(v)) || [, v])[1]);
   const w = lab.replace(/\s*\([^)]*\)/g, '').trim() || lab;
-  // (a bare number says what it counts: "Notes per string: 4", not "4")
-  return /^\d+$/.test(w) ? `${def.label}: ${w}` : w;
+  // (a bare number says what it counts, briefly: "8 per string", "Fingers: 1-2", not "8" or "1-2")
+  if (!/^[\d\s\-–:/]+$/.test(w)) return w;
+  return /^Notes per /.test(def.label) ? `${w} per ${def.label.slice(10)}` : `${def.label}: ${w}`;
 };
 /**
  * What tells apart the rows of one exercise in a list ("Beats 2 & 4", "5/4"): the options that
@@ -87,8 +88,8 @@ function variants(list) {
       keys.push(k);
     }
     // each option gets its share of the room, so a long first option cannot hide the one that differs
-    const room = Math.max(9, Math.floor(28 / Math.max(1, keys.length)));
-    const cut = (w) => (w.length > room ? `${w.slice(0, room - 1)}…` : w);
+    const room = Math.max(10, Math.floor(32 / Math.max(1, keys.length)));
+    const cut = (w) => (w.length > room ? `${w.slice(0, room - 1).trimEnd()}…` : w);
     idx.forEach((i, j) => {
       let w = keys.map((k) => cut(full[j][k] === '*' ? `any ${(t.params[k].label || k).toLowerCase()}` : optWords(t.params[k], full[j][k]))).join(' · ');
       if (!w && list[i].sub && new Set(idx.map((x) => list[x].sub)).size > 1) w = SUB_NAMES[list[i].sub];
@@ -205,7 +206,7 @@ function buildSession(minutes, cur, history) {
     const songs = EXERCISES.filter((t) => t.module === 'music' && t.level >= 5 && !recent.has(t.id) && !has(t.id));
     for (let k = 0; k < Math.max(1, Math.floor((n - count()) / 4)) && songs.length && count() < n; k++) {
       const t = songs.splice(Math.floor(rand() * songs.length), 1)[0];
-      items.push({ id: t.id, params: { part: 'all' }, slot: `Library · L${t.level}` });
+      items.push({ id: t.id, params: { part: t.params.part.options.some((o) => o[0] === 'all') ? 'all' : '0' }, slot: `Library · L${t.level}` });
     }
   }
   // (a routine has one exercise of each kind: as many as the room needs)
