@@ -51,7 +51,7 @@ const WARM = ['technique', 'fretboard', 'rhythm'];
 export const FOCUS = [
   { name: 'Scales', of: (t) => ['scales', 'modes'].includes(t.module) },
   { name: 'Chords', of: (t) => ['triads', 'arpeggios', 'harmony'].includes(t.module) },
-  { name: 'Lines and grooves', of: (t) => ['grooves', 'walking', 'licks', 'slap'].includes(t.module) },
+  { name: 'Lines and grooves', of: (t) => ['grooves', 'walking', 'licks', 'slap', 'music'].includes(t.module) },
   { name: 'Ear and reading', of: (t) => isEar(t.id) },
 ];
 /** The player's level: the stage of the first lesson not done or known (6 once nothing new is left). */

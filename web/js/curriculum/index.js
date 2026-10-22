@@ -12,6 +12,7 @@ import grooves from './grooves.js';
 import licks from './licks.js';
 import reading from './reading.js';
 import ear from './ear.js';
+import songs from './songs.js';
 
 export const LEVELS = [
   { n: 1, name: 'Foundations', desc: 'Open strings, first notes, steady pulse, first shapes.' },
@@ -38,9 +39,10 @@ export const MODULES = [
   { id: 'walking', name: 'Walking Bass', icon: '🚶', desc: 'Two-feel to bebop: chord tones, approaches, enclosures.' },
   { id: 'licks', name: 'Jazz Licks', icon: '🎷', desc: 'Advanced vocabulary: ii–V–I, minor, blues, bebop, modern, bass solos, motifs, implied changes.' },
   { id: 'slap', name: 'Slap & Pop', icon: '👍', desc: 'Thumb, pop, hammer, ghost notes, double thumb.' },
+  { id: 'music', name: 'Make Music', icon: '🎵', desc: 'Original lines in the style of famous songs, from the first riff to a whole bass solo.' },
 ];
 
-const ALL = [...fretboard, ...reading, ...technique, ...rhythm, ...intervals, ...ear, ...scales, ...modes, ...triads, ...arpeggios, ...harmony, ...grooves, ...licks];
+const ALL = [...fretboard, ...reading, ...technique, ...rhythm, ...intervals, ...ear, ...scales, ...modes, ...triads, ...arpeggios, ...harmony, ...grooves, ...licks, ...songs];
 {
   const seen = new Set();
   for (const t of ALL) {
@@ -53,7 +55,7 @@ export const EXERCISES = ALL;
 export const byId = new Map(ALL.map((e) => [e.id, e]));
 
 /** Topic order inside a level: hands and time first, then the neck, then theory and music. */
-export const PATH_ORDER = ['technique', 'rhythm', 'fretboard', 'reading', 'intervals', 'ear', 'scales', 'modes', 'triads', 'arpeggios', 'harmony', 'grooves', 'walking', 'licks', 'slap'];
+export const PATH_ORDER = ['technique', 'rhythm', 'fretboard', 'reading', 'intervals', 'ear', 'scales', 'modes', 'triads', 'arpeggios', 'harmony', 'grooves', 'walking', 'licks', 'slap', 'music'];
 export const topicRank = (id) => { const i = PATH_ORDER.indexOf(id); return i < 0 ? PATH_ORDER.length : i; };
 
 // Exercise numbers (t.num) follow the Library: level, then topic (path order), then the order of

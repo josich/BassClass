@@ -300,6 +300,7 @@ export default {
         steps: [
           { ex: 'gr-roots', p: { style: 'rock8', prog: 'I-V-vi-IV' }, from: 96, goal: 120, backing: 'chords' },
           { ex: 'gr-roots', p: { style: 'r585', prog: 'I-IV-V-I' }, from: 90, goal: 112, backing: 'chords' },
+          { ex: 'mm-pulse', p: { part: 'all' }, from: 84, goal: 104, backing: 'chords', music: true, do: 'Make music: root 8ths through four chords, then the lift through each triad. Every 8th even.' },
         ],
       },
     },
@@ -367,6 +368,7 @@ export default {
         steps: [
           { ex: 'sc-one-octave', p: { type: 'ionian', root: 'A', oct: '1' }, sub: 1, from: 72, goal: 96 },
           { ex: 'sc-one-octave', p: { type: 'minorPent', root: 'E', oct: '1' }, sub: 1, from: 72, goal: 100 },
+          { ex: 'mm-stomp', p: { part: 'all' }, from: 84, goal: 116, backing: 'chords', music: true, do: 'Make music: a heavy riff on the E minor pentatonic. Let every long note ring.' },
         ],
       },
     },
@@ -493,6 +495,8 @@ export default {
       { ex: 'tri-shape', p: { quality: 'min', shape: 'octave' }, sub: 1, from: 80, goal: 100 },
       { ex: 'rh-pulse', p: { click: '1' }, from: 76, goal: 92 },
       { ex: 'rd-naturals', p: { range: 'all' }, from: 60, goal: 72 },
+      { ex: 'mm-zombie', p: { part: 'all' }, from: 66, goal: 84, backing: 'chords', music: true, do: 'Make music: the heavy verse, then pumping octaves in the chorus.' },
+      { ex: 'mm-spirit', p: { part: 'all' }, from: 84, goal: 112, backing: 'chords', music: true, do: 'Make music: quiet verse, loud chorus. Same notes, two energies.' },
     ],
   },
 };
