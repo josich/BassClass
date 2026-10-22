@@ -263,16 +263,63 @@ export function engraveStaff(inst, { beatsOf, label, beatsPerBar = 4, compact = 
   const yOf = (st) => top + (hiStep - st) * half;
   const mid = yOf(MIDDLE);
 
-  // horizontal spacing: proportional to time, roomy enough for the shortest written value
-  const minT = Math.min(...events.map((e) => e.dur), TPQ);
-  const pxQ = Math.min(170, Math.max(46, (2.6 * s * TPQ) / minT));
+  // horizontal spacing, as an engraver spaces: time sets the base (a 16th or anything shorter gets
+  // 2.9 spaces, and each doubling of a value √2 times more, so a quarter keeps 46 px), and each gap
+  // then widens to fit what its two notes carry: the heads and dots, the next note's accidental and
+  // the label under the staff. X() interpolates between these anchors, so beams, ties, rests, bar
+  // lines and the cursor columns all follow one layout; a fast passage opens up by itself without
+  // stretching the rest of the line.
+  const labelsOf = steps.map((st) => (st.hide || st.silent ? [] : st.notes.map((n) => label(n)).filter(Boolean)));
   const head0 = 40 + Math.abs(ks) * 1.1 * s + 2.4 * s;    // clef, key signature, time signature
   // each bar line gets room after it, so a first note's accidental never touches the line
   const barGap = 1.8 * s;
-  const X = (tk) => head0 + (tk / TPQ) * pxQ + 1.4 * s + Math.floor(tk / barT + 1e-9) * barGap;
+  const LW = 6.2; // px per character of a label
+  // (a staff made smaller to fit its range keeps its horizontal room: scrolling is cheap)
+  const timeSpace = (d) => Math.max(2.9 * s, 23) * Math.sqrt(Math.max(1, d / (TPQ / 4)));
+  const right = new Map(), left = new Map(), lab = new Map();
+  const grow = (m, k, v) => m.set(k, Math.max(m.get(k) || 0, v));
+  {
+    // the accidentals the engraving will write (the same rule: they hold to the end of the bar)
+    const acc = new Map();
+    events.forEach((e) => {
+      grow(right, e.pos, 0.7 * s);
+      const st = stepOfEvent(e);
+      if (e.i < 0 || st.rest || !st.notes.length || st.hide) return;
+      grow(right, e.pos, (0.7 + (e.val.dots ? 0.6 + 0.55 * e.val.dots : 0) + (e.val.flags ? 0.4 : 0)) * s);
+      if (!e.first) return;
+      const bar = Math.floor(e.pos / barT);
+      if (!acc.has(bar)) acc.set(bar, new Map());
+      const state = acc.get(bar);
+      let accW = 0;
+      for (const p of placed[e.i]) {
+        if (p.kind === 'x') continue;
+        const want = state.has(p.step) ? state.get(p.step) : (keyAcc[p.n.n.l] || 0);
+        if (p.n.n.a !== want) accW = Math.max(accW, accWidth(p.n.n.a, s));
+        state.set(p.step, p.n.n.a);
+      }
+      grow(left, e.pos, accW ? 1.25 * s + accW * 0.6 : 0.7 * s);
+      // (a chord whose labels do not fit side by side stacks them: its longest one counts)
+      const ls = labelsOf[e.i];
+      if (ls.length) grow(lab, e.pos, Math.min(ls.join('·').length, Math.max(...ls.map((t) => t.length))) * LW);
+    });
+  }
+  const tickSet = new Set(events.map((e) => e.pos));
+  for (let b = 0; b <= padEnd; b += barT) tickSet.add(b);
+  const ticks = [...tickSet].sort((a, b) => a - b);
+  const xs = [head0 + 1.4 * s];
+  for (let k = 1; k < ticks.length; k++) {
+    const a = ticks[k - 1], b = ticks[k];
+    const content = Math.max((right.get(a) || 0) + (left.get(b) || 0) + 0.35 * s, (lab.get(a) || 0) + 3);
+    xs.push(xs[k - 1] + Math.max(timeSpace(b - a), content) + (b % barT === 0 && b < padEnd ? barGap : 0));
+  }
+  const X = (tk) => {
+    let lo = 0, hi = ticks.length - 1;
+    if (tk >= ticks[hi]) return xs[hi] + ((tk - ticks[hi]) / TPQ) * timeSpace(TPQ);
+    while (hi - lo > 1) { const m = (lo + hi) >> 1; if (ticks[m] <= tk) lo = m; else hi = m; }
+    return xs[lo] + ((tk - ticks[lo]) / (ticks[hi] - ticks[lo])) * (xs[hi] - xs[lo]);
+  };
   const width = Math.max(X(padEnd) + 24, 0);
   const cols = steps.map((st, i) => ({ i, x: X(wpos[i]) - 1.4 * s, w: Math.max(14, X(wend(i)) - X(wpos[i])) }));
-  const labelsOf = steps.map((st) => (st.hide || st.silent ? [] : st.notes.map((n) => label(n)).filter(Boolean)));
   const stacked = labelsOf.map((l, i) => l.length > 1 && l.join('·').length * 6.2 > cols[i].w);
   const stackLines = Math.max(1, ...labelsOf.map((l, i) => (stacked[i] ? l.length : 1)));
   // only the bars inside the window are engraved (long all-key exercises: a few bars, not hundreds)
@@ -387,7 +434,7 @@ export function engraveStaff(inst, { beatsOf, label, beatsPerBar = 4, compact = 
     if (e.val.stem && !gr) {
       const sx = stemX(x, up);
       const y1 = up ? yOf(lo) : yOf(hi), y2 = up ? yOf(hi) - stemLen : yOf(lo) + stemLen;
-      svg += `<line x1="${f2(sx)}" x2="${f2(sx)}" y1="${f2(y1)}" y2="${f2(y2)}" class="sst" style="stroke-width:${f2(0.17 * s)}"/>`;
+      svg += `<line x1="${f2(sx)}" x2="${f2(sx)}" y1="${f2(y1)}" y2="${f2(y2)}" class="sst" style="stroke-width:${f2(0.13 * s)}"/>`;
       if (e.val.flags) svg += flagPath(sx, y2, s, up, e.val.flags);
       e.stemEnd = y2;
     }
@@ -403,16 +450,17 @@ export function engraveStaff(inst, { beatsOf, label, beatsPerBar = 4, compact = 
   });
 
   // beams: slanted with the contour (at most a quarter of a space per head), every stem at least 2.5 spaces
+  let lastTup = null; // the tuplet group just before: a steady run writes its number once a bar
   for (const gr of groups) {
     if (gr.ix.length < 2) continue;
     const up = gr.dir === 'up';
     if (!inWin(events[gr.ix[0]].pos)) continue;
     const { evs, xs, by } = beamLine(gr);
     const far = evs.map((e) => { const sts = stepsOfEvent(e); return up ? yOf(Math.min(...sts)) : yOf(Math.max(...sts)); });
-    const th = 0.5 * s;
+    const th = 0.42 * s;
     let svg = '';
     evs.forEach((e, j) => {
-      svg += `<line x1="${f2(xs[j])}" x2="${f2(xs[j])}" y1="${f2(far[j])}" y2="${f2(by(xs[j]))}" class="sst" style="stroke-width:${f2(0.17 * s)}"/>`;
+      svg += `<line x1="${f2(xs[j])}" x2="${f2(xs[j])}" y1="${f2(far[j])}" y2="${f2(by(xs[j]))}" class="sst" style="stroke-width:${f2(0.13 * s)}"/>`;
     });
     const beam = (xa, xb, off) => {
       const ya = by(xa) + (up ? off : -off), yb = by(xb) + (up ? off : -off);
@@ -423,7 +471,7 @@ export function engraveStaff(inst, { beatsOf, label, beatsPerBar = 4, compact = 
     for (let lvl = 2; lvl <= 3; lvl++) {
       evs.forEach((e, j) => {
         if (e.val.flags < lvl) return;
-        const off = (lvl - 1) * 0.8 * s;
+        const off = (lvl - 1) * 0.72 * s;
         if (j + 1 < evs.length && evs[j + 1].val.flags >= lvl) svg += beam(xs[j], xs[j + 1], off);
         else if (!(j > 0 && evs[j - 1].val.flags >= lvl)) {
           // a lone short note: a stub pointing into the group
@@ -433,12 +481,19 @@ export function engraveStaff(inst, { beatsOf, label, beatsPerBar = 4, compact = 
       });
     }
     out(evs[0].pos, svg);
-    // tuplet number over (or under) a beamed tuplet group
+    // tuplet number over (or under) a beamed tuplet group: in a steady run of the same tuplet only the
+    // first group of each bar shows it (the engraver's convention), so 5s and 6s do not crowd the staff
     if (gr.tup && evs.reduce((a, e) => a + e.dur, 0) % beatT === 0) {
-      const xm = (xs[0] + xs[xs.length - 1]) / 2;
-      const topHead = Math.min(...evs.map((e) => yOf(Math.max(...stepsOfEvent(e)))));
-      const ym = up ? by(xm) - 0.8 * s : Math.min(topHead, yOf(26)) - 0.9 * s;
-      out(evs[0].pos, `<text x="${f2(xm)}" y="${f2(ym)}" class="stn">${gr.tup}</text>`);
+      const bar = Math.floor(evs[0].pos / barT);
+      const steady = lastTup && lastTup.n === gr.tup && lastTup.bar === bar && lastTup.end === evs[0].pos;
+      if (!steady) {
+        const xm = (xs[0] + xs[xs.length - 1]) / 2;
+        const topHead = Math.min(...evs.map((e) => yOf(Math.max(...stepsOfEvent(e)))));
+        const ym = up ? by(xm) - 0.8 * s : Math.min(topHead, yOf(26)) - 0.9 * s;
+        out(evs[0].pos, `<text x="${f2(xm)}" y="${f2(ym)}" class="stn">${gr.tup}</text>`);
+      }
+      const end = evs[evs.length - 1];
+      lastTup = { n: gr.tup, bar, end: end.pos + end.dur };
     }
   }
   // tuplets that are not beamed: a bracket with the number in a gap, over each span back on the beat grid
