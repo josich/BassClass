@@ -42,3 +42,27 @@ window.jumps = (inst, k = 7) => {
   return out;
 };
 'user12 ready';
+// ---- added during the run (paste after the block above)
+// jumpsT(inst, k): moves of k frets or more between consecutive fretted notes, with the value of the note before
+window.jumpsT = (inst, k = 7) => {
+  const out = []; let prev = null;
+  for (const st of inst.steps) { for (const n of st.notes) {
+    if (prev && n.f > 0 && prev.n0.f > 0 && Math.abs(n.f - prev.n0.f) >= k) out.push(`${Q.nn(prev.n0.n)}@${SN(prev.n0.s)}${prev.n0.f}→${Q.nn(n.n)}@${SN(n.s)}${n.f} (${Math.abs(n.f - prev.n0.f)} frets after a ${+prev.dur.toFixed(3)}-beat note)`);
+  } if (st.notes.length) prev = { n0: st.notes[0], dur: st.dur }; }
+  return out;
+};
+// isolated(inst): a note at fret 7+ whose neighbours are open strings or 6+ frets away (e.g. E1 open, E2 at E12, E1 open)
+window.isolated = (inst) => { const all = inst.steps.flatMap((s) => s.notes); const out = [];
+  all.forEach((n, i) => { if (n.f < 7) return; const a = all[i - 1], b = all[i + 1]; const far = (m) => !m || m.f === 0 || Math.abs(m.f - n.f) >= 6;
+    if (far(a) && far(b)) out.push(`${a ? Q.nn(a.n) + '@' + SN(a.s) + a.f : ''} [${Q.nn(n.n)}@${SN(n.s)}${n.f}] ${b ? Q.nn(b.n) + '@' + SN(b.s) + b.f : ''}`); });
+  return [...new Set(out)]; };
+// oddLabels(): Make Music labels worth a look ("3" over a minor chord, "♯1", "♭5" spelled with ♯, 2/4/6 on a dominant)
+window.oddLabels = () => { const out = [];
+  for (const t of Q.I.EXERCISES.filter((x) => x.module === 'music')) for (const p of t.params.part.options.map((o) => o[0]).filter((x) => x !== 'all'))
+    for (const g of groups(Q.b(t.id, { part: p }))) { const ch = g.h.replace(/\{.*\}/, ''); for (const n of g.notes) { const nm = Q.nn(n.n);
+      const odd = (n.deg === '3' && /m/.test(ch) && !/maj/.test(ch)) || n.deg === '♯1' || (n.deg === '♭5' && nm.includes('♯')) || (['2', '4', '6'].includes(n.deg) && /7/.test(ch) && !/m|maj/.test(ch));
+      if (odd) out.push(`${t.id} p${p} [${ch}] ${nm} = ${n.deg}`); } }
+  return [...new Set(out)]; };
+// session pools (writes bassclass.session.v1 / course storage in the qauser tab only):
+//   P.setKnown(P.UNITS.map((u) => u.id)) makes a graduate; then plan 40 x 30-min sessions with
+//   P.clearSession(); P.setSessionMinutes(30); C.sessionBlock(); P.sessionStore().cur.lists[30].filter((x) => x.warm)
