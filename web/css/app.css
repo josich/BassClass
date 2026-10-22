@@ -85,6 +85,12 @@ h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -0.01em; }
 
 .section { margin: 18px 0 8px; display: flex; align-items: baseline; gap: 10px; }
 .section h2 { font-size: 16px; }
+/* Library levels fold: the header is the toggle, with its own arrow */
+details.lv-fold > summary { cursor: pointer; list-style: none; padding: 4px 0; align-items: center; user-select: none; }
+details.lv-fold > summary::-webkit-details-marker { display: none; }
+details.lv-fold > summary::before { content: '\25B8'; color: var(--muted); font-size: 17px; width: 14px; transition: transform 0.15s; }
+details.lv-fold[open] > summary::before { transform: rotate(90deg); }
+details.lv-fold:not([open]) > summary { margin: 6px 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
 
 
 .btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--panel-2); border-radius: 10px; padding: 8px 14px; font-weight: 600; }

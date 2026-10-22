@@ -177,16 +177,27 @@ export function moduleScreen(main, id) {
 }
 
 // ---------------------------------------------------------------- library: every exercise at one sight, with search
+// each level folds (a long page otherwise): the levels left open are remembered, and until the player
+// opens or folds one, only their own level is open
+const libOpen = () => new Set(settings.libOpen ?? [playerLevel()]);
+function setLibOpen(n, open) {
+  const s = libOpen();
+  if (open) s.add(n); else s.delete(n);
+  saveSettings({ libOpen: [...s].sort() });
+}
 function levelSections() {
+  const open = libOpen();
   return LEVELS.flatMap((L) => {
     // inside a level: the path's topic order (hands and time first), then by number
     const list = byLevel(L.n).sort((a, b) => rank(a.module) - rank(b.module) || a.num - b.num);
     if (!list.length) return [];
     const done = list.filter((t) => (getProgress(t.id) || {}).done).length;
-    return [
-      h('div', { class: 'section', id: `lv-${L.n}` }, h('span', { class: `chip lv lv${L.n}` }, `Level ${L.n}`), h('h2', {}, L.name), infoBtn(L.desc, `About Level ${L.n}`), h('span', { class: 'muted small' }, `${done}/${list.length} mastered`)),
-      h('div', { class: 'grid' }, list.map((t) => card(t, { level: false }))),
-    ];
+    const fold = h('details', { class: 'lv-fold', id: `lv-${L.n}`, open: open.has(L.n) },
+      h('summary', { class: 'section' }, h('span', { class: `chip lv lv${L.n}` }, `Level ${L.n}`), h('h2', {}, L.name), infoBtn(L.desc, `About Level ${L.n}`), h('span', { class: 'muted small' }, `${done}/${list.length} mastered`)),
+      h('div', { class: 'grid' }, list.map((t) => card(t, { level: false }))));
+    // (the toggle event also fires when the page is drawn: only a change is saved)
+    fold.addEventListener('toggle', () => { if (libOpen().has(L.n) !== fold.open) setLibOpen(L.n, fold.open); });
+    return [fold];
   });
 }
 
@@ -194,8 +205,13 @@ export function libraryScreen(main, params = {}) {
   // the search text belongs to this history entry, so Back from an exercise finds it again
   const search = h('input', { class: 'search', type: 'search', placeholder: 'Search: triad, ii-V, 42…', 'aria-label': 'Search exercises', value: history.state?.q || '' });
   const results = h('div');
-  // jump to a level (the page lists every exercise)
-  const jump = (n) => main.querySelector(`#lv-${n}`)?.scrollIntoView({ block: 'start' });
+  // jump to a level (opening it if it is folded)
+  const jump = (n) => {
+    const fold = main.querySelector(`#lv-${n}`);
+    if (!fold) return;
+    if (!fold.open) { fold.open = true; setLibOpen(n, true); }
+    fold.scrollIntoView({ block: 'start' });
+  };
   const jumps = h('div', { class: 'tabs lv-jump' }, LEVELS.map((L) => h('button', { title: L.name, onClick: () => jump(L.n) }, `L${L.n}`)));
   // "ii-V" must find "ii–V" (every kind of dash counts as a hyphen), "7#5" and "dorian b5" find
   // 7♯5 and Dorian ♭5 (phone keyboards have no ♯ or ♭), "harmonized" finds "harmonised"
@@ -222,7 +238,7 @@ export function libraryScreen(main, params = {}) {
     render();
   });
   main.replaceChildren(
-    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '🔎 Search by name, topic or number (#42)', '★ core: a key exercise of its level', 'ⓘ on a card: what it is'], 'About the Library'), h('div', { class: 'grow' }), search),
+    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '▸ Tap a level to open or fold it', '🔎 Search by name, topic or number (#42)', '★ core: a key exercise of its level', 'ⓘ on a card: what it is'], 'About the Library'), h('div', { class: 'grow' }), search),
     jumps,
     results);
   render();
