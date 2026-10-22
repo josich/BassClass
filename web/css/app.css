@@ -177,6 +177,13 @@ input[type=range] { accent-color: var(--accent); width: 100%; }
 .lbl-btn.on { color: var(--accent); border-color: rgba(70, 201, 162, 0.5); }
 .grow { flex: 1; }
 .lbl-btn.written { font-size: 11px; white-space: nowrap; }
+/* cycling buttons drawn as icons of their current state */
+.lbl-btn.ico { padding: 0; display: grid; place-items: center; color: var(--text); }
+.lbl-btn.ico svg { width: 22px; height: 22px; }
+.lbl-btn.ico.on { color: var(--accent); }
+/* an option the exercise has no use for, or sets itself */
+.lbl-btn.na { opacity: 0.35; }
+.mi.na .mi-l { opacity: 0.4; }
 [hidden] { display: none !important; }
 /* secondary controls: inline on wide screens, a popover behind "⋯" on phones */
 .more-btn { display: none; }

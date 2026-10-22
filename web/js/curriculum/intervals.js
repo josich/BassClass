@@ -40,7 +40,7 @@ const allFromRoot = ex({
   title: 'Every interval from one root',
   summary: 'R-♭2, R-2, R-♭3 … R-8: the whole interval family in one position.',
   about: 'Play the root, then each interval above it in turn, from the minor 2nd up to the octave. You will see the 12 shapes around one hand position (the index reaches back a fret for some) and hear the character of each: tense (♭2, 7), open (4, 5), sweet (3, 6), dark (♭3, ♭6).',
-  tips: ['Name each interval aloud as you play it.', 'Then switch the labels to "Note" to see the actual note names.'],
+  tips: ['Name each interval aloud as you play it.', 'Then switch the dot labels to note names to see the actual notes.'],
   source: 'Standard interval training (MI, Berklee, StudyBass)',
   params: { key: keyP(['1'], { def: '0', cycles: false }), root: rootStrP('E') },
   bpm: 72, sub: 2, label: 'degree',

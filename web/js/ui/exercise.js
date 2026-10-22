@@ -16,8 +16,12 @@ import { recordLoop, rememberTempo, stepState, stepPassed, stepClean, setClean, 
 // what a lesson step's goal tempo counts in ("goal 96 BPM in 8ths")
 export const SUB_NAMES = { 0.25: 'whole notes', 0.5: 'half notes', 1: 'quarter notes', 2: '8ths', 3: 'triplets', 4: '16ths', 5: 'quintuplets', 6: 'sextuplets' };
 const SUBS = [['0.25', 'Whole'], ['0.5', 'Half'], ['1', '♩ 1/beat'], ['2', '♪ 2/beat'], ['3', '3 triplets'], ['4', '4 16ths'], ['5', '5 quint.'], ['6', '6 sext.']];
-const REVEALS = [['gradual', 'Step'], ['full', 'Shape'], ['quiz', 'Quiz']];
-const LABELS = [['note', 'Note'], ['degree', 'Deg'], ['finger', 'Fing'], ['none', '—']];
+// the cycling buttons: each state's name (said in a toast when it is picked) and its icon (Backing
+// keeps its words: clearer than any icon)
+const REVEALS = [['gradual', 'Step by step', 'revStep'], ['full', 'Whole shape', 'revShape'], ['quiz', 'Quiz', 'revQuiz']];
+const LABELS = [['note', 'Note names', 'lblNote'], ['degree', 'Degrees', 'lblDeg'], ['finger', 'Fingers', 'lblFinger'], ['none', 'No labels', 'lblNone']];
+const BACKINGS = { off: 'Off', drone: 'Drone', chords: 'Chords' };
+const SCORES = { tab: ['Tab', 'tab'], staff: ['Staff', 'staff'] };
 const RANK = { ghost: 0, future: 1, past: 2, next: 3, current: 4 };
 const TRAIL = 16;
 
@@ -180,10 +184,10 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const soundBtn = btn('sound', 'Bass sound on/off', () => { player.sound = !player.sound; syncToggles(); });
   const trainerBtn = btn('trainer', 'Speed trainer (+4 BPM each loop)', () => toggleTrainer());
   const doneBtn = btn('check', 'Mark as mastered', () => toggleDone());
-  const revealBtn = h('button', { class: 'lbl-btn', title: 'Reveal mode: step by step / whole shape / quiz', onClick: () => cycleReveal() });
+  const revealBtn = h('button', { class: 'lbl-btn ico', title: 'Reveal mode: step by step / whole shape / quiz', onClick: () => cycleReveal() });
   const backingBtn = h('button', { class: 'lbl-btn', title: 'Backing: off / a drone on the root / the chords', onClick: () => cycleBacking() });
-  const scoreBtn = h('button', { class: 'lbl-btn', title: 'Under the neck: tab or bass-clef staff', onClick: () => cycleScore() });
-  const labelBtn = h('button', { class: 'lbl-btn', title: 'Dot labels: note / degree / finger / none', onClick: () => cycleLabel() });
+  const scoreBtn = h('button', { class: 'lbl-btn ico', title: 'Under the neck: tab or bass-clef staff', onClick: () => cycleScore() });
+  const labelBtn = h('button', { class: 'lbl-btn ico', title: 'Dot labels: note / degree / finger / none', onClick: () => cycleLabel() });
   // secondary controls: inline on wide screens, in a "⋯" popover on phones (see .more-pop in app.css)
   const item = (el, text) => h('div', { class: 'mi' }, el, h('span', { class: 'mi-l', onClick: () => el.click() }, text));
   const morePop = h('div', { class: 'more-pop' },
@@ -504,10 +508,13 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     A.playNote(midi, A.now() + 0.01, 0.9);
     fb.pluck(s);
   }
+  // options an exercise does not use are greyed: a tap says why (see syncToggles)
   function cycleReveal() {
+    if (inst.reveal) { toast('This exercise is a quiz: the reveal is fixed'); return; }
     const i = REVEALS.findIndex((r) => r[0] === reveal);
     reveal = REVEALS[(i + 1) % REVEALS.length][0];
-    if (!inst.reveal) saveSettings({ reveal });
+    saveSettings({ reveal });
+    toast(`Reveal: ${REVEALS[(i + 1) % REVEALS.length][1].toLowerCase()}`);
     syncToggles();
     renderTab();
     showStep(cur);
@@ -516,26 +523,31 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   let backingOverride = LS?.backing || null;
   const backing = () => backingOverride || S.backing;
   function cycleBacking() {
+    if (!canBack) { toast('No chords in this exercise: no backing'); return; }
     const order = ['off', 'drone', 'chords'];
     const was = backing();
     backingOverride = null;
     saveSettings({ backing: order[(order.indexOf(was) + 1) % order.length] });
     applyBacking();
+    toast(`Backing: ${BACKINGS[S.backing].toLowerCase()}`);
     syncToggles();
-    if (S.backing !== 'off' && !player.harmony?.some(Boolean)) tip('This exercise has no chords or scales to back: the backing plays where there are.');
   }
   /** Backing pad: the harmony of each part of the exercise (see harmony.js). */
   // backing belongs to music with harmony: not to hand, time, note-finding, interval or ear drills
   const BACKS = !NO_BACKING.includes(tpl.module);
+  let canBack = false; // this variation has chords or scales to back
   function applyBacking() {
-    player.harmony = backing() === 'off' || !BACKS ? null : harmonyTrack(inst, backing());
+    canBack = BACKS && harmonyTrack(inst, 'chords').some(Boolean);
+    player.harmony = backing() === 'off' || !canBack ? null : harmonyTrack(inst, backing());
     if (!player.playing) return;
     const hm = player.harmony && harmonyAt(player.harmony, Math.max(0, cur));
     if (hm) A.padSet(hm, A.now() + 0.02); else A.padStop();
   }
   function cycleScore() {
+    if (inst.view) { toast('A reading drill: the staff is fixed'); return; }
     score = score === 'staff' ? 'tab' : 'staff';
-    if (!inst.view) saveSettings({ score });
+    saveSettings({ score });
+    toast(score === 'staff' ? 'Staff' : 'Tab');
     syncToggles();
     renderTab();
   }
@@ -543,6 +555,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     const i = LABELS.findIndex((r) => r[0] === labelMode);
     labelMode = LABELS[(i + 1) % LABELS.length][0];
     updateProgress(tpl.id, { label: labelMode });
+    toast(`Dot labels: ${LABELS[(i + 1) % LABELS.length][1].toLowerCase()}`);
     syncToggles();
     renderTab();
     showStep(cur);
@@ -571,11 +584,24 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     soundBtn.innerHTML = icon(player.sound ? 'sound' : 'mute');
     trainerBtn.classList.toggle('on', player.trainer.on);
     doneBtn.classList.toggle('on', !!(getProgress(tpl.id) || {}).done);
-    revealBtn.textContent = (REVEALS.find((r) => r[0] === reveal) || REVEALS[0])[1];
-    backingBtn.textContent = { off: 'Off', drone: 'Drone', chords: 'Chords' }[backing()] || 'Off';
-    backingBtn.classList.toggle('on', backing() !== 'off');
-    scoreBtn.textContent = score === 'staff' ? 'Staff' : 'Tab';
-    labelBtn.textContent = (LABELS.find((r) => r[0] === labelMode) || LABELS[0])[1];
+    const state = (el, what, name, ico) => { el.innerHTML = icon(ico); el.setAttribute('aria-label', `${what}: ${name}`); };
+    const rv = REVEALS.find((r) => r[0] === reveal) || REVEALS[0];
+    state(revealBtn, 'Reveal', rv[1], rv[2]);
+    backingBtn.textContent = (canBack && BACKINGS[backing()]) || BACKINGS.off;
+    backingBtn.setAttribute('aria-label', `Backing: ${backingBtn.textContent}`);
+    backingBtn.classList.toggle('on', canBack && backing() !== 'off');
+    state(scoreBtn, 'Under the neck', ...(SCORES[score] || SCORES.tab));
+    // greyed: what this exercise has no use for (no chords to back) or sets itself (quiz, staff)
+    const na = (el, off) => {
+      el.classList.toggle('na', off);
+      el.parentElement?.classList.toggle('na', off);
+      el.setAttribute('aria-disabled', String(off));
+    };
+    na(backingBtn, !canBack);
+    na(revealBtn, !!inst.reveal);
+    na(scoreBtn, !!inst.view);
+    const lb = LABELS.find((r) => r[0] === labelMode) || LABELS[0];
+    state(labelBtn, 'Dot labels', lb[1], lb[2]);
     syncBpm();
     syncGoal();
   }

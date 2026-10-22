@@ -320,7 +320,7 @@ export default {
             { ex: 'sc-one-octave', p: { type: 'ionian', root: 'A', oct: '1' }, sub: 1, from: 60, goal: 84, do: 'Pick any key under Options. The shape does not change, only its place on the neck.' },
           ],
           mistakes: [
-            'Changing the fingering each time. Switch the dot labels to fingers (Fing) and follow them.',
+            'Changing the fingering each time. Switch the dot labels to fingers and follow them.',
             'Playing the scale without hearing it. Sing along, or say the degree numbers.',
           ],
         },
@@ -337,7 +337,7 @@ export default {
           ],
           mistakes: [
             'Open strings ringing on. An open string cannot be stopped by the fretting hand: touch it with the plucking hand.',
-            'Losing the fingering around the open strings. Switch the dot labels to fingers (Fing) and follow them: in these two keys the hand sits in second position, index on fret 2.',
+            'Losing the fingering around the open strings. Switch the dot labels to fingers and follow them: in these two keys the hand sits in second position, index on fret 2.',
           ],
         },
         {

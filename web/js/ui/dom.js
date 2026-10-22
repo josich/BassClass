@@ -49,6 +49,17 @@ const P = {
   eye: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/>',
   more: '<circle cx="5.5" cy="12" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="18.5" cy="12" r="1.8" fill="currentColor"/>',
   dice: '<rect x="4" y="4" width="16" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="9" r="1.5" fill="currentColor"/><circle cx="15" cy="15" r="1.5" fill="currentColor"/><circle cx="15" cy="9" r="1.5" fill="currentColor"/><circle cx="9" cy="15" r="1.5" fill="currentColor"/>',
+  // the player's cycling buttons show their current state: reveal (one note at a time, the whole
+  // shape, quiz), dot labels (note, degree, finger, none), tab or staff
+  revStep: '<circle cx="5" cy="16" r="2.8" fill="currentColor"/><circle cx="12" cy="12" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".75"/><circle cx="19" cy="8" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".45"/>',
+  revShape: '<g fill="currentColor"><circle cx="5.5" cy="6" r="2.5"/><circle cx="12.5" cy="6" r="2.5"/><circle cx="9" cy="12" r="2.5"/><circle cx="16" cy="12" r="2.5"/><circle cx="12.5" cy="18" r="2.5"/><circle cx="19.5" cy="18" r="2.5"/></g>',
+  revQuiz: '<circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9.4 9.6a2.7 2.7 0 1 1 3.8 2.5c-.8.4-1.2 1-1.2 1.9v.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17.2" r="1.25" fill="currentColor"/>',
+  lblNote: '<circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.8"/><text x="12" y="16.6" text-anchor="middle" font-size="13" font-weight="800" font-family="system-ui, sans-serif" fill="currentColor">E</text>',
+  lblDeg: '<circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.8"/><text x="12" y="15.9" text-anchor="middle" font-size="10.5" font-weight="800" font-family="system-ui, sans-serif" fill="currentColor">♭3</text>',
+  lblFinger: '<path d="M8.4 14V4.7a1.7 1.7 0 0 1 3.4 0v5.5a1.6 1.6 0 0 1 3.2 0v1a1.6 1.6 0 0 1 3.2 0v1a1.5 1.5 0 0 1 3 0V16a6 6 0 0 1-6 6h-2.2a5 5 0 0 1-3.8-1.8l-3.6-4.3a1.6 1.6 0 0 1 2.4-2.1z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>',
+  lblNone: '<circle cx="12" cy="12" r="9.2" fill="currentColor" fill-opacity=".22" stroke="currentColor" stroke-width="1.8"/>',
+  tab: '<path d="M2.5 5h19M2.5 9.5h19M2.5 14h6M15.5 14h6M2.5 18.5h19" stroke="currentColor" stroke-width="1.3" opacity=".7"/><text x="12" y="17.7" text-anchor="middle" font-size="10.5" font-weight="800" font-family="system-ui, sans-serif" fill="currentColor">5</text>',
+  staff: '<path d="M2 4.5h20M2 8h20M2 11.5h20M2 15h20M2 18.5h20" stroke="currentColor" stroke-width="1" opacity=".6"/><ellipse cx="9.3" cy="16.8" rx="3.1" ry="2.2" transform="rotate(-20 9.3 16.8)" fill="currentColor"/><path d="M12.2 16.3V2.6c.5 2.8 4.8 3.6 4.1 8.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
 };
 
 export const icon = (name) => `<svg viewBox="0 0 24 24" aria-hidden="true">${P[name] || ''}</svg>`;
