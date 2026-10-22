@@ -7,7 +7,9 @@
 // launcher masks (circle, squircle...) keep at least the 66-unit circle around (54, 54). Its viewBox
 // shows the visible 72 units clipped to a rounded tile (the favicon and the app's rail logo).
 //   <g id="art" clip-path="url(#tile)"> <g id="bg">full-bleed background</g> <g id="fg">glyph</g> </g>
+//   <g id="rim">rim light and edge, on the rounded tile only (launchers draw their own edge)</g>
 //   <g id="mono" display="none">the glyph as one flat shape (Android 13 themed icons)</g>
+// icon-dark.svg is the same icon in navy, kept for dark surfaces and other uses (not rendered here).
 
 const ANDROID = [['mdpi', 1], ['hdpi', 1.5], ['xhdpi', 2], ['xxhdpi', 3], ['xxxhdpi', 4]];
 
@@ -32,11 +34,11 @@ export function variant(text, kind, viewBox = BOX[kind]) {
     if (shown) el.removeAttribute('display');
     else el.setAttribute('display', 'none');
   };
-  if (kind !== 'icon') art.removeAttribute('clip-path');
+  if (kind !== 'icon') { art.removeAttribute('clip-path'); set('rim', false); }
   svg.setAttribute('viewBox', viewBox);
   if (kind === 'fg') set('bg', false);
   if (kind === 'bg') set('fg', false);
-  if (kind === 'mono') { set('art', false); set('mono', true); }
+  if (kind === 'mono') { set('art', false); set('rim', false); set('mono', true); }
   return new XMLSerializer().serializeToString(doc);
 }
 
