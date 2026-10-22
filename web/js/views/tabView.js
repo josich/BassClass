@@ -25,6 +25,9 @@ export class TabView {
       }
     });
     this.cur = -1;
+    // the smooth scroll under way: where it heads and until when (see placeCursor)
+    this.goal = 0;
+    this.goalUntil = 0;
     // scrolling by hand: draw the bars that come into view
     el.addEventListener('scroll', () => {
       if (this.scrollTimer) return;
@@ -172,9 +175,15 @@ export class TabView {
     this.curRect.setAttribute('width', Math.max(18, c.w - 2));
     if (!scroll) return;
     const view = this.el.clientWidth;
-    const left = this.el.scrollLeft;
+    // while a smooth scroll runs, judge by where the strip is heading: a phone reports scrollLeft only
+    // once the scroll is over, and a new scroll on every fast note (5 or 6 a beat) restarts it, so the
+    // strip shakes
+    const now = performance.now();
+    const left = now < this.goalUntil ? this.goal : this.el.scrollLeft;
     if (c.x < left + 40 || c.x + c.w > left + view - 60) {
-      this.el.scrollTo({ left: Math.max(0, c.x - view * 0.3), behavior: 'smooth' });
+      this.goal = Math.max(0, Math.min(c.x - view * 0.3, this.el.scrollWidth - view));
+      this.goalUntil = now + 700;
+      this.el.scrollTo({ left: this.goal, behavior: 'smooth' });
     }
   }
 
