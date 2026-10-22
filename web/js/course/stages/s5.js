@@ -57,11 +57,11 @@ export default {
           id: 'sweeps', title: 'Sweep picking',
           idea: 'One note per string, one motion: the hand falls through the strings like a brush.',
           concept: [
-            'An arpeggio with one note per string can be played in a single motion. With a pick, the pick falls through the strings going up (↓ ↓ ↓ ↓) and comes back through them going down (↑ ↑ ↑). With the fingers the same economy is raking: alternate i and m going up the strings, and let one finger fall through them coming down.',
+            'An arpeggio with one note per string can be played in a single motion. With a pick, the pick falls through the strings going up in pitch, all down-strokes (⊓ ⊓ ⊓ ⊓), and comes back through them going down, all up-strokes (V V V). With the fingers the same economy is raking: alternate i and m going up the strings, and let one finger fall through them coming down.',
             'Each note must stop as the next one sounds, or the arpeggio blurs into a strummed chord: lift or roll each fretting finger as soon as its note has played. Start with the R-5-8-10 triad (one hand shape on four strings), then 7th chords.',
           ],
           steps: [
-            { ex: 'tech-sweep', p: { shape: 'spread', hand: 'pick', prog: 'i-bVI-bIII-bVII' }, from: 50, goal: 72, do: 'R-5-8-10 with a pick: ↓ up the strings, ↑ back down. Stop each note as the next one sounds.' },
+            { ex: 'tech-sweep', p: { shape: 'spread', hand: 'pick', prog: 'i-bVI-bIII-bVII' }, from: 50, goal: 72, do: 'R-5-8-10 with a pick: ⊓ (down-strokes) up the strings, V (up-strokes) back down. Stop each note as the next one sounds.' },
             { ex: 'tech-sweep', p: { shape: 'seventh', hand: 'pick', prog: 'ii-V-I' }, from: 50, goal: 72, do: '7th chords R-5-7-10 through ii–V–I.' },
             { ex: 'tech-sweep', p: { shape: 'spread', hand: 'fingers', prog: 'I-V-vi-IV' }, from: 50, goal: 72, do: 'The same with the fingers: alternate going up, rake coming down.' },
           ],

@@ -660,13 +660,13 @@ const SWEEPS = {
 const sweep = ex({
   id: 'tech-sweep', module: M, level: 5,
   title: 'Sweep picking: arpeggios across the strings',
-  summary: 'One note per string in one motion: ↓ through the strings going up, ↑ coming down, or rakes with the fingers.',
-  about: 'An arpeggio with one note per string can be played in a single motion. With a pick, the pick falls through the strings going up (↓ ↓ ↓ ↓) and comes back through them going down (↑ ↑ ↑): a sweep. With the fingers the same economy is raking: alternate i and m going up the strings, and let one finger fall through them coming down. Each shape is one hand position per chord, and each note must stop as the next one sounds, or the arpeggio blurs into a strummed chord. Four-string shapes run in sextuplets (one sweep up and down per beat); the five-string shape, from the low B, in 16ths.',
+  summary: 'One note per string in one motion: down-strokes (⊓) through the strings going up, up-strokes (V) coming down, or rakes with the fingers.',
+  about: 'An arpeggio with one note per string can be played in a single motion. With a pick, the pick falls through the strings going up in pitch, all down-strokes (⊓ ⊓ ⊓ ⊓), and comes back through them going down, all up-strokes (V V V): a sweep. With the fingers the same economy is raking: alternate i and m going up the strings, and let one finger fall through them coming down. Each shape is one hand position per chord, and each note must stop as the next one sounds, or the arpeggio blurs into a strummed chord. Four-string shapes run in sextuplets (one sweep up and down per beat); the five-string shape, from the low B, in 16ths.',
   tips: ['Lift (or roll) each fretting finger as soon as its note has sounded: a sweep is a line, not a chord.', 'Slow and even first: the turn at the top gets the same time as every other note.'],
   source: 'Sweep picking from rock and fusion guitar, adapted to the bass (Billy Sheehan, Jeff Berlin); Gary Willis raking',
   params: {
     shape: sel('Shape', Object.entries(SWEEPS).map(([k, v]) => [k, v.name, ...(v.minStrings ? [{ minStrings: v.minStrings }] : [])])),
-    hand: sel('Right hand', [['pick', 'Pick (↓ up the strings, ↑ down)'], ['fingers', 'Fingers (alternate up, rake down)']]),
+    hand: sel('Right hand', [['pick', 'Pick (⊓ up the strings, V down)'], ['fingers', 'Fingers (alternate up, rake down)']]),
     prog: progP(HAND_PROGS, 'i-bVI-bIII-bVII'),
     key: keyP(['1', 'b3', '5'], { def: '9' }),
   },
@@ -697,9 +697,10 @@ const sweep = ex({
         const notes = shape.tones.map((t, i) => ({ s: s0 + i, f: best.frets[i], ...toneOf(c, t) }));
         const items = [];
         for (let r = 0; r < Math.round(c.beats / (val * cycle.length)); r++) for (const i of cycle) items.push({ ...notes[i], dur: val });
-        // pick: ↓ when the next string is higher, ↑ when it is lower; fingers: alternate up, rake down
+        // pick: a down-stroke (⊓) when the next string is higher, an up-stroke (V) when it is lower;
+        // fingers: alternate up, rake down
         if (p.hand === 'fingers') rhTags(items);
-        else items.forEach((it, j) => { it.tag = j === 0 || it.s > items[j - 1].s ? '↓' : '↑'; });
+        else items.forEach((it, j) => { it.tag = j === 0 || it.s > items[j - 1].s ? '⊓' : 'V'; });
         items[0].chord = c.sym;
         b.frets(items);
       }

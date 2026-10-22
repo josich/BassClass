@@ -29,9 +29,9 @@ const GROOVES = {
   afrobeat: { name: 'Afrobeat (syncopated R–♭7–8)', bars: [[['R', 0.75], ['R', 0.25], ['-', 0.5], ['b7', 0.5], ['8', 0.5], ['-', 0.25], ['5', 0.25], ['b7', 0.5], ['R', 0.5]]] },
   neoSoul: { name: 'Neo-soul (laid back, ghost notes)', bars: [[['R', 1], ['x', 0.25], ['5', 0.25], ['-', 0.5], ['7', 0.75], ['8', 0.25], ['-', 0.5], ['5', 0.5]]] },
   soulBallad: { name: 'Soul ballad (long roots, passing tones)', bars: [[['R', 2], ['3', 1], ['A', 1]]] },
-  pickDown: { name: 'Pick: down-strokes only (punk 8ths)', bars: [e8('R').map(([t, d]) => [t, d, '↓'])] },
-  pickAlt: { name: 'Pick: alternate picking (↓ ↑) with the 5th', bars: [[['R', 0.5, '↓'], ['R', 0.5, '↑'], ['R', 0.5, '↓'], ['R', 0.5, '↑'], ['5', 0.5, '↓'], ['5', 0.5, '↑'], ['8', 0.5, '↓'], ['5', 0.5, '↑']]] },
-  gallop: { name: 'Pick: the metal gallop (8th + two 16ths)', bars: [[['R', 0.5, '↓'], ['R', 0.25, '↓'], ['R', 0.25, '↑'], ['R', 0.5, '↓'], ['R', 0.25, '↓'], ['R', 0.25, '↑'], ['R', 0.5, '↓'], ['R', 0.25, '↓'], ['R', 0.25, '↑'], ['5', 0.5, '↓'], ['8', 0.25, '↓'], ['5', 0.25, '↑']]] },
+  pickDown: { name: 'Pick: down-strokes only (punk 8ths)', bars: [e8('R').map(([t, d]) => [t, d, '⊓'])] },
+  pickAlt: { name: 'Pick: alternate picking (⊓ V) with the 5th', bars: [[['R', 0.5, '⊓'], ['R', 0.5, 'V'], ['R', 0.5, '⊓'], ['R', 0.5, 'V'], ['5', 0.5, '⊓'], ['5', 0.5, 'V'], ['8', 0.5, '⊓'], ['5', 0.5, 'V']]] },
+  gallop: { name: 'Pick: the metal gallop (8th + two 16ths)', bars: [[['R', 0.5, '⊓'], ['R', 0.25, '⊓'], ['R', 0.25, 'V'], ['R', 0.5, '⊓'], ['R', 0.25, '⊓'], ['R', 0.25, 'V'], ['R', 0.5, '⊓'], ['R', 0.25, '⊓'], ['R', 0.25, 'V'], ['5', 0.5, '⊓'], ['8', 0.25, '⊓'], ['5', 0.25, 'V']]] },
   funkOct: { shape: true, name: 'Octave funk 16ths', bars: [[['R', 0.25], ['x', 0.25], ['8', 0.25], ['x', 0.25], ['x', 0.25], ['R', 0.25], ['8', 0.25], ['x', 0.25], ['R', 0.25], ['x', 0.25], ['8', 0.25], ['b7', 0.25], ['x', 0.25], ['8', 0.25], ['R', 0.25], ['x', 0.25]]] },
   fill: {
     name: '3 bars groove + pentatonic fill',
@@ -141,9 +141,9 @@ const soul = grooveEx('gr-soul', 4, ['neoSoul', 'soulBallad', 'motown'], 'neoSou
 
 const pick = grooveEx('gr-pick', 2, ['pickDown', 'pickAlt', 'gallop'], 'pickDown', {
   title: 'Playing with a pick: down-strokes, alternate picking & the gallop',
-  summary: '↓ = down-stroke, ↑ = up-stroke: punk 8ths, alternate picking and the metal gallop.',
-  about: 'Many rock, punk and metal bassists play with a pick for a sharp, even attack. Down-strokes only (↓) give the driving punk sound and need a relaxed wrist; alternate picking (↓ ↑) is faster and smoother; the gallop (8th + two 16ths) is the classic metal rhythm. Mute with the side of the picking hand (palm mute) for a tighter sound.',
-  tips: ['Hold the pick between the thumb and the side of the index finger; move from the wrist, not the elbow.', 'Palm mute: rest the edge of the hand lightly on the strings near the bridge.', 'Gallop: ↓ on the 8th, then ↓ ↑ on the two 16ths.'],
+  summary: '⊓ = down-stroke, V = up-stroke: punk 8ths, alternate picking and the metal gallop.',
+  about: 'Many rock, punk and metal bassists play with a pick for a sharp, even attack. Down-strokes only (⊓) give the driving punk sound and need a relaxed wrist; alternate picking (⊓ V) is faster and smoother; the gallop (8th + two 16ths) is the classic metal rhythm. Mute with the side of the picking hand (palm mute) for a tighter sound.',
+  tips: ['Hold the pick between the thumb and the side of the index finger; move from the wrist, not the elbow.', 'Palm mute: rest the edge of the hand lightly on the strings near the bridge.', 'Gallop: ⊓ on the 8th, then ⊓ V on the two 16ths.'],
   source: 'Pick technique from rock and metal bass teaching (Hal Leonard Bass Method; TalkingBass "Playing Bass with a Pick")', bpm: 100,
 });
 

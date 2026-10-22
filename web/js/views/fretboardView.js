@@ -290,7 +290,9 @@ export class FretboardView {
       }
       if (d.tag) {
         const tw = Math.max(16, String(d.tag).length * 7 + 8);
-        out.push(`<g class="tag" transform="translate(0,${-r - 9})"><rect x="${-tw / 2}" y="-8" width="${tw}" height="15" rx="7.5"/><text y="3.5">${d.tag}</text></g>`);
+        // (the pick's down-stroke mark ⊓ is drawn, not written: some phone fonts lack the character)
+        const mark = d.tag === '⊓' ? '<path d="M-3.2 3.6V-3.4H3.2V3.6" class="tagp"/>' : `<text y="3.5">${d.tag}</text>`;
+        out.push(`<g class="tag" transform="translate(0,${-r - 9})"><rect x="${-tw / 2}" y="-8" width="${tw}" height="15" rx="7.5"/>${mark}</g>`);
       }
       out.push('</g></g>');
     }

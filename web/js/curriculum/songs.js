@@ -8,11 +8,11 @@ const M = 'music';
 /** Note values: w dh (dotted half) h dq q de e qt t s st (16th triplet). */
 const DUR = { w: 4, dh: 3, h: 2, dq: 1.5, q: 1, de: 0.75, e: 0.5, qt: 2 / 3, t: 1 / 3, s: 0.25, st: 1 / 6 };
 const LETTER_SEMIS = [0, 2, 4, 5, 7, 9, 11];
-const TECH = new Set(['x', 'T', 'P', 'H', 'PO', 'T↓', 'T↑', '↓', '↑']);
+const TECH = new Set(['x', 'T', 'P', 'H', 'PO', 'T↓', 'T↑', '⊓', 'V']);
 
 /**
  * "E1:dq A1:e:x C2:s:T,>" -> notes with start, duration and technique. The default value is an 8th;
- * modifiers: x ghost, T / T↓ / T↑ thumb, P pop, H hammer-on, PO pull-off, ↓ ↑ pick, > accent.
+ * modifiers: x ghost, T / T↓ / T↑ thumb, P pop, H hammer-on, PO pull-off, ⊓ V pick down/up, > accent.
  * Octaves are scientific pitch (E1 = the open E string). '|' marks bar lines (for reading only).
  * `unit` scales the values (2 in 5/8 and 7/8, where the beat is the 8th note).
  */
@@ -253,12 +253,12 @@ const feelgood = song({
 const blitz = song({
   id: 'mm-blitz', level: 2, song: 'Blitzkrieg Bop', artist: 'Ramones', year: 1976,
   style: 'punk down-strokes', key: 'A', mode: 'ionian', bpm: 140, center: 3,
-  summary: 'Fast root 8ths through A, D and E, every note a down-stroke (↓) with a pick or one finger.',
+  summary: 'Fast root 8ths through A, D and E, every note a down-stroke (⊓) with a pick or one finger.',
   about: 'Punk bass is a wall of 8th notes on the roots, played with down-strokes only for a hard, even attack. It is a stamina test: start at a tempo you can hold for a whole song, keep the wrist loose, and push the speed only when every note sounds the same. A short scale step leads into each new chord.',
-  tips: ['↓ = down-stroke with a pick (or the same finger every time).', 'Relax the shoulder and wrist: tension is what slows you down.'],
+  tips: ['⊓ = down-stroke with a pick (or the same finger every time).', 'Relax the shoulder and wrist: tension is what slows you down.'],
   parts: [
-    { name: 'Verse', chords: 'A:8 D:4 E:4', notes: `${e8('A1', 8, '↓')} | ${e8('A1', 6, '↓')} B1:e:↓ C#2:e:↓ | ${e8('D2', 8, '↓')} | ${e8('E1', 6, '↓')} F#1:e:↓ G#1:e:↓` },
-    { name: 'Bridge', chords: 'D:8 A:8 D:8 E:8', notes: `${e8('D2', 8, '↓')} | ${e8('D2', 4, '↓')} ${e8('C#2', 2, '↓')} ${e8('B1', 2, '↓')} | ${e8('A1', 8, '↓')} | ${e8('A1', 8, '↓')} | ${e8('D2', 8, '↓')} | ${e8('D2', 8, '↓')} | ${e8('E1', 8, '↓')} | ${e8('E1', 4, '↓')} ${e8('F#1', 2, '↓')} ${e8('G#1', 2, '↓')}` },
+    { name: 'Verse', chords: 'A:8 D:4 E:4', notes: `${e8('A1', 8, '⊓')} | ${e8('A1', 6, '⊓')} B1:e:⊓ C#2:e:⊓ | ${e8('D2', 8, '⊓')} | ${e8('E1', 6, '⊓')} F#1:e:⊓ G#1:e:⊓` },
+    { name: 'Bridge', chords: 'D:8 A:8 D:8 E:8', notes: `${e8('D2', 8, '⊓')} | ${e8('D2', 4, '⊓')} ${e8('C#2', 2, '⊓')} ${e8('B1', 2, '⊓')} | ${e8('A1', 8, '⊓')} | ${e8('A1', 8, '⊓')} | ${e8('D2', 8, '⊓')} | ${e8('D2', 8, '⊓')} | ${e8('E1', 8, '⊓')} | ${e8('E1', 4, '⊓')} ${e8('F#1', 2, '⊓')} ${e8('G#1', 2, '⊓')}` },
   ],
   form: [0, 0, 1, 0],
 });
