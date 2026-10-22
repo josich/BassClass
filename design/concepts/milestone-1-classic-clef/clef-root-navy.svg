@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">
+  <!-- Milestone 1 (2026-10-22): classic tapered bass clef, root head, navy tile. Our own drawing in the
+       classic proportions (not traced from any reference). Clef drawn in a 100-unit box. -->
+  <rect width="72" height="72" rx="16" fill="#12142a"/>
+  <g fill="#46c9a2" transform="translate(6.3 7.1) scale(0.55)"><path d="M15.5 33 C16 17 30 7 46 7 C64 7 77 20 77 39 C77 61 57 81 18 98 C46 80 57 62 57 41 C57 25 51 16.5 44 16.5 C36.5 16.5 31.5 20 29.5 25 Z"/><circle cx="87" cy="23" r="7"/><circle cx="87" cy="49" r="7"/><rect x="15" y="24" width="23" height="23" rx="7.5"/></g>
+</svg>
