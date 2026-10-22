@@ -270,7 +270,7 @@ export default {
     },
     {
       id: 'u-chordal', title: 'Chordal bass',
-      goal: 'Chords across the strings, and double thumbing for slappers.',
+      goal: 'Chords across the strings, plus double thumbing and two-hand tapping for those who want them.',
       lessons: [
         {
           id: 'chordal', title: 'Chordal bass: R-5-10 and R-7-10',
@@ -299,6 +299,23 @@ export default {
           ],
           mistakes: [
             'A stiff wrist. The thumb moves like a pick from a loose hand.',
+          ],
+        },
+        {
+          id: 'tapping', title: 'Two-hand tapping', optional: true,
+          idea: 'Both hands on the fretboard: the right hand taps the notes the left hand cannot reach.',
+          concept: [
+            'In two-hand tapping the right hand leaves the plucking position and hammers notes onto the fretboard with a fingertip (RH). The left hand taps its own notes without plucking (LH), and pull-offs (PO) and hammer-ons (H) join them into one line. Billy Sheehan, Stu Hamm and Victor Wooten made it part of the bass vocabulary. Optional, for players who want it.',
+            'Start on one string: tap the 5th, pull off to the root, hammer the 3rd, in even triplets. Then split each chord between the hands, and finally keep a left-hand pedal under a tapped melody. Mute the strings you are not playing with the side of the left hand, or a hair tie at the nut.',
+          ],
+          steps: [
+            { ex: 'tech-tapping', p: { pattern: 'triplets', prog: 'i-bVI-bIII-bVII' }, from: 50, goal: 72, do: 'Tap, pull off, hammer: three even triplets on one string.' },
+            { ex: 'tech-tapping', p: { pattern: 'twohand', prog: 'I-V-vi-IV' }, from: 56, goal: 80, do: 'Left hand root and 5th, right hand three chord tones higher up.' },
+            { ex: 'tech-tapping', p: { pattern: 'pedal', prog: 'i-iv-v-min' }, from: 50, goal: 72, do: 'A left-hand pedal on the root under a tapped melody.' },
+          ],
+          mistakes: [
+            'Tapping too softly. A tap is a hammer: fast and firm, straight down just behind the fret.',
+            'Open strings ringing under the line. Mute them with the side of the left hand.',
           ],
         },
       ],

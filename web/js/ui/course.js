@@ -493,7 +493,7 @@ const PLACEMENT = [
   ['I play the chords of a key in inversions and in 4ths, voice-lead triads and 7ths, and play guide tones.', ['u-triads4', 'u-voicelead', 'u-sevenths4']],
   ['I play diatonic 10ths and scales in octaves.', ['u-tenths']],
   ['I walk complete lines through a jazz blues and play soul and odd-metre grooves.', ['u-walking4', 'u-grooves4']],
-  ['I play finger permutations across the strings, p-i-m arpeggios and polyrhythms such as 3:2 and 5:4.', ['u-hands5']],
+  ['I play finger permutations across the strings, p-i-m arpeggios, polyrhythms such as 3:2 and 5:4, and sweep arpeggios.', ['u-hands5']],
   ['I use interval cycles, the diminished and whole-tone scales, side-stepping and world scales.', ['u-outside']],
   ['I play bebop scales, the 6th-diminished scale and chromatic approaches and enclosures.', ['u-bebop']],
   ['I know the modes of melodic and harmonic minor and superimpose pentatonics and melodic minor over chords.', ['u-modes5', 'u-superimpose']],

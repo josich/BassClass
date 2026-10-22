@@ -5,7 +5,7 @@ export default {
   units: [
     {
       id: 'u-hands5', title: 'Advanced hands and polyrhythms',
-      goal: 'Permutations across the strings, p-i-m arpeggios and polyrhythms.',
+      goal: 'Permutations across the strings, p-i-m arpeggios, polyrhythms and sweeps.',
       lessons: [
         {
           id: 'perm-across', title: 'Permutations across the strings',
@@ -53,18 +53,37 @@ export default {
             'Letting the notes drift back onto the click. Only the first note of each group meets it.',
           ],
         },
+        {
+          id: 'sweeps', title: 'Sweep picking',
+          idea: 'One note per string, one motion: the hand falls through the strings like a brush.',
+          concept: [
+            'An arpeggio with one note per string can be played in a single motion. With a pick, the pick falls through the strings going up (↓ ↓ ↓ ↓) and comes back through them going down (↑ ↑ ↑). With the fingers the same economy is raking: alternate i and m going up the strings, and let one finger fall through them coming down.',
+            'Each note must stop as the next one sounds, or the arpeggio blurs into a strummed chord: lift or roll each fretting finger as soon as its note has played. Start with the R-5-8-10 triad (one hand shape on four strings), then 7th chords.',
+          ],
+          steps: [
+            { ex: 'tech-sweep', p: { shape: 'spread', hand: 'pick', prog: 'i-bVI-bIII-bVII' }, from: 50, goal: 72, do: 'R-5-8-10 with a pick: ↓ up the strings, ↑ back down. Stop each note as the next one sounds.' },
+            { ex: 'tech-sweep', p: { shape: 'seventh', hand: 'pick', prog: 'ii-V-I' }, from: 50, goal: 72, do: '7th chords R-5-7-10 through ii–V–I.' },
+            { ex: 'tech-sweep', p: { shape: 'spread', hand: 'fingers', prog: 'I-V-vi-IV' }, from: 50, goal: 72, do: 'The same with the fingers: alternate going up, rake coming down.' },
+          ],
+          mistakes: [
+            'Letting the notes ring together. A sweep is a line, not a strum.',
+            'Rushing the turn at the top: the last note up and the first note down get the same time as the others.',
+          ],
+        },
       ],
       check: {
         can: [
           'I can play finger permutations across the strings.',
           'I play chord arpeggios with p-i-m.',
           'I can play 3:2, 4:3 and 5:4 against the click.',
+          'I can sweep a triad and a 7th chord across four strings, with a pick or with the fingers.',
         ],
         steps: [
           { ex: 'tech-permutations-across', p: { perm: 'all', pos: '5' }, sub: 2, from: 60, goal: 76 },
           { ex: 'rh-polyrhythm', p: { ratio: '5:4' }, from: 56, goal: 72 },
           { ex: 'tech-pim', p: { prog: 'I-vi-IV-V' }, sub: 2, from: 76, goal: 100 },
           { ex: 'mm-schism', p: { part: '1' }, from: 140, goal: 190, backing: 'chords', music: true, do: 'Make music: a riff in 7/8, felt as 2 + 2 + 3. The tempo counts 8th notes.' },
+          { ex: 'tech-sweep', p: { shape: 'seventh', hand: 'pick', prog: 'ii-V-I' }, from: 56, goal: 76 },
         ],
       },
     },

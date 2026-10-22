@@ -222,7 +222,7 @@ export class Player {
         const vel = step.vel ?? (step.accent ? 1 : onBeat ? 0.88 : 0.74);
         for (const n of step.notes) {
           const tag = n.tag;
-          const v = tag === 'H' || tag === 'PO' || tag === 'sl' ? vel * 0.7 : vel;
+          const v = tag === 'H' || tag === 'PO' || tag === 'sl' ? vel * 0.7 : tag === 'RH' || tag === 'LH' ? vel * 0.8 : vel;
           A.playNote(n.play ?? n.midi, tStep, secs * 0.94, v, tag === 'x', tag === '◊');
         }
       }

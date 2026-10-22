@@ -632,4 +632,156 @@ for (const t of [c1234, climb, perms, spider, diagonal, fingerPairs, dynamics, l
   t.build = (p, ctx, S) => chromaticSpell(build(p, ctx, S), { keep: t === fingerPairs, groups: t === diagonal ? 4 : 0 });
 }
 
-export default [permStrings, altPluck, c1234, raking, muting, climb, perms, spider, diagonal, fingerPairs, octaveRun, dynamics, trills, legato, stringSkip, shifting, simandl, accents, ghost16, stretch, harmonics, endurance, pim];
+// ---------------------------------------------------------------- sweeps and two-hand tapping
+/** Semitones above the root for a shape's tone names (8, 10, 12 and 15 an octave or two higher). */
+function toneSemis(c, name) {
+  const [, third, fifth, seventh = 'b7'] = c.ivs;
+  return { 1: 0, 3: T.semis(third), 5: T.semis(fifth), 7: T.semis(seventh), 8: 12, 10: 12 + T.semis(third), 12: 12 + T.semis(fifth), 15: 24 }[name];
+}
+/** A chord tone's spelling and label (a 10th is labelled as the 3rd it is). */
+function toneOf(c, name) {
+  const [, third, fifth, seventh = 'b7'] = c.ivs;
+  const iv = { 1: '1', 8: '1', 15: '1', 3: third, 10: third, 5: fifth, 12: fifth, 7: seventh }[name];
+  return { n: T.up(c.root, iv), deg: T.fmtDeg(iv) };
+}
+/** The first fret from lo to hi where string s plays pitch class pcv (null when none does). */
+function fretIn(ctx, s, pcv, lo, hi) {
+  for (let f = lo; f <= hi; f++) if (T.mod(ctx.tuning[s] + f, 12) === pcv) return f;
+  return null;
+}
+const HAND_PROGS = ['i-bVI-bIII-bVII', 'I-V-vi-IV', 'i-iv-v-min', 'I-vi-IV-V', 'ii-V-I'];
+
+const SWEEPS = {
+  spread: { name: 'R-5-8-10 triad (four strings)', tones: ['1', '5', '8', '10'] },
+  close: { name: 'R-3-5-8 triad (four strings)', tones: ['1', '3', '5', '8'] },
+  seventh: { name: 'R-5-7-10 7th chord (four strings)', tones: ['1', '5', '7', '10'], sevenths: true },
+  five: { name: 'R-5-8-10-12 (five strings, from the low B)', tones: ['1', '5', '8', '10', '12'], low: true, minStrings: 5 },
+};
+const sweep = ex({
+  id: 'tech-sweep', module: M, level: 5,
+  title: 'Sweep picking: arpeggios across the strings',
+  summary: 'One note per string in one motion: ↓ through the strings going up, ↑ coming down, or rakes with the fingers.',
+  about: 'An arpeggio with one note per string can be played in a single motion. With a pick, the pick falls through the strings going up (↓ ↓ ↓ ↓) and comes back through them going down (↑ ↑ ↑): a sweep. With the fingers the same economy is raking: alternate i and m going up the strings, and let one finger fall through them coming down. Each shape is one hand position per chord, and each note must stop as the next one sounds, or the arpeggio blurs into a strummed chord. Four-string shapes run in sextuplets (one sweep up and down per beat); the five-string shape, from the low B, in 16ths.',
+  tips: ['Lift (or roll) each fretting finger as soon as its note has sounded: a sweep is a line, not a chord.', 'Slow and even first: the turn at the top gets the same time as every other note.'],
+  source: 'Sweep picking from rock and fusion guitar, adapted to the bass (Billy Sheehan, Jeff Berlin); Gary Willis raking',
+  params: {
+    shape: sel('Shape', Object.entries(SWEEPS).map(([k, v]) => [k, v.name, ...(v.minStrings ? [{ minStrings: v.minStrings }] : [])])),
+    hand: sel('Right hand', [['pick', 'Pick (↓ up the strings, ↑ down)'], ['fingers', 'Fingers (alternate up, rake down)']]),
+    prog: progP(HAND_PROGS, 'i-bVI-bIII-bVII'),
+    key: keyP(['1', 'b3', '5'], { def: '9' }),
+  },
+  bpm: 56, label: 'degree',
+  build(p, ctx, S) {
+    const b = new Builder(ctx, S);
+    let shape = SWEEPS[p.shape] || SWEEPS.spread;
+    if (shape.low && ctx.tuning.length < 5) shape = SWEEPS.spread;
+    const s0 = shape.low ? 0 : Math.max(0, ctx.str('E'));
+    const n = shape.tones.length;
+    // one sweep: up the strings and back down without repeating the two ends (n notes up, n - 2 down)
+    const cycle = [...Array(n).keys(), ...Array.from({ length: n - 2 }, (_, i) => n - 2 - i)];
+    // four-string sweeps are sextuplets (one per beat), five-string ones 16ths (one per two beats)
+    const val = n === 4 ? 1 / 6 : 1 / 4;
+    let prev = 5;
+    for (const k of keysFor(p.key)) {
+      for (const c of progChords(p.prog, k, { triads: !shape.sevenths, S })) {
+        const semis = shape.tones.map((t) => toneSemis(c, t));
+        // the root fret nearest the hand's last position where the whole shape fits on the neck
+        let best = null;
+        for (let f = 0; f <= Math.min(ctx.maxFret, 15); f++) {
+          if (T.mod(ctx.tuning[s0] + f, 12) !== T.pc(c.root)) continue;
+          const frets = semis.map((x, i) => ctx.tuning[s0] + f + x - ctx.tuning[s0 + i]);
+          if (Math.min(...frets) < 0 || Math.max(...frets) > ctx.maxFret) continue;
+          if (!best || Math.abs(f - prev) < Math.abs(best.f - prev)) best = { f, frets };
+        }
+        prev = best.f;
+        const notes = shape.tones.map((t, i) => ({ s: s0 + i, f: best.frets[i], ...toneOf(c, t) }));
+        const items = [];
+        for (let r = 0; r < Math.round(c.beats / (val * cycle.length)); r++) for (const i of cycle) items.push({ ...notes[i], dur: val });
+        // pick: ↓ when the next string is higher, ↑ when it is lower; fingers: alternate up, rake down
+        if (p.hand === 'fingers') rhTags(items);
+        else items.forEach((it, j) => { it.tag = j === 0 || it.s > items[j - 1].s ? '↓' : '↑'; });
+        items[0].chord = c.sym;
+        b.frets(items);
+      }
+    }
+    return b.build({ uniform: false, label: 'degree' });
+  },
+});
+
+const TAPS = [
+  ['triplets', 'Tap, pull-off, hammer (triplets on one string)'],
+  ['twohand', 'Two-hand arpeggios (left hand R and 5)'],
+  ['pedal', 'Tapped melody over a pedal'],
+];
+const tapping = ex({
+  id: 'tech-tapping', module: M, level: 6,
+  title: 'Two-hand tapping',
+  summary: 'RH right-hand tap · LH left-hand tap (no pluck) · PO pull-off · H hammer-on: both hands on the fretboard.',
+  about: 'In two-hand tapping the right hand leaves the plucking position and hammers notes onto the fretboard with a fingertip (RH), while the left hand taps its own notes without plucking (LH); pull-offs (PO) and hammer-ons (H) join them into one line. Three patterns: tap the 5th, pull off to the root and hammer the 3rd on one string, in triplets; split each chord between the hands (left hand root and 5th, right hand three chord tones higher up); and keep a left-hand pedal on the root under a tapped melody. The finger labels show the left hand\'s fingers (1–4) and the right hand\'s (i, m, a).',
+  tips: ['A tap is a hammer: fast and firm, straight down just behind the fret.', 'Mute the strings you are not playing with the side of the left hand, or a hair tie at the nut.'],
+  source: 'Two-hand tapping as played by Billy Sheehan, Stu Hamm, Victor Wooten and Michael Manring',
+  params: {
+    pattern: sel('Pattern', TAPS),
+    prog: progP(HAND_PROGS, 'i-bVI-bIII-bVII'),
+    key: keyP(['1', 'b3', '5'], { def: '9' }),
+  },
+  bpm: 56, label: 'degree',
+  build(p, ctx, S) {
+    const b = new Builder(ctx, S);
+    const top = ctx.tuning.length - 1;
+    const e = Math.max(0, ctx.str('E'));
+    const g = ctx.str('G') >= 0 ? ctx.str('G') : top;
+    for (const k of keysFor(p.key)) {
+      for (const c of progChords(p.prog, k, { triads: true, S })) {
+        const pcv = T.pc(c.root);
+        const third = c.ivs[1], fifth = c.ivs[2];
+        const tone = (iv) => ({ n: T.up(c.root, iv), deg: T.fmtDeg(iv) });
+        let cell, val;
+        if (p.pattern === 'triplets') {
+          // one string: the left hand frets the root (index) and the 3rd (little finger), the right hand taps the 5th above
+          let s = g, f = null;
+          for (const cand of [g, g - 1, g - 2]) { f = fretIn(ctx, cand, pcv, 2, 9); if (f != null) { s = cand; break; } }
+          cell = [
+            { s, f: f + T.semis(fifth), ...tone(fifth), tag: 'RH', finger: 'i' },
+            { s, f, ...tone('1'), tag: 'PO', finger: 1 },
+            { s, f: f + T.semis(third), ...tone(third), tag: 'H', finger: 4 },
+          ];
+          val = 1 / 3;
+        } else {
+          // the left hand: the root on the E string (frets 1-7), else on the A string
+          let s = e, f = fretIn(ctx, e, pcv, 1, 7);
+          if (f == null) { s = e + 1; f = fretIn(ctx, s, pcv, 1, 7); }
+          const root = { s, f, ...tone('1'), tag: 'LH', finger: 1 };
+          const rootMidi = ctx.tuning[s] + f;
+          // the right hand: three chord tones from the octave up (8, 10, 12, then 15), each on the highest
+          // string that has it from 4 frets above the left hand, climbing across the strings
+          const rh = [];
+          for (const [iv, add] of [['1', 12], [third, 12 + T.semis(third)], [fifth, 12 + T.semis(fifth)], ['1', 24]]) {
+            if (rh.length === 3) break;
+            const from = rh.length ? rh[rh.length - 1].s : s + 1;
+            for (let s2 = Math.min(top, s + 3); s2 >= from; s2--) {
+              const ff = rootMidi + add - ctx.tuning[s2];
+              if (ff >= f + 4 && ff <= Math.min(ctx.maxFret, f + 14)) { rh.push({ s: s2, f: ff, ...tone(iv), tag: 'RH', finger: ['i', 'm', 'a'][rh.length] }); break; }
+            }
+          }
+          if (p.pattern === 'twohand') {
+            const five = { s: s + 1, f: f + 2, ...tone(fifth), tag: 'LH', finger: 3 };
+            cell = [root, five, rh[0], rh[1], rh[2], rh[1], rh[0], five];
+            val = 1 / 2;
+          } else {
+            // pedal: the left hand taps the root again and again between the right hand's notes
+            cell = [root, rh[0], root, rh[1], root, rh[2], root, rh[1]];
+            val = 1 / 4;
+          }
+        }
+        const items = [];
+        for (let r = 0; r < Math.round(c.beats / (val * cell.length)); r++) for (const it of cell) items.push({ ...it, dur: val });
+        items[0].chord = c.sym;
+        b.frets(items);
+      }
+    }
+    return b.build({ uniform: false, label: 'degree' });
+  },
+});
+
+export default [permStrings, altPluck, c1234, raking, muting, climb, perms, spider, diagonal, fingerPairs, octaveRun, dynamics, trills, legato, stringSkip, shifting, simandl, accents, ghost16, stretch, harmonics, endurance, pim, sweep, tapping];
