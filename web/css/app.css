@@ -466,7 +466,8 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 
 /* ---------------------------------------------------------------- course map */
 .course-intro { max-width: 900px; margin: -4px 0 4px; }
-.stage-head { flex-wrap: wrap; scroll-margin-top: 60px; }
+.stage-head { flex-wrap: wrap; }
+.map-fold { scroll-margin-top: 60px; }
 /* the stage jumps stay at the top of the map while it scrolls */
 .map-jump { position: sticky; top: -16px; z-index: 4; background: var(--bg); margin: -16px 0 2px; padding: 16px 0 8px; }
 .stage-head h2 { white-space: nowrap; }

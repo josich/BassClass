@@ -21,6 +21,7 @@ export const DEFAULT_SETTINGS = {
   backing: 'off',          // 'off' | 'drone' | 'chords': a pad under the exercise
   score: 'tab',            // 'tab' | 'staff': the strip under the neck
   libOpen: null,           // the Library levels left open (null: only the player's own level)
+  mapOpen: null,           // the course map stages left open (null: only the next lesson's stage)
   v: 2,                    // settings format (see migrate)
 };
 
@@ -40,6 +41,7 @@ const SETTING_RULES = {
   backing: oneOf(['off', 'drone', 'chords']),
   score: oneOf(['tab', 'staff']),
   libOpen: (v) => v === null || (Array.isArray(v) && v.length <= 6 && v.every((n) => [1, 2, 3, 4, 5, 6].includes(n))),
+  mapOpen: (v) => v === null || (Array.isArray(v) && v.length <= 6 && v.every((n) => [1, 2, 3, 4, 5, 6].includes(n))),
   v: numIn(1, 99),
 };
 export const SUB_VALUES = [0.25, 0.5, 1, 2, 3, 4, 5, 6];

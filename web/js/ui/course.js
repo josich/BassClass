@@ -2,7 +2,7 @@
 // and the placement check. Lessons open exercises with preset options and a tempo goal (see
 // course/data.js); everything stays open, the course only points at the next step.
 import { h, icon, toast, rng, infoBtn } from './dom.js';
-import { settings } from '../store.js';
+import { settings, saveSettings } from '../store.js';
 import { EXERCISES, byId } from '../curriculum/index.js';
 import { SUB_NAMES, paramOptions } from './exercise.js';
 import { exHref, go, buildRoutine, routineParams, setRoutine, routineHref } from './screens.js';
@@ -311,9 +311,25 @@ export function sessionBlock() {
 }
 
 // ---------------------------------------------------------------- course map
+// each stage folds, like the Library's levels: the stages left open are remembered, and until the
+// player opens or folds one, only the stage of the next lesson is open
+const mapOpen = (cont) => new Set(settings.mapOpen ?? [cont ? STAGES.indexOf(cont.stage) + 1 : 1]);
+function setMapOpen(cont, n, open) {
+  const s = mapOpen(cont);
+  if (open) s.add(n); else s.delete(n);
+  saveSettings({ mapOpen: [...s].sort() });
+}
 export function courseScreen(main) {
   const stats = courseStats();
   const cont = continueLesson();
+  const open = mapOpen(cont);
+  // jump to a stage (opening it if it is folded)
+  const jump = (n) => {
+    const fold = main.querySelector(`#stage-${n}`);
+    if (!fold) return;
+    if (!fold.open) { fold.open = true; setMapOpen(cont, n, true); }
+    fold.scrollIntoView({ block: 'start' });
+  };
   const row = (l) => {
     const st = status(l);
     const isNext = l === cont;
@@ -330,21 +346,23 @@ export function courseScreen(main) {
       h('h1', {}, 'Course map'), infoBtn(['▶ next lesson · ◐ started · ✓ done or known', '🔓 In order, or jump anywhere', '🎯 A step: one full loop at its goal tempo, then ✓ Clean', '↻ Done lessons come back as reviews (1, 3, 7, 21, 60 days)'], 'About the course map'),
       h('span', { class: 'muted' }, `${stats.done} of ${stats.total} lessons done${stats.known ? ` · ${stats.known} known` : ''}`)),
     // jump to a stage (the map is long on a phone)
-    h('div', { class: 'tabs lv-jump map-jump' }, STAGES.map((stage, si) => h('button', { title: stage.title, onClick: () => main.querySelector(`#stage-${si + 1}`)?.scrollIntoView({ block: 'start' }) }, `S${si + 1}`))),
+    h('div', { class: 'tabs lv-jump map-jump' }, STAGES.map((stage, si) => h('button', { title: stage.title, onClick: () => jump(si + 1) }, `S${si + 1}`))),
     ...STAGES.flatMap((stage, si) => {
       // lessons only (checkpoints and the test are not counted, as on Home)
       const list = stage.lessons.filter((l) => !l.optional && l.kind === 'lesson');
       const done = list.filter((l) => status(l) === 'done').length;
       const known = list.filter((l) => status(l) === 'known').length;
-      return [
-        h('div', { class: 'section stage-head', id: `stage-${si + 1}` }, h('span', { class: `chip lv lv${stage.level}` }, `Stage ${si + 1}`), h('h2', {}, stage.title), infoBtn(listLines(stage.desc), `About Stage ${si + 1}`), h('span', { class: 'muted small' }, `${done}/${list.length} lessons${known ? ` (${known} known)` : ''}`)),
+      const fold = h('details', { class: 'lv-fold map-fold', id: `stage-${si + 1}`, open: open.has(si + 1) },
+        h('summary', { class: 'section stage-head' }, h('span', { class: `chip lv lv${stage.level}` }, `Stage ${si + 1}`), h('h2', {}, stage.title), infoBtn(listLines(stage.desc), `About Stage ${si + 1}`), h('span', { class: 'muted small' }, `${done}/${list.length} lessons${known ? ` (${known} known)` : ''}`)),
         h('div', { class: 'grid unit-grid' },
           UNITS.filter((u) => u.stage === stage).map((u) => h('div', { class: 'unit-card' },
             h('h3', {}, h('span', { class: 'ex-num' }, u.n), u.title, infoBtn(u.goal, `About unit ${u.n}`)),
             h('div', { class: 'les-list' }, u.list.map(row)))),
           stage.lessons.filter((l) => l.kind === 'test').map((l) => h('div', { class: 'unit-card test' },
-            h('h3', {}, '★ Stage test'), h('div', { class: 'les-list' }, row(l))))),
-      ];
+            h('h3', {}, '★ Stage test'), h('div', { class: 'les-list' }, row(l))))));
+      // (the toggle event also fires when the map is drawn: only a change is saved)
+      fold.addEventListener('toggle', () => { if (mapOpen(cont).has(si + 1) !== fold.open) setMapOpen(cont, si + 1, fold.open); });
+      return [fold];
     }),
     ...(COMPLETE ? [] : [h('p', { class: 'muted small', style: { marginTop: '18px' } }, `More stages (Level ${NEXT_LEVEL} onward) are on the way. The Library and the Path have every exercise in the meantime.`)]),
     h('div', { class: 'row', style: { marginTop: '18px' } }, h('button', { class: 'btn', onClick: () => {
@@ -356,8 +374,9 @@ export function courseScreen(main) {
   // a fresh visit shows the next lesson when it is not on the first screen (a new player, whose next
   // lesson is the first, sees the top); Back keeps the place the player left (the router restores
   // it, the top too; two frames: after the router's own restore)
-  const nextRow = main.querySelector('.les-row.next');
-  if (nextRow && !nav.returning && nextRow !== main.querySelector('.les-row')) {
+  // (a next lesson in a folded stage is not scrolled to)
+  const nextRow = main.querySelector('details[open] .les-row.next');
+  if (nextRow && !nav.returning && nextRow !== main.querySelector('details[open] .les-row')) {
     requestAnimationFrame(() => requestAnimationFrame(() => {
       const r = nextRow.getBoundingClientRect(), m = main.getBoundingClientRect();
       if (r.top < m.top + 60 || r.bottom > m.bottom) nextRow.scrollIntoView({ block: 'center' });
