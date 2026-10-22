@@ -115,7 +115,36 @@ function accidental(x, y, s, a) {
   if (a === -2) return accidental(x - 3 * u, y, s, -1) + accidental(x + 3 * u, y, s, -1);
   return '';
 }
-function accWidth(a, s) { return (a === -2 ? 1.9 : 1.1) * s; }
+// how far each accidental reaches left and right of the x it is drawn at, and above and below its
+// line or space, in spaces
+const ACC_REACH = { 1: [0.55, 0.5], [-1]: [0.38, 0.52], 0: [0.32, 0.32], 2: [0.43, 0.43], [-2]: [0.75, 0.9] };
+const ACC_TALL = { 1: [1.25, 1.25], [-1]: [1.65, 0.55], 0: [1.3, 1.3], 2: [0.45, 0.45], [-2]: [1.65, 0.55] };
+// an accidental's right edge stands this far clear of the head's left edge (0.64 of a space from its
+// centre): any closer, on a phone, it looks attached to the note
+const ACC_GAP = 0.5, HEAD_HALF = 0.64;
+/**
+ * A chord's accidentals ([{ step, a }]) in columns so none touch: the top one nearest the notes, then
+ * the bottom one, then inwards, each in the first column it fits. Sets each one's dx (where it is drawn,
+ * from the head's centre) and returns how far they all reach left of the head's centre.
+ */
+function accColumns(list, s) {
+  const order = [...list].sort((p, q) => q.step - p.step);
+  const cols = [];
+  for (let i = 0, j = order.length - 1; i <= j; i++, j--) {
+    for (const it of j > i ? [order[i], order[j]] : [order[i]]) {
+      const top = it.step / 2 + ACC_TALL[it.a][0], bot = it.step / 2 - ACC_TALL[it.a][1];
+      let col = cols.find((c) => c.every((o) => top + 0.1 < o.bot || bot - 0.1 > o.top));
+      if (!col) cols.push(col = []);
+      col.push({ it, top, bot });
+    }
+  }
+  let edge = HEAD_HALF + ACC_GAP;
+  for (const c of cols) {
+    for (const { it } of c) it.dx = -(edge + ACC_REACH[it.a][1]) * s;
+    edge += Math.max(...c.map(({ it }) => ACC_REACH[it.a][0] + ACC_REACH[it.a][1])) + 0.2;
+  }
+  return (edge - 0.2) * s;
+}
 function rest(x, mid, s, t, dots) {
   const u = s / 8;
   let g = '';
@@ -277,6 +306,7 @@ export function engraveStaff(inst, { beatsOf, label, beatsPerBar = 4, compact = 
   // (a staff made smaller to fit its range keeps its horizontal room: scrolling is cheap)
   const timeSpace = (d) => Math.max(2.9 * s, 23) * Math.sqrt(Math.max(1, d / (TPQ / 4)));
   const right = new Map(), left = new Map(), lab = new Map();
+  const accsAt = new Map(); // tick -> the accidentals written there, in their columns (the beams avoid them)
   const grow = (m, k, v) => m.set(k, Math.max(m.get(k) || 0, v));
   {
     // the accidentals the engraving will write (the same rule: they hold to the end of the bar)
@@ -290,14 +320,15 @@ export function engraveStaff(inst, { beatsOf, label, beatsPerBar = 4, compact = 
       const bar = Math.floor(e.pos / barT);
       if (!acc.has(bar)) acc.set(bar, new Map());
       const state = acc.get(bar);
-      let accW = 0;
+      const accs = [];
       for (const p of placed[e.i]) {
         if (p.kind === 'x') continue;
         const want = state.has(p.step) ? state.get(p.step) : (keyAcc[p.n.n.l] || 0);
-        if (p.n.n.a !== want) accW = Math.max(accW, accWidth(p.n.n.a, s));
+        if (p.n.n.a !== want) accs.push({ step: p.step, a: p.n.n.a });
         state.set(p.step, p.n.n.a);
       }
-      grow(left, e.pos, accW ? 1.25 * s + accW * 0.6 : 0.7 * s);
+      grow(left, e.pos, accs.length ? accColumns(accs, s) : 0.7 * s);
+      if (accs.length) accsAt.set(e.pos, accs);
       // (a chord whose labels do not fit side by side stacks them: its longest one counts)
       const ls = labelsOf[e.i];
       if (ls.length) grow(lab, e.pos, Math.min(ls.join('·').length, Math.max(...ls.map((t) => t.length))) * LW);
@@ -306,7 +337,8 @@ export function engraveStaff(inst, { beatsOf, label, beatsPerBar = 4, compact = 
   const tickSet = new Set(events.map((e) => e.pos));
   for (let b = 0; b <= padEnd; b += barT) tickSet.add(b);
   const ticks = [...tickSet].sort((a, b) => a - b);
-  const xs = [head0 + 1.4 * s];
+  // (a first note with an accidental starts further from the time signature)
+  const xs = [head0 + Math.max(1.4 * s, (left.get(ticks[0]) || 0) + 0.6 * s)];
   for (let k = 1; k < ticks.length; k++) {
     const a = ticks[k - 1], b = ticks[k];
     const content = Math.max((right.get(a) || 0) + (left.get(b) || 0) + 0.35 * s, (lab.get(a) || 0) + 3);
@@ -357,6 +389,20 @@ export function engraveStaff(inst, { beatsOf, label, beatsPerBar = 4, compact = 
       const need = up ? ext[j] - (j === 0 || j === xs.length - 1 ? stemLen : 2.5 * s) : ext[j] + (j === 0 || j === xs.length - 1 ? stemLen : 2.5 * s);
       const cc = need - slope * (bx - xs[0]);
       c = up ? Math.min(c, cc) : Math.max(c, cc);
+    });
+    // the accidentals inside the group keep 0.3 of a space clear of the innermost beam (on fast notes
+    // an inner note's stem is short and a sharp's tail would reach the 16th beam)
+    const inner = (Math.max(1, ...evs.map((e) => e.val.flags || 1)) - 1) * 0.72 * s + 0.42 * s;
+    evs.forEach((e) => {
+      for (const it of accsAt.get(e.pos) || []) {
+        const ax = X(e.pos) + it.dx, y = yOf(it.step);
+        for (const bx of [ax - ACC_REACH[it.a][0] * s, ax + ACC_REACH[it.a][1] * s]) {
+          if (bx < xs[0] || bx > xs[xs.length - 1]) continue;
+          const need = up ? y - (ACC_TALL[it.a][0] + 0.3) * s - inner : y + (ACC_TALL[it.a][1] + 0.3) * s + inner;
+          const cc = need - slope * (bx - xs[0]);
+          c = up ? Math.min(c, cc) : Math.max(c, cc);
+        }
+      }
     });
     return { evs, xs, by: (bx) => c + slope * (bx - xs[0]) };
   };
@@ -419,18 +465,23 @@ export function engraveStaff(inst, { beatsOf, label, beatsPerBar = 4, compact = 
       const nb = up ? v - 1 : v + 1;
       if (order.includes(nb) && !shifted.has(nb)) shifted.add(v);
     }
-    const accX = x - 1.25 * s - (!up && shifted.size ? 1.2 * s : 0);
+    const accX = x - (!up && shifted.size ? 1.2 * s : 0);
+    const accs = [];
     q.forEach((p) => {
       const y = yOf(p.step);
       const hx = shifted.has(p.step) ? x + (up ? 1.2 : -1.2) * s : x;
       svg += head(hx, y, s, { hollow: e.val.hollow, kind: p.kind });
       if (e.first && p.kind !== 'x') {
         const want = state.has(p.step) ? state.get(p.step) : (keyAcc[p.n.n.l] || 0);
-        if (p.n.n.a !== want) svg += accidental(accX - (accWidth(p.n.n.a, s) - 1.1 * s) / 2, y, s, p.n.n.a);
+        if (p.n.n.a !== want) accs.push({ step: p.step, a: p.n.n.a, y });
         state.set(p.step, p.n.n.a);
       }
       for (let d = 0; d < e.val.dots; d++) svg += `<circle cx="${f2(x + (1.25 + 0.55 * d) * s)}" cy="${f2(p.step % 2 === 0 ? y - half : y)}" r="${f2(0.2 * s)}" class="srf"/>`;
     });
+    if (accs.length) {
+      accColumns(accs, s);
+      for (const it of accs) svg += accidental(accX + it.dx, it.y, s, it.a);
+    }
     if (e.val.stem && !gr) {
       const sx = stemX(x, up);
       const y1 = up ? yOf(lo) : yOf(hi), y2 = up ? yOf(hi) - stemLen : yOf(lo) + stemLen;
@@ -556,7 +607,11 @@ export function engraveStaff(inst, { beatsOf, label, beatsPerBar = 4, compact = 
   SIG.slice(0, Math.abs(ks)).forEach(([st], j) => { frame += accidental(38 + j * 1.1 * s, yOf(st), s, Math.sign(ks)); });
   const tsx = 40 + Math.abs(ks) * 1.1 * s + 0.9 * s;
   frame += `<text x="${f2(tsx)}" y="${f2(yOf(22) - 0.05 * s)}" class="sts" style="font-size:${f2(2.45 * s)}px">${num}</text><text x="${f2(tsx)}" y="${f2(yOf(18) - 0.05 * s)}" class="sts" style="font-size:${f2(2.45 * s)}px">${den}</text>`;
-  for (let b = barT; b < padEnd; b += barT) frame += `<line x1="${f2(X(b) - 2.3 * s)}" x2="${f2(X(b) - 2.3 * s)}" y1="${f2(yOf(26))}" y2="${f2(yOf(18))}" class="sbl"/>`;
+  // (a bar line stands clear of the first note's accidentals, however many columns they take)
+  for (let b = barT; b < padEnd; b += barT) {
+    const bx = X(b) - Math.max(2.3 * s, (left.get(b) || 0) + 0.45 * s);
+    frame += `<line x1="${f2(bx)}" x2="${f2(bx)}" y1="${f2(yOf(26))}" y2="${f2(yOf(18))}" class="sbl"/>`;
+  }
   frame += `<line x1="${f2(width - 14)}" x2="${f2(width - 14)}" y1="${f2(yOf(26))}" y2="${f2(yOf(18))}" class="sbl"/><rect x="${f2(width - 11)}" y="${f2(yOf(26))}" width="${f2(0.45 * s)}" height="${f2(4 * s)}" class="srf"/>`;
   if (inst.swing) frame += `<text x="6" y="11" class="sswing">Swing</text>`;
 
