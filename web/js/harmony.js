@@ -8,6 +8,8 @@ import { SHORT } from './curriculum/common.js';
 const SOLFEGE = { Do: 'C', Re: 'D', Mi: 'E', Fa: 'F', Sol: 'G', La: 'A', Si: 'B' };
 const SYM_TO_TYPE = new Map();
 for (const [type, c] of Object.entries(T.CHORDS)) if (!SYM_TO_TYPE.has(c.sym)) SYM_TO_TYPE.set(c.sym, type);
+// a power chord ("F5", the rock studies): root and 5th, not one of the app's chord types
+SYM_TO_TYPE.set('5', 'pow');
 
 // scale and mode names as they appear on badges -> scale key
 const SCALE_NAMES = new Map([['ionian', 'ionian'], ['aeolian', 'aeolian'], ['major', 'ionian'], ['minor', 'aeolian'],
@@ -50,6 +52,7 @@ export function parseBadge(label) {
 
 /** Semitones above the root for the pad: the chord's own tones, or the scale's triad. */
 function padSemis(badge) {
+  if (badge.type === 'pow') return [0, 7, 12];
   if (badge.type) return T.CHORDS[badge.type].iv.filter((iv) => !/9|11|13/.test(iv)).slice(0, 4).map((iv) => T.semis(iv));
   const k = badge.scale;
   if (k === 'altered') return [0, 4, 10];                // the altered dominant: R 3 ♭7

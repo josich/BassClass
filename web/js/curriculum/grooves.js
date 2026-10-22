@@ -305,7 +305,7 @@ const SLAPS = {
   triad: { name: 'Slap arpeggio (T R, T 5, P 8, P 10)', bars: [[['R', 0.5, 'T'], ['5', 0.5, 'T'], ['8', 0.5, 'P'], ['10', 0.5, 'P'], ['R', 0.5, 'T'], ['5', 0.5, 'T'], ['8', 0.5, 'P'], ['5', 0.5, 'T']]] },
   ghostFunk: { name: 'Ghost-note funk: thumb ghosts, hammer-ons, pop and pull-off', bars: [[['R', 0.25, 'T'], ['x', 0.25, 'T'], ['b3', 0.25, 'H'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['5', 0.25, 'T'], ['b7', 0.25, 'H'], ['8', 0.25, 'P'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['b3', 0.25, 'H'], ['4', 0.25, 'T'], ['8', 0.25, 'P'], ['b7', 0.25, 'PO'], ['5', 0.25, 'T'], ['x', 0.25, 'T']]] },
   popFill: { name: 'Pop fill down the minor pentatonic (pull-offs)', bars: [[['R', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['x', 0.25, 'T'], ['8', 0.25, 'P'], ['b7', 0.25, 'PO'], ['5', 0.25, 'T'], ['4', 0.25, 'PO'], ['b3', 0.25, 'PO'], ['R', 0.25, 'T'], ['x', 0.25, 'T'], ['R', 0.25, 'T']]] },
-  double: { name: 'Double thumb (down ↓ / up ↑) + pop', bars: [[['R', 0.25, 'T↓'], ['R', 0.25, 'T↑'], ['8', 0.25, 'P'], ['x', 0.25, 'T↑'], ['R', 0.25, 'T↓'], ['R', 0.25, 'T↑'], ['8', 0.25, 'P'], ['b7', 0.25, 'P'], ['5', 0.25, 'T↓'], ['5', 0.25, 'T↑'], ['8', 0.25, 'P'], ['x', 0.25, 'T↑'], ['R', 0.25, 'T↓'], ['b3', 0.25, 'T↑'], ['4', 0.25, 'H'], ['8', 0.25, 'P']]] },
+  double: { name: 'Double thumb (down T⊓ / up TV) + pop', bars: [[['R', 0.25, 'T⊓'], ['R', 0.25, 'TV'], ['8', 0.25, 'P'], ['10', 0.25, 'P'], ['R', 0.25, 'T⊓'], ['R', 0.25, 'TV'], ['8', 0.25, 'P'], ['b7', 0.25, 'P'], ['5', 0.25, 'T⊓'], ['5', 0.25, 'TV'], ['8', 0.25, 'P'], ['10', 0.25, 'P'], ['b3', 0.25, 'T⊓'], ['b3', 0.25, 'TV'], ['4', 0.25, 'H'], ['8', 0.25, 'P']]] },
 };
 
 function slapEx(id, level, styles, def, prog, meta) {
@@ -350,7 +350,7 @@ const slapAdvanced = slapEx('sl-advanced', 5, ['ghostFunk', 'popFill'], 'ghostFu
 
 const doubleThumb = slapEx('sl-double-thumb', 6, ['double'], 'double', 'vamp-min', {
   title: 'Double thumbing',
-  summary: 'Thumb down (↓) and up (↑) like a pick: Victor Wooten\'s signature technique.',
+  summary: 'Thumb down (T⊓) and up (TV) like a pick: Victor Wooten\'s signature technique.',
   about: 'Double thumbing uses the thumb in both directions: a downstroke that rests on the next string, then an upstroke with the thumbnail side. Combined with pops it allows continuous 16th-note slap lines at high speed.',
   tips: ['Start painfully slow, thumb only: down–up on one string.', 'Keep the wrist loose; the thumb moves like a pick.'],
   source: 'Victor Wooten; TalkingBass Slap (double thumb); SBL Slap Accelerator', bpm: 60,

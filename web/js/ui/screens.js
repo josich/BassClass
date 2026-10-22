@@ -178,12 +178,19 @@ export function moduleScreen(main, id) {
 
 // ---------------------------------------------------------------- library: every exercise at one sight, with search
 // each level folds (a long page otherwise): the levels left open are remembered, and until the player
-// opens or folds one, only their own level is open
-const libOpen = () => new Set(settings.libOpen ?? [playerLevel()]);
+// opens or folds one, only their own level is open. When the player reaches a new level, its section
+// opens once (the folds they chose stay as they were).
+function libOpen() {
+  const lv = playerLevel();
+  if (settings.libOpen == null) return new Set([lv]);
+  const s = new Set(settings.libOpen);
+  if (settings.libAt !== lv) { s.add(lv); saveSettings({ libOpen: [...s].sort(), libAt: lv }); }
+  return s;
+}
 function setLibOpen(n, open) {
   const s = libOpen();
   if (open) s.add(n); else s.delete(n);
-  saveSettings({ libOpen: [...s].sort() });
+  saveSettings({ libOpen: [...s].sort(), libAt: playerLevel() });
 }
 function levelSections() {
   const open = libOpen();
@@ -225,8 +232,10 @@ export function libraryScreen(main, params = {}) {
     // a number ("42" or "#42") finds that exercise
     const num = q.match(/^#?(\d+)$/);
     const words = q.split(/\s+/);
-    const list = num ? [byNumber.get(Number(num[1]))].filter(Boolean) : EXERCISES.filter((t) => {
-      const hay = norm(`${t.title} ${t.summary} ${t.about} ${t.module} ${optionText(t)}`);
+    // (a number with no exercise of its own, a year such as 1991, is searched as text)
+    const list = num && byNumber.has(Number(num[1])) ? [byNumber.get(Number(num[1]))] : EXERCISES.filter((t) => {
+      const song = t.song ? `${t.song.name} ${t.song.artist} ${t.song.year}` : '';
+      const hay = norm(`${t.title} ${t.summary} ${t.about} ${t.module} ${moduleOf(t.module)?.name || ''} ${song} ${optionText(t)}`);
       return words.every((w) => hay.includes(w));
     }).sort((a, b) => a.num - b.num);
     results.replaceChildren(list.length
@@ -238,7 +247,7 @@ export function libraryScreen(main, params = {}) {
     render();
   });
   main.replaceChildren(
-    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '▸ Tap a level to open or fold it', '🔎 Search by name, topic or number (#42)', '★ core: a key exercise of its level', 'ⓘ on a card: what it is'], 'About the Library'), h('div', { class: 'grow' }), search),
+    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '▸ Tap a level to open or fold it', '🔎 Search by name, topic, song, artist or number (#42)', '★ core: a key exercise of its level', 'ⓘ on a card: what it is'], 'About the Library'), h('div', { class: 'grow' }), search),
     jumps,
     results);
   render();

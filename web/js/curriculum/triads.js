@@ -448,6 +448,14 @@ const inversions = ex({
         const r2 = pickRoot(ctx, k, { strings: [up], lo: 2, hi: 10, prev, prefer: up });
         if (r2.s === 1) { r = r2; b.fixed = { root: `${up} string (the 2nd inversion needs the string below the root)` }; }
       }
+      // ... and the 1st inversion needs two strings above it: a root higher up moves down to the
+      // third string from the top (A on a 4-string)
+      const third = ctx.tuning.length - 3;
+      if (p.mode !== 'climb' && r.s > third) {
+        const down = ctx.names[third];
+        const r2 = pickRoot(ctx, k, { strings: [down], lo: 2, hi: 10, prev, prefer: down });
+        if (r2.s === third) { r = r2; b.fixed = { root: `${down} string (the 1st inversion needs two strings above the root)` }; }
+      }
       const groups = p.mode === 'climb'
         ? [[0, 1, 2], [1, 2, 3], [2, 3, 4], [3, 4, 5], [5, 4, 3], [4, 3, 2], [3, 2, 1], [2, 1, 0]]
         : [[0, 1, 2], [1, 2, 3], [-1, 0, 1], [1, 0, -1], [3, 2, 1], [2, 1, 0]];
@@ -838,15 +846,15 @@ const triadPairs = ex({
 });
 
 const US = {
-  'II/I': { name: 'D/C → Cmaj7♯11 (Lydian)', over: 'maj7', off: 2, q: 'maj' },
-  'V/I': { name: 'G/C → Cmaj9', over: 'maj7', off: 7, q: 'maj' },
-  'iii/I': { name: 'Em/C → Cmaj7', over: 'maj7', off: 4, q: 'min' },
-  'II/7': { name: 'D/C7 → C13♯11', over: 'dom7', off: 2, q: 'maj' },
-  'VI/7': { name: 'A/C7 → C13♭9', over: 'dom7', off: 9, q: 'maj' },
-  'bVI/7': { name: 'A♭/C7 → C7♯5♯9', over: 'dom7', off: 8, q: 'maj' },
-  'bIII/7': { name: 'E♭/C7 → C7♯9', over: 'dom7', off: 3, q: 'maj' },
-  'bV/7': { name: 'G♭/C7 → C7♭9♯11', over: 'dom7', off: 6, q: 'maj' },
-  'bVII/m': { name: 'B♭/Cm → Cm11', over: 'min7', off: 10, q: 'maj' },
+  'II/I': { name: 'D/C → Cmaj7♯11 (Lydian)', over: 'maj7', off: 2, iv: '2', q: 'maj' },
+  'V/I': { name: 'G/C → Cmaj9', over: 'maj7', off: 7, iv: '5', q: 'maj' },
+  'iii/I': { name: 'Em/C → Cmaj7', over: 'maj7', off: 4, iv: '3', q: 'min' },
+  'II/7': { name: 'D/C7 → C13♯11', over: 'dom7', off: 2, iv: '2', q: 'maj' },
+  'VI/7': { name: 'A/C7 → C13♭9', over: 'dom7', off: 9, iv: '6', q: 'maj' },
+  'bVI/7': { name: 'A♭/C7 → C7♯5♯9', over: 'dom7', off: 8, iv: 'b6', q: 'maj' },
+  'bIII/7': { name: 'E♭/C7 → C7♯9', over: 'dom7', off: 3, iv: 'b3', q: 'maj' },
+  'bV/7': { name: 'G♭/C7 → C7♭9♯11', over: 'dom7', off: 6, iv: 'b5', q: 'maj' },
+  'bVII/m': { name: 'B♭/Cm → Cm11', over: 'min7', off: 10, iv: 'b7', q: 'maj' },
 };
 
 const upperStructures = ex({
@@ -864,19 +872,38 @@ const upperStructures = ex({
     for (const k of keysFor(p.key)) {
       const u = US[p.us];
       const bass = T.bestRoot(k, T.CHORDS[u.over].iv);
-      const r = pickRoot(ctx, k, { strings: ['E', 'A'], hi: 8, prev, prefer: 'E' });
-      const upRoot = T.bestRoot(T.mod(k + u.off, 12), ivsOf(u.q));
-      // the triad from a 5th to an octave and a 5th above the bass, next to the root (G2-B2-D3 over C2)
-      let um = r.midi + T.mod(u.off, 12) + (T.mod(u.off, 12) < 7 ? 12 : 0);
+      let r = pickRoot(ctx, k, { strings: ['E', 'A'], hi: 8, prev, prefer: 'E' });
+      // the upper triad is named by its interval above the bass (F♯/B, not G♭/B), plainly when that
+      // would need a double accidental (A/D♭7, not B𝄫/D♭7)
+      let upRoot = T.up(bass, u.iv);
+      if (Math.abs(upRoot.a) > 1) upRoot = T.bestRoot(T.mod(k + u.off, 12), ivsOf(u.q));
+      // the triad from a 5th to an octave and a 5th above the bass, next to the root (G2-B2-D3 over C2);
+      // when the top would pass the highest fret, the bass goes an octave lower rather than the triad
+      const above = T.mod(u.off, 12) + (T.mod(u.off, 12) < 7 ? 12 : 0);
       const highest = ctx.tuning[ctx.tuning.length - 1] + ctx.maxFret;
-      if (um + 7 > highest) um -= 12;
+      if (r.midi + above + 7 > highest) {
+        const low = pickRoot(ctx, k, { strings: ['E', 'A'], lo: 0, hi: 12, prefer: 'E' });
+        if (low.midi < r.midi) r = low;
+      }
+      const um = r.midi + above;
+      // the triad in root position; when its top would pass the highest fret, an inversion that keeps
+      // it a 5th or more above the bass (5-R-3, then 3-5-R), else an octave lower
+      const shapes = [[0, 1, 2, 1, 0], [-1, 0, 1, 0, -1], [-2, -1, 0, -1, -2]];
+      const fits = (g) => {
+        const ms = chordTones(upRoot, ivsOf(u.q), um, g).map((t) => t.midi);
+        return Math.max(...ms) <= highest && Math.min(...ms) >= r.midi + 7;
+      };
+      const shape = shapes.find(fits);
+      const [tm, tg] = shape ? [um, shape] : [um - 12, shapes[0]];
       // the badge is the lower chord (what the Backing plays: Cmaj7 or C7 under the same D triad), the
       // text names the upper structure
       const items = [{ midi: r.midi, n: bass, deg: 'R', chord: chordName(bass, u.over, S), text: `${chordName(upRoot, u.q, S)}/${nm(bass, S)}` }];
       // each upper note named against the lower chord: its own tones (3, 5, ♭7…) or a tension
       // (C♯ over C7 is the ♭9, E♭ the ♯9, never "♯1" or "♭3")
       const lower = T.CHORDS[u.over].iv;
-      chordTones(upRoot, ivsOf(u.q), um, [0, 1, 2, 1, 0]).forEach((t) => {
+      // a triad note that is a tone of the lower chord keeps that chord's spelling (the 3rd of E7 is G♯)
+      const lowerNote = new Map(lower.map((iv) => [T.pc(T.up(bass, iv)), T.up(bass, iv)]));
+      chordTones(upRoot, ivsOf(u.q), tm, tg).map((t) => ({ ...t, n: lowerNote.get(T.pc(t.n)) || t.n })).forEach((t) => {
         // by pitch class: a lead-sheet spelling (E over A♭7) can make an interval with no name
         const st = T.mod(T.pc(t.n) - T.pc(bass), 12);
         const own = lower.find((iv) => T.mod(T.semis(iv), 12) === st);

@@ -221,6 +221,14 @@ export class Builder {
         for (const n of st.notes) n.finger = n.f === 0 ? 0 : Math.min(4, n.f - lo + 1);
       }
     }
+    // a note played again at once (rests between allowed) keeps its finger: the hand does not move on it
+    let last = null;
+    for (const st of this.steps) {
+      if (!st.notes.length) continue;
+      const n = st.notes.length === 1 ? st.notes[0] : null;
+      if (n && last && last.s === n.s && last.f === n.f && n.f > 0 && !this.fixedFingers.has(n)) n.finger = last.finger;
+      last = n;
+    }
     let lo = 99, hi = 0;
     for (const st of this.steps) for (const n of st.notes) { lo = Math.min(lo, n.f); hi = Math.max(hi, n.f); }
     if (lo === 99) { lo = 0; hi = 12; }

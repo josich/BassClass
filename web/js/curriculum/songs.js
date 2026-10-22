@@ -8,13 +8,14 @@ const M = 'music';
 /** Note values: w dh (dotted half) h dq q de e qt t s st (16th triplet). */
 const DUR = { w: 4, dh: 3, h: 2, dq: 1.5, q: 1, de: 0.75, e: 0.5, qt: 2 / 3, t: 1 / 3, s: 0.25, st: 1 / 6 };
 const LETTER_SEMIS = [0, 2, 4, 5, 7, 9, 11];
-const TECH = new Set(['x', 'T', 'P', 'H', 'PO', 'T↓', 'T↑', '⊓', 'V']);
+const TECH = new Set(['x', 'T', 'P', 'H', 'PO', 'T⊓', 'TV', '⊓', 'V']);
 
 /**
  * "E1:dq A1:e:x C2:s:T,>" -> notes with start, duration and technique. The default value is an 8th;
- * modifiers: x ghost, T / T↓ / T↑ thumb, P pop, H hammer-on, PO pull-off, ⊓ V pick down/up, > accent.
- * Octaves are scientific pitch (E1 = the open E string). '|' marks bar lines (for reading only).
- * `unit` scales the values (2 in 5/8 and 7/8, where the beat is the 8th note).
+ * modifiers: x ghost, T thumb (T⊓ / TV double-thumb down / up), P pop, H hammer-on, PO pull-off,
+ * ⊓ V pick down / up, > accent, @A on that string. Octaves are scientific pitch (E1 = the open E
+ * string). '|' marks bar lines (for reading only). `unit` scales the values (2 in 5/8 and 7/8, where
+ * the beat is the 8th note).
  */
 function parseLine(src, unit = 1) {
   const out = [];
@@ -30,13 +31,15 @@ function parseLine(src, unit = 1) {
     const n = T.N(m[1] + (m[2] || ''));
     const midi = 12 * (Number(m[3]) + 1) + LETTER_SEMIS[n.l] + n.a;
     const tags = mods ? mods.split(',') : [];
-    out.push({ n, midi, t, dur, tag: tags.find((x) => TECH.has(x)), accent: tags.includes('>') });
+    out.push({ n, midi, t, dur, tag: tags.find((x) => TECH.has(x)), accent: tags.includes('>'), string: tags.find((x) => x.startsWith('@'))?.slice(1) });
     t += dur;
   }
   return { notes: out, total: t };
 }
 
-const QUALITY = { '': 'maj', m: 'min', 7: 'dom7', m7: 'min7', maj7: 'maj7', m7b5: 'm7b5', sus4: 'sus4', 6: 'maj6', m6: 'min6', 9: 'dom9', m9: 'min9', dim: 'dim' };
+const QUALITY = { '': 'maj', m: 'min', 5: 'pow', 7: 'dom7', m7: 'min7', maj7: 'maj7', m7b5: 'm7b5', sus4: 'sus4', 6: 'maj6', m6: 'min6', 9: 'dom9', m9: 'min9', dim: 'dim' };
+// a power chord (F5: root and 5th) is a rock chord of these studies only, not one of the app's chord types
+const chordIvs = (type) => (type === 'pow' ? ['1', '5'] : T.CHORDS[type].iv);
 /** "Em:4 D/F#:4 Bm7:8" -> chords with their start and end (in the line's own beats). */
 function parseChords(src, S) {
   let at = 0;
@@ -47,7 +50,8 @@ function parseChords(src, S) {
     if (!type) throw new Error(`bad chord "${tok}"`);
     const root = T.N(m[1]);
     const bass = m[3] ? T.N(m[3]) : null;
-    const c = { root, type, bass, start: at, end: at + Number(beats), sym: chordName(root, type, S) + (bass ? `/${nm(bass, S)}` : '') };
+    const name = type === 'pow' ? `${nm(root, S)}5` : chordName(root, type, S);
+    const c = { root, type, bass, start: at, end: at + Number(beats), sym: name + (bass ? `/${nm(bass, S)}` : '') };
     at = c.end;
     return c;
   });
@@ -59,66 +63,79 @@ const KEY_PCS = {
   mixolydian: [0, 2, 4, 5, 7, 9, 10], phrygian: [0, 1, 3, 5, 7, 8, 10],
   blues: [0, 2, 3, 4, 5, 6, 7, 9, 10], // the minor and major blues together: both 3rds, the ♭5 and the ♭7
 };
-// on a dominant 7th the colour notes take their jazz names
-const DOM_NAMES = { b2: '♭9', '#2': '♯9', b6: '♭13', '#4': '♯11' };
+// on a dominant 7th the other notes take their jazz names (9, 11, 13 and their alterations)
+const DOM_NAMES = { 2: '9', b2: '♭9', '#2': '♯9', 4: '11', '#4': '♯11', 6: '13', b6: '♭13' };
 
-/** One part of a study: its notes labelled against the chord under each (approach notes "→"). */
-function partItems(song, part, S) {
-  const unit = part.unit || song.unit || 1;
-  const { notes, total } = parseLine(part.notes, unit);
+/** One part of a study: its notes, each with the chord under it (the first note of a chord shows its badge). */
+function partNotes(song, part, S) {
+  const { notes, total } = parseLine(part.notes, part.unit || 1);
   const chords = parseChords(part.chords, S);
   const len = chords[chords.length - 1].end;
   if (Math.abs(total - len) > 1e-6) throw new Error(`${song.id} "${part.name}": ${total} beats of notes, ${len} of chords`);
-  const keyPcs = KEY_PCS[song.mode].map((x) => T.mod(T.pc(T.N(song.key)) + x, 12));
   const chordAt = (t) => chords.find((c) => t >= c.start - 1e-9 && t < c.end - 1e-9) || chords[chords.length - 1];
-  const semisOf = (c) => new Set(T.CHORDS[c.type].iv.map((iv) => T.semis(iv) % 12));
-  const isTone = (x) => x && !x.rest && semisOf(chordAt(x.t)).has(T.mod(x.midi - T.pc(chordAt(x.t).root), 12));
-  const labelled = new Set();
+  const seen = new Set();
   return notes.map((x, i) => {
     const c = chordAt(x.t);
-    const first = !labelled.has(c);
-    labelled.add(c);
-    const item = { dur: x.dur, chord: first ? c.sym : undefined, text: i === 0 ? part.name : undefined };
+    const first = !seen.has(c);
+    seen.add(c);
+    return { ...x, c, first, text: i === 0 ? part.name : undefined };
+  });
+}
+
+/**
+ * Labels against the chord under each note, looking ahead across the parts and round the loop: chord
+ * tones by their interval; a note a half step from the next chord tone is an approach note (→) when
+ * it lies outside the key or leads into the next chord; a dominant's other notes take their jazz names,
+ * and the blue ♭5 keeps its name in a blues.
+ */
+function labelled(song, seq) {
+  const keyPcs = KEY_PCS[song.mode].map((x) => T.mod(T.pc(T.N(song.key)) + x, 12));
+  const above = (x) => T.mod(x.midi - T.pc(x.c.root), 12);
+  const tone = (x) => chordIvs(x.c.type).some((iv) => T.semis(iv) % 12 === above(x));
+  const sounding = seq.filter((x) => !x.rest);
+  return seq.map((x) => {
+    const item = { dur: x.dur, chord: x.first ? x.c.sym : undefined, text: x.text };
     if (x.rest) return { ...item, rest: true };
+    const k = sounding.indexOf(x);
+    const next = sounding[(k + 1) % sounding.length];
+    let iv = T.ivBetween(x.c.root, x.n);
+    if (iv === '?') iv = ['1', 'b2', '2', 'b3', '3', '4', '#4', '5', 'b6', '6', 'b7', '7'][above(x)];
+    const dom = x.c.type.startsWith('dom');
     let deg;
-    const next = notes.slice(i + 1).find((y) => !y.rest);
-    const above = T.mod(x.midi - T.pc(c.root), 12);
-    // a dominant's ♭9 and ♯9 keep their names, and so does the blue ♭5 in a blues
-    const named = (c.type.startsWith('dom') && (above === 1 || above === 3)) || (song.mode === 'blues' && above === 6);
-    if (isTone(x)) {
-      deg = T.fmtDeg(T.CHORDS[c.type].iv.find((iv) => T.semis(iv) % 12 === above));
-    } else if (song.mode === 'blues' && above === 6) {
-      deg = '♭5';
-    } else if (!named && !keyPcs.includes(T.mod(x.midi, 12)) && next && Math.abs(next.midi - x.midi) === 1 && isTone(next)) {
-      deg = '→';
-    } else {
-      let iv = T.ivBetween(c.root, x.n);
-      if (iv === '?') iv = ['1', 'b2', '2', 'b3', '3', '4', '#4', '5', 'b6', '6', 'b7', '7'][T.mod(x.midi - T.pc(c.root), 12)];
-      deg = (c.type.startsWith('dom') && DOM_NAMES[iv]) || T.fmtDeg(iv);
-    }
-    return { ...item, midi: x.midi, n: x.n, deg, tag: x.tag, accent: x.accent || undefined };
+    if (tone(x)) deg = T.fmtDeg(chordIvs(x.c.type).find((v) => T.semis(v) % 12 === above(x)));
+    else if (dom && (iv === 'b2' || iv === '#2')) deg = DOM_NAMES[iv];
+    else if (song.mode === 'blues' && iv === 'b5') deg = '♭5';
+    else if (next !== x && tone(next) && Math.abs(next.midi - x.midi) === 1
+      && (!keyPcs.includes(T.mod(x.midi, 12)) || next.c !== x.c || iv === '#1')) deg = '→';
+    else deg = (dom && DOM_NAMES[iv]) || T.fmtDeg(iv);
+    return { ...item, midi: x.midi, n: x.n, deg, tag: x.tag, accent: x.accent || undefined, string: x.string };
   });
 }
 
 function song(def) {
   const { parts, form, song: name, artist, year, style, key, mode, ts, groups, center = 3, open = 'allow', ...meta } = def;
-  // the whole tune strings the parts together when they share a metre
+  // the whole tune strings the parts together when they share a metre; the first part opens (the
+  // studies are learnt part by part), and the course's steps play the whole tune
   const whole = form && parts.every((p) => !p.ts);
-  const partP = sel('Part', [...(whole ? [['all', 'Whole tune']] : []), ...parts.map((p, i) => [String(i), p.name])]);
+  const partP = sel('Part', [...parts.map((p, i) => [String(i), p.name]), ...(whole ? [['all', 'Whole tune']] : [])], '0');
   return ex({
     ...meta,
+    summary: `${style[0].toUpperCase()}${style.slice(1)}. ${meta.summary}`,
     module: M,
-    title: `“${name}” style: ${style}`,
-    source: `Original line in the style of “${name}” (${artist}, ${year}): its key, tempo, feel and technique, not its notes.`,
+    title: `${name} style`,
+    source: `Original line in the style of “${name}” (${artist}, ${year}): its key, feel and technique, at a practice tempo, not its notes.`,
     label: 'degree',
     params: { part: partP },
     song: { name, artist, year },
     build(p, ctx, S) {
       const b = new Builder(ctx, S);
       const order = p.part === 'all' && whole ? form : [Number(p.part) || 0];
-      const items = order.flatMap((pi) => partItems({ ...def, unit: parts[pi].unit }, parts[pi], S));
-      // the line keeps its shape on the neck: placed as a whole, near the hand position it is written for
-      emitMixed(b, items, { center, open, fold: false });
+      const items = labelled(def, order.flatMap((pi) => partNotes(def, parts[pi], S)));
+      // the line keeps its shape on the neck: placed as a whole, inside the hand position it is written
+      // for (a note marked @A stays on that string)
+      const region = def.region || [Math.max(0, center - 2), center + 3];
+      for (const it of items) if (it.string && ctx.str(it.string) >= 0) it.region = { lo: region[0], hi: region[1], s: ctx.str(it.string) };
+      emitMixed(b, items, { center, open, fold: false, region });
       const part = parts[order[0]];
       const sig = part.ts || ts;
       const meter = sig ? { timeSig: sig, beatsPerBar: sig[0], groups: part.groups || groups || null } : {};
@@ -135,11 +152,11 @@ const s16 = (list) => list.trim().split(/\s+/).map((x) => (x === '|' || x.includ
 const stomp = song({
   id: 'mm-stomp', level: 1, song: 'Seven Nation Army', artist: 'The White Stripes', year: 2003,
   style: 'the stomping riff', key: 'E', mode: 'aeolian', bpm: 100, center: 2,
-  summary: 'A slow, heavy riff in E minor: long dotted notes, then a driving 8th-note section.',
-  about: 'Some of the biggest riffs are just a few notes, played heavy and slow so a whole stadium can sing them. This one walks the E minor pentatonic in long dotted notes, moves to C and D, then drives the same chords in 8ths. Every note is full length; the drama comes from the weight, not the speed.',
-  tips: ['Let each dotted note ring until the next one: no gaps.', 'Drive section: same volume on every 8th, like a drummer on the floor tom.'],
+  summary: 'A slow, heavy riff in E minor: long notes, then a driving 8th-note section.',
+  about: 'Some of the biggest riffs are just a few notes, played heavy and slow so a whole stadium can sing them. This one walks the E minor pentatonic in half and quarter notes, moves to C and D, then drives the same chords in 8ths. Every note is full length; the drama comes from the weight, not the speed.',
+  tips: ['Let each long note ring until the next one: no gaps.', 'Drive section: same volume on every 8th, like a drummer on the floor tom.'],
   parts: [
-    { name: 'Riff', chords: 'Em:8 C:4 D:4', notes: 'E1:dq E1:e G1:q A1:q | B1:dq A1:e G1:q E1:q | C2:dq C2:e B1:q G1:q | D2:dq D2:e A1:q B1:q' },
+    { name: 'Riff', chords: 'Em:8 C:4 D:4', notes: 'E1:q E1:q G1:q A1:q | B1:h A1:q G1:q | C2:h B1:q G1:q | D2:h A1:q B1:q' },
     { name: 'Drive', chords: 'Em:4 C:4 D:4 Em:4', notes: `${e8('E1', 6)} G1 A1 | ${e8('C2', 6)} B1 A1 | ${e8('D2', 6)} C2 B1 | E1 E1 G1 B1 D2:q B1:q` },
   ],
   form: [0, 0, 1, 0],
@@ -174,12 +191,12 @@ const zombie = song({
 const spirit = song({
   id: 'mm-spirit', level: 1, song: 'Smells Like Teen Spirit', artist: 'Nirvana', year: 1991,
   style: 'quiet verse, loud chorus', key: 'F', mode: 'aeolian', bpm: 100, center: 2,
-  summary: 'F – B♭ – A♭ – D♭: long, quiet notes in the verse, then loud root 8ths in the chorus.',
-  about: 'Grunge made a style of the jump from quiet to loud. The verse holds each root for two beats and answers with the 5th, softly, leaving space; the chorus hits the same four chords with hard 8ths, an accent on every bar. The skill is control: the same notes, two completely different energies.',
+  summary: 'F5 – B♭5 – A♭5 – D♭5: long, quiet notes in the verse, then loud root 8ths in the chorus.',
+  about: 'Grunge made a style of the jump from quiet to loud. Over power chords (root and 5th, no 3rd), the verse holds each root for two beats and answers with the 5th, softly, leaving space; the chorus hits the same four chords with hard 8ths, an accent on every bar. The skill is control: the same notes, two completely different energies.',
   tips: ['Verse: play near the neck, lightly. Chorus: near the bridge, with power.', 'The accents (>) land on beat 1 of each chorus bar.'],
   parts: [
-    { name: 'Verse (quiet)', chords: 'F:4 Bb:4 Ab:4 Db:4', notes: 'F1:h F1:q C2:q | Bb1:h Bb1:q F1:q | Ab1:h Ab1:q Eb2:q | Db2:h Db2:q C2:q' },
-    { name: 'Chorus (loud)', chords: 'F:4 Bb:4 Ab:4 Db:4', notes: `F1:e:> ${e8('F1', 7)} | Bb1:e:> ${e8('Bb1', 7)} | Ab1:e:> ${e8('Ab1', 7)} | Db2:e:> Db2 Db2 Db2 C2 C2 Ab1 G1` },
+    { name: 'Verse (quiet)', chords: 'F5:4 Bb5:4 Ab5:4 Db5:4', notes: 'F1:h F1:q C2:q | Bb1:h Bb1:q F1:q | Ab1:h Ab1:q Eb2:q | Db2:h Db2:q Ab1:q' },
+    { name: 'Chorus (loud)', chords: 'F5:4 Bb5:4 Ab5:4 Db5:4', notes: `F1:e:> ${e8('F1', 7)} | Bb1:e:> ${e8('Bb1', 7)} | Ab1:e:> ${e8('Ab1', 7)} | Db2:e:> Db2 Db2 Db2 Db2 Db2 Eb2 Eb2` },
   ],
   form: [0, 1, 0, 1],
 });
@@ -201,8 +218,8 @@ const dust = song({
 const sunshine = song({
   id: 'mm-sunshine', level: 2, song: 'Sunshine of Your Love', artist: 'Cream', year: 1967,
   style: 'the blues-rock riff', key: 'D', mode: 'blues', bpm: 100, center: 5,
-  summary: 'A D blues riff that climbs through the blue note, moved to G and A like a real riff transposer.',
-  about: 'Blues-rock bands built songs from one riff moved to each chord. This riff climbs the D blues scale through the blue note (A♭ to A), falls back down, and moves as a block to G7 and A7: same shape, new root. Learn the shape once and the turnaround plays itself.',
+  summary: 'A D blues riff that climbs through the blue note, moved as one shape to G and A.',
+  about: 'Blues-rock bands built songs from one riff moved to each chord. This riff climbs the D blues scale through the blue note (A♭ to A), falls back down, and moves as one shape to G7 and A7: same fingers, new root. Learn the shape once and the turnaround plays itself.',
   tips: ['Same fingering for every chord: only the hand position moves.', 'The blue note (♭5) is a passing note: give it less weight than the 5th it leads to.'],
   parts: [
     { name: 'Riff', chords: 'D7:8 G7:4 D7:4', notes: 'D2 D2 F2 D2 G2 Ab2 A2:q | C3 A2 G2 F2 D2:q r:q | G1 G1 Bb1 G1 C2 Db2 D2:q | F2 D2 C2 A1 D2:q r:q' },
@@ -215,7 +232,7 @@ const standby = song({
   id: 'mm-standby', level: 2, song: 'Stand by Me', artist: 'Ben E. King', year: 1961,
   style: 'chord tones that sing', key: 'A', mode: 'ionian', bpm: 104, center: 4,
   summary: 'A – F♯m – D – E, two bars each: a two-feel, then a singing quarter-note line through the chord tones.',
-  about: 'The doo-wop progression (I – vi – IV – V) has carried hundreds of songs, and the bass often sings its own melody over it. Start in two (half notes, root and 5th), then walk quarter notes up each chord (root, 3rd, 5th, 6th) and back down, so the line leads into every change.',
+  about: 'The doo-wop progression (I – vi – IV – V) has carried hundreds of songs, and the bass often sings its own melody over it. Start in two (half notes, root and 5th), then walk quarter notes up each chord (root, 3rd, 5th and the next note of the key) and back down, so the line leads into every change.',
   tips: ['Two-feel: let each half note ring its full two beats.', 'Walking part: watch how the last note of each chord leads to the next root.'],
   parts: [
     { name: 'Two-feel', chords: 'A:8 F#m:8 D:8 E:8', notes: 'A1:h E1:h | A1:h C#2:q B1:q | F#1:h C#2:h | F#1:h A1:q G#1:q | D2:h A1:h | D2:h F#2:q E2:q | E1:h B1:h | E1:h G#1:q B1:q' },
@@ -231,7 +248,7 @@ const calif = song({
   about: 'A melodic bass line plays the chord and a small tune at the same time. The verse climbs each chord to its octave and falls back through the 7th or 6th; the chorus holds a dotted root and answers with the chord\'s triad. Play it smoothly, like a singer.',
   tips: ['Verse: one hand position around the 5th fret covers both chords.', 'Chorus: the dotted quarter is long; the 8th after it is light.'],
   parts: [
-    { name: 'Verse', chords: 'Am:4 F:4 Am:4 F:4', notes: 'A1:q C2 E2 A2:q G2 E2 | F1:q A1 C2 F2:q E2 C2 | A1:q C2 E2 A2 G2 E2 D2 | F1:q F1 A1 C2 D2 E2:q' },
+    { name: 'Verse', chords: 'Am:4 F:4 Am:4 F:4', notes: 'A1:q C2 E2 A2:q G2 E2 | F2:q A1 C2 F2:q E2 C2 | A1:q C2 E2 A2 G2 E2 D2 | F2:q F2 A1 C2 D2 E2:q' },
     { name: 'Chorus', chords: 'C:4 G:4 Dm:4 Am:4', notes: 'C2:dq C2 E2 G2 E2:q | G1:dq G1 B1 D2 B1:q | D2:dq D2 F2 A2 F2:q | A1:dq A1 C2 E2 C2:q' },
   ],
   form: [0, 0, 1, 0],
@@ -242,17 +259,17 @@ const feelgood = song({
   style: 'octave hops with space', key: 'E', mode: 'aeolian', bpm: 120, center: 4,
   summary: 'A laid-back minor riff that hops octaves and leaves holes, then a chorus that bounces off the root.',
   about: 'Alternative and hip-hop bass lines often mix a low root, its octave and silence. This riff hops from the root to the octave, rests, and slides down the chord; the chorus bounces between the root and its octave with a short climb at the end of each bar. Keep it relaxed and a little behind the beat.',
-  tips: ['Octave shape: index on the root, little finger two strings up, two frets higher.', 'Rests are short silences, not gaps: keep counting through them.'],
+  tips: ['Octave shape: the octave is two strings up and two frets higher (over an open string, at the 2nd fret).', 'Rests are short silences, not gaps: keep counting through them.'],
   parts: [
-    { name: 'Riff', chords: 'Em:4 Am:4 Em:4 C:4', notes: 'E1 E2 r E1 D2 r B1 G1 | A1 A2 r A1 G2 r E2 D2 | E1 E2 r E1 D2 r B1 D2 | C2 C3 r C2 B1 r A1 B1' },
-    { name: 'Chorus', chords: 'G:4 D:4 Am:4 C:4', notes: 'G1:q G1 G2 r G1 D2 F#2 | D2:q D2 A1 r D2 F#2 A2 | A1:q A1 A2 r A1 C2 E2 | C2:q C2 C3 r B1 A1 B1' },
+    { name: 'Riff', chords: 'Em:4 Am:4 Em:4 C:4', notes: 'E1 E2:e:@D r E1 D2 r B1 G1 | A1:e:@A A2:e:@G r A1:e:@A G2 r E2 D2 | E1 E2:e:@D r E1 D2 r B1 D2 | C2 C3:e:@G r C2 B1 r A1 B1' },
+    { name: 'Chorus', chords: 'G:4 D:4 Am:4 C:4', notes: 'G1:q G1 G2:e:@D r G1 D2 F#2 | D2:q D2 D3:e:@G r D2 F#2 A2 | A1:q:@A A1:e:@A A2:e:@G r A1:e:@A C2 E2 | C2:q C2 C3:e:@G r B1 A1 B1' },
   ],
   form: [0, 0, 1, 0],
 });
 
 const blitz = song({
   id: 'mm-blitz', level: 2, song: 'Blitzkrieg Bop', artist: 'Ramones', year: 1976,
-  style: 'punk down-strokes', key: 'A', mode: 'ionian', bpm: 140, center: 3,
+  style: 'punk down-strokes', key: 'A', mode: 'ionian', bpm: 120, center: 3,
   summary: 'Fast root 8ths through A, D and E, every note a down-stroke (⊓) with a pick or one finger.',
   about: 'Punk bass is a wall of 8th notes on the roots, played with down-strokes only for a hard, even attack. It is a stamina test: start at a tempo you can hold for a whole song, keep the wrist loose, and push the speed only when every note sounds the same. A short scale step leads into each new chord.',
   tips: ['⊓ = down-stroke with a pick (or the same finger every time).', 'Relax the shoulder and wrist: tension is what slows you down.'],
@@ -279,7 +296,7 @@ const pressure = song({
 
 const jean = song({
   id: 'mm-jean', level: 3, song: 'Billie Jean', artist: 'Michael Jackson', year: 1982,
-  style: 'the 8th-note ostinato', key: 'F#', mode: 'aeolian', bpm: 104, center: 4,
+  style: 'the 8th-note ostinato', key: 'F#', mode: 'aeolian', bpm: 104, center: 3,
   summary: 'A never-ending 8th-note arpeggio in F♯ minor, then a dotted chorus line over D and F♯m.',
   about: 'An ostinato is a figure that repeats all song long, hypnotic and exact. This one runs up the F♯ minor triad to the 7th, back down, and turns on a passing note, then moves the same shape to Bm and C♯m7. The chorus switches to a dotted root and a run up each chord. Every 8th the same length: this groove is made for dancing.',
   tips: ['Keep the notes short and even, with the same accent every time.', 'One hand position for each chord: the shape moves, the fingers stay.'],
@@ -334,24 +351,24 @@ const money = song({
   id: 'mm-money', level: 4, song: 'Money', artist: 'Pink Floyd', year: 1973,
   style: 'the riff in 7/4', key: 'B', mode: 'aeolian', bpm: 112, center: 4, ts: [7, 4],
   summary: 'A B minor riff in 7/4, felt as 4 + 3, then a middle section through Em7 and F♯m7.',
-  about: 'Seven beats in a bar sound strange until you feel them as two groups: 4 + 3. This riff fills the first four beats with a climb to the 5th and answers in the last three with a quick turn back to the root. The middle section moves the same idea to Em7 and F♯m7, with a chromatic step back into B.',
+  about: 'Seven beats in a bar sound strange until you feel them as two groups: 4 + 3. This riff fills the first four beats with a climb to the 5th and answers in the last three with a quick turn back to the root. The middle section moves the same idea to Em7 and F♯m7.',
   tips: ['Count "1 2 3 4 1 2 3" and accent both "1"s.', 'Loop one bar until the 3-beat group stops feeling short.'],
   parts: [
     { name: 'Riff', chords: 'Bm7:14', notes: 'B1:q B1 D2 E2:q F#2:q A2 F#2 E2:q D2 B1 | B1:q B1 D2 E2:q D2:q B1 A1 F#1:q A1:q' },
-    { name: 'Middle', chords: 'Em7:7 F#m7:7', notes: 'E1:q E1 G1 A1:q B1:q D2 B1 A1:q G1 F#1 | F#1:q F#1 A1 B1:q C#2:q E2 C#2 B1:q A1 A#1' },
+    { name: 'Middle', chords: 'Em7:7 F#m7:7', notes: 'E1:q E1 G1 A1:q B1:q D2 B1 A1:q G1 F#1 | F#1:q F#1 A1 B1:q C#2:q E2 C#2 B1:q A1 C#2' },
   ],
   form: [0, 0, 1, 0],
 });
 
 const criminal = song({
   id: 'mm-criminal', level: 4, song: 'Smooth Criminal', artist: 'Michael Jackson', year: 1987,
-  style: 'the 16th-note engine', key: 'A', mode: 'aeolian', bpm: 100, center: 5,
+  style: 'the 16th-note engine', key: 'A', mode: 'aeolian', bpm: 100, center: 2,
   summary: 'A driving 16th-note octave pedal through Am – F – G – E7, then a half-time groove with ghost notes.',
   about: 'Some grooves are machines: 16th notes that never stop, the low root ticking under a little melody on top. Each bar pedals the root and its octave and ends with a run down the chord, landing on the next root. The half-time part breathes, with a ghost note (x) after each root.',
   tips: ['Alternate fingers strictly: the 16ths must sound like one machine.', 'Ghost note (x): touch the string with the fretting hand without pressing, then pluck.'],
   parts: [
-    { name: '16th engine', chords: 'Am:4 F:4 G:4 E7:4', notes: s16('A1 A1 A2 A1 G2 A1 E2 A1 A1 A1 A2 A1 C3 B2 G2 E2 | F1 F1 F2 F1 E2 F1 C2 F1 F1 F1 F2 F1 A2 G2 E2 C2 | G1 G1 G2 G1 F2 G1 D2 G1 G1 G1 G2 G1 B2 A2 F2 D2 | E1 E1 E2 E1 D2 E1 B1 E1 E1 E1 E2 E1 G#2 E2 D2 B1') },
-    { name: 'Half-time', chords: 'Am:4 F:4 G:4 E7:4', notes: 'A1:q A1:e:x A1 C2:q E2 D2 | F1:q F1:e:x F1 A1:q C2 A1 | G1:q G1:e:x G1 B1:q D2 C2 | E1:q E1:e:x E1 G#1:q B1 D2' },
+    { name: '16th engine', chords: 'Am:4 F:4 G:4 E7:4', notes: s16('A1:s:@A A1:s:@A A2 A1:s:@A G2 A1:s:@A E2 A1:s:@A A1:s:@A A1:s:@A A2 A1:s:@A C3 B2 G2 E2 | F1 F1 F2 F1 E2 F1 C2 F1 F1 F1 F2 F1 A2 G2 E2 C2 | G1 G1 G2 G1 F2 G1 D2 G1 G1 G1 G2 G1 B2 A2 F2 D2 | E1 E1 E2 E1 D2 E1 B1 E1 E1 E1 E2 E1 G#2 E2 D2 B1') },
+    { name: 'Half-time', chords: 'Am:4 F:4 G:4 E7:4', notes: 'A1:q:@A A1:e:x,@A A1:e:@A C2:q E2 D2 | F1:q F1:e:x F1 A1:q C2 A1 | G1:q G1:e:x G1 B1:q D2 C2 | E1:q E1:e:x E1 G#1:q B1 D2' },
   ],
   form: [0, 0, 1, 0],
 });
@@ -385,7 +402,7 @@ const flyaway = song({
 // ---------------------------------------------------------------- Level 5
 const schism = song({
   id: 'mm-schism', level: 5, song: 'Schism', artist: 'Tool', year: 2001,
-  style: 'riffs in 5/8 and 7/8', key: 'E', mode: 'phrygian', bpm: 160, center: 2,
+  style: 'riffs in 5/8 and 7/8', key: 'E', mode: 'phrygian', bpm: 140, center: 2,
   summary: 'An E Phrygian pedal riff in 5/8 (3 + 2) and another in 7/8 (2 + 2 + 3). The click is every 8th.',
   about: 'Progressive rock moves through odd metres as if they were normal. Both riffs return to the low E on every bar and change only the notes after it, with the dark ♭2 (F) of the Phrygian mode. In 5/8 feel 3 + 2, in 7/8 feel 2 + 2 + 3. Learn each part on its own, then switch between them.',
   tips: ['Say the groups out loud: "1-2-3 1-2" and "1-2 1-2 1-2-3".', 'The tempo counts 8th notes: start around 140 and add speed slowly.'],
@@ -438,7 +455,7 @@ const whatsgoingon = song({
   id: 'mm-whatsgoingon', level: 5, song: 'What\'s Going On', artist: 'Marvin Gaye', year: 1971,
   style: 'the Motown melodic line', key: 'E', mode: 'ionian', bpm: 92, center: 4,
   summary: 'A syncopated, chromatic line through Emaj7 – C♯m7 – F♯m7 – B7, then the same chords with ghosted triplets.',
-  about: 'The great Motown bassists played melodies under the singer: syncopated rhythms, chromatic approach notes (→) into the chord tones, and ghosted triplets that make the groove bounce. Each bar starts on its root with a dotted rhythm, climbs the chord and leads chromatically into the next one.',
+  about: 'The great Motown bassists played melodies under the singer: syncopated rhythms, chromatic approach notes (→) into the chord tones, and ghosted triplets that make the groove bounce. Each bar starts on its root with a dotted rhythm and climbs the chord, with a chromatic step into a chord tone along the way.',
   tips: ['The dotted 8th + 16th on beat 1 is the signature: long, short.', 'Ghosted triplets (x x note): barely touch the first two.'],
   parts: [
     { name: 'Melodic line', chords: 'Emaj7:4 C#m7:4 F#m7:4 B7:4', notes: 'E1:de E1:s r G#1 B1 C#2 D2 D#2 | C#2:de C#2:s r E2 G#2 B1 C2 C#2 | F#1:de F#1:s r A1 C#2 E2 A1 A#1 | B1:de B1:s r D#2 F#2 A2 G#2 F#2' },
@@ -464,7 +481,7 @@ const deantown = song({
 const yyz = song({
   id: 'mm-yyz', level: 6, song: 'YYZ', artist: 'Rush', year: 1981,
   style: 'the odd-metre intro and the drive', key: 'E', mode: 'aeolian', bpm: 104, center: 5,
-  summary: 'A 5/4 riff (3 + 2) that leaps the octave, then fast 16th-note pentatonic runs in 4/4.',
+  summary: 'A 5/4 riff (3 + 2) that leaps the octave, then fast 16th-note runs through the chords in 4/4.',
   about: 'Progressive rock trios give the bass the riffs and the fast runs. The intro is in 5/4, felt as 3 + 2, with an octave leap and a turn down the scale in every bar. The drive section runs 16ths up and down each chord in a shape that crosses all four strings: stamina, accuracy and clean shifts.',
   tips: ['5/4: count "1-2-3 1-2" and lean on both "1"s.', 'Drive: use the speed trainer from 80 and keep every 16th even.'],
   parts: [
@@ -494,7 +511,7 @@ const teentown = song({
   tips: ['Pluck close to the bridge with a light touch: the notes speak faster.', 'Practise each bar alone, slowly, before linking them.'],
   parts: [
     { name: 'Run', chords: 'Gm7:4 C7:4 Fmaj7:4 A7:4', notes: s16('G1 Bb1 D2 F2 G2 F2 D2 Bb1 A1 Bb1 D2 F2 A2 G2 F2 D2 | C2 E2 G2 Bb2 C3 Bb2 G2 E2 Db2 E2 G2 Bb2 Db3 C3 Bb2 G2 | F1 A1 C2 E2 F2 E2 C2 A1 G1 A1 C2 E2 G2 F2 E2 C2 | A1 C#2 E2 G2 A2 G2 E2 C#2 Bb1 C#2 E2 G2 Bb2 A2 G2 E2') },
-    { name: 'Chromatic line', chords: 'Gm7:4 C7:4 Fmaj7:4 A7:4', notes: 'G2:s F#2:s F2:s E2:s Eb2:s D2:s C#2:s D2:s Bb1 G1 r G1:s:x G1:s | C2:s B1:s Bb1:s A1:s Ab1:s G1:s F#1:s G1:s E1 C2 r C2:s:x C2:s | F2:s E2:s Eb2:s D2:s Db2:s C2:s B1:s C2:s A1 F1 r F1:s:x F1:s | A1:s Bb1:s B1:s C2:s C#2:s D2:s D#2:s E2:s G2 E2 C#2 A1' },
+    { name: 'Chromatic line', chords: 'Gm7:4 C7:4 Fmaj7:4 A7:4', notes: 'G2:s Gb2:s F2:s E2:s Eb2:s D2:s C#2:s D2:s Bb1 G1 r G1:s:x G1:s | C2:s B1:s Bb1:s A1:s Ab1:s G1:s F#1:s G1:s E1 C2 r C2:s:x C2:s | F2:s E2:s Eb2:s D2:s Db2:s C2:s B1:s C2:s A1 F1 r F1:s:x F1:s | A1:s Bb1:s B1:s C2:s C#2:s D2:s D#2:s E2:s G2 E2 C#2 A1' },
   ],
   form: [0, 0, 1, 0],
 });
@@ -502,12 +519,12 @@ const teentown = song({
 const thump = song({
   id: 'mm-thump', level: 6, song: 'Classical Thump', artist: 'Victor Wooten', year: 1996,
   style: 'double thumbing', key: 'E', mode: 'mixolydian', bpm: 66, center: 3,
-  summary: 'Continuous 16ths with the thumb down (T↓) and up (T↑) plus pops, through E7, A7 and B7.',
-  about: 'Double thumbing turns the thumb into a pick: down through the string and back up with the thumbnail, so the thumb alone plays 8ths and the pops fill the 16ths in between. The first part sets up the motion in 8ths; the second runs continuous 16ths through E7, A7 and B7. Slow and even beats fast and messy.',
-  tips: ['T↓ thumb down (rest on the next string) · T↑ thumb up · P pop · H hammer-on.', 'Thumb alone first: down–up on one string with the metronome at 60.'],
+  summary: 'Continuous 16ths: thumb down (T⊓), thumb up (TV) and two pops on every beat, through E7, A7 and B7.',
+  about: 'Double thumbing turns the thumb into a pick. The down-stroke (T⊓) goes through the string and comes to rest on the next one; the up-stroke (TV) comes back through the same string with the thumbnail. The first part sets the motion up in 8ths, with a pop after each thumb note; the second runs continuous 16ths: thumb down, thumb up and two pops on every beat. Slow and even beats fast and messy.',
+  tips: ['T⊓ thumb down-stroke (it rests on the next string) · TV thumb up-stroke, back through the same string · P pop · H hammer-on.', 'Thumb alone first: down–up on one string with the metronome at 60.'],
   parts: [
-    { name: 'Motion in 8ths', chords: 'E7:4 A7:2 B7:2', notes: 'E1:e:T↓ E2:e:P B1:e:T↑ D2:e:P E1:e:T↓ E2:e:P G1:e:T↑ G#1:e:H | A1:e:T↓ A2:e:P E2:e:T↑ G2:e:P B1:e:T↓ B2:e:P D#2:e:T↑ E2:e:H' },
-    { name: 'Double thumb 16ths', chords: 'E7:8 A7:4 B7:4', notes: s16('E1:s:T↓ E1:s:T↑ E2:s:P B1:s:T↑ E1:s:T↓ E1:s:T↑ D2:s:P E2:s:P G1:s:T↓ G#1:s:T↑ E2:s:P B1:s:T↑ E1:s:T↓ D2:s:P E2:s:P B1:s:T↑ | E1:s:T↓ E1:s:T↑ E2:s:P B1:s:T↑ E1:s:T↓ G#1:s:T↑ D2:s:P E2:s:P E1:s:T↓ E1:s:T↑ G2:s:P E2:s:P D2:s:P B1:s:T↑ G#1:s:T↓ B1:s:T↑ | A1:s:T↓ A1:s:T↑ A2:s:P E2:s:T↑ A1:s:T↓ C#2:s:T↑ G2:s:P A2:s:P A1:s:T↓ A1:s:T↑ C#3:s:P A2:s:P G2:s:P E2:s:T↑ C#2:s:T↓ E2:s:T↑ | B1:s:T↓ B1:s:T↑ B2:s:P F#2:s:T↑ B1:s:T↓ D#2:s:T↑ A2:s:P B2:s:P B1:s:T↓ B1:s:T↑ D#3:s:P B2:s:P A2:s:P F#2:s:T↑ D#2:s:T↓ F#1:s:T↑') },
+    { name: 'Motion in 8ths', chords: 'E7:4 A7:2 B7:2', notes: 'E1:e:T⊓ E2:e:P B1:e:TV,@E D2:e:P E1:e:T⊓ E2:e:P G1:e:TV,@E G#1:e:H | A1:e:T⊓ A2:e:P E2:e:TV,@A G2:e:P B1:e:T⊓,@A B2:e:P D#2:e:TV,@A E2:e:H' },
+    { name: 'Double thumb 16ths', chords: 'E7:8 A7:4 B7:4', notes: s16('E1:s:T⊓ E1:s:TV E2:s:P D2:s:P E1:s:T⊓ G1:s:TV,@E D2:s:P E2:s:P E1:s:T⊓ E1:s:TV G2:s:P E2:s:P B1:s:T⊓,@A B1:s:TV,@A D2:s:P E2:s:P | E1:s:T⊓ E1:s:TV E2:s:P G2:s:P E1:s:T⊓ G#1:s:TV,@E D2:s:P E2:s:P E1:s:T⊓ E1:s:TV B2:s:P G#2:s:P B1:s:T⊓,@A B1:s:TV,@A A2:s:P E2:s:P | A1:s:T⊓ A1:s:TV A2:s:P G2:s:P A1:s:T⊓ C#2:s:TV,@A G2:s:P A2:s:P A1:s:T⊓ A1:s:TV C#3:s:P A2:s:P E2:s:T⊓,@A E2:s:TV,@A G2:s:P A2:s:P | B1:s:T⊓,@A B1:s:TV,@A B2:s:P A2:s:P B1:s:T⊓,@A D#2:s:TV,@A A2:s:P B2:s:P B1:s:T⊓,@A B1:s:TV,@A D#3:s:P B2:s:P F#1:s:T⊓,@E F#1:s:TV,@E D#2:s:P E2:s:P') },
   ],
   form: [0, 1, 1, 0],
 });

@@ -658,7 +658,7 @@ export default {
       { ex: 'mm-standby', p: { part: 'all' }, from: 88, goal: 112, backing: 'chords', music: true, do: 'Make music: a two-feel, then a singing line through the chord tones.' },
       { ex: 'mm-calif', p: { part: 'all' }, from: 72, goal: 92, backing: 'chords', music: true, do: 'Make music: a melodic verse and a dotted chorus line. Play it like a singer.' },
       { ex: 'mm-feelgood', p: { part: 'all' }, from: 100, goal: 132, backing: 'chords', music: true, do: 'Make music: octave hops with space. Relaxed, a little behind the beat.' },
-      { ex: 'mm-blitz', p: { part: 'all' }, from: 120, goal: 168, backing: 'chords', music: true, do: 'Make music: punk down-strokes. Hold the tempo for the whole song.' },
+      { ex: 'mm-blitz', p: { part: 'all' }, from: 112, goal: 144, backing: 'chords', music: true, do: 'Make music: punk down-strokes. Hold the tempo for the whole song.' },
     ],
   },
 };

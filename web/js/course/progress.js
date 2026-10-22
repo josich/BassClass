@@ -38,12 +38,18 @@ export const CHANGED_STEPS = [
   ] },
   // QA round 10: the R-5-10 checkpoint step in F (as its lesson)
   { rev: 4, steps: ['u-triads4-check.2'] },
+  // QA round 12: song studies whose notes changed (Seven Nation Army without dotted notes, Teen Spirit's
+  // verse, Californication's F, Feel Good's D octave, Money's middle part, Classical Thump's strokes)
+  { rev: 5, steps: ['u-scales-check.2', 's1-test.6', 's2-test.6', 's2-test.7', 'u-time4-check.5', 's6-test.8'] },
 ];
 const REV = CHANGED_STEPS.length;
 // A lesson completed stays complete when steps or "I can" lines are appended later: its record keeps
-// how many it had (`n`, `c`). Records from before that (v1.0.45 and older) take the counts of
-// v1.0.43 for the checkpoints and tests that have grown since: [steps, "I can" lines].
+// how many it had (`n`, `c`). Records from before that (v1.0.49 and older) take these counts (v1.0.43,
+// the same through v1.0.49) for the checkpoints and tests that have grown since: [steps, "I can" lines].
+// Every such record gets its counts filled in once on load, so a later append never depends on this table.
 const COUNTS_V143 = {
+  'u-lines-check': [2, 3], 'u-scales-check': [2, 3], 's1-test': [5, 4], 'u-feel-check': [3, 3], 's2-test': [5, 4],
+  'u-all-keys-check': [2, 2],
   'u-hands-check': [2, 4], 'u-notes-check': [2, 3], 'u-neck-check': [2, 3], 'u-sevenths-check': [2, 2],
   'u-blues-check': [3, 3], 'u-funk-check': [3, 3], 'u-positions-check': [2, 3],
   'u-scales3-check': [2, 3], 'u-sequences-check': [2, 2], 'u-triads3-check': [2, 3],
@@ -78,8 +84,17 @@ function load() {
     for (const k of c.steps) if (steps[k] && !(c.at && steps[k].clean > c.at)) delete steps[k];
   }
   const lessons = {};
+  let filled = false;
   for (const [k, s] of Object.entries(obj(v.lessons))) {
-    if (s && typeof s === 'object' && lessonById.has(k)) lessons[k] = { done: num(s.done), reviews: num(s.reviews), next: num(s.next), n: num(s.n), c: num(s.c) };
+    if (!(s && typeof s === 'object' && lessonById.has(k))) continue;
+    const rec = { done: num(s.done), reviews: num(s.reviews), next: num(s.next), n: num(s.n), c: num(s.c) };
+    // a lesson completed before the counts were kept: the counts it had then (see COUNTS_V143)
+    if (rec.done && !rec.n) {
+      const l = lessonById.get(k);
+      [rec.n, rec.c] = COUNTS_V143[k] || [l.steps.length, (l.can || []).length];
+      filled = true;
+    }
+    lessons[k] = rec;
   }
   const flags = (x) => Object.fromEntries(Object.entries(obj(x)).filter(([, f]) => f === true));
   return {
@@ -87,13 +102,17 @@ function load() {
     placed: num(v.placed),
     minutes: SESSION_LENGTHS.includes(v.minutes) ? v.minutes : 30,
     last: typeof v.last === 'string' && lessonById.has(v.last) ? v.last : '',
+    filled,
   };
 }
 
 let state = load();
 function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* storage unavailable */ }
+  try { localStorage.setItem(KEY, JSON.stringify({ ...state, filled: undefined })); } catch { /* storage unavailable */ }
 }
+// (counts filled in on load are stored at once)
+if (state.filled) save();
+delete state.filled;
 
 const skey = (lid, i) => `${lid}.${i}`;
 export const stepState = (lid, i) => state.steps[skey(lid, i)] || { best: 0, last: 0, loops: 0, clean: 0 };
@@ -205,11 +224,20 @@ export function setLast(id) { if (lessonById.has(id) && state.last !== id) { sta
 export function continueLesson() {
   const last = lessonById.get(state.last);
   if (last && !last.optional && ['started', 'new'].includes(status(last)) && started(last)) return last;
-  return LESSONS.find((l) => !l.optional && ['started', 'new'].includes(status(l))) || null;
+  return LESSONS.find(open) || null;
 }
 
+// A lesson added to a unit whose checkpoint the player has already passed is new material, not a gap: it
+// does not lower the level, and Continue does not go back for it (the map shows it as new)
+function addedLater(l) {
+  if (l.kind !== 'lesson' || !l.unit) return false;
+  const check = LESSONS.find((x) => x.kind === 'check' && x.unit === l.unit);
+  return !!check && status(check) === 'done';
+}
+const open = (l) => !l.optional && ['started', 'new'].includes(status(l)) && !addedLater(l);
+
 /** The first lesson in course order that is neither done, known nor optional (where the player's level is). */
-export const firstGap = () => LESSONS.find((l) => !l.optional && ['started', 'new'].includes(status(l))) || null;
+export const firstGap = () => LESSONS.find(open) || null;
 
 /** Lessons done and known (checkpoints and tests are not counted as lessons). */
 export function courseStats() {

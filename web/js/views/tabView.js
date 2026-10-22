@@ -5,6 +5,14 @@ import { engraveStaff } from './staff.js';
 
 const WIN_BACK = 1600, WIN_AHEAD = 4200; // px drawn behind and ahead of the playhead
 
+/** A technique mark under the tab: the pick's down-stroke ⊓ is drawn (some phone fonts lack it). */
+function tabMark(x, y, t) {
+  const box = (dx) => `<path d="M${dx - 2.8} ${y}V${y - 6}H${dx + 2.8}V${y}" class="tmarkp"/>`;
+  if (t === '⊓') return box(x);
+  if (t === 'T⊓') return `<text x="${x - 3}" y="${y}" class="tmark">T</text>${box(x + 4)}`;
+  return `<text x="${x}" y="${y}" class="tmark">${t}</text>`;
+}
+
 export class TabView {
   constructor(el, { onSeek } = {}) {
     this.el = el;
@@ -110,7 +118,11 @@ export class TabView {
     const pxBeat = Math.max(60, (inst.uniform ? sub : 2) * 26);
     const rowH = 11;
     const top = 16;
-    const h = top + rowH * (strings - 1) + 17;
+    // technique marks (T, P, H, PO, ⊓ V, RH LH, i m…) get a row under the tab lines, as in tab books
+    const markOf = (st) => st.notes.map((n) => n.tag).find((t) => t && t !== 'x' && t !== '◊');
+    const marks = inst.steps.some(markOf);
+    const markY = top + rowH * (strings - 1) + 12;
+    const h = top + rowH * (strings - 1) + 17 + (marks ? 10 : 0);
     let x = 14;
     const cols = [];
     inst.steps.forEach((st, i) => {
@@ -159,6 +171,8 @@ export class TabView {
         out.push(`<rect x="${cx - 7}" y="${y - 6}" width="${t.length > 1 ? 16 : 11}" height="12" class="tbg"/>`);
         out.push(`<text x="${cx - 2 + (t.length > 1 ? 3 : 0)}" y="${y + 4}" class="tnum${c.st.accent ? ' acc' : ''}">${t}</text>`);
       }
+      const mk = marks && markOf(c.st);
+      if (mk) out.push(tabMark(cx + 1, markY, mk));
       const lbl = c.st.notes.map((n) => label(n)).filter(Boolean).join('·');
       if (lbl) out.push(`<text x="${cx - 4}" y="${h - 4}" class="tlbl">${lbl}</text>`);
       if (this.opts.quiz && c.st.notes.length) out.push('</g>');

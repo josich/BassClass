@@ -61,7 +61,9 @@ const libItem = (t, level, rand, slot) => ({ id: t.id, params: routineParams(t, 
 /** A few words for an option's value: its label without the parentheses ("Index (i)" → "Index"). */
 const optWords = (def, v) => {
   const lab = String((paramOptions(def, settings).find((o) => String(o[0]) === String(v)) || [, v])[1]);
-  return lab.replace(/\s*\([^)]*\)/g, '').trim() || lab;
+  const w = lab.replace(/\s*\([^)]*\)/g, '').trim() || lab;
+  // (a bare number says what it counts: "Notes per string: 4", not "4")
+  return /^\d+$/.test(w) ? `${def.label}: ${w}` : w;
 };
 /**
  * What tells apart the rows of one exercise in a list ("Beats 2 & 4", "5/4"): the options that
@@ -84,10 +86,13 @@ function variants(list) {
       if (keys.length >= 3 || (keys.length && new Set(sig()).size === idx.length)) break;
       keys.push(k);
     }
+    // each option gets its share of the room, so a long first option cannot hide the one that differs
+    const room = Math.max(9, Math.floor(28 / Math.max(1, keys.length)));
+    const cut = (w) => (w.length > room ? `${w.slice(0, room - 1)}…` : w);
     idx.forEach((i, j) => {
-      let w = keys.map((k) => (full[j][k] === '*' ? `any ${(t.params[k].label || k).toLowerCase()}` : optWords(t.params[k], full[j][k]))).join(' · ');
+      let w = keys.map((k) => cut(full[j][k] === '*' ? `any ${(t.params[k].label || k).toLowerCase()}` : optWords(t.params[k], full[j][k]))).join(' · ');
       if (!w && list[i].sub && new Set(idx.map((x) => list[x].sub)).size > 1) w = SUB_NAMES[list[i].sub];
-      out[i] = w.length > 24 ? `${w.slice(0, 23)}…` : w;
+      out[i] = w;
     });
   }
   return out;
@@ -128,9 +133,14 @@ function pickFor(of, n, { level, rand, slot, skip, withGoal = false }) {
   }
   return out;
 }
+// the exercises only optional lessons use (two-hand tapping, double thumbing): never a warm-up
+const OPTIONAL_ONLY = (() => {
+  const need = new Set(LESSONS.filter((l) => !l.optional).flatMap((l) => l.steps.map((s) => s.ex)));
+  return new Set(LESSONS.filter((l) => l.optional).flatMap((l) => l.steps.map((s) => s.ex)).filter((id) => !need.has(id)));
+})();
 /** Warm-ups: one for the hands first, then the neck or time; `taken` are the ids already in the session. */
 function warmUps(n, { level, rand, recent, taken }) {
-  const skip = (id) => recent.has(id) || taken.has(id);
+  const skip = (id) => recent.has(id) || taken.has(id) || OPTIONAL_ONLY.has(id);
   const out = [];
   [(t) => t.module === 'technique', (t) => WARM.includes(t.module)].forEach((of, k) => {
     if (out.length >= n) return;
@@ -188,6 +198,14 @@ function buildSession(minutes, cur, history) {
     for (const l of fresh) {
       if (count() >= n) break;
       items.push(stepItem(l, reviewStep(l), 'Review', isComplete(l) ? { rv: 1 } : {}));
+    }
+  }
+  // after the course the song studies of Levels 5–6 come back too, one in four fill-ins: the payoff
+  if (!cont && !fresh) {
+    const songs = EXERCISES.filter((t) => t.module === 'music' && t.level >= 5 && !recent.has(t.id) && !has(t.id));
+    for (let k = 0; k < Math.max(1, Math.floor((n - count()) / 4)) && songs.length && count() < n; k++) {
+      const t = songs.splice(Math.floor(rand() * songs.length), 1)[0];
+      items.push({ id: t.id, params: { part: 'all' }, slot: `Library · L${t.level}` });
     }
   }
   // (a routine has one exercise of each kind: as many as the room needs)
@@ -312,12 +330,20 @@ export function sessionBlock() {
 
 // ---------------------------------------------------------------- course map
 // each stage folds, like the Library's levels: the stages left open are remembered, and until the
-// player opens or folds one, only the stage of the next lesson is open
-const mapOpen = (cont) => new Set(settings.mapOpen ?? [cont ? STAGES.indexOf(cont.stage) + 1 : 1]);
+// player opens or folds one, only the stage of the next lesson is open. When the next lesson moves to
+// another stage, that stage opens once (the folds the player chose stay as they were).
+const stageNo = (cont) => (cont ? STAGES.indexOf(cont.stage) + 1 : STAGES.length);
+function mapOpen(cont) {
+  const at = stageNo(cont);
+  if (settings.mapOpen == null) return new Set([at]);
+  const s = new Set(settings.mapOpen);
+  if (settings.mapAt !== at) { s.add(at); saveSettings({ mapOpen: [...s].sort(), mapAt: at }); }
+  return s;
+}
 function setMapOpen(cont, n, open) {
   const s = mapOpen(cont);
   if (open) s.add(n); else s.delete(n);
-  saveSettings({ mapOpen: [...s].sort() });
+  saveSettings({ mapOpen: [...s].sort(), mapAt: stageNo(cont) });
 }
 export function courseScreen(main) {
   const stats = courseStats();
@@ -443,7 +469,7 @@ export function lessonScreen(main, id) {
   main.replaceChildren(
     h('div', { class: 'page-head les-head' },
       h('button', { class: 'icon-btn', 'aria-label': 'Back', html: icon('back'), onClick: () => back('#/course') }),
-      h('div', { class: 'les-title' }, h('small', {}, where(l)), h('h1', {}, lessonName(l))),
+      h('div', { class: 'les-title' }, h('small', {}, where(l), l.optional ? h('span', { class: 'chip opt' }, 'optional') : null), h('h1', {}, lessonName(l))),
       h('div', { class: 'grow' }),
       st === 'known' ? h('span', { class: 'chip' }, 'known (My level)') : null,
       prev ? h('button', { class: 'icon-btn', title: `Previous: ${lessonName(prev)}`, 'aria-label': 'Previous lesson', html: icon('prev'), onClick: () => go(lessonHref(prev)) }) : null,
@@ -510,9 +536,10 @@ const PLACEMENT = [
 export function placementScreen(main) {
   const known = knownUnits();
   // every line starts at "Not yet": the player taps Yes for what they already play (an earlier
-  // placement shows its own answers). `set` holds the lines the player has answered themselves.
+  // placement shows its own answers). `set` holds the lines answered on this visit: "All yes" fills
+  // the earlier stages' other lines.
   const answers = PLACEMENT.map(([, units]) => placed() && units.every((u) => known[u]));
-  const set = new Set(placed() ? PLACEMENT.map((_, i) => i) : []);
+  const set = new Set();
   const rows = h('div', { class: 'place-list' });
   const done = h('button', { class: 'btn primary' }, 'See my starting point');
   // the questions grouped by the stage of their units, each stage with "all yes" / "all not yet"

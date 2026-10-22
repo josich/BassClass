@@ -392,7 +392,7 @@ export default {
       { ex: 'wk-giant-steps', p: {}, from: 140, goal: 180, backing: 'chords' },
       { ex: 'lk-modern', p: { lick: '4', key: 'cycle4', feel: 'swing' }, from: 96, goal: 120, backing: 'chords' },
       { ex: 'hm-chordal-bass', p: { voicing: '7', prog: 'ii-V-I' }, from: 66, goal: 88, backing: 'chords' },
-      { ex: 'mm-yyz', p: { part: '1' }, from: 80, goal: 116, backing: 'chords', music: true, do: 'Make music: fast 16th pentatonic runs across all four strings.' },
+      { ex: 'mm-yyz', p: { part: '1' }, from: 80, goal: 116, backing: 'chords', music: true, do: 'Make music: fast 16th runs through the chords, across all four strings.' },
       { ex: 'mm-tommy', p: { part: 'all' }, from: 66, goal: 92, backing: 'chords', music: true, do: 'Make music: a snapping slap riff with ghosts, pops, hammer-ons and pull-offs.' },
       { ex: 'mm-thump', p: { part: 'all' }, from: 56, goal: 80, backing: 'chords', music: true, do: 'Make music: double thumbing, from 8ths to continuous 16ths.' },
       { ex: 'mm-solo-piece', p: { part: 'all' }, from: 60, goal: 84, backing: 'chords', music: true, do: 'Make music: a complete bass solo in four parts, from the arpeggios to the final low E.' },

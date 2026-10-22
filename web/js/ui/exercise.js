@@ -16,6 +16,8 @@ import { recordLoop, rememberTempo, stepState, stepPassed, stepClean, setClean, 
 // what a lesson step's goal tempo counts in ("goal 96 BPM in 8ths")
 export const SUB_NAMES = { 0.25: 'whole notes', 0.5: 'half notes', 1: 'quarter notes', 2: '8ths', 3: 'triplets', 4: '16ths', 5: 'quintuplets', 6: 'sextuplets' };
 const SUBS = [['0.25', 'Whole'], ['0.5', 'Half'], ['1', '♩ 1/beat'], ['2', '♪ 2/beat'], ['3', '3 triplets'], ['4', '4 16ths'], ['5', '5 quint.'], ['6', '6 sext.']];
+// the modules whose drills have no backing (see harmony.js), named for the greyed Backing's toast
+const NO_BACKING_NAME = { technique: 'technique drills', rhythm: 'rhythm drills', fretboard: 'note-finding drills', intervals: 'interval drills', ear: 'ear training' };
 // the cycling buttons: each state's name (said in a toast when it is picked) and its icon (Backing
 // keeps its words: clearer than any icon)
 const REVEALS = [['gradual', 'Step by step', 'revStep'], ['full', 'Whole shape', 'revShape'], ['quiz', 'Quiz', 'revQuiz']];
@@ -523,7 +525,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   let backingOverride = LS?.backing || null;
   const backing = () => backingOverride || S.backing;
   function cycleBacking() {
-    if (!canBack) { toast('No chords in this exercise: no backing'); return; }
+    if (!canBack) { toast(BACKS ? 'No chords in this exercise: no backing' : `No backing in ${NO_BACKING_NAME[tpl.module]}`); return; }
     const order = ['off', 'drone', 'chords'];
     const was = backing();
     backingOverride = null;
