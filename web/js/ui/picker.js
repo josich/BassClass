@@ -23,9 +23,11 @@ export function openPicker(o) {
   let open = o.open ?? byKey.get(o.current)?.group ?? o.groups[0]?.key;
   let query = '';
   const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-  // (the words of a text: a search word matches the start of one, so "ii" finds ii – V, not ♭VII; QA round 17)
-  const wordsOf = (s) => norm(s).split(/[^a-z0-9/+]+/).filter(Boolean);
+  // (the words of a text: a search word matches the start of one, so "ii" finds ii – V, not ♭VII; QA round 17;
+  // "1-4-5" is one word, "3+2" two, "bvii" is ♭VII as a phone keyboard types it; QA round 18)
   const ROMAN = /^[iv]+$/;
+  const wordsOf = (s) => norm(s).replace(/(\d)-(?=\d)/g, '$1~').split(/[^a-z0-9/~]+/).filter(Boolean)
+    .map((w) => (/^b[iv]+$/.test(w) ? w.slice(1) : w));
 
   const search = h('input', { type: 'search', class: 'picker-search', placeholder: 'Search', 'aria-label': `Search ${o.title.toLowerCase()}` });
   const chips = h('div', { class: 'picker-chips' });

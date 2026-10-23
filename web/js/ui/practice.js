@@ -6,7 +6,7 @@ import * as A from '../audio.js';
 import { Room } from '../practice/engine.js';
 import { room, saveRoom, SUBS } from '../practice/state.js';
 import { STYLES, GENRES, levelsOf, regroup } from '../practice/styles.js';
-import { accentsFor, groupingOf, groupsOf } from '../practice/accents.js';
+import { accentsFor, groupsOf } from '../practice/accents.js';
 import { settings, saveSettings } from '../store.js';
 import { loadKit, kitReady } from '../drums.js';
 import { neckPanel } from './neck.js';
@@ -16,20 +16,19 @@ import { PROGS, toTriad } from '../curriculum/common.js';
 import * as T from '../theory.js';
 
 const INFO = [
-  '⏱ Set the tempo and press Start (Space on a keyboard)',
-  '👆 Tap: tap the beat and the tempo follows (T)',
-  '🎵 Subdivision: a click on every quarter, 8th, triplet or 16th; with the drums, how much of the pattern plays (16ths add its ghost-note fills, triplets swing a straight groove)',
-  '🔇 Muted bars: the click plays some bars and stops for others, you keep the time',
+  '⏱ Set the tempo, then Start (Space); Tap follows your beat (T)',
+  '💡 Tap a beat light to accent it: your groupings (3 + 2 + 2…); ↺ the usual one',
+  '🎵 Subdivision: quarters, 8ths, triplets or 16ths (with drums: how much of the pattern plays)',
+  '🔇 Muted bars: the click stops for some bars, you keep the time',
   '📈 Speed up: a few BPM faster every few bars, up to a ceiling',
-  '🔈 Click off: the beat lights and the drums keep the time',
-  '👆 Tap a beat light to accent it and make your groupings (3 + 2 + 2…); ↺ goes back to the usual one',
-  '🥁 In an odd metre the drums play your grouping too',
-  '✋ Drag the Start button anywhere on the screen',
+  '🔈 Click off: the lights and the drums keep the time',
+  '✋ Drag Start anywhere on the screen',
 ];
 const DRUM_INFO = [
   '🥁 A drummer to play with: Change opens the patterns (by genre, a search, your ★ favourites), then press Start',
   '🎚 A pattern sets its metre, its usual tempo and its subdivision',
   '🎵 Subdivision: fewer or more notes of the pattern (16ths: its fills)',
+  '🔢 In odd metres the drums play the grouping you tap on the beat lights ("played 3 + 2 + 2")',
   '🔇 Muted bars and Speed up work on the drums too',
   '📶 The drums load once (about 2 MB) and then play offline',
 ];
@@ -70,7 +69,7 @@ const HARMONY_INFO = [
   '🎼 Pick a key and a progression: pop and rock, blues, jazz, minor, vamps',
   '✎ My progression: your own chords by degree (the Key moves them); ✎ Edit copies a progression into it',
   '🎼 My progression is in a major or a minor key: Minor turns the usual chords into the minor key\'s (I → i, vi → ♭VI)',
-  '🎛 Sound: a pad, an electric piano, an organ or an arpeggio; another one plays from the next beat',
+  '🎛 Sound: a pad, an electric piano, an organ or an arpeggio (it moves with the Subdivision); another one plays from the next beat',
   '🎸 The chords sit above the Neck in order, each lit while it sounds; Chord or Scale shows it on the neck, with the next change (over a drone, your scale on its key)',
   '🔇 Muted bars silence the harmony too, while the chords go on',
   '⏱ It follows the metronome and the drums: start it with the floating button',
@@ -180,26 +179,33 @@ export function practiceScreen(main, params = {}) {
   const drawLights = () => {
     const acc = accentsFor(room, pattern());
     engine.set({ accents: acc });
+    lights.classList.toggle('many', room.beats > 9);
     lights.replaceChildren(...Array.from({ length: room.beats }, (_, i) => h('button', {
       class: acc.includes(i) ? (i ? 'accent group' : 'accent') : '', type: 'button', 'data-silent': '',
       title: 'Tap to accent this beat', 'aria-label': `Beat ${i + 1}${acc.includes(i) ? ', accented' : ''}`,
-      onClick: () => {
+      onClick: (e) => {
         const next = acc.includes(i) ? acc.filter((b) => b !== i) : [...acc, i].sort((a, b) => a - b);
-        saveRoom({ accents: { ...room.accents, [room.beats]: next } });
-        A.click(A.now() + 0.01, next.includes(i) ? (i ? 1.5 : 2) : 1);
+        saveRoom({ accents: { ...room.accents, [room.beats]: next }, lightsTapped: true });
+        // (stopped, the beat sounds as it now plays; playing, the next bar plays it: QA round 18)
+        if (!engine.playing) A.click(A.now() + 0.01, next.includes(i) ? (i ? 1.5 : 2) : 1);
+        const focused = document.activeElement === e.currentTarget;
         drawLights();
+        // (the keys stay on the light: Enter again, or Tab on)
+        if (focused) lights.children[i]?.focus({ preventScroll: true });
         if (room.drums) drawDrums();
       },
     })));
-    // the grouping they make, and ↺ back to the bar's usual one when the player changed it
-    const g = groupingOf(room.beats, acc);
+    // the grouping they make (beat 1 always starts one, as the drums play it), and ↺ back to the bar's usual
+    // one when the player changed it; until the player first taps a light, a hint says they can (QA round 18)
+    const groups = groupsOf(room.beats, acc);
     const own = Array.isArray(room.accents?.[room.beats]);
     grouping.replaceChildren(...[
-      g ? h('span', {}, g) : null,
+      groups ? h('span', {}, groups.join(' + ')) : null,
       own ? h('button', {
         class: 'grouping-reset', type: 'button', title: 'Back to the usual grouping', 'aria-label': 'Back to the usual grouping',
         onClick: () => { const rest = { ...room.accents }; delete rest[room.beats]; saveRoom({ accents: rest }); drawLights(); if (room.drums) drawDrums(); },
       }, '↺') : null,
+      room.lightsTapped ? null : h('span', { class: 'grouping-hint' }, groups ? 'tap a light to change it' : 'Tap a light to accent it'),
     ].filter(Boolean));
   };
   const drawPlay = () => {
@@ -419,7 +425,7 @@ export function practiceScreen(main, params = {}) {
     h('span', { class: 'pick-text' }, h('b', {}, name), h('small', {}, sub)),
     h('span', { class: 'pick-change' }, 'Change', h('span', { html: icon('next') })));
   // (a name that already says its metre, "5/4 (3 + 2)", does not repeat it)
-  const styleSub = (s) => `${s.name.includes(s.meter) ? '' : `${s.meter} · `}${s.bpm} BPM`;
+  const styleSub = (s) => `${s.name.includes(s.meter) ? '' : `${s.meter} · `}${s.bpm}\u00a0BPM`;
   const brushes = (s) => Object.keys(s.tracks).some((p) => /^b(snare|stir|kick|hh|ride)/.test(p));
   /** A pick joins the recent ones (newest first, six of them). */
   const recentWith = (list, k) => [k, ...list.filter((x) => x !== k)].slice(0, 6);
@@ -444,9 +450,10 @@ export function practiceScreen(main, params = {}) {
   /** A pattern chosen: the drums on, with its metre, its usual subdivision and tempo. */
   const pickStyle = (key) => {
     const s = STYLES[key];
-    // (an odd-metre pattern brings its own grouping: the player's accents in that metre give way to it)
+    // (another odd-metre pattern brings its own grouping: the player's accents in that metre give way to it;
+    // the pattern already chosen keeps them: QA round 18)
     const accents = { ...room.accents };
-    if (s.groups) delete accents[s.beats];
+    if (s.groups && key !== room.style) delete accents[s.beats];
     saveRoom({ accents });
     set({ style: key, genre: s.genre, drums: true, beats: s.beats, sub: s.sub, ...(room.speedUp ? ceiling(s.bpm) : {}) });
     setTempo(s.bpm);
@@ -508,15 +515,19 @@ export function practiceScreen(main, params = {}) {
   const lengthName = (b) => (b === 2 ? '½ bar' : b === 4 ? '1 bar' : `${b / 4} bars`);
   // Major | Minor (QA round 17, user's choice): a chord that is its degree's usual one (as a 7th or a triad)
   // becomes the other key's usual chord on the matching degree (I → i, iii → ♭III, vi → ♭VI, vii° → ♭VII and
-  // back); the chords the player chose stay
+  // back); the chords the player chose stay. Each chord keeps what it was (`o`), so the next switch gives it
+  // back exactly (QA round 18: a ♭VII chosen in major came back as vii°); an edit forgets it.
   const MAJOR_TO_MINOR = { 0: 0, 2: 2, 4: 3, 5: 5, 7: 7, 9: 8, 11: 10 };
+  const plainChord = ({ o, ...c }) => c;
   const toMode = (list, minor) => {
     const map = minor ? MAJOR_TO_MINOR : Object.fromEntries(Object.entries(MAJOR_TO_MINOR).map(([a, b]) => [b, Number(a)]));
     return list.map((c) => {
+      const was = { d: c.d, q: c.q };
+      if (c.o) return { ...plainChord(c), d: c.o.d, q: c.o.q, o: was };
       const usual = usualQuality(c.d, !minor);
-      if (c.k != null || map[c.d] == null || (c.q !== usual && c.q !== toTriad(usual))) return c;
+      if (c.k != null || map[c.d] == null || (c.q !== usual && c.q !== toTriad(usual))) return { ...c, o: was };
       const d = map[c.d], q = usualQuality(d, minor);
-      return { ...c, d, q: c.q === usual ? q : toTriad(q) };
+      return { ...c, d, q: c.q === usual ? q : toTriad(q), o: was };
     });
   };
   const mineEditor = () => {
@@ -535,12 +546,12 @@ export function practiceScreen(main, params = {}) {
     const total = h('span', { class: 'muted small mine-total' }, `${bars} bar${bars === 1 ? '' : 's'}${padded ? ' (the last chord fills its bar)' : ''}`);
     const add = list.length < 16 ? h('button', {
       class: 'mine-slot add', title: 'Add a chord', 'aria-label': 'Add a chord',
-      onClick: () => { mineAt = list.length; setMine([...list, { ...list.at(-1) }]); },
+      onClick: () => { mineAt = list.length; setMine([...list, plainChord(list.at(-1))]); },
     }, '+') : null;
     let panel = null;
     if (mineAt != null) {
       const c = list[mineAt];
-      const patch = (p) => setMine(list.map((x, i) => (i === mineAt ? { ...x, ...p } : x)));
+      const patch = (p) => setMine(list.map((x, i) => (i === mineAt ? { ...plainChord(x), ...p } : x)));
       const line = (label, ...control) => h('div', { class: 'mine-line' }, h('label', {}, label), ...control);
       panel = h('div', { class: 'mine-edit' },
         // (a new degree takes its usual chord in the key: V → V7, ii → m7; the chord can then change)
@@ -648,11 +659,13 @@ export function practiceScreen(main, params = {}) {
     const ch = chordsNow();
     // (stopped, a tap on a chord shows it on the neck, to find its notes before playing; user, 2026-10-23)
     chips = ch ? ch.map((c, i) => h('button', {
-      class: 'chord-chip', type: 'button', title: 'Show it on the neck',
+      class: 'chord-chip', type: 'button', title: 'Show it on the neck and hear it', 'data-silent': '',
       onClick: () => {
         if (engine.playing || engine.starting) { toast('Stop to look at a chord on the neck'); return; }
         curIdx = i;
         showChord();
+        // (and heard once, in the harmony's sound: user, 2026-10-23)
+        A.chordPreview(c.midis, room.hSound);
       },
     }, h('span', {}, c.sym))) : [];
     chipRow = ch ? sideScroll(h('div', { class: 'chord-row' }, chips)) : null;

@@ -32,6 +32,8 @@ export function tunerScreen(main) {
       h('button', { class: `tn-str${target == null ? ' on' : ''}`, onClick: () => { target = null; drawStrings(); } }, h('b', {}, 'Auto'), h('small', {}, 'any note')),
       ...tuning.midi.map((m, i) => h('button', {
         class: `tn-str${target === m ? ' on' : ''}`,
+        // (the string chosen plays its note on a tap: no tap tick over it)
+        ...(target === m ? { 'data-silent': '' } : {}),
         onClick: () => {
           if (target === m) A.playNote(m, A.now() + 0.02, 2.4, 0.9);
           target = m;

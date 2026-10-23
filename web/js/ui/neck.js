@@ -32,8 +32,9 @@ const INFO = [
   '👆 Stopped, a tap on a chord shows it on the neck, to find its notes before you play',
 ];
 
-// the altered scale's root is named as its dominant's, flats on the black keys (A♭ Altered, its 3rd C)
-const nameIvs = (shown, ivs) => (shown === 's:altered' ? T.CHORDS.dom7.iv : ivs);
+// the altered scale's root is named as its dominant's, flats on the black keys (A♭ Altered, its 3rd C); the
+// blues as its minor pentatonic, the key's lead-sheet name (E♭ blues, as the Library writes it)
+const nameIvs = (shown, ivs) => (shown === 's:altered' ? T.CHORDS.dom7.iv : shown === 's:blues' ? T.SCALES.minorPent.iv : ivs);
 
 /** The Neck block: { el, follow, setBar, own, rootName, dispose }. */
 export function neckPanel({ onOwn } = {}) {

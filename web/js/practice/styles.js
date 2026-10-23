@@ -258,11 +258,16 @@ export function groupStarts(s) {
  * A pattern played in another grouping of its bar (user, 2026-10-23: in odd metres the drums follow the
  * player's accents, 7/8 2 + 2 + 3 played 3 + 2 + 2), as a drummer regroups: the bar is cut into the
  * pattern's own groups and the player's groups take them in order, the first from its first (the bar's
- * downbeat), the last from its last (the one that leads back to beat 1), the others from its middle ones.
- * A group longer than its source gains the bar's plainest beat after its head; a shorter one loses its
- * plainest beats, never its head, which keeps the group's accent. A pattern without groups (4/4, 6/8...:
- * the groove is the grouping), or `groups` of fewer than two, plays as written.
+ * downbeat), the last from its last (the one that leads back to beat 1), each middle one from the middle
+ * group nearest its place whose head is not the same stroke as the group before (kick and backbeat take
+ * turns: 11/8 in four groups keeps its second kick; QA round 18). A group longer than its source joins the
+ * groups after it while they fit whole (a 4 in 7/8 is two 2s), then gains the bar's plainest beat after its
+ * head; a shorter one loses its plainest beats, never its head, and never so that two backbeats or two kicks
+ * end up side by side (7/4 as 2 + 2 + 3: kick, snare in each). A pattern without groups (4/4, 6/8...: the
+ * groove is the grouping), or `groups` of fewer than two, plays as written.
  */
+const BACKBEAT = new Set(['snare', 'rim', 'xstick', 'flam', 'bsnare']);
+const KICKS = new Set(['kick', 'bkick']);
 const regrouped = new Map();
 export function regroup(s, groups) {
   if (!s?.groups || !groups || groups.length < 2 || groups.join() === s.groups.join()
@@ -272,30 +277,46 @@ export function regroup(s, groups) {
   const per = s.beats * s.grid;
   // each track over the pattern's whole length, and a beat's weight: its strokes, time-keeping ones barely
   const full = Object.entries(s.tracks).map(([p, t]) => [p, Array.from({ length: s.bars * per }, (_, i) => t[i % t.length])]);
-  const weight = (bar, b) => full.reduce((w, [p, t]) => {
-    let x = 0;
-    for (let j = 0; j < s.grid; j++) x += t[(bar * s.beats + b) * s.grid + j];
-    return w + (TIMEKEEP.has(p) ? x / 100 : x);
+  const steps = (bar, b, p) => full.find(([q]) => q === p)[1].slice((bar * s.beats + b) * s.grid, (bar * s.beats + b + 1) * s.grid);
+  // a beat's weight (its strokes; a backbeat's three times, time-keeping ones barely) and its role: 'b' a
+  // backbeat, 'k' a kick, '-' neither (ghosts do not count)
+  const weight = (bar, b) => full.reduce((w, [p]) => {
+    const x = steps(bar, b, p).reduce((a, v) => a + v, 0);
+    return w + (TIMEKEEP.has(p) ? x / 100 : BACKBEAT.has(p) ? 3 * x : x);
   }, 0);
+  const has = (bar, b, set) => full.some(([p]) => set.has(p) && steps(bar, b, p).some((v) => v >= VEL.s));
+  const role = (bar, b) => (has(bar, b, BACKBEAT) ? 'b' : has(bar, b, KICKS) ? 'k' : '-');
+  // (two backbeats or two kicks side by side cost more)
+  const clash = (bar, list) => list.slice(1).reduce((c, b, j) => { const r = role(bar, b); return c + (r !== '-' && r === role(bar, list[j]) ? 2 : 0); }, 0);
   const cells = [];
   s.groups.reduce((at, g) => { cells.push(Array.from({ length: g }, (_, k) => at + k)); return at + g; }, 0);
   const n = groups.length, m = cells.length;
-  // (the middle groups take the middle cells in proportion: 9/8 2 + 2 + 2 + 3 as 3 + 3 + 3 keeps its middle kick)
-  const middle = (i) => Math.min(m > 2 ? m - 2 : m - 1, Math.max(m > 2 ? 1 : 0, Math.round((i * (m - 1)) / (n - 1))));
-  const source = (i) => cells[i === 0 ? 0 : i === n - 1 ? m - 1 : middle(i)];
   const heads = new Set(cells.map((c) => c[0]));
   const tracks = Object.fromEntries(full.map(([p]) => [p, []]));
   for (let bar = 0; bar < s.bars; bar++) {
     const inner = [...Array(s.beats).keys()].filter((b) => !heads.has(b));
     const plain = inner.reduce((a, b) => (weight(bar, b) < weight(bar, a) ? b : a), inner[0] ?? s.beats - 1);
+    const picks = [];
+    for (let i = 0; i < n; i++) {
+      if (i === 0 || i === n - 1) { picks.push(i === 0 ? 0 : m - 1); continue; }
+      const pos = (i * (m - 1)) / (n - 1);
+      const pool = (m > 2 ? cells.slice(1, -1).map((_, j) => j + 1) : cells.map((_, j) => j)).sort((a, b) => Math.abs(a - pos) - Math.abs(b - pos) || a - b);
+      const before = role(bar, cells[picks[i - 1]][0]);
+      picks.push(pool.find((c) => role(bar, cells[c][0]) !== before) ?? pool[0]);
+    }
     const order = groups.flatMap((g, i) => {
-      const beats = [...source(i)];
-      while (beats.length > g) {
-        let k = 1;
-        for (let j = 2; j < beats.length; j++) if (weight(bar, beats[j]) < weight(bar, beats[k])) k = j;
-        beats.splice(k, 1);
-      }
+      let c = picks[i];
+      const beats = [...cells[c]];
+      while (c + 1 < m && beats.length + cells[c + 1].length <= g) beats.push(...cells[++c]);
       while (beats.length < g) beats.splice(1, 0, plain);
+      while (beats.length > g) {
+        let best = 1, score = Infinity;
+        for (let j = 1; j < beats.length; j++) {
+          const sc = weight(bar, beats[j]) + clash(bar, beats.filter((_, x) => x !== j));
+          if (sc <= score) { score = sc; best = j; }
+        }
+        beats.splice(best, 1);
+      }
       return beats;
     });
     for (const [p, t] of full) for (const b of order) for (let j = 0; j < s.grid; j++) tracks[p].push(t[(bar * s.beats + b) * s.grid + j]);

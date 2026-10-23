@@ -4,7 +4,7 @@
 import { groupStarts } from './styles.js';
 
 /** The usual grouping of a bar of 5 to 12 beats (up to 4: beat 1 alone). */
-const COMMON = { 5: [3, 2], 6: [3, 3], 7: [2, 2, 3], 8: [3, 3, 2], 9: [2, 2, 2, 3], 10: [3, 3, 2, 2], 11: [2, 2, 3, 2, 2], 12: [3, 3, 3, 3] };
+const COMMON = { 5: [3, 2], 6: [3, 3], 7: [2, 2, 3], 8: [3, 3, 2], 9: [3, 3, 3], 10: [3, 3, 2, 2], 11: [2, 2, 3, 2, 2], 12: [3, 3, 3, 3] };
 
 /** The accented beats a bar starts with: the drum pattern's groups, else the usual grouping. */
 export function defaultAccents(beats, pattern) {
@@ -28,9 +28,3 @@ export function groupsOf(beats, list) {
   return at.length < 2 ? null : at.map((b, i) => (at[i + 1] ?? beats) - b);
 }
 
-/** The grouping the accents make, from beat 1 ("2 + 2 + 3"); empty with fewer than two groups. */
-export function groupingOf(beats, list) {
-  const at = [...list].sort((a, b) => a - b);
-  if (at.length < 2 || at[0] !== 0) return '';
-  return at.map((b, i) => (at[i + 1] ?? beats) - b).join(' + ');
-}

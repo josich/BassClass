@@ -39,8 +39,9 @@ export class Room {
     // a new key, progression or metre starts the progression again, on the next bar line; another
     // pattern in the same metre only regroups its bars (7/8 2 + 2 + 3 or 3 + 2 + 2)
     const restart = ['harmony', 'hProg', 'hKey', 'beats', 'myProg', 'myMinor'].some(changed);
-    // (another sound plays from the next beat, the progression going on)
-    if (changed('hSound')) this.hSig = null;
+    // (another sound plays from the next beat, the progression going on; the one held is released then:
+    // QA round 18 found a pad chord left sounding forever under the arpeggio)
+    if (changed('hSound')) this.hSwitch = true;
     // (the player's accents regroup an odd-metre pattern, and the chords' half bars with it)
     const reshape = restart || changed('style') || changed('drums') || changed('accents');
     Object.assign(this.o, patch);
@@ -67,7 +68,8 @@ export class Room {
     const { harmony, hProg, hKey, beats, notation, myProg, myMinor } = this.o;
     if (harmony !== 'chords') return null;
     if (!this.chords) {
-      this.chords = progression(hProg, hKey, beats, { notation }, this._pattern()?.groups, myProg, myMinor);
+      // (a bar shared by two chords splits on a group start: the drum pattern's, else the player's accents)
+      this.chords = progression(hProg, hKey, beats, { notation }, this._pattern()?.groups || groupsOf(beats, this.o.accents || [0]), myProg, myMinor);
       this.hTotal = this.chords.reduce((a, c) => a + c.beats, 0);
     }
     return this.chords;
@@ -100,28 +102,34 @@ export class Room {
     // (the same notes again sound on, as a held chord; new ones, or silence, replace them; muted bars are
     // silent while the form goes on)
     const sound = muted ? null : midis;
-    if (idx !== this.hIdx) this.arpAt = 0;
     if (A.PAD_SOUNDS[this.o.hSound]?.arp) {
-      // an arpeggio: the chord's notes up and down, one per subdivision of the beat, from its lowest at each change
-      if (this.hSig != null) { A.padStop(t0); this.hSig = null; }
+      // an arpeggio: the chord's notes up and down, one per subdivision of the beat in the groove's feel (a
+      // shuffle's off-beat on its last triplet, as the click and the drums), from its lowest when the chord's
+      // notes change (the same chord again, bar after bar, goes on)
+      if (this.hSig != null || this.hSwitch) { A.padStop(t0); this.hSig = null; }
       if (sound) {
         const up = [...sound].sort((a, b) => a - b);
         const turn = up.length > 2 ? [...up, ...up.slice(1, -1).reverse()] : up;
-        for (let k = 0; k < L; k++) {
-          const t = t0 + (k * len) / L;
-          const node = A.arpNote(turn[this.arpAt++ % turn.length], t, L);
+        const sig = up.join();
+        if (sig !== this.arpSig) { this.arpSig = sig; this.arpAt = 0; }
+        const at = clickTimes(this._pattern(), L);
+        for (const [k, f] of at.entries()) {
+          const t = t0 + f * len;
+          const node = A.arpNote(turn[this.arpAt++ % turn.length], t, (this.bpm * at.length) / 60);
           if (k) this.ahead.push([t, node]);
         }
-      }
+      } else this.arpSig = null;
     } else {
       const sig = sound ? sound.join() : null;
       // (a struck sound, the e-piano, is struck again on each bar so a long chord does not die away)
       const restrike = sound && this.beat === 0 && A.PAD_SOUNDS[this.o.hSound]?.struck;
-      if (sig !== this.hSig || restrike) {
+      if (sig !== this.hSig || restrike || this.hSwitch) {
         if (sound) A.padSet(sound, t0, this.o.hSound); else A.padStop(t0);
         this.hSig = sig;
       }
+      this.arpSig = null;
     }
+    this.hSwitch = false;
     if (idx !== this.hIdx) { this.hIdx = idx; this.onChord?.({ time: t0, idx }); }
     this.hBeat++;
     return place;
@@ -148,6 +156,8 @@ export class Room {
     this.hIdx = null;
     this.hRestart = false;
     this.arpAt = 0;
+    this.arpSig = null;
+    this.hSwitch = false;
     this.next = A.now() + 0.08;
     this.timer = setInterval(() => this._tick(), TICK_MS);
     this._tick();
@@ -165,7 +175,8 @@ export class Room {
     const now = A.now();
     for (const [t, node] of this.ahead) if (t > now) node.disconnect();
     this.ahead = [];
-    if (this.hSig != null) A.padStop();
+    // (whatever the pad holds is released: with no voices this does nothing)
+    A.padStop();
     this.hSig = null;
     if (this.hIdx != null) { this.hIdx = null; this.onChord?.({ time: A.now(), idx: null }); }
     logPlaying(false);

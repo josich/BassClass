@@ -73,6 +73,7 @@ export function scaleFor(c, next, all = null) {
   const nextDeg = next ? degOf(next) : null;
   const nextMajor = next && !MINORISH.includes(next.type);
   // (a progression whose major I moves straight to a major chord on `d`: I – ♭VII Mixolydian, I – II Lydian)
+  const twoChords = !!all && new Set(all.map((x) => x.sym)).size === 2;
   const tonicTo = (d, types) => (all || []).some((x, i) => {
     const y = all[(i + 1) % all.length];
     return x !== y && degOf(x) === 0 && !MINORISH.includes(x.type) && degOf(y) === d && types.includes(y.type);
@@ -80,9 +81,10 @@ export function scaleFor(c, next, all = null) {
   if (deg === 0 && c.minorKey && familyOf(c.type) === 'min' && nextDeg === 5 && nextMajor) mode = 'dorian';
   else if (deg === 0 && familyOf(c.type) === 'min' && nextDeg === 1 && nextMajor) mode = 'phrygian';
   else if (deg === 0 && !c.minorKey && majorish && nextDeg === 10 && nextMajor) mode = 'mixolydian';
-  else if (deg === 0 && !c.minorKey && majorish && nextDeg === 2 && PLAIN_MAJOR.includes(next.type)) mode = 'lydian';
+  // (the Lydian I – II only as a two-chord vamp: in I – II – IV – I the II is a passing dominant; QA round 18)
+  else if (deg === 0 && !c.minorKey && majorish && nextDeg === 2 && PLAIN_MAJOR.includes(next.type) && twoChords) mode = 'lydian';
   else if (deg === 5 && !c.minorKey && majorish && tonicTo(10, ['maj', 'maj6', 'sus2', 'maj7', 'maj9', 'dom7'])) mode = 'ionian';
-  else if (deg === 2 && !c.minorKey && PLAIN_MAJOR.includes(c.type) && tonicTo(2, PLAIN_MAJOR)) mode = 'mixolydian';
+  else if (deg === 2 && !c.minorKey && PLAIN_MAJOR.includes(c.type) && twoChords && tonicTo(2, PLAIN_MAJOR)) mode = 'mixolydian';
   // (a major chord borrowed from the parallel minor, or a minor key's ♭II: Lydian)
   else if ((c.minorKey ? [1] : [1, 3, 8, 10]).includes(deg) && majorish) mode = 'lydian';
   else {

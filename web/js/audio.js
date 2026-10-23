@@ -523,18 +523,35 @@ function osc(x, type, f, cents, when, to) {
   return o;
 }
 /**
- * One plucked note of an arpeggio at `when` on the pad's bus (its own decay), `perBeat` notes to a beat: the
- * denser, the softer each note, so quarter notes and 16ths sound as loud as the pad (measured: −3 dB a
- * doubling). Returns its gain node.
+ * One plucked note of an arpeggio at `when` on the pad's bus (its own decay), `rate` notes a second: the more
+ * of them, the softer each, so the arpeggio sounds as loud as the pad at any tempo and subdivision (measured:
+ * −3 dB a doubling; QA round 18 found it rising with the tempo when only the subdivision counted). It ends at
+ * 1.5 s, 40 dB down (lighter on a phone at fast tempos). Returns its gain node.
  */
-export function arpNote(midi, when = now(), perBeat = 2) {
+export function arpNote(midi, when = now(), rate = 4) {
   audioCtx();
   const kind = PAD_SOUNDS.arp;
   const g = ac.createGain();
   g.gain.value = 0;
-  for (const o of kind.voice(ac, midiToFreq(midi), when, g, 0.16 * kind.level * Math.sqrt(2 / perBeat))) o.stop(when + 2);
+  const each = Math.min(2, Math.sqrt(4 / Math.max(0.01, rate)));
+  for (const o of kind.voice(ac, midiToFreq(midi), when, g, 0.16 * kind.level * each)) o.stop(when + 1.5);
   g.connect(padBus);
   return g;
+}
+
+/**
+ * A chord heard once in a harmony sound (a chord chip tapped while the room is stopped; user, 2026-10-23):
+ * a held sound rings a moment and fades, the arpeggio runs up the chord.
+ */
+export function chordPreview(midis, sound = 'pad') {
+  audioCtx();
+  const t = now() + 0.02;
+  if (PAD_SOUNDS[sound]?.arp) {
+    [...midis].sort((a, b) => a - b).forEach((m, i) => arpNote(m, t + i * 0.11, 6));
+    return;
+  }
+  padSet(midis, t, sound);
+  padStop(t + 1.2);
 }
 /** Sound a chord from `when` on the pad, in one of `PAD_SOUNDS` (crossfading from the previous one). */
 export function padSet(midis, when = now(), sound = 'pad') {

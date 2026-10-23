@@ -167,10 +167,11 @@ guardSliders();
 // scroll never clicks), not a slider or a text field, not a control that sounds itself (`data-silent`:
 // Start and Play, the beat lights), and not when Settings turns it off
 document.addEventListener('click', (e) => {
-  if (!settings.tapSounds || !e.isTrusted) return;
+  if (!e.isTrusted) return;
   const el = e.target.closest?.('button, a[href], [role="button"], select, summary, .chip');
   if (!el || el.disabled || el.closest('[data-silent]')) return;
-  tapTick();
+  // (read once the tap has done its work: Settings' own On sounds, its Off does not; QA round 18)
+  setTimeout(() => { if (settings.tapSounds) tapTick(); }, 0);
 }, true);
 // saved sound settings apply everywhere (Neck, tuner reference notes), not only in exercises
 setAudioOptions({ bassVol: settings.bassVol, clickVol: settings.clickVol });

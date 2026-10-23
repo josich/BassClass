@@ -117,8 +117,9 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
 
   // ------------------------------------------------------------ layout
   const btn = (name, title, onClick, cls = '') => h('button', { class: `icon-btn ${cls}`, title, 'aria-label': title, html: icon(name), onClick });
-  const playBtn = btn('play', 'Play / pause (space)', () => { player.toggle(); }, 'big');
-  playBtn.dataset.silent = '';
+  // (a control that sounds itself gives no tap tick: Play, and ‹ › which play the note)
+  const silent = (el) => { el.dataset.silent = ''; return el; };
+  const playBtn = silent(btn('play', 'Play / pause (space)', () => { player.toggle(); }, 'big'));
   // all exercise options live behind one clear button (a strip of selects gets cut off on phones)
   const optsSum = h('span', { class: 'opts-sum' });
   const hasParams = Object.keys(tpl.params || {}).length > 0;
@@ -199,8 +200,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     h('div', { class: 'sep' }), item(revealBtn, 'Reveal'), item(labelBtn, 'Dot labels'), item(scoreBtn, 'Tab / staff'), h('div', { class: 'grow' }), item(doneBtn, 'Mastered'));
   const moreBtn = btn('more', 'More controls', () => toggleMore(), 'more-btn');
   const ctrl = h('footer', { class: 'exv-ctrl' },
-    btn('restart', 'Back to start', () => restart()), btn('prev', 'Previous note (←)', () => manual(-1)), playBtn,
-    btn('next', 'Next note (→)', () => manual(1)), h('div', { class: 'sep' }), tempo, subSel, rhythmBtn, h('div', { class: 'sep' }),
+    btn('restart', 'Back to start', () => restart()), silent(btn('prev', 'Previous note (←)', () => manual(-1))), playBtn,
+    silent(btn('next', 'Next note (→)', () => manual(1))), h('div', { class: 'sep' }), tempo, subSel, rhythmBtn, h('div', { class: 'sep' }),
     loopBtn, morePop, moreBtn);
 
   const drawer = h('aside', { class: 'drawer' });

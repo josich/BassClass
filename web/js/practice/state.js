@@ -6,7 +6,7 @@ const KEY = 'bassclass.practice.v1';
 
 export const SUBS = [1, 2, 3, 4];        // clicks per beat without drums: quarters, 8ths, triplets, 16ths
 
-const DEFAULTS = { bpm: 90, beats: 4, sub: 1, accents: {}, click: true, play: 2, mute: 0, speedUp: false, upBy: 2, upEvery: 4, upTo: 200, drums: false, genre: 'rock', style: 'rock8', drumVol: 80, fab: null,
+const DEFAULTS = { bpm: 90, beats: 4, sub: 1, accents: {}, lightsTapped: false, click: true, play: 2, mute: 0, speedUp: false, upBy: 2, upEvery: 4, upTo: 200, drums: false, genre: 'rock', style: 'rock8', drumVol: 80, fab: null,
   harmony: 'off', hKey: 9, hProg: 'blues', hVol: 70, neckShow: 'chord',
   // My progression, to start: I – vi – ii – V, a bar each
   myProg: MINE_START, myMinor: false, hSound: 'pad',
@@ -17,13 +17,19 @@ const int = (lo, hi) => (v) => Number.isInteger(v) && v >= lo && v <= hi;
 const keysOf = (ok, max) => (v) => Array.isArray(v) && v.length <= max && new Set(v).size === v.length && v.every((k) => typeof k === 'string' && ok(k));
 const isStyle = (k) => Object.prototype.hasOwnProperty.call(STYLES, k);
 const isProg = (k) => PROG_KEYS.includes(k);
-const isChord = (c) => !!c && int(0, 11)(c.d) && QUALITIES.some(([q]) => q === c.q) && LENGTHS.some(([b]) => b === c.b) && (c.k == null || int(0, 11)(c.k));
+// (`o`: the chord it was before the last Major | Minor switch, which the next switch gives back)
+const isChord = (c) => !!c && int(0, 11)(c.d) && QUALITIES.some(([q]) => q === c.q) && LENGTHS.some(([b]) => b === c.b) && (c.k == null || int(0, 11)(c.k))
+  && (c.o == null || (!!c.o && int(0, 11)(c.o.d) && QUALITIES.some(([q]) => q === c.o.q)));
+// a stored grouping: { beats: [accented beats] }, each beat once and inside the bar
+const isGrouping = ([k, list]) => int(1, 12)(Number(k)) && String(Number(k)) === k && Array.isArray(list) && new Set(list).size === list.length && list.every(int(0, Number(k) - 1));
 // a stored list keeps what it still knows: an entry no longer known (a pattern renamed, a backup from a newer
 // version) is dropped on its own, not with the whole list (QA round 16)
 const keep = (ok, max) => (v) => (Array.isArray(v) ? [...new Set(v.filter((k) => typeof k === 'string' && ok(k)))].slice(0, max) : v);
 const CLEAN = {
   drumFavs: keep(isStyle, 99), drumRecent: keep(isStyle, 6), progFavs: keep(isProg, 40), progRecent: keep(isProg, 6),
   myProg: (v) => (Array.isArray(v) ? v.filter(isChord).slice(0, 16) : v),
+  // (one bad grouping goes on its own, not the player's others: QA round 18)
+  accents: (v) => (v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).filter(isGrouping)) : v),
 };
 const RULES = {
   bpm: int(1, 660),       // the room's range is PolyOrbit's (ui/practice.js)
@@ -31,8 +37,8 @@ const RULES = {
   sub: (v) => [1, 2, 3, 4, 6].includes(v),   // (6: 16ths of a compound-metre drum pattern)
   // the player's own accented beats, by the bar's number of beats ({ 7: [0, 3, 5] }); a bar without any
   // takes its usual grouping (practice/accents.js)
-  accents: (v) => !!v && typeof v === 'object' && !Array.isArray(v) && Object.entries(v).every(([k, list]) => int(1, 12)(Number(k))
-    && Array.isArray(list) && new Set(list).size === list.length && list.every(int(0, Number(k) - 1))),
+  accents: (v) => !!v && typeof v === 'object' && !Array.isArray(v) && Object.entries(v).every(isGrouping),
+  lightsTapped: (v) => typeof v === 'boolean',   // the player has tapped a beat light (its hint then goes)
   click: (v) => typeof v === 'boolean',   // the metronome's sound (off: the drums keep the time alone)
   play: int(1, 8),        // muted bars: `play` bars with the click, then `mute` bars silent (0 = off)
   mute: int(0, 8),

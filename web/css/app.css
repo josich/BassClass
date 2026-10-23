@@ -706,8 +706,14 @@ details.les-more > ul { margin: 0 0 10px; }
 .beat-lights.muted > .lit { background: transparent; border-color: var(--accent); box-shadow: none; }
 .beat-lights > .group { border-style: dashed; }
 .beat-lights.count > .lit { background: var(--accent-2); border-color: var(--accent-2); box-shadow: 0 0 12px rgba(110, 128, 232, 0.5); }
-.beat-grouping { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 20px; margin-top: -4px; font-size: 12.5px; font-weight: 600; color: #dba85a; }
-.grouping-reset { min-width: 30px; min-height: 26px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); font-size: 14px; }
+/* (10 to 12 lights sit closer, so a bar never wraps inside a group) */
+.beat-lights.many { gap: 6px; }
+.beat-lights.many > * { width: 20px; height: 20px; }
+.beat-lights.many > *::after { inset: -8px -3px; }
+/* (its row keeps its height whether it shows a grouping, ↺, the hint or nothing: nothing below jumps) */
+.beat-grouping { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 32px; margin-top: -4px; font-size: 12.5px; font-weight: 600; color: #dba85a; }
+.grouping-reset { min-width: 36px; min-height: 32px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); font-size: 15px; }
+.grouping-hint { color: var(--muted); font-weight: 400; font-size: 12px; }
 /* the room's one Start/Stop, floating at the bottom right wherever the page is scrolled */
 .room-fab { position: fixed; right: 18px; bottom: 16px; z-index: 40; min-width: 132px; height: 52px; justify-content: center; gap: 8px; border-radius: 99px; font-size: 17px; padding: 0 22px; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45); }
 .room-fab { touch-action: none; cursor: grab; }
@@ -833,6 +839,10 @@ input[type="range"] { touch-action: pan-y; }
   .metro-opts { padding-left: 0; border-left: 0; padding-top: 12px; border-top: 1px solid var(--line); }
   /* (stacked under the tempo, the click's settings, muted bars and speed up sit two by two) */
   .metro-opts { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 18px; row-gap: 9px; align-items: start; }
+}
+/* (a portrait phone: one column, so each slider has room to be dragged; QA round 18) */
+@media (max-width: 480px) {
+  .metro-opts { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-height: 420px) {
   .tempo-num { font-size: 42px; }
