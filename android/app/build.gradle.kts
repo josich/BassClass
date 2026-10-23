@@ -57,6 +57,12 @@ android {
             assets.srcDirs("../../web")
         }
     }
+    // ... except the Practice room's drum samples: the app fetches them online on first use and keeps
+    // them in its cache (web/js/drums.js). The rest is Android's default list (it already leaves out
+    // folders starting with "_", such as web/_raw).
+    androidResources {
+        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:.*:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~:<dir>drums"
+    }
 }
 
 dependencies {

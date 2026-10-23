@@ -1,0 +1,210 @@
+{
+ "name": "Virtuosity Drums (Versilian Studios and Karoryfer), the \"mid\" mic, mono",
+ "license": "CC0-1.0",
+ "source": "https://github.com/sfzinstruments/virtuosity_drums",
+ "v": 1,
+ "pieces": {
+  "kick": [
+   [
+    "kick-1-1.ogg",
+    "kick-1-2.ogg"
+   ],
+   [
+    "kick-2-1.ogg",
+    "kick-2-2.ogg"
+   ],
+   [
+    "kick-3-1.ogg",
+    "kick-3-2.ogg"
+   ],
+   [
+    "kick-4-1.ogg",
+    "kick-4-2.ogg"
+   ]
+  ],
+  "snare": [
+   [
+    "snare-1-1.ogg",
+    "snare-1-2.ogg"
+   ],
+   [
+    "snare-2-1.ogg",
+    "snare-2-2.ogg"
+   ],
+   [
+    "snare-3-1.ogg",
+    "snare-3-2.ogg"
+   ],
+   [
+    "snare-4-1.ogg",
+    "snare-4-2.ogg"
+   ]
+  ],
+  "rim": [
+   [
+    "rim-1-1.ogg"
+   ],
+   [
+    "rim-2-1.ogg"
+   ],
+   [
+    "rim-3-1.ogg"
+   ]
+  ],
+  "xstick": [
+   [
+    "xstick-1-1.ogg"
+   ],
+   [
+    "xstick-2-1.ogg"
+   ],
+   [
+    "xstick-3-1.ogg"
+   ],
+   [
+    "xstick-4-1.ogg"
+   ]
+  ],
+  "hhc": [
+   [
+    "hhc-1-1.ogg",
+    "hhc-1-2.ogg"
+   ],
+   [
+    "hhc-2-1.ogg",
+    "hhc-2-2.ogg"
+   ],
+   [
+    "hhc-3-1.ogg",
+    "hhc-3-2.ogg"
+   ],
+   [
+    "hhc-4-1.ogg",
+    "hhc-4-2.ogg"
+   ]
+  ],
+  "hhh": [
+   [
+    "hhh-1-1.ogg",
+    "hhh-1-2.ogg"
+   ]
+  ],
+  "hho": [
+   [
+    "hho-1-1.ogg"
+   ],
+   [
+    "hho-2-1.ogg"
+   ]
+  ],
+  "hhp": [
+   [
+    "hhp-1-1.ogg",
+    "hhp-1-2.ogg"
+   ]
+  ],
+  "ride": [
+   [
+    "ride-1-1.ogg",
+    "ride-1-2.ogg"
+   ],
+   [
+    "ride-2-1.ogg",
+    "ride-2-2.ogg"
+   ],
+   [
+    "ride-3-1.ogg",
+    "ride-3-2.ogg"
+   ]
+  ],
+  "bell": [
+   [
+    "bell-1-1.ogg",
+    "bell-1-2.ogg"
+   ]
+  ],
+  "crash": [
+   [
+    "crash-1-1.ogg"
+   ],
+   [
+    "crash-2-1.ogg"
+   ]
+  ],
+  "tomh": [
+   [
+    "tomh-1-1.ogg"
+   ],
+   [
+    "tomh-2-1.ogg"
+   ]
+  ],
+  "toml": [
+   [
+    "toml-1-1.ogg"
+   ],
+   [
+    "toml-2-1.ogg"
+   ]
+  ],
+  "shakd": [
+   [
+    "shakd-1-1.ogg",
+    "shakd-1-2.ogg",
+    "shakd-1-3.ogg"
+   ]
+  ],
+  "shaku": [
+   [
+    "shaku-1-1.ogg",
+    "shaku-1-2.ogg",
+    "shaku-1-3.ogg"
+   ]
+  ],
+  "claves": [
+   [
+    "claves-1-1.ogg",
+    "claves-1-2.ogg"
+   ]
+  ],
+  "cowbell": [
+   [
+    "cowbell-1-1.ogg",
+    "cowbell-1-2.ogg"
+   ]
+  ],
+  "bongoh": [
+   [
+    "bongoh-1-1.ogg",
+    "bongoh-1-2.ogg"
+   ]
+  ],
+  "bongol": [
+   [
+    "bongol-1-1.ogg",
+    "bongol-1-2.ogg"
+   ]
+  ],
+  "tamb": [
+   [
+    "tamb-1-1.ogg",
+    "tamb-1-2.ogg"
+   ]
+  ],
+  "conga": [
+   [
+    "conga-1-1.ogg",
+    "conga-1-2.ogg"
+   ],
+   [
+    "conga-2-1.ogg"
+   ]
+  ],
+  "congas": [
+   [
+    "congas-1-1.ogg",
+    "congas-1-2.ogg"
+   ]
+  ]
+ }
+}

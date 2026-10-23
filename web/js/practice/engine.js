@@ -1,24 +1,29 @@
-// The Practice room's engine: a lookahead scheduler (like the exercise player's) that plays the
-// metronome; drums and harmony join it as layers. Each scheduled tick is reported with its time, so
-// the screen can light the beat when it sounds.
+// The Practice room's engine: a lookahead scheduler (like the exercise player's) that plays one beat at
+// a time: the metronome's clicks and, when they are on, the drum loop's hits inside that beat. Each beat
+// is reported with its time, so the screen can light it when it sounds.
 import * as A from '../audio.js';
 import { logPlaying } from '../practiceLog.js';
+import { playDrum, kitReady } from '../drums.js';
+import { STYLES } from './styles.js';
 
 const LOOKAHEAD = 0.12;   // seconds scheduled ahead
 const TICK_MS = 25;
 
 export class Room {
-  /** `o`: { bpm, beats, sub, accent, play, mute, upBy, upEvery }; `onTick({ time, bar, beat, sub, muted, level, bpm })`. */
+  /**
+   * `o`: { bpm, beats, sub, accent, click, play, mute, upBy, upEvery, drums, style };
+   * `onTick({ time, bar, beat, muted, bpm })` once per beat.
+   */
   constructor(o, { onTick } = {}) {
     this.o = { ...o };
     this.onTick = onTick;
     this.playing = false;
     this.starting = false;
     this.token = 0;         // bumped by stop: cancels a start still waiting for the audio to wake
-    this.bpm = o.bpm;       // the tempo now (the speed trainer raises it as it plays)
+    this.bpm = o.bpm;       // the tempo now (speed up raises it as it plays)
   }
 
-  /** Changes apply from the next click; a new tempo also resets the speed trainer's climb. */
+  /** Changes apply from the next beat; a new tempo also resets the speed-up's climb. */
   set(patch) {
     Object.assign(this.o, patch);
     if ('bpm' in patch) this.bpm = patch.bpm;
@@ -36,7 +41,7 @@ export class Room {
     this.playing = true;
     this.bpm = this.o.bpm;
     this.bar = 0;
-    this.pos = 0;            // the click inside the bar (beats × clicks per beat)
+    this.beat = 0;
     this.next = A.now() + 0.08;
     this.timer = setInterval(() => this._tick(), TICK_MS);
     this._tick();
@@ -55,18 +60,28 @@ export class Room {
   _tick() {
     const end = A.now() + LOOKAHEAD;
     while (this.next < end) {
-      const { beats, sub, accent, play, mute, upBy, upEvery } = this.o;
-      if (this.pos >= beats * sub) { this.pos = 0; this.bar++; }   // (fewer beats or clicks since the last one)
-      const beat = Math.floor(this.pos / sub), part = this.pos % sub;
-      // muted bars: `play` bars with the click, then `mute` bars of silence to keep the time alone
+      const { beats, sub, accent, click, play, mute, upBy, upEvery, drums, style } = this.o;
+      if (this.beat >= beats) { this.beat = 0; this.bar++; }   // (fewer beats since the last one)
+      const t0 = this.next, len = 60 / this.bpm;
+      // muted bars: `play` bars with the click (and drums), then `mute` bars of silence to keep the time alone
       const muted = mute > 0 && this.bar % (play + mute) >= play;
-      const level = part ? 0 : beat === 0 && accent ? 2 : 1;
-      if (!muted) A.click(this.next, level);
-      this.onTick?.({ time: this.next, bar: this.bar, beat, sub: part, muted, level, bpm: this.bpm });
-      this.next += 60 / this.bpm / sub;
-      this.pos++;
-      if (this.pos >= beats * sub) {
-        this.pos = 0;
+      if (click && !muted) {
+        for (let k = 0; k < sub; k++) A.click(t0 + (k * len) / sub, k ? 0 : this.beat === 0 && accent ? 2 : 1);
+      }
+      const s = drums && kitReady() ? STYLES[style] : null;
+      if (s && !muted) {
+        const at = ((this.bar % s.bars) * s.beats + this.beat) * s.unit;
+        for (const [piece, steps] of Object.entries(s.tracks)) {
+          for (let j = 0; j < s.unit; j++) {
+            const v = steps[at + j];
+            if (v) playDrum(piece, t0 + (j * len) / s.unit, v);
+          }
+        }
+      }
+      this.onTick?.({ time: t0, bar: this.bar, beat: this.beat, muted, bpm: this.bpm });
+      this.next += len;
+      if (++this.beat >= beats) {
+        this.beat = 0;
         this.bar++;
         // speed up: a little faster every `upEvery` bars
         if (upBy && this.bar % upEvery === 0) this.bpm = Math.min(260, this.bpm + upBy);

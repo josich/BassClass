@@ -35,7 +35,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def do_PUT(self):
         """Dev helper (localhost only): the app can regenerate docs/CATALOGUE.md, the
-        processed bass samples under web/audio/bass/ and the PNG icons (web/js/dev/iconprep.js).
+        processed bass samples under web/audio/bass/, the drum kit under web/audio/drums/
+        (web/js/dev/drumprep.js) and the PNG icons (web/js/dev/iconprep.js).
         Paths are strictly whitelisted."""
         if self.client_address[0] not in ('127.0.0.1', '::1'):
             self.send_error(403)
@@ -43,6 +44,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if self.path == '/__docs/CATALOGUE.md':
             out = os.path.join(ROOT, '..', 'docs', 'CATALOGUE.md')
         elif re.fullmatch(r'/__write/audio/bass/(?:(?:reg|ghost)/\d{2}\.wav|manifest\.json|LICENSE\.txt)', self.path):
+            out = os.path.join(ROOT, *self.path[len('/__write/'):].split('/'))
+        elif re.fullmatch(r'/__write/audio/drums/(?:[a-z0-9]+(?:-[a-z0-9]+)*\.ogg|kit\.json|LICENSE\.txt)', self.path):
             out = os.path.join(ROOT, *self.path[len('/__write/'):].split('/'))
         elif re.fullmatch(r'/__write/icons/(?:icon-(?:192|512|maskable-512)|apple-touch-icon)\.png', self.path):
             out = os.path.join(ROOT, *self.path[len('/__write/'):].split('/'))

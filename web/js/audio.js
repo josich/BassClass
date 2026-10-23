@@ -3,10 +3,10 @@
 import { midiToFreq } from './theory.js';
 
 let ac = null;
-let bassBus, bassVolume, clickBus, fullPath, phonePath, padBus;
+let bassBus, bassVolume, clickBus, fullPath, phonePath, padBus, drumBus;
 const synthCache = new Map();
 // route: what the Android app reports ('speaker' | 'external'), or null in a browser
-const opts = { bassVol: 2, clickVol: 0.6, route: null };
+const opts = { bassVol: 2, clickVol: 0.6, drumVol: 0.8, route: null };
 const PHONE_BOOST = 15; // dB lifted around 850 Hz on the phone speaker
 
 // The Android app tells us when headphones or an external speaker are connected (see MainActivity.kt).
@@ -119,6 +119,17 @@ export function audioCtx() {
     const padTone = ac.createBiquadFilter();
     padTone.type = 'lowpass'; padTone.frequency.value = 1500; padTone.Q.value = 0.3;
     padBus.connect(padTone).connect(clip);
+
+    // drums (the Practice room): their own fast limiter, then after the bass's, so a kick never ducks the bass
+    drumBus = ac.createGain();
+    drumBus.gain.value = opts.drumVol;
+    const drumLimit = ac.createDynamicsCompressor();
+    drumLimit.threshold.value = -8;
+    drumLimit.knee.value = 4;
+    drumLimit.ratio.value = 10;
+    drumLimit.attack.value = 0.002;
+    drumLimit.release.value = 0.12;
+    drumBus.connect(drumLimit).connect(clip);
     decodeBank();
   }
   if (ac.state === 'suspended') ac.resume();
@@ -130,6 +141,13 @@ export function setAudioOptions(o) {
   Object.assign(opts, o);
   if (bassVolume) bassVolume.gain.value = opts.bassVol;
   if (clickBus) clickBus.gain.value = opts.clickVol;
+  if (drumBus) drumBus.gain.value = opts.drumVol;
+}
+
+/** Where drum hits go (web/js/drums.js). */
+export function drumOut() {
+  audioCtx();
+  return drumBus;
 }
 
 export const now = () => (ac ? ac.currentTime : 0);

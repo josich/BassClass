@@ -1,19 +1,25 @@
 // The Practice room's own settings (localStorage, failure-tolerant like store.js): kept between visits.
+import { STYLES } from './styles.js';
+
 const KEY = 'bassclass.practice.v1';
 
 export const SUBS = [1, 2, 3, 4];        // clicks per beat: quarters, 8ths, triplets, 16ths
 
-const DEFAULTS = { bpm: 90, beats: 4, sub: 1, accent: true, play: 2, mute: 0, upBy: 0, upEvery: 4 };
+const DEFAULTS = { bpm: 90, beats: 4, sub: 1, accent: true, click: true, play: 2, mute: 0, upBy: 0, upEvery: 4, drums: false, style: 'rock', drumVol: 80 };
 const int = (lo, hi) => (v) => Number.isInteger(v) && v >= lo && v <= hi;
 const RULES = {
   bpm: int(30, 260),
   beats: int(1, 12),
   sub: (v) => SUBS.includes(v),
   accent: (v) => typeof v === 'boolean',
+  click: (v) => typeof v === 'boolean',   // the metronome's sound (off: the drums keep the time alone)
   play: int(1, 8),        // muted bars: `play` bars with the click, then `mute` bars silent (0 = off)
   mute: int(0, 8),
   upBy: int(0, 10),       // speed up: + `upBy` BPM (0 = off) every `upEvery` bars
   upEvery: int(1, 16),
+  drums: (v) => typeof v === 'boolean',
+  style: (v) => typeof v === 'string' && Object.prototype.hasOwnProperty.call(STYLES, v),
+  drumVol: int(0, 100),
 };
 
 function load() {

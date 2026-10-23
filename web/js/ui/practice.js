@@ -1,10 +1,12 @@
 // The Practice room (#/practice). Its first block is the metronome: the tempo, tap tempo, beat lights and
 // Start beside its settings (beats per bar, subdivision, accent, muted bars, speed up). Drums and
 // harmony join as blocks of their own below it.
-import { h, icon, infoBtn } from './dom.js';
+import { h, icon, infoBtn, toast } from './dom.js';
 import * as A from '../audio.js';
 import { Room } from '../practice/engine.js';
 import { room, saveRoom, SUBS } from '../practice/state.js';
+import { STYLES } from '../practice/styles.js';
+import { loadKit, kitReady } from '../drums.js';
 
 const INFO = [
   '⏱ Set the tempo and press Start (Space on a keyboard)',
@@ -12,6 +14,13 @@ const INFO = [
   '🎵 Subdivision: a click on every quarter, 8th, triplet or 16th',
   '🔇 Muted bars: the click plays some bars and stops for others, you keep the time',
   '📈 Speed up: a few BPM faster every few bars',
+  '🔈 Click off: the beat lights and the drums keep the time',
+];
+const DRUM_INFO = [
+  '🥁 A drummer to play with: pick a style and press Start',
+  '🎚 The style sets the beats per bar (5/4, 7/8, 12/8…)',
+  '🔇 Muted bars and Speed up work on the drums too',
+  '📶 The drums load once (about 1 MB) and then play offline',
 ];
 const SUB_NAMES = { 1: 'Quarter notes', 2: '8ths', 3: 'Triplets', 4: '16ths' };
 
@@ -90,10 +99,8 @@ export function practiceScreen(main) {
     let t = null;
     while (queue.length && queue[0].time <= now) t = queue.shift();
     if (t) {
-      if (t.sub === 0) {
-        [...lights.children].forEach((el, i) => el.classList.toggle('lit', i === t.beat));
-        lights.classList.toggle('muted', t.muted);
-      }
+      [...lights.children].forEach((el, i) => el.classList.toggle('lit', i === t.beat));
+      lights.classList.toggle('muted', t.muted);
       if (t.bpm !== Number(bpmEl.textContent)) showTempo(t.bpm);
     }
     raf = engine.playing ? requestAnimationFrame(frame) : null;
@@ -144,11 +151,17 @@ export function practiceScreen(main) {
       opts.querySelector('[data-key="play"]')?.classList.toggle('off', !room.mute);
       opts.querySelector('[data-key="upEvery"]')?.classList.toggle('off', !room.upBy);
     };
+    // (with the drums on, their style sets the beats per bar)
+    const fixed = room.drums ? () => toast(`The drum style sets the beats: ${STYLES[room.style].meter}`) : null;
     opts.replaceChildren(
-      field('Beats per bar', h('div', { class: 'stepper' },
-        h('button', { class: 'btn round small', 'aria-label': 'Fewer beats', onClick: () => { if (room.beats > 1) { set({ beats: room.beats - 1 }); drawOpts(); drawLights(); } } }, '−'),
+      field('Click', h('div', { class: 'seg' }, [true, false].map((v) => h('button', {
+        class: room.click === v ? 'on' : '',
+        onClick: () => { set({ click: v }); drawOpts(); },
+      }, v ? 'On' : 'Off')))),
+      field('Beats per bar', h('div', { class: `stepper${fixed ? ' fixed' : ''}` },
+        h('button', { class: 'btn round small', 'aria-label': 'Fewer beats', onClick: () => { if (fixed) fixed(); else if (room.beats > 1) { set({ beats: room.beats - 1 }); drawOpts(); drawLights(); } } }, '−'),
         h('b', {}, room.beats),
-        h('button', { class: 'btn round small', 'aria-label': 'More beats', onClick: () => { if (room.beats < 12) { set({ beats: room.beats + 1 }); drawOpts(); drawLights(); } } }, '+'))),
+        h('button', { class: 'btn round small', 'aria-label': 'More beats', onClick: () => { if (fixed) fixed(); else if (room.beats < 12) { set({ beats: room.beats + 1 }); drawOpts(); drawLights(); } } }, '+'))),
       field('Subdivision', h('div', { class: 'seg note-seg' }, SUBS.map((v) => h('button', {
         class: room.sub === v ? 'on' : '', title: SUB_NAMES[v], 'aria-label': SUB_NAMES[v], html: SUB_ICONS[v],
         onClick: () => { set({ sub: v }); drawOpts(); },
@@ -165,6 +178,53 @@ export function practiceScreen(main) {
         rangeLine('upEvery', 1, 16, 'Every', bars, dim)));
     dim();
   };
+
+  // ---------------------------------------------------------------- drums
+  const drumBlock = h('section', { class: 'block room-block drums' });
+  const drumState = h('span', { class: 'drum-state muted small' });
+  A.setAudioOptions({ drumVol: room.drumVol / 100 });
+  /** The kit loads on first use; until then the drums wait (the clock plays on). */
+  const ensureKit = () => {
+    if (kitReady()) { drumState.textContent = ''; return; }
+    drumState.textContent = 'Loading the drums…';
+    loadKit((n, total) => { drumState.textContent = `Loading the drums… ${Math.round((n / total) * 100)}%`; })
+      .then(() => { drumState.textContent = ''; })
+      .catch(() => {
+        drumState.textContent = '';
+        set({ drums: false });
+        drawDrums(); drawOpts();
+        toast('The drums need an internet connection the first time', 3500);
+      });
+  };
+  const useStyle = (key, on = true) => {
+    set({ style: key, drums: on, ...(on ? { beats: STYLES[key].beats } : {}) });
+    if (on) ensureKit();
+    drawDrums(); drawOpts(); drawLights();
+  };
+  const drawDrums = () => {
+    const vol = h('input', { type: 'range', min: 0, max: 100, step: 1, value: room.drumVol, 'aria-label': 'Drums volume' });
+    const volVal = h('b', { class: 'rl-val' }, `${room.drumVol}%`);
+    vol.addEventListener('input', () => {
+      const v = Number(vol.value);
+      set({ drumVol: v });
+      A.setAudioOptions({ drumVol: v / 100 });
+      volVal.textContent = `${v}%`;
+    });
+    drumBlock.classList.toggle('off', !room.drums);
+    drumBlock.replaceChildren(
+      h('div', { class: 'block-head' }, h('h2', {}, '🥁 Drums'), infoBtn(DRUM_INFO, 'About the drums'), drumState, h('div', { class: 'grow' }),
+        h('div', { class: 'seg' }, [true, false].map((v) => h('button', {
+          class: room.drums === v ? 'on' : '',
+          onClick: () => useStyle(room.style, v),
+        }, v ? 'On' : 'Off')))),
+      h('div', { class: 'style-grid' }, Object.values(STYLES).map((st) => h('button', {
+        class: `style-chip${room.style === st.key ? ' on' : ''}`,
+        onClick: () => useStyle(st.key),
+      }, h('b', {}, st.name), h('span', {}, st.meter)))),
+      h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal));
+  };
+  if (room.drums) ensureKit();
+  drawDrums();
 
   const onKey = (e) => {
     if (e.target.closest?.('input, select, textarea')) return;
@@ -189,7 +249,8 @@ export function practiceScreen(main) {
           slider,
           lights,
           playBtn),
-        opts)));
+        opts)),
+    drumBlock);
   showTempo(room.bpm);
   drawLights();
   drawPlay();
