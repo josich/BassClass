@@ -4,7 +4,7 @@
 // chord change is reported with its time, so the screen can show it when it sounds.
 import * as A from '../audio.js';
 import { logPlaying } from '../practiceLog.js';
-import { playDrum, kitReady, styleGain } from '../drums.js';
+import { playDrum, kitReady, styleGain, trackGain } from '../drums.js';
 import { STYLES, levelsOf, stepTime, clickTimes, groupStarts } from './styles.js';
 import { progression, droneMidis } from './harmony.js';
 
@@ -146,7 +146,7 @@ export class Room {
         }
         // in time order, so a closed hi-hat after an open one closes it
         const g = styleGain(style);
-        hits.sort((a, b) => a[0] - b[0]).forEach(([t, piece, v]) => playDrum(piece, t, v, g));
+        hits.sort((a, b) => a[0] - b[0]).forEach(([t, piece, v]) => playDrum(piece, t, v, g * trackGain(s, piece)));
       }
       const chord = count ? null : this._harmony(t0, muted);
       this.onTick?.({ time: t0, bar: this.bar, beat: this.beat, muted, count, bpm: this.bpm, chord });

@@ -3,7 +3,8 @@
 // `grid` steps per beat (2 = 8ths, 3 = triplets, 4 = 16ths), its tempo and its usual subdivision `sub`,
 // and one or two bars per piece. A step is "." (rest), "g" (ghost), "s" (soft), "x" (normal) or "X"
 // (accent); "|" and spaces only help the eye. Odd metres name their `groups` (3 + 2…): the click and the
-// beat lights mark each group's start.
+// beat lights mark each group's start. A pattern may set a track's level in dB (`mix: { cowbell: -5 }`)
+// where the kit's balance (drums.js) does not suit it.
 //
 // Each pattern is written at its fullest: the Subdivision buttons choose how much of it plays. A note
 // that falls between the subdivision's notes is a fill: it plays only at a finer subdivision when it is
@@ -173,7 +174,7 @@ const RAW = [
       cowbell: 'x.x|.xx|.x.|x.x', shakd: 'x.s|x.s|x.s|x.s', conga: '...|...|...|xx.', tumba: '...|...|x..|...', kick: 'x..|...|x..|...' },
     { key: 'habanera', name: 'Habanera (tango)', bpm: 80, sub: 2,
       toml: 'X..x|x.x.|X..x|x.x.', kick: 'X...|....|X...|....', xstick: '....|x...|....|x...' },
-    { key: 'latinrock', name: 'Latin rock', bpm: 112, sub: 2,
+    { key: 'latinrock', name: 'Latin rock', bpm: 112, sub: 2, mix: { cowbell: -5 },
       cowbell: 'x.x.|X.x.|x.x.|X.x.', kick: 'X..x|..x.|X..x|..x.', snare: '....|X...|....|X...', conga: '..x.|..x.|..x.|..x.' },
   ] },
   { key: 'reggae', name: 'Reggae & Caribbean', icon: '🌴', patterns: [
@@ -242,7 +243,7 @@ const RAW = [
   ] },
 ];
 
-const META = new Set(['key', 'name', 'meter', 'beats', 'beat', 'grid', 'bpm', 'sub', 'groups']);
+const META = new Set(['key', 'name', 'meter', 'beats', 'beat', 'grid', 'bpm', 'sub', 'groups', 'mix']);
 
 /** The beats that start a group (always beat 0; 3 + 2 → 0 and 3). */
 export function groupStarts(s) {
@@ -292,6 +293,7 @@ RAW.forEach((g, gi) => g.patterns.forEach((p) => {
   for (const t of Object.values(s.tracks)) if (s.bars % (t.length / per)) throw new Error(`drum pattern ${p.key}: tracks of 1 and ${s.bars} bars only`);
   if (!levelsOf(s).includes(s.sub)) throw new Error(`drum pattern ${p.key}: subdivision ${s.sub} is not offered`);
   if (s.groups && s.groups.reduce((a, g) => a + g, 0) !== s.beats) throw new Error(`drum pattern ${p.key}: groups do not fill ${s.beats} beats`);
+  for (const [piece, db] of Object.entries(s.mix || {})) if (!s.tracks[piece] || !(db >= -12 && db <= 6)) throw new Error(`drum pattern ${p.key}: mix ${piece} ${db}`);
   if (STYLES[s.key]) throw new Error(`drum pattern ${p.key} twice`);
   STYLES[s.key] = s;
   GENRES[gi].styles.push(s);

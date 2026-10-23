@@ -108,6 +108,8 @@ function layerOf(n, vel) {
 }
 /** A stroke's loudness as heard (A-weighted dB): the piece's level on the velocity curve. */
 export const strokeDb = (piece, vel) => (LEVEL[piece] ?? -20) + 30 * Math.log10(Math.max(0.05, vel)) + REF;
+/** A pattern's own level for one of its tracks (`mix`, in dB), as a gain. */
+export const trackGain = (s, piece) => 10 ** ((s?.mix?.[piece] || 0) / 20);
 /** The gain that brings a recorded layer to its stroke's loudness. */
 const hitGain = (piece, li, vel) => 10 ** ((strokeDb(piece, vel) - (LAYER_DB[piece]?.[li] ?? REF)) / 20);
 
@@ -119,7 +121,7 @@ function loudness(s) {
   for (const [piece, steps] of Object.entries(s.tracks)) {
     steps.forEach((v, i) => {
       if (!v || stepTime(s, s.sub, i % s.grid, piece, v) == null) return;
-      e += 10 ** (strokeDb(piece, v) / 10) * (s.bars / (steps.length / per));
+      e += 10 ** (strokeDb(piece, v) / 10) * trackGain(s, piece) ** 2 * (s.bars / (steps.length / per));
     });
   }
   return e / ((s.bars * s.beats * 60) / s.bpm);

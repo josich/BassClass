@@ -6,7 +6,7 @@
 //              6 dB under the backbeat is flagged.
 // Run in the page:  (await import('./js/dev/drumlevels.js')).balance()
 import { STYLES, stepTime, TIMEKEEP } from '../practice/styles.js';
-import { strokeDb } from '../drums.js';
+import { strokeDb, trackGain } from '../drums.js';
 
 const N = 8192;   // samples measured: 170 ms at 48 kHz
 
@@ -80,7 +80,7 @@ export function balance() {
     for (const [piece, steps] of Object.entries(s.tracks)) {
       let e = 0;
       steps.forEach((v, i) => {
-        if (v && stepTime(s, s.sub, i % s.grid, piece, v) != null) e += 10 ** (strokeDb(piece, v) / 10) * (s.bars / (steps.length / per));
+        if (v && stepTime(s, s.sub, i % s.grid, piece, v) != null) e += 10 ** (strokeDb(piece, v) / 10) * trackGain(s, piece) ** 2 * (s.bars / (steps.length / per));
       });
       if (e) tracks[piece] = 10 * Math.log10(e / ((s.bars * s.beats * 60) / s.bpm));
     }
