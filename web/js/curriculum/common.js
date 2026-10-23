@@ -260,6 +260,14 @@ export const PROGS = {
   'vamp-min': { name: 'One-chord minor vamp (4 bars)', minor: true, chords: [['1', 'min7', 16]] },
   'vamp-dom': { name: 'One-chord dominant vamp (4 bars)', chords: [['1', 'dom7', 16]] },
   'i-iv-v-min': { name: 'i – iv – v – i (minor)', minor: true, pop: true, chords: [['1', 'min7'], ['4', 'min7'], ['5', 'min7'], ['1', 'min7']] },
+  // (the Practice room's everyday additions, user 2026-10-23: the bridge, the 8-bar blues, the modal vamps)
+  'rhythm-B': { name: 'Rhythm changes (bridge)', chords: [['3', 'dom7', 8], ['6', 'dom7', 8], ['2', 'dom7', 8], ['5', 'dom7', 8]] },
+  'blues-8': {
+    name: '8-bar blues', chords: [['1', 'dom7'], ['5', 'dom7'], ['4', 'dom7'], ['4', 'dom7'], ['1', 'dom7'], ['5', 'dom7'], ['1', 'dom7'], ['5', 'dom7']],
+  },
+  'vamp-dorian': { name: 'Dorian vamp (i7 – IV7)', minor: true, chords: [['1', 'min7'], ['4', 'dom7']] },
+  'vamp-mixo': { name: 'Mixolydian vamp (I – ♭VII)', pop: true, chords: [['1', 'maj7'], ['b7', 'maj7']] },
+  'vamp-iiV': { name: 'ii – V vamp', chords: [['2', 'min7'], ['5', 'dom7']] },
   'cycle-dom7': {
     name: 'Dominant 7ths around the cycle', chords: [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7].map((o) => [o, 'dom7']),
   },
