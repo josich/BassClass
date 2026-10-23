@@ -81,8 +81,8 @@ export function neckPanel() {
       }
     });
     fb.setDots(dots);
-    const what = lead?.type ? `🎹 ${lead.name}` : `${T.noteName(root, S.notation)} ${shown().startsWith('s') ? T.SCALES[shown().slice(2)].name : T.CHORDS[shown().slice(2)].name}`;
-    info.textContent = notes ? `${what}: ${notes.map((x) => T.noteName(x.n, S.notation)).join(' – ')}   ·   tap any fret to hear it` : 'Natural notes are bright, sharps/flats are dim. Tap any fret to hear it.';
+    const what = () => (lead?.type ? `🎹 ${lead.name}` : `${T.noteName(root, S.notation)} ${shown().startsWith('s') ? T.SCALES[shown().slice(2)].name : T.CHORDS[shown().slice(2)].name}`);
+    info.textContent = notes ? `${what()}: ${notes.map((x) => T.noteName(x.n, S.notation)).join(' – ')}   ·   tap any fret to hear it` : 'Natural notes are bright, sharps/flats are dim. Tap any fret to hear it.';
   };
   rootSel.addEventListener('change', () => { rootPc = Number(rootSel.value); render(); });
   setSel.addEventListener('change', () => { set = setSel.value; render(); });

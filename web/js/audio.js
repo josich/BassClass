@@ -370,6 +370,7 @@ export function click(when = now(), level = 1) {
   o.connect(g).connect(clickBus);
   o.start(when);
   o.stop(when + 0.07);
+  return g;   // (disconnected, a click not yet sounded is cancelled)
 }
 
 // ------------------------------------------------------------------ backing pad

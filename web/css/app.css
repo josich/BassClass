@@ -745,6 +745,8 @@ input[type="range"] { touch-action: pan-y; }
 .chord-chip::before { content: ''; position: absolute; inset: 0; background: var(--accent-2); transform: scaleX(var(--fill, 0)); transform-origin: left; }
 .chord-chip > span { position: relative; }
 .chord-chip.done::before { opacity: 0.55; }
+/* muted bars: the form goes on, silent, its chips dimmed */
+.side-scroll.muted .chord-chip { opacity: 0.5; }
 .chord-chip.on { background: rgba(110, 128, 232, 0.28); border-color: var(--accent-2); color: #fff; box-shadow: 0 0 12px rgba(110, 128, 232, 0.5); }
 .harmony .range-line { max-width: 420px; }
 .harmony.off { gap: 0; }

@@ -9,7 +9,7 @@ import { STYLES, GENRES, levelsOf, groupStarts } from '../practice/styles.js';
 import { settings } from '../store.js';
 import { loadKit, kitReady } from '../drums.js';
 import { neckPanel } from './neck.js';
-import { HARMONY_PROGS, progName, progression, keyName } from '../practice/harmony.js';
+import { HARMONY_PROGS, progName, progression, keyName, isMinor } from '../practice/harmony.js';
 import * as T from '../theory.js';
 
 const INFO = [
@@ -152,7 +152,8 @@ export function practiceScreen(main, params = {}) {
 
   const showTempo = (bpm) => {
     bpmEl.textContent = bpm;
-    nameEl.textContent = tempoName(bpm);
+    // (an x/8 pattern counts 8ths: its tempo is named from the quarter it feels like)
+    nameEl.textContent = tempoName(room.drums && STYLES[room.style]?.beat === 'e' ? bpm / 2 : bpm);
     if (posToBpm(Number(slider.value)) !== bpm) slider.value = bpmToPos(bpm);
     slider.setAttribute('aria-valuetext', `${bpm} BPM`);
   };
@@ -178,7 +179,10 @@ export function practiceScreen(main, params = {}) {
     let c = null;
     while (chordQ.length && chordQ[0].time <= now) c = chordQ.shift();
     if (c) { curIdx = c.idx; showChord(); }
-    if (t) shownTick = t;
+    if (t) {
+      shownTick = t;
+      chipRow?.classList.toggle('muted', !!t.muted);
+    }
     // the chord sounding fills its chip with the pulse: full on its last beat's end, when the next one comes
     const p = shownTick?.chord;
     if (p && chips[curIdx]) {
@@ -201,6 +205,7 @@ export function practiceScreen(main, params = {}) {
       engine.stop();
       chordQ.length = 0;
       curIdx = null;
+      chipRow?.classList.remove('muted');
       showChord();
       [...lights.children].forEach((el) => el.classList.remove('lit'));
       lights.classList.remove('muted', 'count');
@@ -229,14 +234,14 @@ export function practiceScreen(main, params = {}) {
     const r = playBtn.getBoundingClientRect();
     drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: e.clientX - r.left, dy: e.clientY - r.top, moving: false };
     dragged = false;
+    // (captured at once: a quick mouse drag leaves the button on its first move)
+    try { playBtn.setPointerCapture(e.pointerId); } catch { /* ignore */ }
   });
   playBtn.addEventListener('pointermove', (e) => {
     if (!drag || e.pointerId !== drag.id) return;
     if (!drag.moving && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 8) return;
     if (!drag.moving) {
       drag.moving = true;
-      // (a pointer already gone cannot be captured: the drag still follows it while it is over the button)
-      try { playBtn.setPointerCapture(e.pointerId); } catch { /* ignore */ }
       playBtn.classList.add('dragging');
     }
     const w = playBtn.offsetWidth, hgt = playBtn.offsetHeight;
@@ -366,6 +371,7 @@ export function practiceScreen(main, params = {}) {
     else set({ drums: false, ...(SUBS.includes(room.sub) ? {} : { sub: 2 }) });
     if (on) ensureKit();
     redraw();
+    showTempo(room.bpm);
   };
   const drawDrums = () => {
     const vol = h('input', { type: 'range', min: 0, max: 100, step: 1, value: room.drumVol, 'aria-label': 'Drums volume' });
@@ -427,7 +433,8 @@ export function practiceScreen(main, params = {}) {
   const drawHarmony = () => {
     const mode = room.harmony;
     harmBlock.classList.toggle('off', mode === 'off');
-    const keySel = h('select', { class: 'mini-sel', 'aria-label': 'Key' }, T.CHROMATIC_PC.map((p) => h('option', { value: p, selected: p === room.hKey }, keyName(p, settings.notation))));
+    const minor = mode === 'chords' && isMinor(room.hProg);
+    const keySel = h('select', { class: 'mini-sel', 'aria-label': 'Key' }, T.CHROMATIC_PC.map((p) => h('option', { value: p, selected: p === room.hKey }, keyName(p, settings.notation, minor))));
     keySel.addEventListener('change', () => setHarmony({ hKey: Number(keySel.value) }));
     const progSel = h('select', { class: 'mini-sel prog-sel', 'aria-label': 'Progression' }, HARMONY_PROGS.map(([g, keys]) => h('optgroup', { label: g },
       keys.map((k) => h('option', { value: k, selected: room.hProg === k }, progName(k))))));
@@ -458,7 +465,7 @@ export function practiceScreen(main, params = {}) {
       h('div', { class: 'block-head' }, h('h2', {}, '🎹 Harmony'), infoBtn(HARMONY_INFO, 'About the harmony'), h('div', { class: 'grow' }),
         h('div', { class: 'seg' }, [['off', 'Off'], ['drone', 'Drone'], ['chords', 'Chords']].map(([v, l]) => h('button', {
           class: mode === v ? 'on' : '',
-          onClick: () => { curIdx = null; setHarmony({ harmony: v }); },
+          onClick: () => { if (room.harmony !== v) { curIdx = null; setHarmony({ harmony: v }); } },
         }, l)))),
       mode === 'off' ? null : h('div', { class: 'harm-row' },
         h('label', {}, 'Key'), keySel,

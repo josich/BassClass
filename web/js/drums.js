@@ -149,7 +149,7 @@ export function styleGain(key) {
   return gains.get(key) ?? 1;
 }
 
-/** Plays `piece` at `when`; `vel` 0–1 picks the layer (soft to hard) and shades its level; `gain` scales it. */
+/** Plays `piece` at `when`; `vel` 0–1 picks the layer (soft to hard) and shades its level; `gain` scales it. Returns its gain node. */
 export function playDrum(piece, when, vel = 0.75, gain = 1) {
   const layers = kit?.[piece];
   if (!layers) return;
@@ -169,4 +169,5 @@ export function playDrum(piece, when, vel = 0.75, gain = 1) {
     openHat = null;
   }
   if (piece === 'hho') openHat = g;
+  return g;   // (disconnected, a hit not yet sounded is cancelled)
 }
