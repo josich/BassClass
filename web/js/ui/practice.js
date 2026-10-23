@@ -5,38 +5,56 @@ import { h, icon, infoBtn, toast } from './dom.js';
 import * as A from '../audio.js';
 import { Room } from '../practice/engine.js';
 import { room, saveRoom, SUBS } from '../practice/state.js';
-import { STYLES } from '../practice/styles.js';
+import { STYLES, GENRES, levelsOf } from '../practice/styles.js';
 import { loadKit, kitReady } from '../drums.js';
 import { neckPanel } from './neck.js';
 
 const INFO = [
   '⏱ Set the tempo and press Start (Space on a keyboard)',
   '👆 Tap: tap the beat and the tempo follows (T)',
-  '🎵 Subdivision: a click on every quarter, 8th, triplet or 16th',
+  '🎵 Subdivision: a click on every quarter, 8th, triplet or 16th; with the drums, how much of the pattern plays (16ths add its ghost-note fills, triplets swing a straight groove)',
   '🔇 Muted bars: the click plays some bars and stops for others, you keep the time',
   '📈 Speed up: a few BPM faster every few bars',
   '🔈 Click off: the beat lights and the drums keep the time',
 ];
 const DRUM_INFO = [
-  '🥁 A drummer to play with: pick a style and press Start',
-  '🎚 The style sets the beats per bar (5/4, 7/8, 12/8…)',
+  '🥁 A drummer to play with: pick a genre, then a pattern, and press Start',
+  '🎚 A pattern sets its metre, its usual tempo and its subdivision',
+  '🎵 Subdivision: fewer or more notes of the pattern (16ths: its fills)',
   '🔇 Muted bars and Speed up work on the drums too',
-  '📶 The drums load once (about 1 MB) and then play offline',
+  '📶 The drums load once (about 2 MB) and then play offline',
 ];
-const SUB_NAMES = { 1: 'Quarter notes', 2: '8ths', 3: 'Triplets', 4: '16ths' };
 
 // subdivision icons, drawn (phone fonts may lack the note characters): a quarter, two 8ths, a triplet, four 16ths
 const head = (x, y, r = 3.2) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${(r * 0.72).toFixed(2)}" transform="rotate(-20 ${x} ${y})"/>`;
 const stem = (x, y1, y2) => `<rect x="${x - 0.7}" y="${y2}" width="1.4" height="${y1 - y2}"/>`;
 const beam = (x1, x2, y) => `<path d="M${x1 - 0.7} ${y}H${x2 + 0.7}v2.6H${x1 - 0.7}z"/>`;
 const notes = (w, body) => `<svg viewBox="0 0 ${w} 24" height="22" aria-hidden="true" fill="currentColor">${body}</svg>`;
-const SUB_ICONS = {
-  1: notes(14, head(6, 18.5) + stem(8.9, 18, 3.5)),
-  2: notes(23, head(5, 18.5) + head(16, 18.5) + stem(7.9, 18, 5) + stem(18.9, 18, 5) + beam(7.9, 18.9, 5)),
-  3: notes(31, [4.4, 14, 23.6].map((x) => head(x, 19.2, 2.9) + stem(x + 2.6, 18.7, 8)).join('') + beam(7, 26.2, 8)
-    + '<text x="16.6" y="6.2" text-anchor="middle" font-size="7.5" font-weight="800" font-family="system-ui, sans-serif">3</text>'),
-  4: notes(31, [3.9, 11.4, 18.9, 26.4].map((x) => head(x, 19.2, 2.7) + stem(x + 2.4, 18.7, 4)).join('') + beam(6.3, 28.8, 4) + beam(6.3, 28.8, 8.2)),
+const flag = (x, y) => `<path d="M${x - 0.7} ${y}c0.5 3 6 4.6 4.5 10.6c1-4.6-2.4-6.2-4.5-6.8z"/>`;
+const three = (x) => `<text x="${x}" y="6.2" text-anchor="middle" font-size="7.5" font-weight="800" font-family="system-ui, sans-serif">3</text>`;
+const run = (xs, r, top) => xs.map((x) => head(x, 19.2, r) + stem(x + r - 0.3, 18.7, top)).join('');
+const ICONS = {
+  q1: notes(14, head(6, 18.5) + stem(8.9, 18, 3.5)),
+  q2: notes(23, head(5, 18.5) + head(16, 18.5) + stem(7.9, 18, 5) + stem(18.9, 18, 5) + beam(7.9, 18.9, 5)),
+  q3: notes(31, run([4.4, 14, 23.6], 2.9, 8) + beam(7, 26.2, 8) + three(16.6)),
+  q4: notes(31, run([3.9, 11.4, 18.9, 26.4], 2.7, 4) + beam(6.3, 28.8, 4) + beam(6.3, 28.8, 8.2)),
+  // the shuffle: a quarter and an 8th under a triplet's 3
+  sh: notes(26, head(5, 19.2, 2.9) + stem(7.6, 18.7, 8) + head(17, 19.2, 2.9) + stem(19.6, 18.7, 8) + flag(19.6, 8) + three(12.5)),
+  dq: notes(18, head(6, 18.5) + stem(8.9, 18, 3.5) + '<circle cx="13.6" cy="18" r="1.7"/>'),
+  e1: notes(16, head(6, 18.5) + stem(8.9, 18, 3.5) + flag(8.9, 3.5)),
+  e3: notes(31, run([4.4, 14, 23.6], 2.9, 5) + beam(7, 26.2, 5)),
+  s2: notes(23, head(5, 18.5) + head(16, 18.5) + stem(7.9, 18, 4) + stem(18.9, 18, 4) + beam(7.9, 18.9, 4) + beam(7.9, 18.9, 8.2)),
+  s6: notes(40, run([3.4, 9.6, 15.8, 22, 28.2, 34.4], 2.4, 4) + beam(5.5, 36.5, 4) + beam(5.5, 36.5, 8.2)),
 };
+/** The subdivision buttons: [level, icon, name], for the drum pattern playing (or the plain metronome). */
+function subChoices(s) {
+  if (!s) return [[1, 'q1', 'Quarter notes'], [2, 'q2', '8ths'], [3, 'q3', 'Triplets'], [4, 'q4', '16ths']];
+  if (s.beat === 'e') return [[1, 'e1', '8th notes: the beat'], [2, 's2', '16ths: the fills']];
+  if (s.beat === 'dq') return [[1, 'dq', 'Dotted quarters: the beat'], [3, 'e3', '8ths'], [6, 's6', '16ths: the fills']].filter(([L]) => levelsOf(s).includes(L));
+  if (s.grid === 3) return [[1, 'q1', 'Quarter notes'], [2, 'sh', 'Shuffle'], [3, 'q3', 'Triplets: the fills']];
+  return [[1, 'q1', 'Quarter notes'], [2, 'q2', '8ths'], [3, 'q3', 'Swing: the groove in triplets'], [4, 'q4', '16ths: the fills']];
+}
+const BEAT_ICON = { q: 'q1', e: 'e1', dq: 'dq' };
 
 /** The tempo's Italian name, as on a metronome. */
 function tempoName(bpm) {
@@ -66,6 +84,11 @@ export function practiceScreen(main) {
   const lights = h('div', { class: 'beat-lights' });
   const bpmEl = h('b', { class: 'tempo-num' });
   const nameEl = h('span', { class: 'tempo-name' });
+  const unitEl = h('span', { class: 'tempo-unit' });
+  /** The drum pattern playing, if the drums are on. */
+  const pattern = () => (room.drums ? STYLES[room.style] : null);
+  // "BPM" with the note the beat is (a dotted quarter in 12/8, an 8th in 7/8)
+  const drawUnit = () => unitEl.replaceChildren('BPM', h('span', { class: 'beat-ic', title: 'The beat', html: ICONS[BEAT_ICON[pattern()?.beat || 'q']] }));
   const slider = h('input', { type: 'range', min: 30, max: 260, step: 1, class: 'tempo-slider', 'aria-label': 'Tempo' });
   const playBtn = h('button', { class: 'btn primary room-play' });
   const opts = h('div', { class: 'metro-opts' });
@@ -163,8 +186,8 @@ export function practiceScreen(main) {
         h('button', { class: 'btn round small', 'aria-label': 'Fewer beats', onClick: () => { if (fixed) fixed(); else if (room.beats > 1) { set({ beats: room.beats - 1 }); drawOpts(); drawLights(); } } }, '−'),
         h('b', {}, room.beats),
         h('button', { class: 'btn round small', 'aria-label': 'More beats', onClick: () => { if (fixed) fixed(); else if (room.beats < 12) { set({ beats: room.beats + 1 }); drawOpts(); drawLights(); } } }, '+'))),
-      field('Subdivision', h('div', { class: 'seg note-seg' }, SUBS.map((v) => h('button', {
-        class: room.sub === v ? 'on' : '', title: SUB_NAMES[v], 'aria-label': SUB_NAMES[v], html: SUB_ICONS[v],
+      field('Subdivision', h('div', { class: 'seg note-seg' }, subChoices(pattern()).map(([v, ic, name]) => h('button', {
+        class: (pattern() && !levelsOf(pattern()).includes(room.sub) ? pattern().sub : room.sub) === v ? 'on' : '', title: name, 'aria-label': name, html: ICONS[ic],
         onClick: () => { set({ sub: v }); drawOpts(); },
       })))),
       field('Accent on 1', h('div', { class: 'seg' }, [true, false].map((v) => h('button', {
@@ -197,10 +220,23 @@ export function practiceScreen(main) {
         toast('The drums need an internet connection the first time', 3500);
       });
   };
-  const useStyle = (key, on = true) => {
-    set({ style: key, drums: on, ...(on ? { beats: STYLES[key].beats } : {}) });
+  const redraw = () => { drawDrums(); drawOpts(); drawLights(); drawUnit(); };
+  /** A pattern chosen: the drums on, with its metre, its usual subdivision and tempo. */
+  const pickStyle = (key) => {
+    const s = STYLES[key];
+    set({ style: key, genre: s.genre, drums: true, beats: s.beats, sub: s.sub });
+    setTempo(s.bpm);
+    ensureKit();
+    redraw();
+    toast(`${s.name} · ${s.meter} · ${s.bpm} BPM`);
+  };
+  /** Drums on (the pattern's metre, keeping the tempo) or off (the plain metronome). */
+  const drumsOn = (on) => {
+    const s = STYLES[room.style];
+    if (on) set({ drums: true, beats: s.beats, ...(levelsOf(s).includes(room.sub) ? {} : { sub: s.sub }) });
+    else set({ drums: false, ...(SUBS.includes(room.sub) ? {} : { sub: 2 }) });
     if (on) ensureKit();
-    drawDrums(); drawOpts(); drawLights();
+    redraw();
   };
   const drawDrums = () => {
     const vol = h('input', { type: 'range', min: 0, max: 100, step: 1, value: room.drumVol, 'aria-label': 'Drums volume' });
@@ -216,12 +252,17 @@ export function practiceScreen(main) {
       h('div', { class: 'block-head' }, h('h2', {}, '🥁 Drums'), infoBtn(DRUM_INFO, 'About the drums'), drumState, h('div', { class: 'grow' }),
         h('div', { class: 'seg' }, [true, false].map((v) => h('button', {
           class: room.drums === v ? 'on' : '',
-          onClick: () => useStyle(room.style, v),
+          onClick: () => drumsOn(v),
         }, v ? 'On' : 'Off')))),
-      h('div', { class: 'style-grid' }, Object.values(STYLES).map((st) => h('button', {
+      // a genre, then its patterns
+      h('div', { class: 'genre-tabs' }, GENRES.map((g) => h('button', {
+        class: `${room.genre === g.key ? 'on' : ''}${STYLES[room.style].genre === g.key ? ' playing' : ''}`,
+        onClick: () => { set({ genre: g.key }); drawDrums(); },
+      }, `${g.icon} ${g.name}`))),
+      h('div', { class: 'style-grid' }, GENRES.find((g) => g.key === room.genre).styles.map((st) => h('button', {
         class: `style-chip${room.style === st.key ? ' on' : ''}`,
-        onClick: () => useStyle(st.key),
-      }, h('b', {}, st.name), h('span', {}, st.meter)))),
+        onClick: () => pickStyle(st.key),
+      }, h('b', {}, st.name), h('span', {}, `${st.meter} · ${st.bpm} BPM`)))),
       h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal));
   };
   if (room.drums) ensureKit();
@@ -247,7 +288,7 @@ export function practiceScreen(main) {
         h('div', { class: 'metro-main' },
           h('div', { class: 'tempo-row' },
             holdButton('−', 'Slower', () => setTempo(room.bpm - 1)),
-            h('div', { class: 'tempo-show' }, bpmEl, h('span', { class: 'tempo-unit' }, 'BPM'), nameEl),
+            h('div', { class: 'tempo-show' }, bpmEl, unitEl, nameEl),
             holdButton('+', 'Faster', () => setTempo(room.bpm + 1)),
             h('button', { class: 'btn tap-btn', title: 'Tap the beat', onClick: tap }, '👆 Tap')),
           slider,
@@ -260,6 +301,7 @@ export function practiceScreen(main) {
   drawLights();
   drawPlay();
   drawOpts();
+  drawUnit();
 
   return {
     dispose: () => {

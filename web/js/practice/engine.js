@@ -4,7 +4,7 @@
 import * as A from '../audio.js';
 import { logPlaying } from '../practiceLog.js';
 import { playDrum, kitReady } from '../drums.js';
-import { STYLES } from './styles.js';
+import { STYLES, levelsOf, stepTime, clickTimes } from './styles.js';
 
 const LOOKAHEAD = 0.12;   // seconds scheduled ahead
 const TICK_MS = 25;
@@ -65,16 +65,20 @@ export class Room {
       const t0 = this.next, len = 60 / this.bpm;
       // muted bars: `play` bars with the click (and drums), then `mute` bars of silence to keep the time alone
       const muted = mute > 0 && this.bar % (play + mute) >= play;
-      if (click && !muted) {
-        for (let k = 0; k < sub; k++) A.click(t0 + (k * len) / sub, k ? 0 : this.beat === 0 && accent ? 2 : 1);
-      }
-      const s = drums && kitReady() ? STYLES[style] : null;
-      if (s && !muted) {
-        const at = ((this.bar % s.bars) * s.beats + this.beat) * s.unit;
+      // with the drums on, the subdivision is the pattern's (its swing, shuffle or compound feel)
+      const s = drums ? STYLES[style] : null;
+      const L = s && !levelsOf(s).includes(sub) ? s.sub : sub;
+      if (click && !muted) clickTimes(s, L).forEach((f, k) => A.click(t0 + f * len, k ? 0 : this.beat === 0 && accent ? 2 : 1));
+      if (s && kitReady() && !muted) {
+        const at = ((this.bar % s.bars) * s.beats + this.beat) * s.grid;
         for (const [piece, steps] of Object.entries(s.tracks)) {
-          for (let j = 0; j < s.unit; j++) {
-            const v = steps[at + j];
-            if (v) playDrum(piece, t0 + (j * len) / s.unit, v);
+          for (let j = 0; j < s.grid; j++) {
+            const v = steps[(at + j) % steps.length];
+            if (!v) continue;
+            // (swung, a 16th "a" lands on the last triplet unless that triplet has its own stroke)
+            if (s.grid === 4 && L === 3 && j === 3 && steps[(at + 2) % steps.length]) continue;
+            const f = stepTime(s, L, j, piece, v);
+            if (f != null) playDrum(piece, t0 + f * len, v);
           }
         }
       }

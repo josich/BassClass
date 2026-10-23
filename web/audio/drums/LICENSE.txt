@@ -1,4 +1,6 @@
-Drum and percussion samples: Virtuosity Drums by Versilian Studios and Karoryfer Samples,
-released under CC0 1.0 Universal (public domain): https://creativecommons.org/publicdomain/zero/1.0/
-Source: https://github.com/sfzinstruments/virtuosity_drums (the "mid" mic, made mono, trimmed and
-encoded as Opus for BassClass by web/js/dev/drumprep.js).
+Drum and percussion samples: Virtuosity Drums by Versilian Studios and Karoryfer Samples, and the
+brushes of Swirly Drums by Karoryfer Samples, all released under CC0 1.0 Universal (public domain):
+https://creativecommons.org/publicdomain/zero/1.0/
+Sources: https://github.com/sfzinstruments/virtuosity_drums (kick mic, snare mic and overheads; the
+percussion's close mic and overheads) and https://github.com/sfzinstruments/karoryfer.swirly-drums
+(brushes), summed, trimmed and encoded as Opus for BassClass by web/js/dev/drumprep.js.

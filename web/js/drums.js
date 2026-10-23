@@ -1,20 +1,25 @@
-// The drum kit of the Practice room: CC0 Virtuosity Drums samples (mono Ogg Opus in web/audio/drums/,
-// made by web/js/dev/drumprep.js). They load on first use: from this site, or, in the Android app (whose
-// APK leaves them out to stay small), online from the repository. Once loaded they stay in the
+// The drum kit of the Practice room: CC0 Virtuosity Drums (its close mics and overheads, stereo) with
+// percussion, and Swirly Drums brushes (Ogg Opus in web/audio/drums/, made by web/js/dev/drumprep.js).
+// They load on first use: from this site, or, in the Android app (whose APK leaves them out to stay
+// small), online from the repository. Once loaded they stay in the
 // browser's cache, so the drums also play offline.
 import * as A from './audio.js';
 
-const VERSION = 1;   // bump when the kit's files change: they are fetched (and cached) again
+const VERSION = 2;   // bump when the kit's files change: they are fetched (and cached) again
 const IN_APP = location.hostname === 'appassets.androidplatform.net';
 const BASE = IN_APP ? 'https://raw.githubusercontent.com/josich/BassClass/main/web/audio/drums/' : 'audio/drums/';
 const CACHE = `bassclass-drums-v${VERSION}`;
 
-// each piece's level in dB over the kit as recorded (one room mic hears the ride and hi-hat far quieter
-// than a groove wants them), measured from the files' first 50 ms
+// each piece's level in dB over its family as recorded (kit, percussion, brushes), so a groove sits as a
+// drummer would play it: measured from the files' first 50 ms (peaks for the scraped guiro)
 const MIX = {
-  kick: 5, snare: 0, rim: 0, xstick: 8, hhc: 8, hhh: 8, hho: 2, hhp: 10, ride: 16, bell: 14, crash: 8, tomh: -2, toml: -2,
-  shakd: 2, shaku: 10, claves: 2, cowbell: -8, bongoh: -2, bongol: -2, tamb: -4, conga: -6, congas: 0,
+  kick: -2, snare: 3, rim: 2, xstick: 8, flam: 8, hhc: 10, hhh: 10, hho: 7, hhp: 14, ride: 14, bell: 14, crash: 10, tomh: 1, toml: 2,
+  shakd: 5, shaku: 8, claves: 12, cowbell: -9, conga: -4, congam: 9, tumba: -1, bongoh: 1, bongol: 12, tamb: 6, guiro: 10, guirol: 14,
+  cabasa: 4, agogoh: 14, agogol: 10, tri: 5, trim: 9, timb: -7, bkick: -1, bsnare: -3, bstir: 3, bhhc: -1, bhhp: -6, bride: 4,
 };
+
+/** The pieces of the kit (the self-test checks that every drum pattern uses only these). */
+export const PIECES = new Set(Object.keys(MIX));
 
 let kit = null;       // { name: [[AudioBuffer, …] per layer, soft to hard] }
 let loading = null;

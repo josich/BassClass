@@ -1,8 +1,11 @@
 {
- "name": "Virtuosity Drums (Versilian Studios and Karoryfer), the \"mid\" mic, mono",
+ "name": "Virtuosity Drums (Versilian Studios + Karoryfer: kick mic, snare mic and overheads, percussion close and overheads), and Swirly Drums brushes (Karoryfer)",
  "license": "CC0-1.0",
- "source": "https://github.com/sfzinstruments/virtuosity_drums",
- "v": 1,
+ "source": [
+  "https://github.com/sfzinstruments/virtuosity_drums",
+  "https://github.com/sfzinstruments/karoryfer.swirly-drums"
+ ],
+ "v": 2,
  "pieces": {
   "kick": [
    [
@@ -46,9 +49,6 @@
    ],
    [
     "rim-2-1.ogg"
-   ],
-   [
-    "rim-3-1.ogg"
    ]
   ],
   "xstick": [
@@ -63,6 +63,14 @@
    ],
    [
     "xstick-4-1.ogg"
+   ]
+  ],
+  "flam": [
+   [
+    "flam-1-1.ogg"
+   ],
+   [
+    "flam-2-1.ogg"
    ]
   ],
   "hhc": [
@@ -169,14 +177,47 @@
   ],
   "cowbell": [
    [
-    "cowbell-1-1.ogg",
-    "cowbell-1-2.ogg"
+    "cowbell-1-1.ogg"
+   ],
+   [
+    "cowbell-2-1.ogg",
+    "cowbell-2-2.ogg"
+   ]
+  ],
+  "conga": [
+   [
+    "conga-1-1.ogg"
+   ],
+   [
+    "conga-2-1.ogg",
+    "conga-2-2.ogg"
+   ],
+   [
+    "conga-3-1.ogg"
+   ]
+  ],
+  "congam": [
+   [
+    "congam-1-1.ogg",
+    "congam-1-2.ogg"
+   ]
+  ],
+  "tumba": [
+   [
+    "tumba-1-1.ogg"
+   ],
+   [
+    "tumba-2-1.ogg",
+    "tumba-2-2.ogg"
    ]
   ],
   "bongoh": [
    [
     "bongoh-1-1.ogg",
     "bongoh-1-2.ogg"
+   ],
+   [
+    "bongoh-2-1.ogg"
    ]
   ],
   "bongol": [
@@ -191,19 +232,113 @@
     "tamb-1-2.ogg"
    ]
   ],
-  "conga": [
+  "guiro": [
    [
-    "conga-1-1.ogg",
-    "conga-1-2.ogg"
-   ],
-   [
-    "conga-2-1.ogg"
+    "guiro-1-1.ogg",
+    "guiro-1-2.ogg"
    ]
   ],
-  "congas": [
+  "guirol": [
    [
-    "congas-1-1.ogg",
-    "congas-1-2.ogg"
+    "guirol-1-1.ogg",
+    "guirol-1-2.ogg"
+   ]
+  ],
+  "cabasa": [
+   [
+    "cabasa-1-1.ogg"
+   ],
+   [
+    "cabasa-2-1.ogg",
+    "cabasa-2-2.ogg"
+   ]
+  ],
+  "agogoh": [
+   [
+    "agogoh-1-1.ogg",
+    "agogoh-1-2.ogg"
+   ]
+  ],
+  "agogol": [
+   [
+    "agogol-1-1.ogg",
+    "agogol-1-2.ogg"
+   ]
+  ],
+  "tri": [
+   [
+    "tri-1-1.ogg",
+    "tri-1-2.ogg"
+   ]
+  ],
+  "trim": [
+   [
+    "trim-1-1.ogg",
+    "trim-1-2.ogg"
+   ]
+  ],
+  "timb": [
+   [
+    "timb-1-1.ogg"
+   ],
+   [
+    "timb-2-1.ogg"
+   ]
+  ],
+  "bkick": [
+   [
+    "bkick-1-1.ogg",
+    "bkick-1-2.ogg"
+   ],
+   [
+    "bkick-2-1.ogg",
+    "bkick-2-2.ogg"
+   ]
+  ],
+  "bsnare": [
+   [
+    "bsnare-1-1.ogg",
+    "bsnare-1-2.ogg"
+   ],
+   [
+    "bsnare-2-1.ogg",
+    "bsnare-2-2.ogg"
+   ],
+   [
+    "bsnare-3-1.ogg",
+    "bsnare-3-2.ogg"
+   ]
+  ],
+  "bstir": [
+   [
+    "bstir-1-1.ogg",
+    "bstir-1-2.ogg"
+   ]
+  ],
+  "bhhc": [
+   [
+    "bhhc-1-1.ogg",
+    "bhhc-1-2.ogg"
+   ],
+   [
+    "bhhc-2-1.ogg",
+    "bhhc-2-2.ogg"
+   ]
+  ],
+  "bhhp": [
+   [
+    "bhhp-1-1.ogg",
+    "bhhp-1-2.ogg"
+   ]
+  ],
+  "bride": [
+   [
+    "bride-1-1.ogg",
+    "bride-1-2.ogg"
+   ],
+   [
+    "bride-2-1.ogg",
+    "bride-2-2.ogg"
    ]
   ]
  }

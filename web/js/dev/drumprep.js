@@ -1,75 +1,74 @@
-// Dev tool (not used by the app at runtime): converts the raw Virtuosity Drums samples (CC0, Versilian
-// Studios and Karoryfer: the "mid" stereo mic of the kit and of the percussion), staged in
-// web/_raw/drums/ (paths of web/_raw/drums/list.txt with "/" turned into "_"), into the compact kit in
-// web/audio/drums/: mono Ogg Opus files and kit.json. Needs tools/serve.py (localhost write endpoint).
-// Run in the console:  (await import('./js/dev/drumprep.js')).run()
-// (await import('./js/dev/drumprep.js')).measure('snare') lists the snare's layers by loudness.
+// Dev tool (not used by the app at runtime): builds the drum kit in web/audio/drums/ (Ogg Opus files and
+// kit.json) from raw CC0 samples staged in web/_raw/drums2/ with kit2.json (piece → layers soft to hard →
+// round robins → the mic files of one hit, "repo:Samples/…", staged as "repo_Samples_…").
+//   - the kit: Virtuosity Drums (Versilian Studios + Karoryfer), its kick mic, snare mic and overheads
+//     summed into stereo;
+//   - percussion: Virtuosity's close mic and overheads, stereo;
+//   - brushes ("b…" pieces): Karoryfer's Swirly Drums, one mic, mono.
+// Needs tools/serve.py (localhost write endpoint). Run:  (await import('./js/dev/drumprep.js')).run()
 const SR = 48000;
-const BITRATE = 96000;
-const raw = (p) => `/_raw/drums/${p.replace(/\//g, '_')}`;
-const K = (d, f) => `mid/${d}/mid_${d}_${f}.flac`;
-const P = (d, f) => `perc/mid/${d}/${f}_Mid.wav`;
-const rr = (f, n) => Array.from({ length: n }, (_, i) => f(i + 1));
+const DIR = '/_raw/drums2/';
 
-// Each piece: its layers from soft to hard, each layer its round robins; `max`: seconds kept at most.
-// `group`: pieces of one group keep the balance they were recorded with (the kit is one stereo mic).
-export const KIT = {
-  kick: { max: 1.0, layers: [1, 2, 3, 4].map((v) => rr((r) => K('kick', `snon_vl${v}_rr${r}`), 2)) },
-  // (of the 36 recorded layers, pairs about −35, −28, −20 and −12.5 dB loud: ghost, soft, medium, hard)
-  snare: { max: 1.0, layers: [[6, 8], [12, 14], [24, 26], [33, 35]].map((vs) => vs.map((v) => `mid/snare/mid_snare_center_vl${v}.flac`)) },
-  rim: { max: 1.0, layers: [5, 8, 11].map((v) => [`mid/snare/mid_snare_rimshot_vl${v}.flac`]) },
-  xstick: { max: 0.6, layers: [6, 10, 14, 16].map((v) => [`mid/snare/mid_snare_crossstick_vl${v}.flac`]) },
-  hhc: { max: 0.6, layers: [1, 2, 3, 4].map((v) => rr((r) => K('hh', `closed_vl${v}_rr${r}`), 2)) },
-  hhh: { max: 1.0, layers: [rr((r) => K('hh', `half_vl3_rr${r}`), 2)] },
-  hho: { max: 1.6, layers: [2, 4].map((v) => [K('hh', `open_vl${v}_rr1`)]) },
-  hhp: { max: 0.6, layers: [rr((r) => K('hh', `pedal_vl2_rr${r}`), 2)] },
-  ride: { max: 2.5, layers: [1, 2, 3].map((v) => rr((r) => K('ride', `ride_vl${v}_rr${r}`), 2)) },
-  bell: { max: 2.5, layers: [rr((r) => K('ride', `bell_vl2_rr${r}`), 2)] },
-  crash: { max: 3.5, layers: [2, 3].map((v) => [K('crash', `crash_vl${v}_rr1`)]) },
-  tomh: { max: 1.2, layers: [8, 14].map((v) => [`mid/htom/mid_htom_center_vl${v}.flac`]) },
-  toml: { max: 1.2, layers: [8, 14].map((v) => [`mid/ltom/mid_ltom_center_vl${v}.flac`]) },
-  shakd: { max: 0.5, group: 'perc', layers: [rr((r) => P('shaker', `LShaker_Shake1D_rr${r}`), 3)] },
-  shaku: { max: 0.5, group: 'perc', layers: [rr((r) => P('shaker', `LShaker_Shake1U_rr${r}`), 3)] },
-  claves: { max: 0.5, group: 'perc', layers: [rr((r) => P('claves', `Claves1_Hit_v2_rr${r}`), 2)] },
-  cowbell: { max: 0.8, group: 'perc', layers: [rr((r) => P('cowbell', `Cowbell1_Normal_v2_rr${r}`), 2)] },
-  bongoh: { max: 0.7, group: 'perc', layers: [rr((r) => P('bongoh', `BongoH_Hit1_v2_rr${r}`), 2)] },
-  bongol: { max: 0.7, group: 'perc', layers: [rr((r) => P('bongol', `BongoL_Hit1_v2_rr${r}`), 2)] },
-  tamb: { max: 0.8, group: 'perc', layers: [rr((r) => P('tambourine', `Tamb1_Shake_rr${r}`), 2)] },
-  conga: { max: 0.8, group: 'perc', layers: [rr((r) => P('conga', `Conga_22_HitN_51_100_rr${r}`), 2), [P('conga', 'Conga_22_HitN_101_127_rr1')]] },
-  congas: { max: 0.6, group: 'perc', layers: [rr((r) => P('conga', `Conga_17_HitHM1_71_127_rr${r}`), 2)] },
+// seconds kept at most per piece (a hit is cut where it has died away, then faded)
+const MAX = {
+  kick: 1.0, snare: 1.0, rim: 1.0, xstick: 0.6, flam: 1.0, hhc: 0.6, hhh: 1.0, hho: 1.6, hhp: 0.6, ride: 2.5, bell: 2.5,
+  crash: 3.5, tomh: 1.4, toml: 1.6, shakd: 0.5, shaku: 0.5, claves: 0.5, cowbell: 0.8, conga: 0.8, congam: 0.5, tumba: 0.9,
+  bongoh: 0.7, bongol: 0.7, tamb: 0.8, guiro: 0.5, guirol: 0.9, cabasa: 0.5, agogoh: 0.8, agogol: 0.8, tri: 1.6, trim: 0.4,
+  timb: 0.9, bkick: 0.8, bsnare: 0.9, bhhc: 0.6, bhhp: 0.6, bride: 2.5,
 };
+// the brush stir is a long sweep: a two-beat swish cut from it (start and length in seconds)
+const SEG = { bstir: [[0.6, 1.8], [3.2, 1.8]] };
+const GROUP = (p) => (p.startsWith('b') && p !== 'bell' && p !== 'bongoh' && p !== 'bongol' ? 'brush'
+  : ['shakd', 'shaku', 'claves', 'cowbell', 'conga', 'congam', 'tumba', 'bongoh', 'bongol', 'tamb', 'guiro', 'guirol', 'cabasa', 'agogoh', 'agogol', 'tri', 'trim', 'timb'].includes(p) ? 'perc' : 'kit');
 
-async function decode(path) {
-  const res = await fetch(raw(path));
-  if (!res.ok) throw new Error(`missing ${path}`);
-  return new OfflineAudioContext(1, 1, SR).decodeAudioData(await res.arrayBuffer());
+const staged = (f) => DIR + f.replace(':', '_').replace(/\//g, '_');
+
+async function decode(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`missing ${url}`);
+  return new OfflineAudioContext(2, 1, SR).decodeAudioData(await res.arrayBuffer());
 }
 
-/** Mono from a stereo mic: the sum, unless the channels cancel (then the left one). */
-function mono(buf) {
-  const n = buf.length, ch = buf.numberOfChannels;
-  const out = new Float32Array(n);
-  for (let c = 0; c < ch; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) out[i] += d[i] / ch; }
-  if (ch < 2) return { x: out, kept: 1 };
-  const e = (d) => d.reduce((a, v) => a + v * v, 0);
-  const kept = Math.sqrt(e(out) / ((e(buf.getChannelData(0)) + e(buf.getChannelData(1))) / 2));
-  return kept < 0.6 ? { x: buf.getChannelData(0).slice(), kept } : { x: out, kept };
+/** One hit: its mic files summed; stereo when any mic is stereo. */
+async function hit(files) {
+  const bufs = await Promise.all(files.map((f) => decode(staged(f))));
+  const n = Math.max(...bufs.map((b) => b.length));
+  const stereo = bufs.some((b) => b.numberOfChannels > 1);
+  const L = new Float32Array(n), R = stereo ? new Float32Array(n) : null;
+  for (const b of bufs) {
+    const l = b.getChannelData(0), r = b.numberOfChannels > 1 ? b.getChannelData(1) : l;
+    for (let i = 0; i < b.length; i++) { L[i] += l[i]; if (R) R[i] += r[i]; }
+  }
+  return R ? [L, R] : [L];
 }
 
-const peakOf = (x) => x.reduce((a, v) => Math.max(a, Math.abs(v)), 0);
+const peakOf = (chs) => chs.reduce((a, c) => c.reduce((m, v) => Math.max(m, Math.abs(v)), a), 0);
 
 /** The hit alone: from just before its onset to where it has died away (at most `max` s), faded out. */
-function trim(x, max) {
-  const pk = peakOf(x);
-  let a = x.findIndex((v) => Math.abs(v) >= pk * 0.04);
+function trim(chs, max) {
+  const pk = peakOf(chs), n = chs[0].length;
+  const loud = (i) => chs.some((c) => Math.abs(c[i]) >= pk * 0.04);
+  let a = 0;
+  while (a < n && !loud(a)) a++;
   a = Math.max(0, a - Math.round(SR * 0.0005));
-  let b = x.length - 1;
-  while (b > a && Math.abs(x[b]) < pk * 0.0015) b--;
-  b = Math.min(b + Math.round(SR * 0.02), x.length, a + Math.round(max * SR));
-  const y = x.slice(a, b);
-  const fade = Math.min(y.length, Math.round(SR * Math.min(0.25, (b - a) / SR * 0.3)));
-  for (let i = 0; i < fade; i++) y[y.length - fade + i] *= 0.5 + 0.5 * Math.cos((Math.PI * i) / fade);
-  return y;
+  let b = n - 1;
+  while (b > a && chs.every((c) => Math.abs(c[b]) < pk * 0.0015)) b--;
+  b = Math.min(b + Math.round(SR * 0.02), n, a + Math.round(max * SR));
+  return fade(chs.map((c) => c.slice(a, b)), 0, Math.round(SR * Math.min(0.25, ((b - a) / SR) * 0.3)));
+}
+
+/** A piece of a long sound (the stir), faded in and out. */
+function segment(chs, [start, len]) {
+  const a = Math.round(start * SR), b = Math.min(chs[0].length, a + Math.round(len * SR));
+  return fade(chs.map((c) => c.slice(a, b)), Math.round(SR * 0.08), Math.round(SR * 0.45));
+}
+
+function fade(chs, inN, outN) {
+  for (const y of chs) {
+    for (let i = 0; i < inN && i < y.length; i++) y[i] *= 0.5 - 0.5 * Math.cos((Math.PI * i) / inN);
+    for (let i = 0; i < outN && i < y.length; i++) y[y.length - outN + i] *= 0.5 + 0.5 * Math.cos((Math.PI * i) / outN);
+  }
+  return chs;
 }
 
 // ------------------------------------------------------------------ Ogg Opus (RFC 7845)
@@ -112,10 +111,11 @@ function page(packets, { granule, seq, flags = 0, serial }) {
   return out;
 }
 
-/** Mono samples at 48 kHz → an Ogg Opus file (the encoder's own OpusHead gives the pre-skip). */
-async function encodeOpus(x) {
+/** Mono or stereo samples at 48 kHz → an Ogg Opus file (the encoder's own OpusHead gives the pre-skip). */
+async function encodeOpus(chs) {
   const packets = [];
   let head = null;
+  const ch = chs.length, n = chs[0].length;
   const enc = new AudioEncoder({
     output: (chunk, meta) => {
       const b = new Uint8Array(chunk.byteLength);
@@ -125,8 +125,10 @@ async function encodeOpus(x) {
     },
     error: (e) => { throw e; },
   });
-  enc.configure({ codec: 'opus', sampleRate: SR, numberOfChannels: 1, bitrate: BITRATE });
-  enc.encode(new AudioData({ format: 'f32-planar', sampleRate: SR, numberOfFrames: x.length, numberOfChannels: 1, timestamp: 0, data: x }));
+  enc.configure({ codec: 'opus', sampleRate: SR, numberOfChannels: ch, bitrate: ch > 1 ? 128000 : 96000 });
+  const data = new Float32Array(n * ch);
+  chs.forEach((c, i) => data.set(c, i * n));
+  enc.encode(new AudioData({ format: 'f32-planar', sampleRate: SR, numberOfFrames: n, numberOfChannels: ch, timestamp: 0, data }));
   await enc.flush();
   enc.close();
   const preSkip = head[10] | (head[11] << 8);
@@ -143,7 +145,7 @@ async function encodeOpus(x) {
     const group = packets.slice(i, i + 50);
     granule += group.reduce((a, p) => a + p.n, 0);
     const last = i + 50 >= packets.length;
-    pages.push(page(group.map((p) => p.b), { granule: last ? preSkip + x.length : granule, seq: seq++, flags: last ? 4 : 0, serial }));
+    pages.push(page(group.map((p) => p.b), { granule: last ? preSkip + n : granule, seq: seq++, flags: last ? 4 : 0, serial }));
   }
   const out = new Uint8Array(pages.reduce((a, p) => a + p.length, 0));
   let o = 0;
@@ -156,69 +158,57 @@ async function put(path, body, type) {
   if (!res.ok) throw new Error(`could not write ${path}: ${res.status}`);
 }
 
-/** The layers of a piece's raw files by loudness (peak and the first 50 ms), to choose them. */
-export async function measure(piece = 'snare', files = null) {
-  const list = files || KIT[piece].layers.flat();
-  const out = [];
-  for (const f of list) {
-    const { x } = mono(await decode(f));
-    const a = x.findIndex((v) => Math.abs(v) >= peakOf(x) * 0.04);
-    const w = x.slice(a, a + SR * 0.05);
-    out.push({ f: f.split('/').pop(), peakDb: +(20 * Math.log10(peakOf(x))).toFixed(1), rmsDb: +(10 * Math.log10(w.reduce((s, v) => s + v * v, 0) / w.length)).toFixed(1) });
-  }
-  return out;
-}
-
 export async function run() {
-  // every file once: mono, trimmed; then one gain per group (the kit keeps its recorded balance)
+  const spec = await (await fetch(DIR + 'kit2.json')).json();
+  // every hit once (summed, trimmed); then one gain per group, so each family keeps its recorded balance
   const done = {};
   const groupPeak = {};
-  for (const [name, p] of Object.entries(KIT)) {
+  for (const [name, layers] of Object.entries(spec)) {
     done[name] = [];
-    for (const layer of p.layers) {
+    for (const layer of layers) {
       const row = [];
-      for (const f of layer) {
-        const { x, kept } = mono(await decode(f));
-        if (kept < 0.6) console.warn(`${f}: the channels cancel (${kept.toFixed(2)}), left channel kept`);
-        const y = trim(x, p.max);
+      for (let r = 0; r < layer.length; r++) {
+        const chs = await hit(layer[r]);
+        const y = SEG[name] ? segment(chs, SEG[name][r % SEG[name].length]) : trim(chs, MAX[name] ?? 1);
         row.push(y);
-        const g = p.group || 'kit';
-        groupPeak[g] = Math.max(groupPeak[g] || 0, peakOf(y));
+        groupPeak[GROUP(name)] = Math.max(groupPeak[GROUP(name)] || 0, peakOf(y));
       }
       done[name].push(row);
     }
   }
   const manifest = {
-    name: 'Virtuosity Drums (Versilian Studios and Karoryfer), the "mid" mic, mono',
+    name: 'Virtuosity Drums (Versilian Studios + Karoryfer: kick mic, snare mic and overheads, percussion close and overheads), and Swirly Drums brushes (Karoryfer)',
     license: 'CC0-1.0',
-    source: 'https://github.com/sfzinstruments/virtuosity_drums',
-    v: 1,
+    source: ['https://github.com/sfzinstruments/virtuosity_drums', 'https://github.com/sfzinstruments/karoryfer.swirly-drums'],
+    v: 2,
     pieces: {},
   };
   let bytes = 0, seconds = 0;
   for (const [name, layers] of Object.entries(done)) {
-    const gain = 0.89 / groupPeak[KIT[name].group || 'kit'];
+    const gain = 0.89 / groupPeak[GROUP(name)];
     manifest.pieces[name] = [];
     for (let l = 0; l < layers.length; l++) {
       const files = [];
       for (let r = 0; r < layers[l].length; r++) {
-        const y = layers[l][r].map((v) => v * gain);
-        const ogg = await encodeOpus(y);
+        const chs = layers[l][r].map((c) => c.map((v) => v * gain));
+        const ogg = await encodeOpus(chs);
         const file = `${name}-${l + 1}-${r + 1}.ogg`;
         await put(file, ogg, 'audio/ogg');
         files.push(file);
         bytes += ogg.length;
-        seconds += y.length / SR;
+        seconds += chs[0].length / SR;
       }
       manifest.pieces[name].push(files);
     }
   }
   await put('kit.json', JSON.stringify(manifest, null, 1), 'application/json');
   await put('LICENSE.txt', [
-    'Drum and percussion samples: Virtuosity Drums by Versilian Studios and Karoryfer Samples,',
-    'released under CC0 1.0 Universal (public domain): https://creativecommons.org/publicdomain/zero/1.0/',
-    'Source: https://github.com/sfzinstruments/virtuosity_drums (the "mid" mic, made mono, trimmed and',
-    'encoded as Opus for BassClass by web/js/dev/drumprep.js).',
+    'Drum and percussion samples: Virtuosity Drums by Versilian Studios and Karoryfer Samples, and the',
+    'brushes of Swirly Drums by Karoryfer Samples, all released under CC0 1.0 Universal (public domain):',
+    'https://creativecommons.org/publicdomain/zero/1.0/',
+    'Sources: https://github.com/sfzinstruments/virtuosity_drums (kick mic, snare mic and overheads; the',
+    'percussion\'s close mic and overheads) and https://github.com/sfzinstruments/karoryfer.swirly-drums',
+    '(brushes), summed, trimmed and encoded as Opus for BassClass by web/js/dev/drumprep.js.',
     '',
   ].join('\n'), 'text/plain');
   return { files: Object.values(manifest.pieces).flat(2).length, kb: Math.round(bytes / 1024), seconds: +seconds.toFixed(1) };

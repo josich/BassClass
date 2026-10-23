@@ -8,6 +8,8 @@ import { CHANGED_STEPS } from './course/progress.js';
 import { CYCLE_OPTS } from './curriculum/common.js';
 import { NO_BACKING } from './harmony.js';
 import { makeCtx } from './fretboard.js';
+import { STYLES, levelsOf } from './practice/styles.js';
+import { PIECES } from './drums.js';
 import * as T from './theory.js';
 
 function combos(params, limit = 400, strings = 4) {
@@ -36,6 +38,16 @@ function combos(params, limit = 400, strings = 4) {
 }
 
 /** The course: unique lesson ids, real exercises and options (on any bass), sane tempos, every step builds. */
+/** The Practice room's drum patterns (their bars and steps are checked when they load): pieces, tempo, subdivision. */
+function checkDrums(problems) {
+  for (const s of Object.values(STYLES)) {
+    for (const p of Object.keys(s.tracks)) if (!PIECES.has(p)) problems.push(`drums ${s.key}: no piece "${p}" in the kit`);
+    if (!(s.bpm >= 30 && s.bpm <= 260)) problems.push(`drums ${s.key}: tempo ${s.bpm}`);
+    if (!levelsOf(s).includes(s.sub)) problems.push(`drums ${s.key}: subdivision ${s.sub}`);
+    if (!(s.beats >= 1 && s.beats <= 12)) problems.push(`drums ${s.key}: ${s.beats} beats`);
+  }
+}
+
 function checkCourse(problems, strings) {
   // a changed step must exist (its stored records are dropped once)
   CHANGED_STEPS.forEach((c, i) => {
@@ -81,6 +93,7 @@ export function run({ strings = [4, 5, 6], verbose = false } = {}) {
   const problems = [];
   let builds = 0, notes = 0;
   checkCourse(problems, strings);
+  checkDrums(problems);
   // every exercise has its own number (its place in the Library: level, topic, module order)
   for (const t of EXERCISES) if (!(t.num > 0) || byNumber.get(t.num) !== t) problems.push(`${t.id}: missing or duplicate number ${t.num}`);
   for (const st of strings) {
@@ -115,7 +128,7 @@ export function run({ strings = [4, 5, 6], verbose = false } = {}) {
     }
   }
   const uniq = [...new Set(problems.map((x) => x.replace(/step \d+.*/, '')))];
-  const summary = { exercises: EXERCISES.length, lessons: LESSONS.length, builds, notes, problems: problems.length, sample: uniq.slice(0, verbose ? 200 : 25) };
+  const summary = { exercises: EXERCISES.length, lessons: LESSONS.length, drumPatterns: Object.keys(STYLES).length, builds, notes, problems: problems.length, sample: uniq.slice(0, verbose ? 200 : 25) };
   console.log(summary);
   return summary;
 }
