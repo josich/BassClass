@@ -8,7 +8,7 @@ const LOOKAHEAD = 0.12;   // seconds scheduled ahead
 const TICK_MS = 25;
 
 export class Room {
-  /** `o`: { bpm, beats, sub, accent, gap, trainer }; `onTick({ time, bar, beat, sub, muted, level, bpm })`. */
+  /** `o`: { bpm, beats, sub, accent, play, mute, upBy, upEvery }; `onTick({ time, bar, beat, sub, muted, level, bpm })`. */
   constructor(o, { onTick } = {}) {
     this.o = { ...o };
     this.onTick = onTick;
@@ -55,11 +55,11 @@ export class Room {
   _tick() {
     const end = A.now() + LOOKAHEAD;
     while (this.next < end) {
-      const { beats, sub, accent, gap, trainer } = this.o;
+      const { beats, sub, accent, play, mute, upBy, upEvery } = this.o;
       if (this.pos >= beats * sub) { this.pos = 0; this.bar++; }   // (fewer beats or clicks since the last one)
       const beat = Math.floor(this.pos / sub), part = this.pos % sub;
-      // muted bars: `gap` bars with the click, then `gap` bars of silence to keep the time alone
-      const muted = gap > 0 && this.bar % (2 * gap) >= gap;
+      // muted bars: `play` bars with the click, then `mute` bars of silence to keep the time alone
+      const muted = mute > 0 && this.bar % (play + mute) >= play;
       const level = part ? 0 : beat === 0 && accent ? 2 : 1;
       if (!muted) A.click(this.next, level);
       this.onTick?.({ time: this.next, bar: this.bar, beat, sub: part, muted, level, bpm: this.bpm });
@@ -68,8 +68,8 @@ export class Room {
       if (this.pos >= beats * sub) {
         this.pos = 0;
         this.bar++;
-        // speed trainer: a little faster every 4 bars
-        if (trainer && this.bar % 4 === 0) this.bpm = Math.min(260, this.bpm + trainer);
+        // speed up: a little faster every `upEvery` bars
+        if (upBy && this.bar % upEvery === 0) this.bpm = Math.min(260, this.bpm + upBy);
       }
     }
   }
