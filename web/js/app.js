@@ -7,7 +7,7 @@ import { settings } from './store.js';
 import { tunerScreen } from './ui/tuner.js';
 import { practiceScreen } from './ui/practice.js';
 import {
-  homeScreen, pathScreen, libraryScreen, moduleScreen, explorerScreen, settingsScreen,
+  homeScreen, libraryScreen, moduleScreen, settingsScreen,
   currentRoutine, routineLabel, routineHref, go,
 } from './ui/screens.js';
 import { courseScreen, lessonScreen, placementScreen, stepHref } from './ui/course.js';
@@ -18,10 +18,8 @@ import { nav, replaceHash, goBack, canGoBack } from './ui/nav.js';
 const app = document.getElementById('app');
 const NAV = [
   ['home', '#/', 'Home'],
-  ['path', '#/path', 'Path'],
   ['library', '#/library', 'Library'],
   ['practice', '#/practice', 'Practice'],
-  ['explorer', '#/explorer', 'Neck'],
   ['tuner', '#/tuner', 'Tuner'],
   ['settings', '#/settings', 'Settings'],
 ];
@@ -138,16 +136,18 @@ function route() {
     replaceHash('#/');
     return;
   }
-  // the daily warm-up and the course live on Home; topics (#/m/...) belong to the Path
-  const key = { '': 'home', course: 'home', path: 'path', library: 'library', m: 'path', explorer: 'explorer', practice: 'practice', tuner: 'tuner', settings: 'settings' }[parts[0] || ''] || 'home';
+  // the Path and the Neck explorer of earlier versions live on as the Library's Topics view and the
+  // Practice room's Neck block
+  if (parts[0] === 'path') { replaceHash('#/library?v=topics'); return; }
+  if (parts[0] === 'explorer') { replaceHash('#/practice'); return; }
+  // the daily warm-up and the course live on Home; topics (#/m/...) belong to the Library
+  const key = { '': 'home', course: 'home', library: 'library', m: 'library', practice: 'practice', tuner: 'tuner', settings: 'settings' }[parts[0] || ''] || 'home';
   const main = shell(key);
   if (parts[0] === 'course' && parts[1] === 'placement') placementScreen(main);
   else if (parts[0] === 'course' && parts[1]) lessonScreen(main, parts[1]);
   else if (parts[0] === 'course') courseScreen(main);
-  else if (parts[0] === 'path') pathScreen(main);
   else if (parts[0] === 'library') libraryScreen(main, params);
   else if (parts[0] === 'm') moduleScreen(main, parts[1]);
-  else if (parts[0] === 'explorer') active = explorerScreen(main);
   else if (parts[0] === 'practice') active = practiceScreen(main);
   else if (parts[0] === 'tuner') active = tunerScreen(main);
   else if (parts[0] === 'settings') active = settingsScreen(main);

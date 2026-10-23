@@ -391,7 +391,7 @@ export function courseScreen(main) {
       fold.addEventListener('toggle', () => { if (mapOpen(cont).has(si + 1) !== fold.open) setMapOpen(cont, si + 1, fold.open); });
       return [fold];
     }),
-    ...(COMPLETE ? [] : [h('p', { class: 'muted small', style: { marginTop: '18px' } }, `More stages (Level ${NEXT_LEVEL} onward) are on the way. The Library and the Path have every exercise in the meantime.`)]),
+    ...(COMPLETE ? [] : [h('p', { class: 'muted small', style: { marginTop: '18px' } }, `More stages (Level ${NEXT_LEVEL} onward) are on the way. The Library has every exercise in the meantime, by level or by topic.`)]),
     h('div', { class: 'row', style: { marginTop: '18px' } }, h('button', { class: 'btn', onClick: () => {
       if (!confirm('Reset all course progress (tempos, ticks, reviews and your level)?')) return;
       resetCourse();

@@ -21,6 +21,7 @@ export const DEFAULT_SETTINGS = {
   backing: 'off',          // 'off' | 'drone' | 'chords': a pad under the exercise
   score: 'tab',            // 'tab' | 'staff': the strip under the neck
   libOpen: null,           // the Library levels left open (null: only the player's own level)
+  libView: 'levels',       // the Library's view: 'levels' (every exercise by level) | 'topics' (one card per topic)
   mapOpen: null,           // the course map stages left open (null: only the next lesson's stage)
   libAt: null,             // the player's level when libOpen was last saved
   mapAt: null,             // the next lesson's stage when mapOpen was last saved
@@ -42,6 +43,7 @@ const SETTING_RULES = {
   level: oneOf([1, 2, 3, 4, 5, 6]),
   backing: oneOf(['off', 'drone', 'chords']),
   score: oneOf(['tab', 'staff']),
+  libView: oneOf(['levels', 'topics']),
   libOpen: (v) => v === null || (Array.isArray(v) && v.length <= 6 && v.every((n) => [1, 2, 3, 4, 5, 6].includes(n))),
   mapOpen: (v) => v === null || (Array.isArray(v) && v.length <= 6 && v.every((n) => [1, 2, 3, 4, 5, 6].includes(n))),
   libAt: (v) => v === null || [1, 2, 3, 4, 5, 6].includes(v),

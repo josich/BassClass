@@ -694,6 +694,13 @@ details.les-more > ul { margin: 0 0 10px; }
 .drums.off .style-chip.on { border-color: var(--line); background: var(--panel-2); box-shadow: none; }
 .drums.off .style-grid, .drums.off .range-line { opacity: 0.6; }
 .drums .range-line { max-width: 420px; }
+/* the Neck block (the former Neck explorer): its selects in the head, the board below */
+.neck .block-head { flex-wrap: wrap; }
+.neck-sels { display: flex; flex-wrap: wrap; gap: 6px; }
+.neck-board { height: 190px; position: relative; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); }
+@media (max-height: 420px) { .neck-board { height: 170px; } }
+/* the Library's two views: Levels and Topics */
+.lib-views button { min-height: 32px; padding: 4px 12px; }
 @media (max-width: 700px) {
   .metro-body { grid-template-columns: 1fr; }
   .metro-opts { padding-left: 0; border-left: 0; padding-top: 12px; border-top: 1px solid var(--line); }

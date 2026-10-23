@@ -7,6 +7,7 @@ import { Room } from '../practice/engine.js';
 import { room, saveRoom, SUBS } from '../practice/state.js';
 import { STYLES } from '../practice/styles.js';
 import { loadKit, kitReady } from '../drums.js';
+import { neckPanel } from './neck.js';
 
 const INFO = [
   '⏱ Set the tempo and press Start (Space on a keyboard)',
@@ -226,6 +227,9 @@ export function practiceScreen(main) {
   if (room.drums) ensureKit();
   drawDrums();
 
+  // ---------------------------------------------------------------- neck (the former Neck explorer)
+  const neck = neckPanel();
+
   const onKey = (e) => {
     if (e.target.closest?.('input, select, textarea')) return;
     if (e.key === ' ') { e.preventDefault(); toggle(); }
@@ -250,7 +254,8 @@ export function practiceScreen(main) {
           lights,
           playBtn),
         opts)),
-    drumBlock);
+    drumBlock,
+    neck.el);
   showTempo(room.bpm);
   drawLights();
   drawPlay();
@@ -259,6 +264,7 @@ export function practiceScreen(main) {
   return {
     dispose: () => {
       engine.stop();
+      neck.dispose();
       cancelAnimationFrame(raf);
       document.removeEventListener('keydown', onKey);
     },
