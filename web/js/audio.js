@@ -3,11 +3,12 @@
 import { midiToFreq } from './theory.js';
 
 let ac = null;
-let bassBus, bassVolume, clickBus, fullPath, phonePath, padBus, drumBus;
+let bassBus, bassVolume, clickBus, fullPath, phonePath, padBus, padTone, drumBus, drumVolume;
 const PAD_LEVEL = 0.38;   // the pad's level at volume 1 (the Practice room's harmony can set its own)
+const CLICK_LIFT = 1 / 0.85;   // (the accompaniment's trim taken back for the click: it sounds as loud as before)
 const synthCache = new Map();
 // route: what the Android app reports ('speaker' | 'external'), or null in a browser
-const opts = { bassVol: 2, clickVol: 0.6, drumVol: 0.8, padVol: 1, route: null };
+const opts = { bassVol: 2, clickVol: 0.6, drumVol: 0.8, padVol: 1, padTone: 1500, route: null };
 const PHONE_BOOST = 15; // dB lifted around 850 Hz on the phone speaker
 
 // The Android app tells us when headphones or an external speaker are connected (see MainActivity.kt).
@@ -108,35 +109,39 @@ export function audioCtx() {
     top.connect(filter('highpass', 200)).connect(filter('highpass', 200)).connect(filter('peaking', 850, 0.6, PHONE_BOOST))
       .connect(filter('highshelf', 3000, 0.7, -5)).connect(phonePath).connect(glue);
 
-    // the metronome joins after the limiter, so a click never pushes the bass down
+    // the accompaniment (click, pad, drums) meets in its own limiter and trim, after the bass's: together at
+    // their loudest (the room's pad at 100% over the drums at 100%, the click at 150%) its peaks stay at
+    // -1.9 dB, under the clip's knee (measured offline), and it never pushes the bass down
+    const accomp = ac.createDynamicsCompressor();
+    accomp.threshold.value = -6; accomp.knee.value = 0; accomp.ratio.value = 20; accomp.attack.value = 0.001; accomp.release.value = 0.08;
+    const accompTrim = ac.createGain();
+    accompTrim.gain.value = 0.85;
+    accomp.connect(accompTrim).connect(clip);
+
+    // the metronome joins after the bass's limiter, so a click never pushes the bass down
     clickBus = ac.createGain();
-    clickBus.gain.value = opts.clickVol;
-    clickBus.connect(clip);
+    clickBus.gain.value = opts.clickVol * CLICK_LIFT;
+    clickBus.connect(accomp);
 
     // backing pad (drone or chords): soft, warm and after the limiter, so it never ducks the bass
     padBus = ac.createGain();
     // with the bass at full level the sum stays inside the soft clip's knee (no hard clipping)
     padBus.gain.value = PAD_LEVEL * opts.padVol;
-    const padTone = ac.createBiquadFilter();
-    padTone.type = 'lowpass'; padTone.frequency.value = 1500; padTone.Q.value = 0.3;
-    padBus.connect(padTone).connect(clip);
+    // its tone: soft under an exercise (1.5 kHz), brighter in the Practice room to sound with a real bass;
+    // a limiter lets the room push it loud without the clip distorting it
+    padTone = ac.createBiquadFilter();
+    padTone.type = 'lowpass'; padTone.frequency.value = opts.padTone; padTone.Q.value = 0.3;
+    const padLimit = ac.createDynamicsCompressor();
+    padLimit.threshold.value = -8; padLimit.knee.value = 6; padLimit.ratio.value = 12; padLimit.attack.value = 0.01; padLimit.release.value = 0.25;
+    padBus.connect(padTone).connect(padLimit).connect(accomp);
 
-    // drums (the Practice room): a gentle glue compressor that lifts their body, then a fast limiter and a
-    // trim, after the bass's limiter (a kick never ducks the bass). Measured offline over all 99 patterns:
-    // 4.4 dB louder than a single limiter (median RMS -19.3 dB) and every peak at -1.7 dB or lower, under
-    // the soft clip's knee (-1.4 dB), so the drums never distort
-    drumBus = ac.createGain();
-    drumBus.gain.value = opts.drumVol;
-    const comp = (threshold, knee, ratio, attack, release) => {
-      const c = ac.createDynamicsCompressor();
-      c.threshold.value = threshold; c.knee.value = knee; c.ratio.value = ratio; c.attack.value = attack; c.release.value = release;
-      return c;
-    };
-    const drumMakeup = ac.createGain();
-    drumMakeup.gain.value = 1.4;
-    const drumTrim = ac.createGain();
-    drumTrim.gain.value = 0.84;
-    drumBus.connect(comp(-20, 10, 2.5, 0.008, 0.2)).connect(drumMakeup).connect(comp(-10, 0, 20, 0, 0.05)).connect(drumTrim).connect(clip);
+    // drums (the Practice room): their own chain, after the bass's limiter (a kick never ducks the bass);
+    // the drum volume comes after it, so the chain shapes the drums alike at any volume
+    const chain = drumChain(ac);
+    drumBus = chain.input;
+    drumVolume = ac.createGain();
+    drumVolume.gain.value = opts.drumVol;
+    chain.output.connect(drumVolume).connect(accomp);
     decodeBank();
   }
   if (ac.state === 'suspended') ac.resume();
@@ -147,9 +152,31 @@ export function audioCtx() {
 export function setAudioOptions(o) {
   Object.assign(opts, o);
   if (bassVolume) bassVolume.gain.value = opts.bassVol;
-  if (clickBus) clickBus.gain.value = opts.clickVol;
-  if (drumBus) drumBus.gain.value = opts.drumVol;
+  if (clickBus) clickBus.gain.value = opts.clickVol * CLICK_LIFT;
+  if (drumVolume) drumVolume.gain.value = opts.drumVol;
   if (padBus) padBus.gain.value = PAD_LEVEL * opts.padVol;
+  if (padTone) padTone.frequency.value = opts.padTone;
+}
+
+/**
+ * The drums' chain, on any audio context (the room's, or an offline one: web/js/dev/drumlevels.js renders the
+ * patterns through it): a gentle glue compressor that lifts their body, then a fast limiter and a trim.
+ * The hits go in at a fixed level (the drum volume follows the chain). Measured offline over all the
+ * patterns at 100%: see drumlevels.js chain(). Returns { input, output }.
+ */
+export function drumChain(ctx) {
+  const comp = (threshold, knee, ratio, attack, release) => {
+    const c = ctx.createDynamicsCompressor();
+    c.threshold.value = threshold; c.knee.value = knee; c.ratio.value = ratio; c.attack.value = attack; c.release.value = release;
+    return c;
+  };
+  const input = ctx.createGain();
+  const makeup = ctx.createGain();
+  makeup.gain.value = 1.4;
+  const trim = ctx.createGain();
+  trim.gain.value = 0.84;
+  input.connect(comp(-20, 10, 2.5, 0.008, 0.2)).connect(makeup).connect(comp(-10, 0, 20, 0, 0.05)).connect(trim);
+  return { input, output: trim };
 }
 
 /** Where drum hits go (web/js/drums.js). */

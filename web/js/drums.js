@@ -136,9 +136,26 @@ function loudness(s) {
   }
   return e / ((s.bars * s.beats * 60) / s.bpm);
 }
-/** A pattern's gain for even loudness between the patterns. */
-export function styleGain(key) {
+// Through the drum chain the strokes' model is not the whole story: the limiter takes more from a sparse,
+// peaky pattern, and the model hears only a hit's first 170 ms, not a ride's wash or the brushes' long swish
+// (QA round 15: brushes swing sat 18 dB over the median). Each pattern more than 1 dB off the median
+// loudness through the chain gets a correction, measured by web/js/dev/drumlevels.js chain(): all 99 then
+// sit within 1 dB of it (A-weighted, at 100%; peaks -1.85 dB at most). Measure again when patterns change.
+const CHAIN_DB = {
+  rockride: -3, rockhalf: 2.5, punk: -4.5, rockfloor: -4, rockballad: 5.5, six8rock: 4, dance: -5.5, disco: -4, pophalf: 2.5,
+  popballad: 5, indie: -2.5, synthpop: 3, poprock: -3, funkslow: 2.5, funkdisco: -3, soulballad: 5.5, rnbballad: 4, phillysoul: -4,
+  neosoul: 2.5, chicagoshuffle: -2.5, slowblues: 5.5, halfshuffle: 3, hambone: -4.5, swing: -6.5, brushswing: -18, upswing: -7.5,
+  twofeel: -5.5, jazzwaltz: -5.5, brushballad: -15, bebop: -7, jazzfive: -8, jazzshuffle: -3, samba: -7, baiao: -6, chacha: -9,
+  mambo: -4.5, cumbia: -3.5, rumba: 3.5, afro68: -8.5, onedrop: 7, rockers: 6, steppers: 5, rocksteady: 5.5, reggaeton: -2.5,
+  soca: -6.5, train: -5, bluegrass: -9.5, folk68: 5, jig: -6.5, polka: -3, folkrock: -3,
+};
+
+/** A pattern's gain for even loudness between the patterns (`chain`: with its correction for the drum chain). */
+export function styleGain(key, chain = true) {
   if (!STYLES[key]) return 1;
+  return modelGain(key) * (chain ? 10 ** ((CHAIN_DB[key] || 0) / 20) : 1);
+}
+function modelGain(key) {
   if (!gains.size) {
     const all = Object.values(STYLES).map((s) => [s.key, loudness(s)]);
     const sorted = all.map(([, l]) => l).sort((a, b) => a - b);
@@ -149,18 +166,25 @@ export function styleGain(key) {
   return gains.get(key) ?? 1;
 }
 
-/** Plays `piece` at `when`; `vel` 0–1 picks the layer (soft to hard) and shades its level; `gain` scales it. Returns its gain node. */
-export function playDrum(piece, when, vel = 0.75, gain = 1) {
+/** A stroke: the recorded layer's next round robin that plays it, and its gain (null until the kit has loaded). */
+export function voice(piece, vel) {
   const layers = kit?.[piece];
-  if (!layers) return;
-  const ac = A.audioCtx();
+  if (!layers) return null;
   const li = layerOf(layers.length, vel);
   const rrs = layers[li];
   turn[piece] = ((turn[piece] ?? -1) + 1) % rrs.length;
+  return { buffer: rrs[turn[piece]], gain: hitGain(piece, li, vel) };
+}
+
+/** Plays `piece` at `when`; `vel` 0–1 picks the layer (soft to hard) and shades its level; `gain` scales it. Returns its gain node. */
+export function playDrum(piece, when, vel = 0.75, gain = 1) {
+  const v = voice(piece, vel);
+  if (!v) return;
+  const ac = A.audioCtx();
   const src = ac.createBufferSource();
-  src.buffer = rrs[turn[piece]];
+  src.buffer = v.buffer;
   const g = ac.createGain();
-  g.gain.value = hitGain(piece, li, vel) * gain;
+  g.gain.value = v.gain * gain;
   src.connect(g).connect(A.drumOut());
   src.start(when);
   // a closed or pedal hi-hat closes the open one

@@ -5,7 +5,7 @@
 import * as A from '../audio.js';
 import { logPlaying } from '../practiceLog.js';
 import { playDrum, kitReady, styleGain, trackGain } from '../drums.js';
-import { STYLES, levelsOf, stepTime, clickTimes, groupStarts } from './styles.js';
+import { STYLES, levelsOf, clickTimes, groupStarts, beatHits } from './styles.js';
 import { progression, droneMidis } from './harmony.js';
 
 const LOOKAHEAD = 0.12;   // seconds scheduled ahead
@@ -157,24 +157,13 @@ export class Room {
       if (count) A.click(t0, this.beat === 0 ? 2 : 1);
       else if (click && !muted) clickTimes(s, L).forEach((f, k) => { const node = A.click(t0 + f * len, k ? 0 : level); if (f) this.ahead.push([t0 + f * len, node]); });
       if (s && kitReady() && !muted && !count) {
-        const at = ((this.bar % s.bars) * s.beats + this.beat) * s.grid;
-        const hits = [];
-        for (const [piece, steps] of Object.entries(s.tracks)) {
-          for (let j = 0; j < s.grid; j++) {
-            const v = steps[(at + j) % steps.length];
-            if (!v) continue;
-            // (swung, a 16th "a" lands on the last triplet unless that triplet has its own stroke)
-            if (s.grid === 4 && L === 3 && j === 3 && steps[(at + 2) % steps.length]) continue;
-            const f = stepTime(s, L, j, piece, v);
-            if (f != null) hits.push([t0 + f * len, piece, v]);
-          }
-        }
         // in time order, so a closed hi-hat after an open one closes it
         const g = styleGain(style);
-        hits.sort((a, b) => a[0] - b[0]).forEach(([t, piece, v]) => {
+        for (const [f, piece, v] of beatHits(s, L, this.bar, this.beat)) {
+          const t = t0 + f * len;
           const node = playDrum(piece, t, v, g * trackGain(s, piece));
-          if (node && t > t0) this.ahead.push([t, node]);
-        });
+          if (node && f) this.ahead.push([t, node]);
+        }
       }
       const chord = count ? null : this._harmony(t0, muted);
       this.onTick?.({ time: t0, bar: this.bar, beat: this.beat, muted, count, bpm: this.bpm, chord });

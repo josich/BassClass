@@ -6,7 +6,8 @@ import * as A from '../audio.js';
 import { Room } from '../practice/engine.js';
 import { room, saveRoom, SUBS } from '../practice/state.js';
 import { STYLES, GENRES, levelsOf, groupStarts } from '../practice/styles.js';
-import { settings } from '../store.js';
+import { settings, saveSettings } from '../store.js';
+import { modeFor } from '../curriculum/common.js';
 import { loadKit, kitReady } from '../drums.js';
 import { neckPanel } from './neck.js';
 import { HARMONY_PROGS, progName, progression, keyName, isMinor } from '../practice/harmony.js';
@@ -62,7 +63,7 @@ const BEAT_ICON = { q: 'q1', e: 'e1', dq: 'dq' };
 const HARMONY_INFO = [
   '🎹 Something to play over: a drone (the key\'s root and 5th, held) for scales and modes, or a chord progression',
   '🎼 Pick a key and a progression: pop and rock, blues, jazz, minor, vamps',
-  '🎸 The chords sit above the Neck in order, each lit while it sounds; 🎹 Follow shows it on the neck (over a drone, your scale on its key)',
+  '🎸 The chords sit above the Neck in order, each lit while it sounds; Chord or Scale shows it on the neck, with the next change (over a drone, your scale on its key)',
   '🔇 Muted bars silence the harmony too, while the chords go on',
   '⏱ It follows the metronome and the drums: start it with the floating button',
 ];
@@ -299,6 +300,18 @@ export function practiceScreen(main, params = {}) {
     return h('div', { class: 'range-line', 'data-key': key }, h('span', {}, label), input, val);
   };
   const field = (name, ...control) => h('div', { class: 'room-field' }, h('label', {}, name), ...control);
+  /** The click's volume: Settings' metronome volume (0–1.5, shown as 0–100%), here beside the click. */
+  const clickVolume = () => {
+    const pct = () => `${Math.round((settings.clickVol / 1.5) * 100)}%`;
+    const input = h('input', { type: 'range', min: 0, max: 100, step: 1, value: Math.round((settings.clickVol / 1.5) * 100), 'aria-label': 'Click volume' });
+    const val = h('b', { class: 'rl-val' }, pct());
+    input.addEventListener('input', () => {
+      saveSettings({ clickVol: (Number(input.value) / 100) * 1.5 });
+      A.setAudioOptions({ clickVol: settings.clickVol });
+      val.textContent = pct();
+    });
+    return h('div', { class: 'range-line', 'data-key': 'clickVol' }, h('span', {}, 'Volume'), input, val);
+  };
   const drawOpts = () => {
     // (a line that does nothing with the other one at 0 is greyed: "Play" with no muted bars)
     const dim = () => {
@@ -311,6 +324,7 @@ export function practiceScreen(main, params = {}) {
         class: room.click === v ? 'on' : '',
         onClick: () => { set({ click: v }); drawOpts(); },
       }, v ? 'On' : 'Off')))),
+      room.click ? clickVolume() : null,
       field('Beats per bar', h('div', { class: `stepper${fixed ? ' fixed' : ''}` },
         h('button', { class: 'btn round small', 'aria-label': 'Fewer beats', onClick: () => { if (fixed) fixed(); else if (room.beats > 1) { set({ beats: room.beats - 1 }); drawOpts(); drawLights(); } } }, '−'),
         h('b', {}, room.beats),
@@ -415,7 +429,10 @@ export function practiceScreen(main, params = {}) {
   let chips = [];
   let chipRow = null;     // the chips' sideways row (it keeps the chord sounding and the next in view)
   const chordsNow = () => (room.harmony === 'chords' ? progression(room.hProg, room.hKey, room.beats, { notation: settings.notation }) : null);
-  A.setAudioOptions({ padVol: (room.hVol / 100) * 1.5 });
+  // the room's pad: brighter, and up to 2.5 times an exercise Backing's level, to be heard with a real bass
+  // (user, 2026-10-23: too quiet under a real instrument); the accompaniment's limiter keeps it clean
+  const PAD_MAX = 2.5;
+  A.setAudioOptions({ padVol: (room.hVol / 100) * PAD_MAX, padTone: 3200 });
   /** The chord sounding lit among the chips, and the Neck following it (the first chord, or the drone's key, at rest). */
   const showChord = () => {
     // (the chords already played stay full until the progression starts again)
@@ -426,12 +443,17 @@ export function practiceScreen(main, params = {}) {
       if (i !== curIdx) el.style.setProperty('--fill', done ? 1 : 0);
     });
     if (Number.isInteger(curIdx) && curIdx >= 0) chipRow?.show(chips[curIdx], chips[curIdx + 1]);
-    if (!room.neckFollow || room.harmony === 'off') { neck.follow(null); return; }
+    if (room.neckShow === 'off' || room.harmony === 'off') { neck.follow(null); return; }
     if (room.harmony === 'drone') { neck.follow({ root: T.bestRoot(room.hKey, T.SCALES.ionian.iv), type: null, name: keyName(room.hKey, settings.notation) }); return; }
     const ch = chordsNow();
     // (at rest, or before the first chord sounds: the progression's first chord)
-    const c = ch[Number.isInteger(curIdx) && curIdx >= 0 && curIdx < ch.length ? curIdx : 0];
-    neck.follow({ root: c.root, type: c.type, name: c.sym });
+    const i = Number.isInteger(curIdx) && curIdx >= 0 && curIdx < ch.length ? curIdx : 0;
+    const c = ch[i];
+    // the next change: the next chord that is not this one again
+    const next = ch.slice(i + 1).concat(ch.slice(0, i)).find((x) => x.sym !== c.sym);
+    // its scale by its function in the key, as the chord-scale exercise teaches (ii Dorian, V Mixolydian…)
+    const scale = room.neckShow === 'scale' ? modeFor(c, ch[(i + 1) % ch.length]) : null;
+    neck.follow({ root: c.root, type: scale ? null : c.type, scale, name: c.sym, next: next?.sym || null });
   };
   const setHarmony = (patch) => { set(patch); drawHarmony(); };
   const drawHarmony = () => {
@@ -448,22 +470,22 @@ export function practiceScreen(main, params = {}) {
     vol.addEventListener('input', () => {
       const v = Number(vol.value);
       set({ hVol: v });
-      A.setAudioOptions({ padVol: (v / 100) * 1.5 });
+      A.setAudioOptions({ padVol: (v / 100) * PAD_MAX });
       volVal.textContent = `${v}%`;
     });
     const ch = chordsNow();
     chips = ch ? ch.map((c) => h('span', { class: 'chord-chip' }, h('span', {}, c.sym))) : [];
     chipRow = ch ? sideScroll(h('div', { class: 'chord-row' }, chips)) : null;
     // above the Neck: Follow, then the chords (or the drone's key), so the two fit one screen
+    // what the neck shows: the chord sounding, its scale, or the player's own choice (over a drone: the
+    // player's scale on its key, or their own choice)
+    const shows = mode === 'chords' ? [['chord', 'Chord'], ['scale', 'Scale'], ['off', 'Off']] : [['scale', 'Scale'], ['off', 'Off']];
+    const lit = mode === 'drone' && room.neckShow === 'chord' ? 'scale' : room.neckShow;
     neck.setBar(mode === 'off' ? null : h('div', { class: 'harm-bar' },
-      h('button', {
-        class: `follow-btn${room.neckFollow ? ' on' : ''}`, type: 'button', 'aria-pressed': String(room.neckFollow),
-        title: 'The neck follows the chords',
-        onClick: () => {
-          setHarmony({ neckFollow: !room.neckFollow });
-          toast(room.neckFollow ? 'The neck follows the harmony' : 'The neck shows your own choice');
-        },
-      }, '🎹 Follow'),
+      h('div', { class: 'seg', title: 'What the neck shows' }, shows.map(([v, l]) => h('button', {
+        class: lit === v ? 'on' : '',
+        onClick: () => setHarmony({ neckShow: v }),
+      }, l))),
       chipRow || h('span', { class: 'drone-tag' }, `Drone on ${keyName(room.hKey, settings.notation)}`)));
     harmBlock.replaceChildren(...[
       h('div', { class: 'block-head' }, h('h2', {}, '🎹 Harmony'), infoBtn(HARMONY_INFO, 'About the harmony'), h('div', { class: 'grow' }),
@@ -531,7 +553,7 @@ export function practiceScreen(main, params = {}) {
       faster.stopHold();
       neck.dispose();
       // (an exercise's Backing has its own level)
-      A.setAudioOptions({ padVol: 1 });
+      A.setAudioOptions({ padVol: 1, padTone: 1500 });
       cancelAnimationFrame(raf);
       document.removeEventListener('keydown', onKey);
       removeEventListener('resize', placeFab);

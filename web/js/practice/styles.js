@@ -277,6 +277,23 @@ export function clickTimes(s, L) {
 }
 
 export const GENRES = RAW.map((g) => ({ key: g.key, name: g.name, icon: g.icon, styles: [] }));
+/** One beat of a pattern at subdivision `L`: its hits as [f (the share of the beat), piece, velocity], in time order. */
+export function beatHits(s, L, bar, beat) {
+  const at = ((bar % s.bars) * s.beats + beat) * s.grid;
+  const hits = [];
+  for (const [piece, steps] of Object.entries(s.tracks)) {
+    for (let j = 0; j < s.grid; j++) {
+      const v = steps[(at + j) % steps.length];
+      if (!v) continue;
+      // (swung, a 16th "a" lands on the last triplet unless that triplet has its own stroke)
+      if (s.grid === 4 && L === 3 && j === 3 && steps[(at + 2) % steps.length]) continue;
+      const f = stepTime(s, L, j, piece, v);
+      if (f != null) hits.push([f, piece, v]);
+    }
+  }
+  return hits.sort((a, b) => a[0] - b[0]);
+}
+
 /** Every pattern by key, with its tracks as velocity arrays; a track that is not whole bars throws. */
 export const STYLES = {};
 RAW.forEach((g, gi) => g.patterns.forEach((p) => {

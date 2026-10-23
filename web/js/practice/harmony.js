@@ -9,7 +9,7 @@ import { PROGS, progChords } from '../curriculum/common.js';
 export const HARMONY_PROGS = [
   ['Pop & rock', ['I-V-vi-IV', 'I-vi-IV-V', 'vi-IV-I-V', 'I-IV-V-I', 'I-bVII-IV-I', 'canon']],
   ['Blues', ['blues', 'blues-quick', 'minor-blues', 'jazz-blues']],
-  ['Jazz', ['ii-V-I', 'minor-ii-V-i', 'I-vi-ii-V', 'iii-vi-ii-V', 'autumn', 'rhythm-A']],
+  ['Jazz', ['ii-V-I', 'minor-ii-V-i', 'I-vi-ii-V', 'iii-vi-ii-V', 'autumn', 'rhythm-A', 'cycle-251', 'cycle-dom7']],
   ['Minor', ['i-bVII-bVI-V', 'i-iv-v-min', 'i-bVI-bIII-bVII']],
   ['Vamps', ['vamp-min', 'vamp-dom']],
 ];
@@ -18,15 +18,19 @@ export const progName = (key) => PROGS[key]?.name || key;
 /** A progression in a minor key (its key is named as a minor key). */
 export const isMinor = (key) => !!PROGS[key]?.minor;
 
-/** The pad's notes for a chord: its root between A2 and G♯3, its tones up to the 7th above. */
+// The room's pad sits above the bass, in a guitar's or keys' register, where a phone's speaker sounds and the
+// player's own bass stays clear (user, 2026-10-23: the chords were too quiet under a real bass): its root
+// between E3 and D♯4.
+const LOW = 52;
+/** The pad's notes for a chord: its root between E3 and D♯4, its tones up to the 7th above. */
 function chordMidis(root, type) {
-  const r = 45 + T.mod(T.pc(root) - 45, 12);
+  const r = LOW + T.mod(T.pc(root) - LOW, 12);
   return T.CHORDS[type].iv.filter((iv) => !/9|11|13/.test(iv)).slice(0, 4).map((iv) => r + T.semis(iv));
 }
 
-/** The drone on a key: root, 5th and octave. */
+/** The drone on a key: root (E3 to D♯4), 5th and octave. */
 export function droneMidis(keyPc) {
-  const r = 45 + T.mod(keyPc - 45, 12);
+  const r = LOW + T.mod(keyPc - LOW, 12);
   return [r, r + 7, r + 12];
 }
 

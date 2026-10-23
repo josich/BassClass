@@ -20,7 +20,7 @@ const INFO = [
   '🎸 A scale or chord on the whole neck, in any key',
   '🏷 Degrees, note names or plain dots',
   '👆 Tap any fret to hear it',
-  '🎹 With the Harmony on: its chords above the neck; 🎹 Follow shows the chord sounding',
+  '🎹 With the Harmony on: its chords above the neck; Chord or Scale shows the chord sounding, or its scale, and names the next change',
 ];
 
 /** The Neck block: { el, follow, setBar, dispose }. */
@@ -28,7 +28,7 @@ export function neckPanel() {
   const S = settings;
   const ctx = makeCtx(S);
   let rootPc = 0, set = 's:ionian', label = 'degree', upTo = 12;
-  let lead = null;   // the harmony followed: { root, type (null over a drone), name }
+  let lead = null;   // the harmony followed: { root, type (its chord) or scale (its scale), name, next }; neither over a drone
   const boardWrap = h('div', { class: 'board neck-board' });
   const rootSel = h('select', { class: 'mini-sel', 'aria-label': 'Key' });
   const setSel = h('select', { class: 'mini-sel', 'aria-label': 'Scale or chord' }, EXPLORE_SETS.map(([v, l]) => h('option', { value: v }, l)));
@@ -45,7 +45,8 @@ export function neckPanel() {
   const fb = new FretboardView(host, {
     onTap: (s, f) => { A.playNote(ctx.tuning[s] + f, A.now() + 0.01, 1); fb.pluck(s, 'none'); },
   });
-  const shown = () => (lead?.type ? `c:${lead.type}` : set);
+  const shown = () => (lead?.type ? `c:${lead.type}` : lead?.scale ? `s:${lead.scale}` : set);
+  const ownRoot = () => lead?.type || lead?.scale;
   const ivsOf = () => {
     const [kind, k] = shown().split(':');
     if (kind === 's') return T.SCALES[k].iv;
@@ -58,10 +59,10 @@ export function neckPanel() {
     rootSel.replaceChildren(...T.CHROMATIC_PC.map((p) => h('option', { value: p, selected: p === pc }, T.noteName(T.bestRoot(p, ivs), S.notation))));
     // (following the harmony, the key and the chord are the harmony's: their pickers step aside)
     rootSel.style.display = lead ? 'none' : '';
-    setSel.style.display = lead?.type ? 'none' : '';
+    setSel.style.display = ownRoot() ? 'none' : '';
     el.classList.toggle('following', !!lead);
     fb.configure({ strings: ctx.tuning.length, names: ctx.names, tuning: ctx.tuning, lo: 0, hi: upTo, lefty: S.lefty, zone: null });
-    const root = lead?.type ? lead.root : T.bestRoot(pc, ivs);
+    const root = ownRoot() ? lead.root : T.bestRoot(pc, ivs);
     const dots = [];
     const ivsList = ivsOf();
     const notes = ivsList ? ivsList.map((iv) => ({ iv, n: T.up(root, iv), pc: T.pc(T.up(root, iv)) })) : null;
@@ -81,7 +82,10 @@ export function neckPanel() {
       }
     });
     fb.setDots(dots);
-    const what = () => (lead?.type ? `🎹 ${lead.name}` : `${T.noteName(root, S.notation)} ${shown().startsWith('s') ? T.SCALES[shown().slice(2)].name : T.CHORDS[shown().slice(2)].name}`);
+    // (following: the chord, or its scale, and the next change: "🎹 D7 · Mixolydian → G7")
+    const what = () => (ownRoot()
+      ? `🎹 ${lead.name}${lead.scale ? ` · ${T.SCALES[lead.scale].name}` : ''}${lead.next ? ` → ${lead.next}` : ''}`
+      : `${T.noteName(root, S.notation)} ${shown().startsWith('s') ? T.SCALES[shown().slice(2)].name : T.CHORDS[shown().slice(2)].name}`);
     info.textContent = notes ? `${what()}: ${notes.map((x) => T.noteName(x.n, S.notation)).join(' – ')}   ·   tap any fret to hear it` : 'Natural notes are bright, sharps/flats are dim. Tap any fret to hear it.';
   };
   rootSel.addEventListener('change', () => { rootPc = Number(rootSel.value); render(); });
@@ -89,7 +93,7 @@ export function neckPanel() {
   labSel.addEventListener('change', () => { label = labSel.value; render(); });
   fretSel.addEventListener('change', () => { upTo = Number(fretSel.value); render(); });
   render();
-  /** Follow the harmony: { root, type, name } (type null over a drone: the chosen scale on its key), or null to stop. */
+  /** Follow the harmony: { root, type or scale, name, next } (neither over a drone: the chosen scale on its key), or null to stop. */
   const follow = (x) => {
     if (JSON.stringify(x) === JSON.stringify(lead)) return;
     lead = x;

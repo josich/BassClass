@@ -7,7 +7,7 @@ const KEY = 'bassclass.practice.v1';
 export const SUBS = [1, 2, 3, 4];        // clicks per beat without drums: quarters, 8ths, triplets, 16ths
 
 const DEFAULTS = { bpm: 90, beats: 4, sub: 1, accent: true, click: true, play: 2, mute: 0, speedUp: false, upBy: 2, upEvery: 4, upTo: 200, drums: false, genre: 'rock', style: 'rock8', drumVol: 80, fab: null,
-  harmony: 'off', hKey: 9, hProg: 'blues', hVol: 70, neckFollow: true };
+  harmony: 'off', hKey: 9, hProg: 'blues', hVol: 70, neckShow: 'chord' };
 const int = (lo, hi) => (v) => Number.isInteger(v) && v >= lo && v <= hi;
 const RULES = {
   bpm: int(1, 660),       // the room's range is PolyOrbit's (ui/practice.js)
@@ -29,7 +29,7 @@ const RULES = {
   hKey: int(0, 11),
   hProg: (v) => PROG_KEYS.includes(v),
   hVol: int(0, 100),
-  neckFollow: (v) => typeof v === 'boolean',   // the Neck block shows the harmony sounding
+  neckShow: (v) => ['chord', 'scale', 'off'].includes(v),   // the Neck shows the chord sounding, its scale, or the player's own choice
   // where the floating Start/Stop was dragged: its centre as a share of the screen's width and height
   fab: (v) => v === null || (Array.isArray(v) && v.length === 2 && v.every((n) => typeof n === 'number' && n >= 0 && n <= 1)),
 };
@@ -42,6 +42,8 @@ function load() {
   // speed up had no switch, 0 BPM was off: whatever was kept, it now starts off)
   if (RULES.mute(v.gap) && v.mute == null) { v.play = Math.max(1, v.gap); v.mute = v.gap; }
   if (RULES.upBy(v.trainer) && v.upBy == null) v.upBy = v.trainer;
+  // (the Neck's Follow was on or off)
+  if (typeof v.neckFollow === 'boolean' && v.neckShow == null) v.neckShow = v.neckFollow ? 'chord' : 'off';
   const out = { ...DEFAULTS };
   for (const [k, ok] of Object.entries(RULES)) if (ok(v[k])) out[k] = v[k];
   return out;
