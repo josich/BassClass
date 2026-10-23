@@ -446,18 +446,52 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .session-list .item.played .t b { color: var(--muted); }
 .session-list .more-warm { align-self: flex-start; padding: 4px 10px; font-size: 12.5px; min-height: 32px; }
 .session-foot { margin-top: 4px; }
-/* practice log: the last 7 days as small bars between Start and Practised */
-.week-log { flex: 1; min-width: 0; display: flex; align-items: flex-end; justify-content: center; gap: 10px; padding: 2px 6px; background: none; border: 0; border-radius: 8px; }
-.week-log .bars { display: flex; align-items: flex-end; gap: 4px; }
-.week-log .day { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.week-log .day b { display: flex; align-items: flex-end; width: 8px; height: 22px; border-bottom: 2px solid var(--line); }
-.week-log .day i { display: block; width: 100%; border-radius: 2px 2px 0 0; background: var(--accent); }
-.week-log .day span { font-size: 9px; line-height: 1; color: var(--dim); }
-.week-log .day.today span { color: var(--text); font-weight: 700; }
-.week-log .sum { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; text-align: left; }
-.week-log .sum b { font-size: 14px; }
-.week-log .sum span { font-size: 10.5px; color: var(--muted); white-space: nowrap; }
 .hidden-file { display: none; }
+
+/* Home's headline: the practice log (ring = today against the session length, bars = the last 7 days) */
+.home-head { flex-wrap: nowrap; align-items: stretch; }
+.home-head .level-btn { align-self: center; }
+.practice-card {
+  flex: 1; min-width: 0; position: relative; display: flex; align-items: center; gap: 16px;
+  padding: 8px 40px 8px 12px; border-radius: 16px;
+  background:
+    radial-gradient(120% 160% at 0% 0%, rgba(110, 128, 232, 0.32), transparent 55%),
+    radial-gradient(90% 140% at 100% 100%, rgba(227, 135, 110, 0.18), transparent 60%),
+    linear-gradient(110deg, #20255a, #1a2a4a 55%, #183a40);
+  border: 1px solid rgba(110, 128, 232, 0.35);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.practice-card > .info-btn { position: absolute; top: 4px; right: 4px; }
+.pc-ring { position: relative; width: 56px; height: 56px; flex: none; padding: 0; border: 0; background: none; }
+.pc-ring .pc-arc, .pc-ring .pc-arc svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pc-ring .pc-in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.05; }
+.pc-ring .pc-in b { font-size: 15px; }
+.pc-ring .pc-in small { font-size: 9px; color: var(--muted); }
+.pc-ring.met .pc-in small { color: #f2cf7e; }
+.pc-week { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.pc-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #aab6ff; }
+.pc-total { font-size: 22px; letter-spacing: -0.01em; }
+.pc-sub { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-streak { font-style: normal; margin-left: 8px; padding: 1px 7px; border-radius: 99px; background: rgba(227, 135, 110, 0.2); color: #ffc2ae; font-weight: 600; }
+.pc-bars { position: relative; flex: 1 1 auto; min-width: 150px; max-width: 320px; margin-left: auto; display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; align-items: end; }
+.pc-goal { position: absolute; left: -2px; right: -2px; height: 0; border-top: 1.5px dashed rgba(170, 182, 255, 0.6); pointer-events: none; }
+.pc-goal span { position: absolute; right: 100%; top: -7px; margin-right: 6px; font-size: 9.5px; line-height: 12px; color: #aab6ff; white-space: nowrap; }
+.pc-day { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; padding: 0; border: 0; background: none; }
+.pc-day em { height: 11px; font-size: 9.5px; line-height: 11px; font-style: normal; color: var(--muted); white-space: nowrap; }
+.pc-day b { display: flex; align-items: flex-end; width: 100%; max-width: 24px; height: 32px; border-radius: 5px; background: rgba(238, 240, 253, 0.06); overflow: hidden; }
+.pc-day i { display: block; width: 100%; border-radius: 5px 5px 0 0; background: linear-gradient(to top, #2f9e80, #46c9a2 60%, #7fe0c2); }
+.pc-day.met i { background: linear-gradient(to top, #e3876e, #f2cf7e); }
+.pc-day.met em { color: #f2cf7e; }
+.pc-day span { height: 12px; font-size: 10px; line-height: 12px; color: var(--dim); }
+.pc-day.today b { box-shadow: 0 0 0 1.5px rgba(238, 240, 253, 0.5); }
+.pc-day.today span, .pc-day.today em { color: var(--text); font-weight: 700; }
+@media (max-width: 640px) {
+  .practice-card { gap: 10px; }
+  .pc-total { font-size: 18px; }
+  .pc-streak { display: none; }
+  .pc-bars { gap: 3px; min-width: 130px; }
+  .pc-goal span { display: none; }
+}
 .session-block .seg button { min-height: 32px; padding: 4px 10px; font-size: 12.5px; }
 .field-head { display: flex; align-items: center; gap: 4px; }
 .page-head .info-btn, .section .info-btn { margin-left: -4px; }

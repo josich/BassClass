@@ -10,6 +10,7 @@ import * as A from '../audio.js';
 import { paramOptions } from './exercise.js';
 import { starButton, dragToReorder } from './favorites.js';
 import { courseBlock, sessionBlock, playerLevel } from './course.js';
+import { practiceCard } from './practiceCard.js';
 import { resetCourse, placed, anyProgress } from '../course/progress.js';
 import { replaceHash, goBack, canGoBack } from './nav.js';
 import { saveBackup, parseBackup, restoreBackup } from '../backup.js';
@@ -52,11 +53,13 @@ export function homeScreen(main) {
   // "My level" (the placement survey) lives here only: it sets where the course starts and what
   // today's session holds
   const known = placed() || anyProgress();
+  // the headline is the practice log; its daily goal is the session's length
+  const card = practiceCard();
   main.replaceChildren(
-    h('div', { class: 'page-head' }, h('h1', {}, 'BassClass'), h('div', { class: 'grow' }),
+    h('div', { class: 'page-head home-head' }, card,
       h('button', { class: 'btn level-btn', title: 'My level: a short survey that sets where the course starts and what today\'s session holds', onClick: () => go('#/course/placement') },
         'My level', known ? h('span', { class: `chip lv lv${playerLevel()}` }, `L${playerLevel()}`) : null)),
-    h('div', { class: 'home-cols' }, courseBlock(), sessionBlock(), favoritesBlock()));
+    h('div', { class: 'home-cols' }, courseBlock(), sessionBlock({ onLength: () => card.refresh() }), favoritesBlock()));
 }
 
 // ---------------------------------------------------------------- routines (session fill-ins)

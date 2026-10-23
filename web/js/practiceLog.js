@@ -75,6 +75,19 @@ export function lastDays(n = 7) {
   });
 }
 
+/** Days in a row with a minute or more of practice, up to today (a today not played yet keeps yesterday's run). */
+export function streak() {
+  credit();
+  const now = new Date();
+  let n = 0;
+  for (let i = 0; i < KEEP; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    if ((log[dayKey(d.getTime())] || 0) >= 60) n++;
+    else if (i > 0) break;
+  }
+  return n;
+}
+
 export function resetLog() {
   log = {};
   save();

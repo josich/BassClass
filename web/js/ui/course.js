@@ -7,7 +7,6 @@ import { EXERCISES, byId } from '../curriculum/index.js';
 import { SUB_NAMES, paramOptions } from './exercise.js';
 import { exHref, go, buildRoutine, routineParams, setRoutine, routineHref } from './screens.js';
 import { replaceHash, goBack, canGoBack, nav } from './nav.js';
-import { lastDays } from '../practiceLog.js';
 import { NEXT_LEVEL, COMPLETE } from '../course/data.js';
 import {
   STAGES, LESSONS, UNITS, lessonById, SESSION_LENGTHS,
@@ -247,7 +246,6 @@ const SESSION_INFO = [
   '🧭 A focus topic, a new one each session',
   '⏱ Warm-ups ~3 min, the rest ~5 min · ✓ once played through',
   '✓ Practised: the next session follows on',
-  '📊 The bars: minutes played each day, the last 7 days',
 ];
 const COURSE_INFO = [
   '6 stages, from your first notes',
@@ -273,29 +271,8 @@ export function courseBlock() {
       h('button', { class: 'btn map-btn', title: 'Course map: every lesson', onClick: () => go('#/course') }, h('span', { html: icon('path') }), 'Map')));
 }
 
-/** Minutes as "47′" or "1 h 05′". */
-function fmtMin(m) {
-  const r = Math.round(m);
-  return r < 60 ? `${r}′` : `${Math.floor(r / 60)} h ${String(r % 60).padStart(2, '0')}′`;
-}
-
-/** The practice log: the last 7 days as small bars (the minutes an exercise played); a tap says the totals. */
-function weekLog() {
-  const days = lastDays(7);
-  const total = days.reduce((a, d) => a + d.min, 0);
-  const on = days.filter((d) => d.min >= 1).length;
-  const tell = () => toast(total < 0.5
-    ? 'Your practice log: the minutes an exercise plays are counted here, day by day.'
-    : `Last 7 days: ${fmtMin(total)} on ${on} day${on === 1 ? '' : 's'} · today ${fmtMin(days[6].min)}`, 3200);
-  return h('button', { class: 'week-log', title: 'Practice log: the last 7 days', onClick: tell },
-    h('div', { class: 'bars' }, days.map((d, i) => h('div', { class: `day${i === 6 ? ' today' : ''}` },
-      h('b', {}, h('i', { style: { height: `${d.min < 0.5 ? 0 : Math.max(3, Math.min(1, d.min / 45) * 22)}px` } })),
-      h('span', {}, 'SMTWTFS'[d.date.getDay()])))),
-    h('div', { class: 'sum' }, h('b', {}, fmtMin(total)), h('span', {}, 'last 7 days')));
-}
-
-/** Today's session: warm-ups, the day's practice, ▶ Start and ✓ Practised. */
-export function sessionBlock() {
+/** Today's session: warm-ups, the day's practice, ▶ Start and ✓ Practised. `onLength`: its length changed. */
+export function sessionBlock({ onLength } = {}) {
   const section = h('section', { class: 'block session-block' });
   const render = () => {
     const minutes = sessionMinutes();
@@ -327,7 +304,7 @@ export function sessionBlock() {
     const next = all.findIndex((it) => !isPlayed(it));
     section.replaceChildren(
       h('div', { class: 'block-head' }, h('h2', {}, '📅 Today\'s session'), infoBtn(SESSION_INFO, 'About today\'s session'), h('div', { class: 'grow' }),
-        h('div', { class: 'seg' }, SESSION_LENGTHS.map((m) => h('button', { class: m === minutes ? 'on' : '', onClick: () => { setSessionMinutes(m); render(); } }, `${m}′`)))),
+        h('div', { class: 'seg' }, SESSION_LENGTHS.map((m) => h('button', { class: m === minutes ? 'on' : '', onClick: () => { setSessionMinutes(m); render(); onLength?.(); } }, `${m}′`)))),
       h('h4', { class: 'session-sub' }, 'Warm-up'),
       h('div', { class: 'routine session-list' }, all.slice(0, warm.length).map((it, i) => row(it, i)),
         h('button', { class: 'btn more-warm', onClick: more }, '+ More warm-up')),
@@ -335,7 +312,7 @@ export function sessionBlock() {
       h('div', { class: 'routine session-list' }, all.slice(warm.length).map((it, i) => row(it, warm.length + i))),
       h('div', { class: 'row session-foot' },
         h('button', { class: 'btn primary', disabled: !all.length, onClick: () => start(Math.max(0, next)) }, next > 0 ? '▶ Carry on' : '▶ Start'),
-        weekLog(),
+        h('div', { class: 'grow' }),
         h('button', { class: `btn${next < 0 ? ' primary' : ''}`, onClick: () => {
           // (nothing played yet: ask first, so a double tap never files a plan unseen)
           if (!all.some(isPlayed) && !confirm('Nothing played yet. Mark this session as practised anyway?')) return;
