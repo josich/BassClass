@@ -82,8 +82,9 @@ function load() {
     if (!s || typeof s !== 'object') continue;
     steps[k] = { best: bpm(s.best), last: bpm(s.last), loops: num(s.loops), clean: num(s.clean) };
   }
-  // (a stored revision that is not a whole number from 0 to REV counts as none)
-  const rev = Number.isInteger(v.rev) && v.rev >= 0 && v.rev <= REV ? v.rev : 0;
+  // (a stored revision that is not a whole number counts as none; one above REV, from a backup made by a
+  // newer BassClass, counts as REV: its records already follow every change this version knows)
+  const rev = Number.isInteger(v.rev) && v.rev >= 0 ? Math.min(v.rev, REV) : 0;
   for (const c of CHANGED_STEPS) {
     if (rev >= c.rev) continue;
     for (const k of c.steps) if (steps[k] && !(c.at && steps[k].clean > c.at)) delete steps[k];

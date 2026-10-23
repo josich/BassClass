@@ -466,6 +466,7 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .pc-ring .pc-arc, .pc-ring .pc-arc svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .pc-ring .pc-in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.05; }
 .pc-ring .pc-in b { font-size: 15px; }
+.pc-ring .pc-in.long b { font-size: 12px; letter-spacing: -0.02em; }
 .pc-ring .pc-in small { font-size: 9px; color: var(--muted); }
 .pc-ring.met .pc-in small { color: #f2cf7e; }
 .pc-week { flex: none; display: flex; flex-direction: column; line-height: 1.15; }
@@ -482,7 +483,7 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .pc-scroll.more.after { -webkit-mask-image: linear-gradient(to right, transparent, #000 22px, #000 calc(100% - 22px), transparent); mask-image: linear-gradient(to right, transparent, #000 22px, #000 calc(100% - 22px), transparent); }
 .pc-track { position: relative; display: flex; align-items: flex-end; gap: 6px; width: max-content; padding: 0 2px; }
 .pc-goal { position: absolute; left: 0; right: 0; height: 0; border-top: 1.5px dashed rgba(170, 182, 255, 0.6); pointer-events: none; }
-.pc-day { flex: none; width: 22px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0; border: 0; background: none; }
+.pc-day { flex: none; width: 26px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0; border: 0; background: none; }
 .pc-day.mon { margin-left: 8px; }
 .pc-day em { height: 11px; font-size: 9.5px; line-height: 11px; font-style: normal; color: var(--muted); white-space: nowrap; }
 .pc-day b { display: flex; align-items: flex-end; width: 100%; height: 32px; border-radius: 5px; background: rgba(238, 240, 253, 0.06); overflow: hidden; }
@@ -495,10 +496,17 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 @media (max-width: 640px) {
   .practice-card { gap: 10px; }
   .pc-total { font-size: 18px; }
-  .pc-streak { display: none; }
-  .pc-chart { min-width: 120px; padding-left: 0; }
-  .pc-goal-label { display: none; }
-  .pc-day { width: 18px; }
+  .pc-streak { margin-left: 5px; padding: 1px 5px; }
+  .wide-only { display: none; }
+  .pc-chart { min-width: 120px; padding-left: 34px; }
+  .pc-goal-label { font-size: 8.5px; }
+  .pc-day { width: 22px; }
+}
+/* portrait phones (web): the card wraps, the days take the whole width under the ring and the totals */
+@media (max-width: 520px) {
+  .home-head { flex-wrap: wrap; }
+  .practice-card { flex-wrap: wrap; }
+  .pc-chart { flex: 1 1 100%; max-width: none; margin-left: 0; }
 }
 .session-block .seg button { min-height: 32px; padding: 4px 10px; font-size: 12.5px; }
 .field-head { display: flex; align-items: center; gap: 4px; }
@@ -666,13 +674,17 @@ details.les-more > ul { margin: 0 0 10px; }
 .beat-lights i.lit { background: var(--accent); border-color: var(--accent); transform: scale(1.15); box-shadow: 0 0 14px rgba(70, 201, 162, 0.55); }
 .beat-lights i.accent.lit { background: #f2cf7e; border-color: #f2cf7e; box-shadow: 0 0 14px rgba(242, 207, 126, 0.55); }
 .beat-lights.muted i.lit { background: transparent; border-color: var(--accent); box-shadow: none; }
+.beat-lights i.group { border-style: dashed; }
+.beat-lights.count i.lit { background: var(--accent-2); border-color: var(--accent-2); box-shadow: 0 0 12px rgba(110, 128, 232, 0.5); }
+.btn.small-play { width: 40px; height: 36px; padding: 0; justify-content: center; }
+.btn.small-play svg { width: 18px; height: 18px; }
 .room-play { min-width: 150px; justify-content: center; font-size: 17px; padding: 10px 22px; }
 .room-play span { display: inline-flex; }
 .room-play span svg { width: 20px; height: 20px; }
 .room-play.on { background: var(--panel-3); color: var(--text); border-color: var(--line); }
 .room-field { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .room-field > label, .room-group > label { font-weight: 600; color: var(--muted); font-size: 13px; }
-.room-field .seg button { min-height: 30px; padding: 4px 10px; }
+.room-field .seg button { min-height: 36px; padding: 4px 11px; }
 .note-seg button { display: inline-flex; align-items: center; justify-content: center; min-width: 40px; }
 .note-seg button svg { height: 22px; width: auto; display: block; }
 .stepper { display: inline-flex; align-items: center; gap: 10px; }
@@ -708,6 +720,9 @@ details.les-more > ul { margin: 0 0 10px; }
 @media (max-height: 420px) { .neck-board { height: 170px; } }
 /* the Library's two views: Levels and Topics */
 .lib-views button { min-height: 32px; padding: 4px 12px; }
+@media (max-width: 520px) {
+  .tempo-row { flex-wrap: wrap; gap: 10px; }
+}
 @media (max-width: 700px) {
   .metro-body { grid-template-columns: 1fr; }
   .metro-opts { padding-left: 0; border-left: 0; padding-top: 12px; border-top: 1px solid var(--line); }

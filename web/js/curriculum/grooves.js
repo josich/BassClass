@@ -169,7 +169,7 @@ const oddGroove = ex({
   about: 'Odd metres (5/4, 7/8, 7/4) are everywhere in prog, fusion, Balkan and film music, and 6/8 is the compound metre of ballads and Afro-Cuban grooves. Each groove places its strongest notes on the start of the beat groups. Loop it until it feels natural rather than counted. In 7/8 and 6/8 the click marks every 8th note.',
   tips: ['Say the groups: "1-2-3 1-2" for 5/4.', 'Record yourself; the last group is where most players rush.'],
   source: 'Trinity Grades 5–8; RSL Grade 8; MI 069E; Berklee Online Rock Bass L10',
-  params: { meter: sel('Meter', Object.entries(ODD).map(([k, v]) => [k, v.name])), key: keyP(['1', 'b3', '5'], { def: '4', cycles: false }) },
+  params: { meter: sel('Metre', Object.entries(ODD).map(([k, v]) => [k, v.name])), key: keyP(['1', 'b3', '5'], { def: '4', cycles: false }) },
   bpm: 110, sub: 1, label: 'degree',
   build(p, ctx, S) {
     const b = new Builder(ctx, S, { jazz: true });
@@ -247,7 +247,7 @@ const mixedWalk = walkEx('wk-mixed', 4, 'mixed', 'jazz-blues', {
   title: 'Complete walking lines (mixed devices)',
   summary: 'Chord tones, scale steps, chromatic and dominant approaches combined.',
   about: 'Real walking bass mixes all the devices: arpeggios, scale runs, chromatic approaches and dominant (5th) approaches, chosen bar by bar. These lines rotate between them over standard progressions like the jazz blues and the ii–V–I.',
-  tips: ['Follow the contour: lines that go up should come back down.', 'Then improvise your own line with the fretboard explorer as a map.'],
+  tips: ['Follow the contour: lines that go up should come back down.', 'Then improvise your own line with the Neck in the Practice room as a map.'],
   source: 'Ed Friedland; Rufus Reid; Berklee Online Jazz Bass L6–11', bpm: 116, star: true,
 });
 

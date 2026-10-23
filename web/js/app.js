@@ -139,7 +139,7 @@ function route() {
   // the Path and the Neck explorer of earlier versions live on as the Library's Topics view and the
   // Practice room's Neck block
   if (parts[0] === 'path') { replaceHash('#/library?v=topics'); return; }
-  if (parts[0] === 'explorer') { replaceHash('#/practice'); return; }
+  if (parts[0] === 'explorer') { replaceHash('#/practice?to=neck'); return; }
   // the daily warm-up and the course live on Home; topics (#/m/...) belong to the Library
   const key = { '': 'home', course: 'home', library: 'library', m: 'library', practice: 'practice', tuner: 'tuner', settings: 'settings' }[parts[0] || ''] || 'home';
   const main = shell(key);
@@ -148,7 +148,7 @@ function route() {
   else if (parts[0] === 'course') courseScreen(main);
   else if (parts[0] === 'library') libraryScreen(main, params);
   else if (parts[0] === 'm') moduleScreen(main, parts[1]);
-  else if (parts[0] === 'practice') active = practiceScreen(main);
+  else if (parts[0] === 'practice') active = practiceScreen(main, params);
   else if (parts[0] === 'tuner') active = tunerScreen(main);
   else if (parts[0] === 'settings') active = settingsScreen(main);
   else homeScreen(main);

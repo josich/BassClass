@@ -307,7 +307,7 @@ const oddMeter = ex({
   about: 'Odd metres group beats unevenly. 5/4 is usually felt as 3+2, 7/8 as 2+2+3 (or 3+2+2), and 7/4 as 4+3. The accented notes mark the groups. In 7/8 the metronome clicks every 8th note, so set a fast tempo. Learn to feel the "limp" of each metre until it sounds natural.',
   tips: ['Count the groups out loud: "1-2-3-1-2" for 5/4.', 'Think of "Take Five" (5/4) or "Money" (7/4).'],
   source: 'Trinity Grades 5–8; RSL Grade 8; MI; Berklee Online Rock Bass L10',
-  params: { note: noteP, meter: sel('Meter', [['5', '5/4 (3+2)'], ['78', '7/8 (2+2+3)'], ['78b', '7/8 (3+2+2)'], ['74', '7/4 (4+3)']]) },
+  params: { note: noteP, meter: sel('Metre', [['5', '5/4 (3+2)'], ['78', '7/8 (2+2+3)'], ['78b', '7/8 (3+2+2)'], ['74', '7/4 (4+3)']]) },
   bpm: 100, sub: 1, label: 'note',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);

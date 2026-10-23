@@ -89,6 +89,8 @@ class MainActivity : Activity() {
         @JavascriptInterface
         fun saveFile(name: String, text: String) {
             runOnUiThread {
+                // (one picker at a time: a second tap while one is open is ignored)
+                if (pendingSave != null) return@runOnUiThread
                 pendingSave = text
                 val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
                     .addCategory(Intent.CATEGORY_OPENABLE)

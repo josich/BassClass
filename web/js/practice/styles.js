@@ -2,7 +2,8 @@
 // genre. A pattern has its metre: `beats` per bar and the `beat` (q quarter, e 8th, dq dotted quarter),
 // `grid` steps per beat (2 = 8ths, 3 = triplets, 4 = 16ths), its tempo and its usual subdivision `sub`,
 // and one or two bars per piece. A step is "." (rest), "g" (ghost), "s" (soft), "x" (normal) or "X"
-// (accent); "|" and spaces only help the eye.
+// (accent); "|" and spaces only help the eye. Odd metres name their `groups` (3 + 2…): the click and the
+// beat lights mark each group's start.
 //
 // Each pattern is written at its fullest: the Subdivision buttons choose how much of it plays. A note
 // that falls between the subdivision's notes is a fill: it plays only at a finer subdivision when it is
@@ -144,7 +145,7 @@ const RAW = [
       snare: '...|..g|...|...|..g|...|...|g..', kick: '...|...|..x|...|...|...|...|...' },
     { key: 'jazzfunk', name: 'Jazz funk', bpm: 104, sub: 4,
       hhc: 'xgxg|xgxg|xgxg|xgxg', kick: 'X..x|..x.|..x.|....', snare: '....|X.g.|..g.|X...' },
-    { key: 'jazzfive', name: '5/4 swing (3 + 2)', meter: '5/4', beats: 5, grid: 3, bpm: 170, sub: 3,
+    { key: 'jazzfive', name: '5/4 swing (3 + 2)', meter: '5/4', beats: 5, groups: [3, 2], grid: 3, bpm: 170, sub: 3,
       ride: 'X..|x.x|x.x|X..|x.x', hhp: '...|x..|...|...|x..', kick: 'x..|...|...|x..|...', snare: '...|...|..g|...|..g' },
     { key: 'jazzshuffle', name: 'Jazz shuffle', grid: 3, bpm: 132, sub: 3,
       ride: 'Xgx|xgx|Xgx|xgx', hhp: '...|x..|...|x..', kick: 'x..|...|x..|...', snare: '...|X..|...|X..' },
@@ -218,21 +219,21 @@ const RAW = [
       ride: 'xgxg|xgxg|xgxg|xgxg', kick: 'X...|..x.|X.x.|....', snare: '....|X...|....|X...' },
   ] },
   { key: 'odd', name: 'Odd metres', icon: '🔢', patterns: [
-    { key: 'five32', name: '5/4 (3 + 2)', meter: '5/4', beats: 5, bpm: 120, sub: 2,
+    { key: 'five32', name: '5/4 (3 + 2)', meter: '5/4', beats: 5, groups: [3, 2], bpm: 120, sub: 2,
       hhc: 'Xgxg|xgxg|xgxg|Xgxg|xgxg', kick: 'X...|....|..x.|X...|....', snare: '....|....|X...|....|X...' },
-    { key: 'five23', name: '5/4 (2 + 3)', meter: '5/4', beats: 5, bpm: 120, sub: 2,
+    { key: 'five23', name: '5/4 (2 + 3)', meter: '5/4', beats: 5, groups: [2, 3], bpm: 120, sub: 2,
       hhc: 'Xgxg|xgxg|Xgxg|xgxg|xgxg', kick: 'X...|....|X...|..x.|....', snare: '....|X...|....|....|X...' },
-    { key: 'five8', name: '5/8 (3 + 2)', meter: '5/8', beats: 5, beat: 'e', grid: 2, bpm: 220, sub: 1,
+    { key: 'five8', name: '5/8 (3 + 2)', meter: '5/8', beats: 5, groups: [3, 2], beat: 'e', grid: 2, bpm: 220, sub: 1,
       hhc: 'Xg|xg|xg|Xg|xg', kick: 'X.|..|..|..|..', snare: '..|..|..|X.|..' },
-    { key: 'seven223', name: '7/8 (2 + 2 + 3)', meter: '7/8', beats: 7, beat: 'e', grid: 2, bpm: 220, sub: 1,
+    { key: 'seven223', name: '7/8 (2 + 2 + 3)', meter: '7/8', beats: 7, groups: [2, 2, 3], beat: 'e', grid: 2, bpm: 220, sub: 1,
       hhc: 'Xg|xg|Xg|xg|Xg|xg|xg', kick: 'X.|..|..|..|X.|..|..', snare: '..|..|X.|..|..|X.|..' },
-    { key: 'seven322', name: '7/8 (3 + 2 + 2)', meter: '7/8', beats: 7, beat: 'e', grid: 2, bpm: 220, sub: 1,
+    { key: 'seven322', name: '7/8 (3 + 2 + 2)', meter: '7/8', beats: 7, groups: [3, 2, 2], beat: 'e', grid: 2, bpm: 220, sub: 1,
       hhc: 'Xg|xg|xg|Xg|xg|Xg|xg', kick: 'X.|..|..|..|..|x.|..', snare: '..|..|..|X.|..|..|X.' },
-    { key: 'sevenfour', name: '7/4 (4 + 3)', meter: '7/4', beats: 7, bpm: 110, sub: 2,
+    { key: 'sevenfour', name: '7/4 (4 + 3)', meter: '7/4', beats: 7, groups: [4, 3], bpm: 110, sub: 2,
       hhc: 'Xgxg|xgxg|xgxg|xgxg|Xgxg|xgxg|xgxg', kick: 'X...|....|X.x.|....|X...|....|..x.', snare: '....|X...|....|X...|....|X...|....' },
-    { key: 'nine8', name: '9/8 (2 + 2 + 2 + 3)', meter: '9/8', beats: 9, beat: 'e', grid: 2, bpm: 260, sub: 1,
+    { key: 'nine8', name: '9/8 (2 + 2 + 2 + 3)', meter: '9/8', beats: 9, groups: [2, 2, 2, 3], beat: 'e', grid: 2, bpm: 260, sub: 1,
       hhc: 'Xg|xg|Xg|xg|Xg|xg|Xg|xg|xg', kick: 'X.|..|..|..|X.|..|..|..|..', snare: '..|..|X.|..|..|..|X.|..|..' },
-    { key: 'eleven8', name: '11/8 (2 + 2 + 3 + 2 + 2)', meter: '11/8', beats: 11, beat: 'e', grid: 2, bpm: 240, sub: 1,
+    { key: 'eleven8', name: '11/8 (2 + 2 + 3 + 2 + 2)', meter: '11/8', beats: 11, groups: [2, 2, 3, 2, 2], beat: 'e', grid: 2, bpm: 240, sub: 1,
       hhc: 'Xg|xg|Xg|xg|Xg|xg|xg|Xg|xg|Xg|xg', kick: 'X.|..|..|..|X.|..|..|..|..|..|..', snare: '..|..|X.|..|..|..|..|X.|..|X.|..' },
     { key: 'six8rock', name: '6/8 rock', meter: '6/8', beats: 2, beat: 'dq', grid: 3, bpm: 72, sub: 3,
       hhc: 'xss|xss', kick: 'X..|..x', snare: '...|X..' },
@@ -241,7 +242,15 @@ const RAW = [
   ] },
 ];
 
-const META = new Set(['key', 'name', 'meter', 'beats', 'beat', 'grid', 'bpm', 'sub']);
+const META = new Set(['key', 'name', 'meter', 'beats', 'beat', 'grid', 'bpm', 'sub', 'groups']);
+
+/** The beats that start a group (always beat 0; 3 + 2 → 0 and 3). */
+export function groupStarts(s) {
+  const out = new Set([0]);
+  let b = 0;
+  for (const g of s?.groups || []) { out.add(b); b += g; }
+  return out;
+}
 
 /** The subdivisions a pattern offers: notes per beat; 3 on a 16th pattern swings it, 2 on a triplet one is the shuffle. */
 export function levelsOf(s) {
@@ -282,6 +291,7 @@ RAW.forEach((g, gi) => g.patterns.forEach((p) => {
   }
   for (const t of Object.values(s.tracks)) if (s.bars % (t.length / per)) throw new Error(`drum pattern ${p.key}: tracks of 1 and ${s.bars} bars only`);
   if (!levelsOf(s).includes(s.sub)) throw new Error(`drum pattern ${p.key}: subdivision ${s.sub} is not offered`);
+  if (s.groups && s.groups.reduce((a, g) => a + g, 0) !== s.beats) throw new Error(`drum pattern ${p.key}: groups do not fill ${s.beats} beats`);
   if (STYLES[s.key]) throw new Error(`drum pattern ${p.key} twice`);
   STYLES[s.key] = s;
   GENRES[gi].styles.push(s);

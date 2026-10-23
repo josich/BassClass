@@ -348,14 +348,14 @@ function harmonicVoice(midi, when, dur, vel) {
   o1.start(when); o2.start(when); o1.stop(end); o2.stop(end);
 }
 
-/** Schedule a metronome click. level: 2 = bar accent, 1 = beat, 0 = subdivision. */
+/** Schedule a metronome click. level: 2 = bar accent, 1.5 = a group's start (odd metres), 1 = beat, 0 = subdivision. */
 export function click(when = now(), level = 1) {
   audioCtx();
   const o = ac.createOscillator();
   const g = ac.createGain();
   o.type = 'sine';
-  o.frequency.value = level === 2 ? 1760 : level === 1 ? 1175 : 900;
-  const v = level === 2 ? 0.9 : level === 1 ? 0.6 : 0.25;
+  o.frequency.value = level === 2 ? 1760 : level === 1.5 ? 1480 : level === 1 ? 1175 : 900;
+  const v = level === 2 ? 0.9 : level === 1.5 ? 0.75 : level === 1 ? 0.6 : 0.25;
   g.gain.setValueAtTime(0, when);
   g.gain.linearRampToValueAtTime(v, when + 0.001);
   g.gain.exponentialRampToValueAtTime(0.0001, when + (level === 0 ? 0.03 : 0.05));

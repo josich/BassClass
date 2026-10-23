@@ -3,16 +3,16 @@
 // is reported with its time, so the screen can light it when it sounds.
 import * as A from '../audio.js';
 import { logPlaying } from '../practiceLog.js';
-import { playDrum, kitReady } from '../drums.js';
-import { STYLES, levelsOf, stepTime, clickTimes } from './styles.js';
+import { playDrum, kitReady, styleGain } from '../drums.js';
+import { STYLES, levelsOf, stepTime, clickTimes, groupStarts } from './styles.js';
 
 const LOOKAHEAD = 0.12;   // seconds scheduled ahead
 const TICK_MS = 25;
 
 export class Room {
   /**
-   * `o`: { bpm, beats, sub, accent, click, play, mute, upBy, upEvery, drums, style };
-   * `onTick({ time, bar, beat, muted, bpm })` once per beat.
+   * `o`: { bpm, beats, sub, accent, click, play, mute, upBy, upEvery, upTo, drums, style, countIn };
+   * `onTick({ time, bar, beat, muted, count, bpm })` once per beat (`count`: the count-in bar).
    */
   constructor(o, { onTick } = {}) {
     this.o = { ...o };
@@ -40,12 +40,14 @@ export class Room {
     this.starting = false;
     this.playing = true;
     this.bpm = this.o.bpm;
-    this.bar = 0;
+    // with the drums, a bar of clicks first when the count-in is on (Settings)
+    this.bar = this.o.drums && this.o.countIn ? -1 : 0;
     this.beat = 0;
     this.next = A.now() + 0.08;
     this.timer = setInterval(() => this._tick(), TICK_MS);
     this._tick();
-    logPlaying(true);
+    // (a play-along runs long untouched: the practice log counts up to an hour without a touch here)
+    logPlaying(true, { idleMin: 60 });
   }
 
   stop() {
@@ -60,17 +62,22 @@ export class Room {
   _tick() {
     const end = A.now() + LOOKAHEAD;
     while (this.next < end) {
-      const { beats, sub, accent, click, play, mute, upBy, upEvery, drums, style } = this.o;
+      const { beats, sub, accent, click, play, mute, upBy, upEvery, upTo = 260, drums, style } = this.o;
       if (this.beat >= beats) { this.beat = 0; this.bar++; }   // (fewer beats since the last one)
       const t0 = this.next, len = 60 / this.bpm;
+      const count = this.bar < 0;
       // muted bars: `play` bars with the click (and drums), then `mute` bars of silence to keep the time alone
-      const muted = mute > 0 && this.bar % (play + mute) >= play;
+      const muted = !count && mute > 0 && this.bar % (play + mute) >= play;
       // with the drums on, the subdivision is the pattern's (its swing, shuffle or compound feel)
       const s = drums ? STYLES[style] : null;
       const L = s && !levelsOf(s).includes(sub) ? s.sub : sub;
-      if (click && !muted) clickTimes(s, L).forEach((f, k) => A.click(t0 + f * len, k ? 0 : this.beat === 0 && accent ? 2 : 1));
-      if (s && kitReady() && !muted) {
+      // the bar's first beat is the accent, an odd metre's group starts a lighter one
+      const level = this.beat === 0 && accent ? 2 : accent && groupStarts(s).has(this.beat) ? 1.5 : 1;
+      if (count) A.click(t0, this.beat === 0 ? 2 : 1);
+      else if (click && !muted) clickTimes(s, L).forEach((f, k) => A.click(t0 + f * len, k ? 0 : level));
+      if (s && kitReady() && !muted && !count) {
         const at = ((this.bar % s.bars) * s.beats + this.beat) * s.grid;
+        const hits = [];
         for (const [piece, steps] of Object.entries(s.tracks)) {
           for (let j = 0; j < s.grid; j++) {
             const v = steps[(at + j) % steps.length];
@@ -78,17 +85,20 @@ export class Room {
             // (swung, a 16th "a" lands on the last triplet unless that triplet has its own stroke)
             if (s.grid === 4 && L === 3 && j === 3 && steps[(at + 2) % steps.length]) continue;
             const f = stepTime(s, L, j, piece, v);
-            if (f != null) playDrum(piece, t0 + f * len, v);
+            if (f != null) hits.push([t0 + f * len, piece, v]);
           }
         }
+        // in time order, so a closed hi-hat after an open one closes it
+        const g = styleGain(style);
+        hits.sort((a, b) => a[0] - b[0]).forEach(([t, piece, v]) => playDrum(piece, t, v, g));
       }
-      this.onTick?.({ time: t0, bar: this.bar, beat: this.beat, muted, bpm: this.bpm });
+      this.onTick?.({ time: t0, bar: this.bar, beat: this.beat, muted, count, bpm: this.bpm });
       this.next += len;
       if (++this.beat >= beats) {
         this.beat = 0;
         this.bar++;
-        // speed up: a little faster every `upEvery` bars
-        if (upBy && this.bar % upEvery === 0) this.bpm = Math.min(260, this.bpm + upBy);
+        // speed up: a little faster every `upEvery` bars, up to `upTo`
+        if (upBy && this.bar > 0 && this.bar % upEvery === 0 && this.bpm < upTo) this.bpm = Math.min(upTo, this.bpm + upBy);
       }
     }
   }

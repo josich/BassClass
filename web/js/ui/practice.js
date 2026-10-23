@@ -5,7 +5,8 @@ import { h, icon, infoBtn, toast } from './dom.js';
 import * as A from '../audio.js';
 import { Room } from '../practice/engine.js';
 import { room, saveRoom, SUBS } from '../practice/state.js';
-import { STYLES, GENRES, levelsOf } from '../practice/styles.js';
+import { STYLES, GENRES, levelsOf, groupStarts } from '../practice/styles.js';
+import { settings } from '../store.js';
 import { loadKit, kitReady } from '../drums.js';
 import { neckPanel } from './neck.js';
 
@@ -14,7 +15,7 @@ const INFO = [
   '👆 Tap: tap the beat and the tempo follows (T)',
   '🎵 Subdivision: a click on every quarter, 8th, triplet or 16th; with the drums, how much of the pattern plays (16ths add its ghost-note fills, triplets swing a straight groove)',
   '🔇 Muted bars: the click plays some bars and stops for others, you keep the time',
-  '📈 Speed up: a few BPM faster every few bars',
+  '📈 Speed up: a few BPM faster every few bars, up to a ceiling',
   '🔈 Click off: the beat lights and the drums keep the time',
 ];
 const DRUM_INFO = [
@@ -62,11 +63,12 @@ function tempoName(bpm) {
     : bpm < 120 ? 'Moderato' : bpm < 168 ? 'Allegro' : bpm < 200 ? 'Presto' : 'Prestissimo';
 }
 
-/** A button that repeats while held (− and + on the tempo). */
+/** A button that repeats while held (− and + on the tempo); `btn.stopHold()` ends a hold (leaving the room). */
 function holdButton(label, title, step) {
   let wait = null, rep = null;
   const stop = () => { clearTimeout(wait); clearInterval(rep); wait = rep = null; };
   const btn = h('button', { class: 'btn round', title, 'aria-label': title }, label);
+  btn.stopHold = stop;
   btn.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     step();
@@ -80,7 +82,7 @@ function holdButton(label, title, step) {
 
 const bars = (n) => `${n} bar${n === 1 ? '' : 's'}`;
 
-export function practiceScreen(main) {
+export function practiceScreen(main, params = {}) {
   const lights = h('div', { class: 'beat-lights' });
   const bpmEl = h('b', { class: 'tempo-num' });
   const nameEl = h('span', { class: 'tempo-name' });
@@ -95,7 +97,12 @@ export function practiceScreen(main) {
   const queue = [];   // scheduled ticks waiting to be shown when they sound
   let raf = null;
 
-  const engine = new Room(room, {
+  // (saved settings that do not fit the drum pattern, after a change elsewhere, are brought back in line)
+  if (room.drums && STYLES[room.style]) {
+    const s = STYLES[room.style];
+    if (room.beats !== s.beats || !levelsOf(s).includes(room.sub)) saveRoom({ beats: s.beats, ...(levelsOf(s).includes(room.sub) ? {} : { sub: s.sub }) });
+  }
+  const engine = new Room({ ...room, countIn: settings.countIn }, {
     onTick: (t) => { queue.push(t); },
   });
   const set = (patch) => { saveRoom(patch); engine.set(patch); };
@@ -110,12 +117,17 @@ export function practiceScreen(main) {
     set({ bpm });
     showTempo(bpm);
   };
+  // (gold: the accent on 1, and in an odd metre each group's start)
   const drawLights = () => {
-    lights.replaceChildren(...Array.from({ length: room.beats }, (_, i) => h('i', { class: i === 0 && room.accent ? 'accent' : '' })));
+    const starts = groupStarts(room.drums ? STYLES[room.style] : null);
+    lights.replaceChildren(...Array.from({ length: room.beats }, (_, i) => h('i', { class: room.accent && starts.has(i) ? (i ? 'accent group' : 'accent') : '' })));
   };
+  const drumPlay = h('button', { class: 'btn small-play', 'aria-label': 'Start or stop' });
   const drawPlay = () => {
     playBtn.replaceChildren(h('span', { html: icon(engine.playing ? 'pause' : 'play') }), engine.playing ? 'Stop' : 'Start');
     playBtn.classList.toggle('on', engine.playing);
+    drumPlay.innerHTML = icon(engine.playing ? 'pause' : 'play');
+    drumPlay.classList.toggle('primary', !engine.playing);
   };
   // the beat lights follow the sound: each tick lights when its time comes
   const frame = () => {
@@ -125,6 +137,7 @@ export function practiceScreen(main) {
     if (t) {
       [...lights.children].forEach((el, i) => el.classList.toggle('lit', i === t.beat));
       lights.classList.toggle('muted', t.muted);
+      lights.classList.toggle('count', !!t.count);
       if (t.bpm !== Number(bpmEl.textContent)) showTempo(t.bpm);
     }
     raf = engine.playing ? requestAnimationFrame(frame) : null;
@@ -132,18 +145,23 @@ export function practiceScreen(main) {
   const toggle = async () => {
     queue.length = 0;
     if (engine.playing || engine.starting) {
+      const reached = engine.bpm;
       engine.stop();
       [...lights.children].forEach((el) => el.classList.remove('lit'));
-      lights.classList.remove('muted');
-      showTempo(room.bpm);   // (the speed-up climb ends; the tempo set stays)
+      lights.classList.remove('muted', 'count');
+      // (the speed-up climb ends and the tempo set stays: the tempo reached is named)
+      if (reached > room.bpm) toast(`Reached ${reached} BPM`, 2500);
+      showTempo(room.bpm);
       drawPlay();
       return;
     }
+    engine.set({ countIn: settings.countIn });
     await engine.start();
     if (engine.playing && !raf) raf = requestAnimationFrame(frame);
     drawPlay();
   };
   playBtn.addEventListener('click', toggle);
+  drumPlay.addEventListener('click', toggle);
   slider.addEventListener('input', () => setTempo(Number(slider.value)));
 
   // tap tempo: the average of the last taps (a pause of 2 seconds starts again)
@@ -174,6 +192,7 @@ export function practiceScreen(main) {
     const dim = () => {
       opts.querySelector('[data-key="play"]')?.classList.toggle('off', !room.mute);
       opts.querySelector('[data-key="upEvery"]')?.classList.toggle('off', !room.upBy);
+      opts.querySelector('[data-key="upTo"]')?.classList.toggle('off', !room.upBy);
     };
     // (with the drums on, their style sets the beats per bar)
     const fixed = room.drums ? () => toast(`The drum style sets the beats: ${STYLES[room.style].meter}`) : null;
@@ -199,7 +218,8 @@ export function practiceScreen(main) {
         rangeLine('mute', 0, 8, 'Mute', (v) => (v ? bars(v) : 'Off'), dim)),
       h('div', { class: 'room-group' }, h('label', {}, 'Speed up'),
         rangeLine('upBy', 0, 10, 'Add', (v) => (v ? `+${v} BPM` : 'Off'), dim),
-        rangeLine('upEvery', 1, 16, 'Every', bars, dim)));
+        rangeLine('upEvery', 1, 16, 'Every', bars, dim),
+        rangeLine('upTo', 40, 260, 'Up to', (v) => `${v} BPM`, dim)));
     dim();
   };
 
@@ -249,7 +269,9 @@ export function practiceScreen(main) {
     });
     drumBlock.classList.toggle('off', !room.drums);
     drumBlock.replaceChildren(
+      // (Start here too: on a small phone the patterns and the metronome's Start are not on screen together)
       h('div', { class: 'block-head' }, h('h2', {}, '🥁 Drums'), infoBtn(DRUM_INFO, 'About the drums'), drumState, h('div', { class: 'grow' }),
+        drumPlay,
         h('div', { class: 'seg' }, [true, false].map((v) => h('button', {
           class: room.drums === v ? 'on' : '',
           onClick: () => drumsOn(v),
@@ -262,7 +284,8 @@ export function practiceScreen(main) {
       h('div', { class: 'style-grid' }, GENRES.find((g) => g.key === room.genre).styles.map((st) => h('button', {
         class: `style-chip${room.style === st.key ? ' on' : ''}`,
         onClick: () => pickStyle(st.key),
-      }, h('b', {}, st.name), h('span', {}, `${st.meter} · ${st.bpm} BPM`)))),
+      // (a name that already says its metre, "5/4 (3 + 2)", does not repeat it)
+      }, h('b', {}, st.name), h('span', {}, st.name.includes(st.meter) ? `${st.bpm} BPM` : `${st.meter} · ${st.bpm} BPM`)))),
       h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal));
   };
   if (room.drums) ensureKit();
@@ -270,6 +293,9 @@ export function practiceScreen(main) {
 
   // ---------------------------------------------------------------- neck (the former Neck explorer)
   const neck = neckPanel();
+
+  const slower = holdButton('−', 'Slower', () => setTempo(room.bpm - 1));
+  const faster = holdButton('+', 'Faster', () => setTempo(room.bpm + 1));
 
   const onKey = (e) => {
     if (e.target.closest?.('input, select, textarea')) return;
@@ -287,9 +313,9 @@ export function practiceScreen(main) {
       h('div', { class: 'metro-body' },
         h('div', { class: 'metro-main' },
           h('div', { class: 'tempo-row' },
-            holdButton('−', 'Slower', () => setTempo(room.bpm - 1)),
+            slower,
             h('div', { class: 'tempo-show' }, bpmEl, unitEl, nameEl),
-            holdButton('+', 'Faster', () => setTempo(room.bpm + 1)),
+            faster,
             h('button', { class: 'btn tap-btn', title: 'Tap the beat', onClick: tap }, '👆 Tap')),
           slider,
           lights,
@@ -302,10 +328,14 @@ export function practiceScreen(main) {
   drawPlay();
   drawOpts();
   drawUnit();
+  // (#/practice?to=neck, the old Neck explorer's address: the Neck block in view)
+  if (params.to === 'neck') requestAnimationFrame(() => neck.el.scrollIntoView({ block: 'start' }));
 
   return {
     dispose: () => {
       engine.stop();
+      slower.stopHold();
+      faster.stopHold();
       neck.dispose();
       cancelAnimationFrame(raf);
       document.removeEventListener('keydown', onKey);

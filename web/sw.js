@@ -2,11 +2,16 @@
 const CACHE = 'bassclass-v1';
 
 self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+// the drum kit has a cache of its own (web/js/drums.js): copies this cache made of it before are dropped
+self.addEventListener('activate', (e) => e.waitUntil(Promise.all([
+  self.clients.claim(),
+  caches.open(CACHE).then((c) => c.keys().then((ks) => Promise.all(ks.filter((r) => r.url.includes('/audio/drums/')).map((r) => c.delete(r))))),
+])));
 
 self.addEventListener('fetch', (e) => {
   const req = e.request;
-  if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
+  const url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== location.origin || url.pathname.includes('/audio/drums/')) return;
   e.respondWith(
     fetch(req)
       .then((res) => {
