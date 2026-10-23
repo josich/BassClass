@@ -47,6 +47,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             out = os.path.join(ROOT, *self.path[len('/__write/'):].split('/'))
         elif re.fullmatch(r'/__write/audio/drums/(?:[a-z0-9]+(?:-[a-z0-9]+)*\.ogg|kit\.json|LICENSE\.txt)', self.path):
             out = os.path.join(ROOT, *self.path[len('/__write/'):].split('/'))
+        elif re.fullmatch(r'/__write/_raw/audition/[a-z0-9]+(?:-[a-z0-9]+)*\.wav', self.path):
+            # listening clips of candidate drum kits (web/js/dev/drumaudition.js; web/_raw is not committed)
+            out = os.path.join(ROOT, *self.path[len('/__write/'):].split('/'))
         elif re.fullmatch(r'/__write/icons/(?:icon-(?:192|512|maskable-512)|apple-touch-icon)\.png', self.path):
             out = os.path.join(ROOT, *self.path[len('/__write/'):].split('/'))
         elif re.fullmatch(r'/__write/android/mipmap-(?:mdpi|hdpi|xhdpi|xxhdpi|xxxhdpi)/ic_launcher(?:_foreground|_background|_monochrome)?\.png', self.path):
