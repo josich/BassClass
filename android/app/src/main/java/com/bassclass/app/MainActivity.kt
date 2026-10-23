@@ -3,11 +3,13 @@ package com.bassclass.app
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.AudioAttributes
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -18,6 +20,7 @@ import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.webkit.JavascriptInterface
 import android.webkit.PermissionRequest
+import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -34,6 +37,8 @@ class MainActivity : Activity() {
 
     private lateinit var web: WebView
     private var pendingMic: PermissionRequest? = null
+    private var pendingSave: String? = null                       // a backup waiting for its "Save to" place
+    private var pendingFiles: ValueCallback<Array<Uri>>? = null   // a file input waiting for the picker
     private val audio by lazy { getSystemService(AUDIO_SERVICE) as AudioManager }
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -78,6 +83,28 @@ class MainActivity : Activity() {
     private inner class NativeBridge {
         @JavascriptInterface
         fun audioRoute(): String = this@MainActivity.audioRoute()
+
+        /** Settings → Save a backup (web/js/backup.js): Android's "Save to" picker; the answer comes back as a 'bassclass-saved' event. */
+        @JavascriptInterface
+        fun saveFile(name: String, text: String) {
+            runOnUiThread {
+                pendingSave = text
+                val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
+                    .addCategory(Intent.CATEGORY_OPENABLE)
+                    .setType("application/json")
+                    .putExtra(Intent.EXTRA_TITLE, name)
+                try {
+                    startActivityForResult(intent, REQ_SAVE)
+                } catch (e: Exception) {
+                    pendingSave = null
+                    saved("error")
+                }
+            }
+        }
+    }
+
+    private fun saved(result: String) {
+        web.evaluateJavascript("window.dispatchEvent(new CustomEvent('bassclass-saved',{detail:'$result'}))", null)
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -114,6 +141,20 @@ class MainActivity : Activity() {
                         }
                     }
                 }
+
+                // Settings → Load a backup: the page's file input opens Android's file picker
+                override fun onShowFileChooser(view: WebView, callback: ValueCallback<Array<Uri>>, params: FileChooserParams): Boolean {
+                    pendingFiles?.onReceiveValue(null)
+                    pendingFiles = callback
+                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*")
+                    return try {
+                        startActivityForResult(intent, REQ_FILE)
+                        true
+                    } catch (e: Exception) {
+                        pendingFiles = null
+                        false
+                    }
+                }
             }
         }
         setContentView(web)
@@ -131,6 +172,31 @@ class MainActivity : Activity() {
         pendingMic = null
         if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) req.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
         else req.deny()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            REQ_SAVE -> {
+                val text = pendingSave
+                pendingSave = null
+                val uri = data?.data
+                if (resultCode != RESULT_OK || uri == null || text == null) {
+                    saved("cancel")
+                    return
+                }
+                val ok = try {
+                    contentResolver.openOutputStream(uri, "w")?.use { it.write(text.toByteArray(Charsets.UTF_8)) } != null
+                } catch (e: Exception) {
+                    false
+                }
+                saved(if (ok) "ok" else "error")
+            }
+            REQ_FILE -> {
+                pendingFiles?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data))
+                pendingFiles = null
+            }
+        }
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -183,6 +249,8 @@ class MainActivity : Activity() {
 
     private companion object {
         const val REQ_MIC = 7
+        const val REQ_SAVE = 8
+        const val REQ_FILE = 9
 
         /** Outputs that can play real bass: headphones, headsets, Bluetooth and USB audio, line out, HDMI. */
         val BUILTIN_SPEAKERS = setOf(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER, 24 /* TYPE_BUILTIN_SPEAKER_SAFE, API 30 */)

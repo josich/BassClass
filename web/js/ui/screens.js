@@ -12,6 +12,8 @@ import { starButton, dragToReorder } from './favorites.js';
 import { courseBlock, sessionBlock, playerLevel } from './course.js';
 import { resetCourse, placed, anyProgress } from '../course/progress.js';
 import { replaceHash, goBack, canGoBack } from './nav.js';
+import { saveBackup, parseBackup, restoreBackup } from '../backup.js';
+import { resetLog } from '../practiceLog.js';
 
 export const go = (hash) => { location.hash = hash; };
 export const exHref = (id, params) => {
@@ -346,6 +348,26 @@ export function settingsScreen(main) {
     return h('div', { class: 'range-row' }, el, pct);
   };
   const field = (label, control, hint) => h('div', { class: 'field' }, h('div', { class: 'field-head' }, h('label', {}, label), hint ? infoBtn(hint, `About ${label.toLowerCase()}`) : null), control);
+  // backup: one file with everything stored; loading one replaces this device's records, then reloads
+  const save = () => {
+    if (saveBackup() === 'download') { toast('Backup saved to your downloads', 2500); return; }
+    addEventListener('bassclass-saved', (e) => toast({ ok: 'Backup saved', cancel: 'Backup not saved', error: 'The backup could not be saved' }[e.detail] || 'Backup not saved', 2500), { once: true });
+  };
+  const fileIn = h('input', { type: 'file', accept: '.json,application/json', class: 'hidden-file', onChange: async () => {
+    const file = fileIn.files[0];
+    fileIn.value = '';
+    if (!file) return;
+    try {
+      const { saved, data } = parseBackup(await file.text());
+      const when = saved ? saved.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }) : 'an unknown date';
+      if (!confirm(`Load the backup from ${when}? It replaces the progress, course, sessions, favourites, practice log and settings on this device.`)) return;
+      restoreBackup(data);
+      toast('Backup loaded');
+      setTimeout(() => location.reload(), 700);
+    } catch (err) {
+      toast(err.message || 'This file could not be read', 3000);
+    }
+  } });
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('h1', {}, 'Settings')),
     h('div', { class: 'form' },
@@ -357,8 +379,12 @@ export function settingsScreen(main) {
       field('Metronome clicks', seg('clickSubs', [[false, 'Beats only'], [true, 'Beats + subdivisions']])),
       field('Bass volume', range('bassVol', 0, 2, 0.1, 2)),
       field('Metronome volume', range('clickVol', 0, 1.5, 0.075, 1.5)),
+      field('Backup', h('div', { class: 'row' },
+        h('button', { class: 'btn', onClick: save }, '💾 Save a backup'),
+        h('button', { class: 'btn', onClick: () => fileIn.click() }, '📂 Load a backup'), fileIn),
+      ['💾 One file: progress, course, sessions, favourites, practice log and settings', '📂 Load it on a new phone, or to go back to it: it replaces what is on this device', '☁ Keep the file somewhere safe: Drive, e-mail, a computer']),
       field('Progress', h('div', { class: 'row' },
-        h('button', { class: 'btn', onClick: () => { if (confirm('Reset all progress, the course included?')) { resetProgress(); resetCourse(); toast('Progress reset'); } } }, 'Reset progress'),
+        h('button', { class: 'btn', onClick: () => { if (confirm('Reset all progress, the course included?')) { resetProgress(); resetCourse(); resetLog(); toast('Progress reset'); } } }, 'Reset progress'),
         h('button', { class: 'btn', onClick: () => {
           saveSettings({ ...DEFAULT_SETTINGS });
           A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol });

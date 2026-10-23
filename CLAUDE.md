@@ -33,6 +33,7 @@
 - Sound: CC0 Karoryfer "darkblack" bass samples in `web/audio/bass/` (B0–E4, plus ghost notes); `web/js/audio.js` falls back to a synth.
 - Design: navy/teal/periwinkle/peach palette (no brown fretboard), real string-gauge proportions, root markers drawn as rounded squares. Keep this look.
 - Downloading anything new (samples, packages, SDKs) needs the user's explicit OK first.
+- Practice log and backup (user, 2026-10-23, roadmap phase 1): `web/js/practiceLog.js` counts the minutes the player plays, per local day (`bassclass.log.v1`; a run with no touch or key for 20 minutes stops counting), and Home shows the last 7 days as bars in the session's foot row (not a block of its own). `web/js/backup.js` saves every `bassclass.*` record to one JSON file (Settings → Backup) and loads one back (it replaces them all, then reloads). In the APK, saving goes through `BassClassNative.saveFile` (Android's "Save to" picker, answered by a `bassclass-saved` event) and loading through the WebView's file chooser. Every stored key starts with `bassclass.`, so backups carry it.
 - Jazz licks (`curriculum/licks.js`) are ORIGINAL phrases in standard jazz vocabulary, notated in C (or C minor) and transposed. Never paste note-for-note transcriptions of copyrighted recorded solos.
 
 ## Designer agent (user, 2026-10-22)

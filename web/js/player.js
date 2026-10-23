@@ -1,6 +1,7 @@
 // Sample-accurate exercise playback (lookahead scheduler) with UI sync callbacks.
 import * as A from './audio.js';
 import { harmonyAt } from './harmony.js';
+import { logPlaying } from './practiceLog.js';
 
 const LOOKAHEAD = 0.12;   // seconds scheduled ahead
 const TICK_MS = 25;
@@ -123,6 +124,7 @@ export class Player {
     this._timer = setInterval(() => this._tick(), TICK_MS);
     this._tick();
     this._frame();
+    logPlaying(true);
     this.cb.onState?.(true);
   }
 
@@ -136,6 +138,7 @@ export class Player {
     clearInterval(this._timer);
     cancelAnimationFrame(this._raf);
     this.queue = [];
+    logPlaying(false);
     this.cb.onState?.(false);
   }
 
