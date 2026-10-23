@@ -14,7 +14,7 @@ export const DEGREES = ['I', '♭II', 'II', '♭III', 'III', 'IV', '♯IV', 'V',
 /** The qualities offered, as lead sheets write them: triads, 7ths, 6ths, 9ths and 13ths, altered dominants. */
 export const QUALITIES = [
   ['maj', 'maj'], ['min', 'm'], ['dim', '°'], ['aug', '+'], ['sus2', 'sus2'], ['sus4', 'sus4'],
-  ['dom7', '7'], ['maj7', 'maj7'], ['min7', 'm7'], ['m7b5', 'ø7'], ['dim7', '°7'], ['mMaj7', 'm(maj7)'], ['dom7sus4', '7sus4'],
+  ['dom7', '7'], ['maj7', 'maj7'], ['min7', 'm7'], ['m7b5', 'm7♭5'], ['dim7', '°7'], ['mMaj7', 'm(maj7)'], ['dom7sus4', '7sus4'],
   ['maj6', '6'], ['min6', 'm6'], ['dom9', '9'], ['maj9', 'maj9'], ['min9', 'm9'], ['dom13', '13'],
   ['dom7b9', '7♭9'], ['dom7s9', '7♯9'], ['dom7s11', '7♯11'], ['dom7alt', '7alt'],
 ];
@@ -28,7 +28,7 @@ export const usualQuality = (d, minor = false) => (minor ? USUAL_MINOR : USUAL)[
 export const MINE_START = [{ d: 0, q: 'maj7', b: 4 }, { d: 9, q: 'min7', b: 4 }, { d: 2, q: 'min7', b: 4 }, { d: 7, q: 'dom7', b: 4 }];
 const MINORISH = ['min', 'min7', 'min6', 'min9', 'mMaj7', 'm7b5', 'dim', 'dim7'];
 const SUFFIX = {
-  dim: '°', aug: '+', sus2: 'sus2', sus4: 'sus4', dom7: '7', maj7: 'maj7', min7: '7', m7b5: 'ø', dim7: '°7', mMaj7: '(maj7)',
+  dim: '°', aug: '+', sus2: 'sus2', sus4: 'sus4', dom7: '7', maj7: 'maj7', min7: '7', m7b5: 'ø7', dim7: '°7', mMaj7: '(maj7)',
   dom7sus4: '7sus4', maj6: '6', min6: '6', dom9: '9', maj9: 'maj9', min9: '9', dom13: '13', dom7b9: '7♭9', dom7s9: '7♯9', dom7s11: '7♯11', dom7alt: '7alt',
 };
 /** A chord's numeral: ii, V7, ♭VII7, viiø, Isus2. */

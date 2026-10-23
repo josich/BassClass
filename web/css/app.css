@@ -477,6 +477,7 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .pc-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #aab6ff; }
 .pc-total { font-size: 22px; letter-spacing: -0.01em; }
 .pc-sub { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-sub.wrap { white-space: normal; max-width: 150px; line-height: 1.25; }
 .pc-streak { font-style: normal; margin-left: 8px; padding: 1px 7px; border-radius: 99px; background: rgba(227, 135, 110, 0.2); color: #ffc2ae; font-weight: 600; }
 .pc-chart { position: relative; flex: 1 1 0; min-width: 110px; max-width: 420px; margin-left: auto; padding-left: 46px; }
 .pc-goal-label { position: absolute; left: 0; transform: translateY(50%); font-size: 9.5px; line-height: 12px; color: #aab6ff; white-space: nowrap; pointer-events: none; }
@@ -509,6 +510,7 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
   .pc-day { width: 20px; }
   .pc-day em { font-size: 9px; }
   .home-head .level-btn { min-width: 76px; padding: 8px 8px; }
+  .pc-sub.wrap { max-width: 124px; }
 }
 /* portrait phones (web): the card wraps, the days take the whole width under the ring and the totals */
 @media (max-width: 520px) {
@@ -688,6 +690,8 @@ details.les-more > ul { margin: 0 0 10px; }
 /* the room's one Start/Stop, floating at the bottom right wherever the page is scrolled */
 .room-fab { position: fixed; right: 18px; bottom: 16px; z-index: 40; min-width: 132px; height: 52px; justify-content: center; gap: 8px; border-radius: 99px; font-size: 17px; padding: 0 22px; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45); }
 .room-fab { touch-action: none; cursor: grab; }
+.room-fab .fab-grip { display: grid; margin-left: -10px; opacity: 0.55; }
+.room-fab .fab-grip svg { width: 16px; height: 16px; }
 .room-fab.dragging { cursor: grabbing; transform: scale(1.06); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55); }
 .room-fab span { display: inline-flex; }
 .room-fab span svg { width: 20px; height: 20px; }
@@ -718,9 +722,9 @@ details.les-more > ul { margin: 0 0 10px; }
 .pick-change { margin-left: auto; flex: none; display: flex; align-items: center; gap: 2px; color: var(--accent); font-weight: 600; font-size: 13px; }
 .pick-change svg { width: 16px; height: 16px; }
 .harm-row .pick-now { flex: 1 1 220px; width: auto; min-height: 44px; }
-.drums.off .pick-now, .drums.off .range-line { opacity: 0.6; }
+.drums.off .pick-text, .drums.off .range-line { opacity: 0.6; }
 /* the shared picker: over the screen, a search, group chips, cards */
-.picker-backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(5, 7, 20, 0.62); display: flex; align-items: center; justify-content: center; padding: 10px; }
+.picker-backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(5, 7, 20, 0.62); display: flex; align-items: flex-start; justify-content: center; padding: 10px; }
 .picker { display: flex; flex-direction: column; gap: 8px; width: min(760px, 100%); max-height: 100%; padding: 10px 12px 12px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5); }
 .picker-head { display: flex; align-items: center; gap: 8px; }
 .picker-head h2 { margin: 0; font-size: 16px; }
@@ -728,7 +732,7 @@ details.les-more > ul { margin: 0 0 10px; }
 .picker-close { width: 34px; height: 34px; }
 .picker-search { width: 100%; min-height: 36px; padding: 6px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 14px; }
 .picker-chip-row { display: flex; gap: 6px; }
-.picker-chip-row button { flex: none; padding: 5px 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); font-weight: 600; font-size: 13px; white-space: nowrap; }
+.picker-chip-row button { flex: none; min-height: 36px; padding: 5px 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); font-weight: 600; font-size: 13px; white-space: nowrap; }
 .picker-chip-row button.on { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
 .picker-grid { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; align-content: start; overscroll-behavior: contain; }
 .picker-card { display: flex; align-items: stretch; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); min-height: 50px; }
@@ -773,8 +777,8 @@ input[type="range"] { touch-action: pan-y; }
 .mine-line .side-scroll { flex: 1; }
 .mine-line .seg { flex-wrap: nowrap; }
 .mine-line .seg.wrap { flex-wrap: wrap; }
-.mine-line .seg button { min-height: 30px; padding: 3px 8px; font-size: 13px; white-space: nowrap; }
-.mine-line.end { justify-content: flex-end; }
+.mine-line .seg button { min-height: 36px; min-width: 38px; padding: 4px 9px; font-size: 13.5px; white-space: nowrap; }
+.mine-line.end { justify-content: flex-start; padding-left: 60px; }
 .chord-row { display: flex; gap: 6px; }
 /* the harmony's bar above the Neck's board: Follow, then the chords on one sideways row */
 .neck-bar:empty { display: none; }

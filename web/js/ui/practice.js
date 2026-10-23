@@ -174,7 +174,8 @@ export function practiceScreen(main, params = {}) {
     lights.replaceChildren(...Array.from({ length: room.beats }, (_, i) => h('i', { class: room.accent && starts.has(i) ? (i ? 'accent group' : 'accent') : '' })));
   };
   const drawPlay = () => {
-    playBtn.replaceChildren(h('span', { html: icon(engine.playing ? 'pause' : 'play') }), engine.playing ? 'Stop' : 'Start');
+    // (a six-dot grip at its left: it can be dragged anywhere; user, 2026-10-23)
+    playBtn.replaceChildren(h('span', { class: 'fab-grip', html: icon('grip'), 'aria-hidden': 'true' }), h('span', { html: icon(engine.playing ? 'pause' : 'play') }), engine.playing ? 'Stop' : 'Start');
     playBtn.classList.toggle('on', engine.playing);
   };
   // the beat lights follow the sound: each tick lights when its time comes
@@ -500,12 +501,21 @@ export function practiceScreen(main, params = {}) {
   const progGroup = (k) => HARMONY_PROGS.find(([, keys]) => keys.includes(k))?.[0] || '';
   const progSub = (k) => (k === MINE
     ? `Yours · ${room.myProg.length} chord${room.myProg.length === 1 ? '' : 's'}${room.myMinor ? ' · minor' : ''}`
-    : `${progGroup(k)} · ${PROGS[k].chords.reduce((a, c) => a + (c[2] ?? 4), 0) / 4} bars${isMinor(k) ? ' · minor' : ''}`);
+    : progLine(k));
+  const progLine = (k) => {
+    const name = progName(k), group = progGroup(k);
+    const bars = PROGS[k].chords.reduce((a, c) => a + (c[2] ?? 4), 0) / 4;
+    return [
+      name.toLowerCase().includes(group.toLowerCase()) ? null : group,
+      name.includes(`${bars} bar`) ? null : `${bars} bars`,
+      isMinor(k) && !/minor/i.test(`${name} ${group}`) ? 'minor' : null,
+    ].filter(Boolean).join(' · ');
+  };
   const openProgs = () => {
     closePicker = openPicker({
       title: 'Progressions', host: main,
       groups: HARMONY_PROGS.map(([g]) => ({ key: g, name: g })),
-      items: HARMONY_PROGS.flatMap(([g, keys]) => keys.map((k) => ({ key: k, name: progName(k), group: g, sub: progSub(k).replace(/^[^·]*· /, '') }))),
+      items: HARMONY_PROGS.flatMap(([g, keys]) => keys.map((k) => ({ key: k, name: progName(k), group: g, sub: progSub(k).split(' · ').filter((w) => w !== g && w !== 'Yours').join(' · ') }))),
       current: room.hProg,
       favs: room.progFavs, recent: room.progRecent,
       onFav: (k, on) => set({ progFavs: favsWith(room.progFavs, k, on) }),

@@ -100,7 +100,7 @@ export function practiceCard() {
         h('span', { class: 'pc-label' }, 'Last 7 days'),
         h('b', { class: 'pc-total' }, fmtMin(total)),
         total < DAY_MIN
-          ? h('span', { class: 'pc-sub' }, 'Play an exercise or the Practice room to start')
+          ? h('span', { class: 'pc-sub wrap' }, 'Play an exercise or the Practice room to start')
           : h('span', { class: 'pc-sub' }, `${on} day${on === 1 ? '' : 's'} practised`, run >= 2 ? h('em', { class: 'pc-streak' }, `🔥 ${run}`, h('span', { class: 'wide-only' }, ' in a row')) : null)),
       h('div', { class: 'pc-chart' }, h('span', { class: 'pc-goal-label', style: { bottom: goalAt } }, `🎯 ${goal}′`), scroller),
       infoBtn(INFO, 'About your practice log'));
