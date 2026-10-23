@@ -100,16 +100,20 @@ function tempoName(bpm) {
 
 /** A button that repeats while held (− and + on the tempo); `btn.stopHold()` ends a hold (leaving the room). */
 function holdButton(label, title, step) {
-  let wait = null, rep = null;
-  const stop = () => { clearTimeout(wait); clearInterval(rep); wait = rep = null; };
+  let wait = null, rep = null, tap = false;
+  const stop = () => { clearTimeout(wait); clearInterval(rep); wait = rep = null; tap = false; };
   const btn = h('button', { class: 'btn round', title, 'aria-label': title }, label);
   btn.stopHold = stop;
   btn.addEventListener('pointerdown', (e) => {
     e.preventDefault();
-    step();
-    wait = setTimeout(() => { rep = setInterval(step, 70); }, 380);
+    stop();
+    // (a touch may be the start of a scroll: it steps on release, or once held; a scroll cancels it)
+    tap = e.pointerType === 'touch';
+    if (!tap) step();
+    wait = setTimeout(() => { if (tap) { tap = false; step(); } rep = setInterval(step, 70); }, 380);
   });
-  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) btn.addEventListener(ev, stop);
+  btn.addEventListener('pointerup', () => { if (tap) step(); stop(); });
+  for (const ev of ['pointerleave', 'pointercancel']) btn.addEventListener(ev, stop);
   // (keyboard: Enter or Space on the focused button)
   btn.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); step(); } });
   return btn;

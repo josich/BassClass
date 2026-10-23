@@ -1,5 +1,5 @@
 // App bootstrap: navigation rail + hash router.
-import { h, icon, toast } from './ui/dom.js';
+import { h, icon, toast, guardSliders } from './ui/dom.js';
 import { byId, byNumber } from './curriculum/index.js';
 import { renderExercise } from './ui/exercise.js';
 import { loadBank, setAudioOptions } from './audio.js';
@@ -161,6 +161,8 @@ function route() {
 
 window.addEventListener('hashchange', route);
 route();
+// a scroll that starts on a slider does not move it
+guardSliders();
 // saved sound settings apply everywhere (Neck, tuner reference notes), not only in exercises
 setAudioOptions({ bassVol: settings.bassVol, clickVol: settings.clickVol });
 // fetch the recorded bass samples in the background (decoded on first sound)

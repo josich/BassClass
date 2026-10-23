@@ -158,17 +158,13 @@ export function infoBtn(text, label = 'About this') {
 
 /**
  * A row of chips or tabs that scrolls sideways when it does not fit, so it can take any number of them
- * (genres, groups). A mouse wheel scrolls it sideways; an edge fades and shows a ‹ or › button while
- * items are hidden beyond it; the item marked `.on` is brought fully into view. `from`: the scroll
- * position to start at (a row drawn again keeps its place). Returns the wrapper to place.
+ * (genres, groups). A mouse wheel scrolls it sideways; an edge fades while items are hidden beyond it;
+ * the item marked `.on` is brought fully into view. `from`: the scroll position to start at (a row
+ * drawn again keeps its place). Returns the wrapper to place.
  */
 export function sideScroll(row, { from = 0 } = {}) {
   row.classList.add('ss-row');
-  const btn = (dir) => h('button', {
-    class: `ss-btn ${dir < 0 ? 'prev' : 'next'}`, type: 'button', tabindex: -1, 'aria-label': dir < 0 ? 'Scroll left' : 'Scroll right', html: icon(dir < 0 ? 'prev' : 'next'),
-    onClick: () => row.scrollBy({ left: dir * row.clientWidth * 0.7, behavior: 'smooth' }),
-  });
-  const wrap = h('div', { class: 'side-scroll' }, row, btn(-1), btn(1));
+  const wrap = h('div', { class: 'side-scroll' }, row);
   const edges = () => {
     wrap.classList.toggle('more', row.scrollLeft > 2);
     wrap.classList.toggle('after', row.scrollLeft < row.scrollWidth - row.clientWidth - 2);
@@ -188,7 +184,7 @@ export function sideScroll(row, { from = 0 } = {}) {
       row.scrollLeft = from;
       const on = row.querySelector('.on');
       if (on) {
-        const pad = 36;
+        const pad = 24;
         if (on.offsetLeft - pad < row.scrollLeft) row.scrollLeft = on.offsetLeft - pad;
         else if (on.offsetLeft + on.offsetWidth + pad > row.scrollLeft + row.clientWidth) row.scrollLeft = on.offsetLeft + on.offsetWidth + pad - row.clientWidth;
       }
@@ -197,4 +193,40 @@ export function sideScroll(row, { from = 0 } = {}) {
   });
   ro.observe(row);
   return wrap;
+}
+
+/**
+ * Sliders ignore a touch that is really a scroll: a touch moves a slider only once it goes sideways, so a
+ * swipe up or down that starts on one (or a tap that stops a fling) leaves its value alone. Installed once
+ * for every slider in the app; the mouse and the keyboard are untouched.
+ */
+export function guardSliders() {
+  const SLOP = 8;   // px before a touch counts as a move
+  let g = null;     // the touch on a slider: { el, x, y, v0 (its value before), want (where the slider went), side, dead }
+  document.addEventListener('touchstart', (e) => {
+    const el = e.target;
+    g = el instanceof HTMLInputElement && el.type === 'range' && e.touches.length === 1
+      ? { el, x: e.touches[0].clientX, y: e.touches[0].clientY, v0: el.value, want: null, side: false, dead: false }
+      : null;
+  }, { capture: true, passive: true });
+  document.addEventListener('touchmove', (e) => {
+    if (!g || g.side || g.dead) return;
+    const dx = Math.abs(e.touches[0].clientX - g.x), dy = Math.abs(e.touches[0].clientY - g.y);
+    if (dx > SLOP && dx > 1.5 * dy) {
+      // sideways: the slider was meant; it takes the place the finger has reached
+      g.side = true;
+      if (g.want != null && g.want !== g.el.value) { g.el.value = g.want; g.el.dispatchEvent(new Event('input', { bubbles: true })); }
+    } else if (dy > SLOP) g.dead = true;   // a scroll: the value stays
+  }, { capture: true, passive: true });
+  // until then the slider's own moves are held back (and its value kept)
+  window.addEventListener('input', (e) => {
+    if (!g || e.target !== g.el || g.side) return;
+    g.want = g.el.value;
+    g.el.value = g.v0;
+    e.stopImmediatePropagation();
+  }, true);
+  window.addEventListener('change', (e) => { if (g && e.target === g.el && !g.side) e.stopImmediatePropagation(); }, true);
+  const end = () => { g = null; };
+  document.addEventListener('touchend', end, true);
+  document.addEventListener('touchcancel', end, true);
 }
