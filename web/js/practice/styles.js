@@ -254,6 +254,57 @@ export function groupStarts(s) {
   return out;
 }
 
+/**
+ * A pattern played in another grouping of its bar (user, 2026-10-23: in odd metres the drums follow the
+ * player's accents, 7/8 2 + 2 + 3 played 3 + 2 + 2), as a drummer regroups: the bar is cut into the
+ * pattern's own groups and the player's groups take them in order, the first from its first (the bar's
+ * downbeat), the last from its last (the one that leads back to beat 1), the others from its middle ones.
+ * A group longer than its source gains the bar's plainest beat after its head; a shorter one loses its
+ * plainest beats, never its head, which keeps the group's accent. A pattern without groups (4/4, 6/8...:
+ * the groove is the grouping), or `groups` of fewer than two, plays as written.
+ */
+const regrouped = new Map();
+export function regroup(s, groups) {
+  if (!s?.groups || !groups || groups.length < 2 || groups.join() === s.groups.join()
+    || groups.reduce((a, g) => a + g, 0) !== s.beats || groups.some((g) => !(g >= 1))) return s;
+  const id = `${s.key}:${groups.join()}`;
+  if (regrouped.has(id)) return regrouped.get(id);
+  const per = s.beats * s.grid;
+  // each track over the pattern's whole length, and a beat's weight: its strokes, time-keeping ones barely
+  const full = Object.entries(s.tracks).map(([p, t]) => [p, Array.from({ length: s.bars * per }, (_, i) => t[i % t.length])]);
+  const weight = (bar, b) => full.reduce((w, [p, t]) => {
+    let x = 0;
+    for (let j = 0; j < s.grid; j++) x += t[(bar * s.beats + b) * s.grid + j];
+    return w + (TIMEKEEP.has(p) ? x / 100 : x);
+  }, 0);
+  const cells = [];
+  s.groups.reduce((at, g) => { cells.push(Array.from({ length: g }, (_, k) => at + k)); return at + g; }, 0);
+  const n = groups.length, m = cells.length;
+  // (the middle groups take the middle cells in proportion: 9/8 2 + 2 + 2 + 3 as 3 + 3 + 3 keeps its middle kick)
+  const middle = (i) => Math.min(m > 2 ? m - 2 : m - 1, Math.max(m > 2 ? 1 : 0, Math.round((i * (m - 1)) / (n - 1))));
+  const source = (i) => cells[i === 0 ? 0 : i === n - 1 ? m - 1 : middle(i)];
+  const heads = new Set(cells.map((c) => c[0]));
+  const tracks = Object.fromEntries(full.map(([p]) => [p, []]));
+  for (let bar = 0; bar < s.bars; bar++) {
+    const inner = [...Array(s.beats).keys()].filter((b) => !heads.has(b));
+    const plain = inner.reduce((a, b) => (weight(bar, b) < weight(bar, a) ? b : a), inner[0] ?? s.beats - 1);
+    const order = groups.flatMap((g, i) => {
+      const beats = [...source(i)];
+      while (beats.length > g) {
+        let k = 1;
+        for (let j = 2; j < beats.length; j++) if (weight(bar, beats[j]) < weight(bar, beats[k])) k = j;
+        beats.splice(k, 1);
+      }
+      while (beats.length < g) beats.splice(1, 0, plain);
+      return beats;
+    });
+    for (const [p, t] of full) for (const b of order) for (let j = 0; j < s.grid; j++) tracks[p].push(t[(bar * s.beats + b) * s.grid + j]);
+  }
+  const out = { ...s, groups: [...groups], tracks, written: s.groups };
+  regrouped.set(id, out);
+  return out;
+}
+
 /** The subdivisions a pattern offers: notes per beat; 3 on a 16th pattern swings it, 2 on a triplet one is the shuffle. */
 export function levelsOf(s) {
   if (s.beat === 'e') return [1, 2];

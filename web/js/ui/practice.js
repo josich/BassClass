@@ -5,8 +5,8 @@ import { h, icon, infoBtn, toast, sideScroll } from './dom.js';
 import * as A from '../audio.js';
 import { Room } from '../practice/engine.js';
 import { room, saveRoom, SUBS } from '../practice/state.js';
-import { STYLES, GENRES, levelsOf } from '../practice/styles.js';
-import { accentsFor, groupingOf } from '../practice/accents.js';
+import { STYLES, GENRES, levelsOf, regroup } from '../practice/styles.js';
+import { accentsFor, groupingOf, groupsOf } from '../practice/accents.js';
 import { settings, saveSettings } from '../store.js';
 import { loadKit, kitReady } from '../drums.js';
 import { neckPanel } from './neck.js';
@@ -23,6 +23,7 @@ const INFO = [
   '📈 Speed up: a few BPM faster every few bars, up to a ceiling',
   '🔈 Click off: the beat lights and the drums keep the time',
   '👆 Tap a beat light to accent it and make your groupings (3 + 2 + 2…); ↺ goes back to the usual one',
+  '🥁 In an odd metre the drums play your grouping too',
   '✋ Drag the Start button anywhere on the screen',
 ];
 const DRUM_INFO = [
@@ -186,6 +187,7 @@ export function practiceScreen(main, params = {}) {
         saveRoom({ accents: { ...room.accents, [room.beats]: next } });
         A.click(A.now() + 0.01, next.includes(i) ? (i ? 1.5 : 2) : 1);
         drawLights();
+        if (room.drums) drawDrums();
       },
     })));
     // the grouping they make, and ↺ back to the bar's usual one when the player changed it
@@ -195,7 +197,7 @@ export function practiceScreen(main, params = {}) {
       g ? h('span', {}, g) : null,
       own ? h('button', {
         class: 'grouping-reset', type: 'button', title: 'Back to the usual grouping', 'aria-label': 'Back to the usual grouping',
-        onClick: () => { const rest = { ...room.accents }; delete rest[room.beats]; saveRoom({ accents: rest }); drawLights(); },
+        onClick: () => { const rest = { ...room.accents }; delete rest[room.beats]; saveRoom({ accents: rest }); drawLights(); if (room.drums) drawDrums(); },
       }, '↺') : null,
     ].filter(Boolean));
   };
@@ -438,6 +440,10 @@ export function practiceScreen(main, params = {}) {
   /** A pattern chosen: the drums on, with its metre, its usual subdivision and tempo. */
   const pickStyle = (key) => {
     const s = STYLES[key];
+    // (an odd-metre pattern brings its own grouping: the player's accents in that metre give way to it)
+    const accents = { ...room.accents };
+    if (s.groups) delete accents[s.beats];
+    saveRoom({ accents });
     set({ style: key, genre: s.genre, drums: true, beats: s.beats, sub: s.sub, ...(room.speedUp ? ceiling(s.bpm) : {}) });
     setTempo(s.bpm);
     ensureKit();
@@ -453,6 +459,11 @@ export function practiceScreen(main, params = {}) {
     if (on) ensureKit();
     redraw();
     showTempo(room.bpm);
+  };
+  /** " · played 3 + 2 + 2" when the player's accents regroup an odd-metre pattern. */
+  const played = (s) => {
+    const r = regroup(s, groupsOf(s.beats, accentsFor(room, s)));
+    return r !== s && room.beats === s.beats ? ` · played ${r.groups.join(' + ')}` : '';
   };
   const drawDrums = () => {
     const vol = h('input', { type: 'range', min: 0, max: 100, step: 1, value: room.drumVol, 'aria-label': 'Drums volume' });
@@ -472,7 +483,8 @@ export function practiceScreen(main, params = {}) {
           onClick: () => drumsOn(v),
         }, v ? 'On' : 'Off')))),
       // the pattern playing; Change opens them all (the shared picker: by genre, a search, ★ favourites)
-      pickNow(s.name, `${GENRES.find((g) => g.key === s.genre).name} · ${styleSub(s)}`, openDrums),
+      // (in the player's own grouping, the line says so)
+      pickNow(s.name, `${GENRES.find((g) => g.key === s.genre).name} · ${styleSub(s)}${played(s)}`, openDrums),
       h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal));
   };
   if (room.drums) ensureKit();

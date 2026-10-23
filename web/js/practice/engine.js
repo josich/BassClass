@@ -5,7 +5,8 @@
 import * as A from '../audio.js';
 import { logPlaying } from '../practiceLog.js';
 import { playDrum, kitReady, styleGain, trackGain } from '../drums.js';
-import { STYLES, levelsOf, clickTimes, beatHits } from './styles.js';
+import { STYLES, levelsOf, clickTimes, beatHits, regroup } from './styles.js';
+import { groupsOf } from './accents.js';
 import { progression, droneMidis } from './harmony.js';
 
 const LOOKAHEAD = 0.12;   // seconds scheduled ahead
@@ -40,9 +41,10 @@ export class Room {
     const restart = ['harmony', 'hProg', 'hKey', 'beats', 'myProg', 'myMinor'].some(changed);
     // (another sound plays from the next beat, the progression going on)
     if (changed('hSound')) this.hSig = null;
-    const regroup = restart || changed('style') || changed('drums');
+    // (the player's accents regroup an odd-metre pattern, and the chords' half bars with it)
+    const reshape = restart || changed('style') || changed('drums') || changed('accents');
     Object.assign(this.o, patch);
-    if (regroup) this.chords = null;
+    if (reshape) this.chords = null;
     if (restart) this.hRestart = true;
     if ('bpm' in patch) {
       this.bpm = patch.bpm;
@@ -62,13 +64,19 @@ export class Room {
 
   /** The progression's chords (cached until the key, progression or metre changes). */
   _chords() {
-    const { harmony, hProg, hKey, beats, notation, drums, style, myProg, myMinor } = this.o;
+    const { harmony, hProg, hKey, beats, notation, myProg, myMinor } = this.o;
     if (harmony !== 'chords') return null;
     if (!this.chords) {
-      this.chords = progression(hProg, hKey, beats, { notation }, drums ? STYLES[style]?.groups : null, myProg, myMinor);
+      this.chords = progression(hProg, hKey, beats, { notation }, this._pattern()?.groups, myProg, myMinor);
       this.hTotal = this.chords.reduce((a, c) => a + c.beats, 0);
     }
     return this.chords;
+  }
+
+  /** The drum pattern playing (null with the drums off), in the player's grouping when it is an odd metre. */
+  _pattern() {
+    const { drums, style, beats, accents = [0] } = this.o;
+    return drums ? regroup(STYLES[style], groupsOf(beats, accents)) : null;
   }
 
   /**
@@ -166,14 +174,14 @@ export class Room {
   _tick() {
     const end = A.now() + LOOKAHEAD;
     while (this.next < end) {
-      const { beats, sub, accents = [0], click, play, mute, speedUp, upBy, upEvery, upTo = 660, drums, style } = this.o;
+      const { beats, sub, accents = [0], click, play, mute, speedUp, upBy, upEvery, upTo = 660, style } = this.o;
       if (this.beat >= beats) { this.beat = 0; this.bar++; }   // (fewer beats since the last one)
       const t0 = this.next, len = 60 / this.bpm;
       const count = this.bar < 0;
       // muted bars: `play` bars with the click (and drums), then `mute` bars of silence to keep the time alone
       const muted = !count && mute > 0 && this.bar % (play + mute) >= play;
       // with the drums on, the subdivision is the pattern's (its swing, shuffle or compound feel)
-      const s = drums ? STYLES[style] : null;
+      const s = this._pattern();
       const L = s && !levelsOf(s).includes(sub) ? s.sub : sub;
       // an accented beat: beat 1 the strong accent, any other a group's lighter one (the player's groupings)
       const level = accents.includes(this.beat) ? (this.beat === 0 ? 2 : 1.5) : 1;

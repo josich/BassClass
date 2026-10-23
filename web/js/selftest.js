@@ -8,7 +8,7 @@ import { CHANGED_STEPS } from './course/progress.js';
 import { CYCLE_OPTS } from './curriculum/common.js';
 import { NO_BACKING } from './harmony.js';
 import { makeCtx } from './fretboard.js';
-import { STYLES, levelsOf } from './practice/styles.js';
+import { STYLES, levelsOf, regroup } from './practice/styles.js';
 import { PIECES } from './drums.js';
 import * as T from './theory.js';
 
@@ -45,6 +45,23 @@ function checkDrums(problems) {
     if (!(s.bpm >= 30 && s.bpm <= 260)) problems.push(`drums ${s.key}: tempo ${s.bpm}`);
     if (!levelsOf(s).includes(s.sub)) problems.push(`drums ${s.key}: subdivision ${s.sub}`);
     if (!(s.beats >= 1 && s.beats <= 12)) problems.push(`drums ${s.key}: ${s.beats} beats`);
+    // an odd metre in every grouping the player can tap (groups of 1 to 4): whole bars, its downbeat kept,
+    // and each group starting on one of the pattern's own group heads
+    if (!s.groups) continue;
+    const per = s.beats * s.grid;
+    const heads = new Set();
+    s.groups.reduce((at, g) => { for (const [p, t] of Object.entries(s.tracks)) heads.add(`${p}:${t.slice(at * s.grid, (at + 1) * s.grid)}`); return at + g; }, 0);
+    const parts = (n) => (n === 0 ? [[]] : [1, 2, 3, 4].filter((g) => g <= n).flatMap((g) => parts(n - g).map((r) => [g, ...r])));
+    for (const groups of parts(s.beats).filter((g) => g.length > 1)) {
+      const r = regroup(s, groups);
+      const name = `drums ${s.key} as ${groups.join('+')}`;
+      if (groups.join() === s.groups.join() ? r !== s : r.groups.join() !== groups.join()) { problems.push(`${name}: not regrouped`); continue; }
+      for (const [p, t] of Object.entries(r.tracks)) {
+        if (t.length !== s.bars * per) problems.push(`${name}: ${p} has ${t.length} steps`);
+        if (t.slice(0, s.grid).join() !== s.tracks[p].slice(0, s.grid).join()) problems.push(`${name}: ${p} loses its downbeat`);
+        groups.reduce((at, g) => { if (!heads.has(`${p}:${t.slice(at * s.grid, (at + 1) * s.grid)}`)) problems.push(`${name}: ${p} group at ${at} has no head`); return at + g; }, 0);
+      }
+    }
   }
 }
 

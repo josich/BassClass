@@ -22,6 +22,12 @@ export function accentsFor(room, pattern) {
   return own ? [...own] : defaultAccents(room.beats, pattern);
 }
 
+/** The groups the accents make for the drums, from beat 1 ([3, 2, 2]); null with fewer than two. */
+export function groupsOf(beats, list) {
+  const at = [...new Set([0, ...list])].sort((a, b) => a - b);
+  return at.length < 2 ? null : at.map((b, i) => (at[i + 1] ?? beats) - b);
+}
+
 /** The grouping the accents make, from beat 1 ("2 + 2 + 3"); empty with fewer than two groups. */
 export function groupingOf(beats, list) {
   const at = [...list].sort((a, b) => a - b);
