@@ -1,5 +1,6 @@
 // The Neck block of the Practice room (it was the Neck explorer screen): a scale, chord or the plain
-// notes on the whole neck, by degree or name; a tap on any fret plays it.
+// notes on the whole neck, by degree or name; a tap on any fret plays it. While the room's harmony plays,
+// it can follow it: the chord sounding (or, over a drone, the chosen scale on the drone's key).
 import { h, infoBtn } from './dom.js';
 import { settings } from '../store.js';
 import { makeCtx } from '../fretboard.js';
@@ -25,6 +26,7 @@ export function neckPanel() {
   const S = settings;
   const ctx = makeCtx(S);
   let rootPc = 0, set = 's:ionian', label = 'degree', upTo = 12;
+  let lead = null;   // the harmony followed: { root, type (null over a drone), name }
   const boardWrap = h('div', { class: 'board neck-board' });
   const rootSel = h('select', { class: 'mini-sel', 'aria-label': 'Key' });
   const setSel = h('select', { class: 'mini-sel', 'aria-label': 'Scale or chord' }, EXPLORE_SETS.map(([v, l]) => h('option', { value: v }, l)));
@@ -40,17 +42,23 @@ export function neckPanel() {
   const fb = new FretboardView(host, {
     onTap: (s, f) => { A.playNote(ctx.tuning[s] + f, A.now() + 0.01, 1); fb.pluck(s, 'none'); },
   });
+  const shown = () => (lead?.type ? `c:${lead.type}` : set);
   const ivsOf = () => {
-    const [kind, k] = set.split(':');
+    const [kind, k] = shown().split(':');
     if (kind === 's') return T.SCALES[k].iv;
     if (kind === 'c') return T.CHORDS[k].iv;
     return null;
   };
   const render = () => {
     const ivs = ivsOf() || ['1', '3', '5'];
-    rootSel.replaceChildren(...T.CHROMATIC_PC.map((p) => h('option', { value: p, selected: p === rootPc }, T.noteName(T.bestRoot(p, ivs), S.notation))));
+    const pc = lead ? T.pc(lead.root) : rootPc;
+    rootSel.replaceChildren(...T.CHROMATIC_PC.map((p) => h('option', { value: p, selected: p === pc }, T.noteName(T.bestRoot(p, ivs), S.notation))));
+    // (following the harmony, the key and the chord are the harmony's)
+    rootSel.disabled = !!lead;
+    setSel.disabled = !!lead?.type;
+    el.classList.toggle('following', !!lead);
     fb.configure({ strings: ctx.tuning.length, names: ctx.names, tuning: ctx.tuning, lo: 0, hi: upTo, lefty: S.lefty, zone: null });
-    const root = T.bestRoot(rootPc, ivs);
+    const root = lead?.type ? lead.root : T.bestRoot(pc, ivs);
     const dots = [];
     const ivsList = ivsOf();
     const notes = ivsList ? ivsList.map((iv) => ({ iv, n: T.up(root, iv), pc: T.pc(T.up(root, iv)) })) : null;
@@ -70,12 +78,19 @@ export function neckPanel() {
       }
     });
     fb.setDots(dots);
-    info.textContent = notes ? `${T.noteName(root, S.notation)} ${set.startsWith('s') ? T.SCALES[set.slice(2)].name : T.CHORDS[set.slice(2)].name}: ${notes.map((x) => T.noteName(x.n, S.notation)).join(' – ')}   ·   tap any fret to hear it` : 'Natural notes are bright, sharps/flats are dim. Tap any fret to hear it.';
+    const what = lead?.type ? `🎹 ${lead.name}` : `${T.noteName(root, S.notation)} ${shown().startsWith('s') ? T.SCALES[shown().slice(2)].name : T.CHORDS[shown().slice(2)].name}`;
+    info.textContent = notes ? `${what}: ${notes.map((x) => T.noteName(x.n, S.notation)).join(' – ')}   ·   tap any fret to hear it` : 'Natural notes are bright, sharps/flats are dim. Tap any fret to hear it.';
   };
   rootSel.addEventListener('change', () => { rootPc = Number(rootSel.value); render(); });
   setSel.addEventListener('change', () => { set = setSel.value; render(); });
   labSel.addEventListener('change', () => { label = labSel.value; render(); });
   fretSel.addEventListener('change', () => { upTo = Number(fretSel.value); render(); });
   render();
-  return { el, dispose: () => fb.destroy() };
+  /** Follow the harmony: { root, type, name } (type null over a drone: the chosen scale on its key), or null to stop. */
+  const follow = (x) => {
+    if (JSON.stringify(x) === JSON.stringify(lead)) return;
+    lead = x;
+    render();
+  };
+  return { el, follow, dispose: () => fb.destroy() };
 }

@@ -9,6 +9,8 @@ import { STYLES, GENRES, levelsOf, groupStarts } from '../practice/styles.js';
 import { settings } from '../store.js';
 import { loadKit, kitReady } from '../drums.js';
 import { neckPanel } from './neck.js';
+import { HARMONY_PROGS, progName, progression, keyName } from '../practice/harmony.js';
+import * as T from '../theory.js';
 
 const INFO = [
   '⏱ Set the tempo and press Start (Space on a keyboard)',
@@ -17,6 +19,7 @@ const INFO = [
   '🔇 Muted bars: the click plays some bars and stops for others, you keep the time',
   '📈 Speed up: a few BPM faster every few bars, up to a ceiling',
   '🔈 Click off: the beat lights and the drums keep the time',
+  '✋ Drag the Start button anywhere on the screen',
 ];
 const DRUM_INFO = [
   '🥁 A drummer to play with: pick a genre, then a pattern, and press Start',
@@ -56,6 +59,12 @@ function subChoices(s) {
   return [[1, 'q1', 'Quarter notes'], [2, 'q2', '8ths'], [3, 'q3', 'Swing: the groove in triplets'], [4, 'q4', '16ths: the fills']];
 }
 const BEAT_ICON = { q: 'q1', e: 'e1', dq: 'dq' };
+const HARMONY_INFO = [
+  '🎹 Something to play over: a drone on a key, or a chord progression',
+  '🎼 Pick a key and a progression: pop and rock, blues, jazz, minor, vamps',
+  '🎸 On the neck: the chord sounding, its tones by degree (over a drone, your scale on its key)',
+  '⏱ It follows the metronome and the drums: start it with the floating button',
+];
 
 // The tempo range and slider of the user's PolyOrbit metronome. Nearly all practice sits between 60 and
 // 160, which an even 1–660 bar would squeeze into a fifth of it: so the left half of the bar carries
@@ -129,8 +138,10 @@ export function practiceScreen(main, params = {}) {
     const s = STYLES[room.style];
     if (room.beats !== s.beats || !levelsOf(s).includes(room.sub)) saveRoom({ beats: s.beats, ...(levelsOf(s).includes(room.sub) ? {} : { sub: s.sub }) });
   }
-  const engine = new Room({ ...room, countIn: settings.countIn }, {
+  const chordQ = [];   // chord changes waiting to be shown when they sound
+  const engine = new Room({ ...room, countIn: settings.countIn, notation: settings.notation }, {
     onTick: (t) => { queue.push(t); },
+    onChord: (c) => { chordQ.push(c); },
   });
   const set = (patch) => { saveRoom(patch); engine.set(patch); };
 
@@ -159,6 +170,9 @@ export function practiceScreen(main, params = {}) {
     const now = A.now();
     let t = null;
     while (queue.length && queue[0].time <= now) t = queue.shift();
+    let c = null;
+    while (chordQ.length && chordQ[0].time <= now) c = chordQ.shift();
+    if (c) { curIdx = c.idx; showChord(); }
     if (t) {
       [...lights.children].forEach((el, i) => el.classList.toggle('lit', i === t.beat));
       lights.classList.toggle('muted', t.muted);
@@ -172,6 +186,9 @@ export function practiceScreen(main, params = {}) {
     if (engine.playing || engine.starting) {
       const reached = engine.bpm;
       engine.stop();
+      chordQ.length = 0;
+      curIdx = null;
+      showChord();
       [...lights.children].forEach((el) => el.classList.remove('lit'));
       lights.classList.remove('muted', 'count');
       // (the speed-up climb ends and the tempo set stays: the tempo reached is named)
@@ -185,7 +202,49 @@ export function practiceScreen(main, params = {}) {
     if (engine.playing && !raf) raf = requestAnimationFrame(frame);
     drawPlay();
   };
-  playBtn.addEventListener('click', toggle);
+  playBtn.addEventListener('click', () => { if (!dragged) toggle(); });
+  // the button can be dragged anywhere (its place is kept); a press that moves is a drag, not a tap
+  let drag = null, dragged = false;
+  const placeFab = () => {
+    if (!room.fab) { playBtn.style.left = playBtn.style.top = playBtn.style.right = playBtn.style.bottom = ''; return; }
+    const w = playBtn.offsetWidth, hgt = playBtn.offsetHeight;
+    const x = Math.max(8, Math.min(innerWidth - w - 8, room.fab[0] * innerWidth - w / 2));
+    const y = Math.max(8, Math.min(innerHeight - hgt - 8, room.fab[1] * innerHeight - hgt / 2));
+    Object.assign(playBtn.style, { left: `${x}px`, top: `${y}px`, right: 'auto', bottom: 'auto' });
+  };
+  playBtn.addEventListener('pointerdown', (e) => {
+    const r = playBtn.getBoundingClientRect();
+    drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: e.clientX - r.left, dy: e.clientY - r.top, moving: false };
+    dragged = false;
+  });
+  playBtn.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    if (!drag.moving && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 8) return;
+    if (!drag.moving) {
+      drag.moving = true;
+      // (a pointer already gone cannot be captured: the drag still follows it while it is over the button)
+      try { playBtn.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+      playBtn.classList.add('dragging');
+    }
+    const w = playBtn.offsetWidth, hgt = playBtn.offsetHeight;
+    const x = Math.max(8, Math.min(innerWidth - w - 8, e.clientX - drag.dx));
+    const y = Math.max(8, Math.min(innerHeight - hgt - 8, e.clientY - drag.dy));
+    Object.assign(playBtn.style, { left: `${x}px`, top: `${y}px`, right: 'auto', bottom: 'auto' });
+  });
+  const endDrag = (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    if (drag.moving) {
+      dragged = true;
+      const r = playBtn.getBoundingClientRect();
+      saveRoom({ fab: [(r.left + r.width / 2) / innerWidth, (r.top + r.height / 2) / innerHeight] });
+      playBtn.classList.remove('dragging');
+      setTimeout(() => { dragged = false; }, 0);
+    }
+    drag = null;
+  };
+  playBtn.addEventListener('pointerup', endDrag);
+  playBtn.addEventListener('pointercancel', endDrag);
+  addEventListener('resize', placeFab);
   slider.addEventListener('input', () => setTempo(posToBpm(Number(slider.value))));
   // (one slider step is a sliver of the curve: on the slider the keys move whole beats)
   slider.addEventListener('keydown', (e) => {
@@ -272,7 +331,7 @@ export function practiceScreen(main, params = {}) {
         toast('The drums need an internet connection the first time', 3500);
       });
   };
-  const redraw = () => { drawDrums(); drawOpts(); drawLights(); drawUnit(); };
+  const redraw = () => { drawDrums(); drawOpts(); drawLights(); drawUnit(); drawHarmony(); };
   /** A pattern chosen: the drums on, with its metre, its usual subdivision and tempo. */
   const pickStyle = (key) => {
     const s = STYLES[key];
@@ -321,8 +380,64 @@ export function practiceScreen(main, params = {}) {
   if (room.drums) ensureKit();
   drawDrums();
 
+  // ---------------------------------------------------------------- harmony
+  const harmBlock = h('section', { class: 'block room-block harmony' });
+  let curIdx = null;      // the chord sounding: its index, -1 the drone, null silent
+  let chips = [];
+  const chordsNow = () => (room.harmony === 'chords' ? progression(room.hProg, room.hKey, room.beats, { notation: settings.notation }) : null);
+  A.setAudioOptions({ padVol: (room.hVol / 100) * 1.5 });
+  /** The chord sounding lit among the chips, and the Neck following it (the first chord, or the drone's key, at rest). */
+  const showChord = () => {
+    chips.forEach((el, i) => el.classList.toggle('on', i === curIdx));
+    if (!room.neckFollow || room.harmony === 'off') { neck.follow(null); return; }
+    if (room.harmony === 'drone') { neck.follow({ root: T.bestRoot(room.hKey, T.SCALES.ionian.iv), type: null, name: keyName(room.hKey, settings.notation) }); return; }
+    const ch = chordsNow();
+    // (at rest, or before the first chord sounds: the progression's first chord)
+    const c = ch[Number.isInteger(curIdx) && curIdx >= 0 && curIdx < ch.length ? curIdx : 0];
+    neck.follow({ root: c.root, type: c.type, name: c.sym });
+  };
+  const setHarmony = (patch) => { set(patch); drawHarmony(); };
+  const drawHarmony = () => {
+    const mode = room.harmony;
+    harmBlock.classList.toggle('off', mode === 'off');
+    const keySel = h('select', { class: 'mini-sel', 'aria-label': 'Key' }, T.CHROMATIC_PC.map((p) => h('option', { value: p, selected: p === room.hKey }, keyName(p, settings.notation))));
+    keySel.addEventListener('change', () => setHarmony({ hKey: Number(keySel.value) }));
+    const progSel = h('select', { class: 'mini-sel prog-sel', 'aria-label': 'Progression' }, HARMONY_PROGS.map(([g, keys]) => h('optgroup', { label: g },
+      keys.map((k) => h('option', { value: k, selected: room.hProg === k }, progName(k))))));
+    progSel.addEventListener('change', () => setHarmony({ hProg: progSel.value }));
+    const vol = h('input', { type: 'range', min: 0, max: 100, step: 1, value: room.hVol, 'aria-label': 'Harmony volume' });
+    const volVal = h('b', { class: 'rl-val' }, `${room.hVol}%`);
+    vol.addEventListener('input', () => {
+      const v = Number(vol.value);
+      set({ hVol: v });
+      A.setAudioOptions({ padVol: (v / 100) * 1.5 });
+      volVal.textContent = `${v}%`;
+    });
+    const ch = chordsNow();
+    chips = ch ? ch.map((c) => h('span', { class: 'chord-chip' }, c.sym)) : [];
+    harmBlock.replaceChildren(...[
+      h('div', { class: 'block-head' }, h('h2', {}, '🎹 Harmony'), infoBtn(HARMONY_INFO, 'About the harmony'), h('div', { class: 'grow' }),
+        h('div', { class: 'seg' }, [['off', 'Off'], ['drone', 'Drone'], ['chords', 'Chords']].map(([v, l]) => h('button', {
+          class: mode === v ? 'on' : '',
+          onClick: () => { curIdx = null; setHarmony({ harmony: v }); },
+        }, l)))),
+      mode === 'off' ? null : h('div', { class: 'harm-row' },
+        h('label', {}, 'Key'), keySel,
+        mode === 'chords' ? h('label', {}, 'Progression') : null, mode === 'chords' ? progSel : null),
+      ch ? h('div', { class: 'chord-row' }, chips) : null,
+      mode === 'off' ? null : h('div', { class: 'room-field' }, h('label', {}, 'On the neck'),
+        h('div', { class: 'seg' }, [[true, 'Follow'], [false, 'Off']].map(([v, l]) => h('button', {
+          class: room.neckFollow === v ? 'on' : '',
+          onClick: () => setHarmony({ neckFollow: v }),
+        }, l)))),
+      mode === 'off' ? null : h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal),
+    ].filter(Boolean));
+    showChord();
+  };
+
   // ---------------------------------------------------------------- neck (the former Neck explorer)
   const neck = neckPanel();
+  drawHarmony();
 
   const slower = holdButton('−', 'Slower', () => setTempo(room.bpm - 1));
   const faster = holdButton('+', 'Faster', () => setTempo(room.bpm + 1));
@@ -351,6 +466,7 @@ export function practiceScreen(main, params = {}) {
           lights),
         opts)),
     drumBlock,
+    harmBlock,
     neck.el,
     // (room under the last block for the floating button)
     h('div', { class: 'room-fab-space' }),
@@ -360,6 +476,7 @@ export function practiceScreen(main, params = {}) {
   drawPlay();
   drawOpts();
   drawUnit();
+  requestAnimationFrame(placeFab);
   // (#/practice?to=neck, the old Neck explorer's address: the Neck block in view)
   if (params.to === 'neck') requestAnimationFrame(() => neck.el.scrollIntoView({ block: 'start' }));
 
@@ -369,8 +486,11 @@ export function practiceScreen(main, params = {}) {
       slower.stopHold();
       faster.stopHold();
       neck.dispose();
+      // (an exercise's Backing has its own level)
+      A.setAudioOptions({ padVol: 1 });
       cancelAnimationFrame(raf);
       document.removeEventListener('keydown', onKey);
+      removeEventListener('resize', placeFab);
     },
   };
 }

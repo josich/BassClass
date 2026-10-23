@@ -4,9 +4,10 @@ import { midiToFreq } from './theory.js';
 
 let ac = null;
 let bassBus, bassVolume, clickBus, fullPath, phonePath, padBus, drumBus;
+const PAD_LEVEL = 0.38;   // the pad's level at volume 1 (the Practice room's harmony can set its own)
 const synthCache = new Map();
 // route: what the Android app reports ('speaker' | 'external'), or null in a browser
-const opts = { bassVol: 2, clickVol: 0.6, drumVol: 0.8, route: null };
+const opts = { bassVol: 2, clickVol: 0.6, drumVol: 0.8, padVol: 1, route: null };
 const PHONE_BOOST = 15; // dB lifted around 850 Hz on the phone speaker
 
 // The Android app tells us when headphones or an external speaker are connected (see MainActivity.kt).
@@ -115,21 +116,27 @@ export function audioCtx() {
     // backing pad (drone or chords): soft, warm and after the limiter, so it never ducks the bass
     padBus = ac.createGain();
     // with the bass at full level the sum stays inside the soft clip's knee (no hard clipping)
-    padBus.gain.value = 0.38;
+    padBus.gain.value = PAD_LEVEL * opts.padVol;
     const padTone = ac.createBiquadFilter();
     padTone.type = 'lowpass'; padTone.frequency.value = 1500; padTone.Q.value = 0.3;
     padBus.connect(padTone).connect(clip);
 
-    // drums (the Practice room): their own fast limiter, then after the bass's, so a kick never ducks the bass
+    // drums (the Practice room): a gentle glue compressor that lifts their body, then a fast limiter and a
+    // trim, after the bass's limiter (a kick never ducks the bass). Measured offline over all 99 patterns:
+    // 4.4 dB louder than a single limiter (median RMS -19.3 dB) and every peak at -1.7 dB or lower, under
+    // the soft clip's knee (-1.4 dB), so the drums never distort
     drumBus = ac.createGain();
     drumBus.gain.value = opts.drumVol;
-    const drumLimit = ac.createDynamicsCompressor();
-    drumLimit.threshold.value = -8;
-    drumLimit.knee.value = 4;
-    drumLimit.ratio.value = 10;
-    drumLimit.attack.value = 0.002;
-    drumLimit.release.value = 0.12;
-    drumBus.connect(drumLimit).connect(clip);
+    const comp = (threshold, knee, ratio, attack, release) => {
+      const c = ac.createDynamicsCompressor();
+      c.threshold.value = threshold; c.knee.value = knee; c.ratio.value = ratio; c.attack.value = attack; c.release.value = release;
+      return c;
+    };
+    const drumMakeup = ac.createGain();
+    drumMakeup.gain.value = 1.4;
+    const drumTrim = ac.createGain();
+    drumTrim.gain.value = 0.84;
+    drumBus.connect(comp(-20, 10, 2.5, 0.008, 0.2)).connect(drumMakeup).connect(comp(-10, 0, 20, 0, 0.05)).connect(drumTrim).connect(clip);
     decodeBank();
   }
   if (ac.state === 'suspended') ac.resume();
@@ -142,6 +149,7 @@ export function setAudioOptions(o) {
   if (bassVolume) bassVolume.gain.value = opts.bassVol;
   if (clickBus) clickBus.gain.value = opts.clickVol;
   if (drumBus) drumBus.gain.value = opts.drumVol;
+  if (padBus) padBus.gain.value = PAD_LEVEL * opts.padVol;
 }
 
 /** Where drum hits go (web/js/drums.js). */

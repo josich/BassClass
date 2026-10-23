@@ -1,11 +1,13 @@
 // The Practice room's own settings (localStorage, failure-tolerant like store.js): kept between visits.
 import { STYLES, GENRES } from './styles.js';
+import { PROG_KEYS } from './harmony.js';
 
 const KEY = 'bassclass.practice.v1';
 
 export const SUBS = [1, 2, 3, 4];        // clicks per beat without drums: quarters, 8ths, triplets, 16ths
 
-const DEFAULTS = { bpm: 90, beats: 4, sub: 1, accent: true, click: true, play: 2, mute: 0, upBy: 0, upEvery: 4, upTo: 200, drums: false, genre: 'rock', style: 'rock8', drumVol: 80 };
+const DEFAULTS = { bpm: 90, beats: 4, sub: 1, accent: true, click: true, play: 2, mute: 0, upBy: 0, upEvery: 4, upTo: 200, drums: false, genre: 'rock', style: 'rock8', drumVol: 80, fab: null,
+  harmony: 'off', hKey: 9, hProg: 'blues', hVol: 70, neckFollow: true };
 const int = (lo, hi) => (v) => Number.isInteger(v) && v >= lo && v <= hi;
 const RULES = {
   bpm: int(1, 660),       // the room's range is PolyOrbit's (ui/practice.js)
@@ -22,6 +24,13 @@ const RULES = {
   style: (v) => typeof v === 'string' && Object.prototype.hasOwnProperty.call(STYLES, v),
   genre: (v) => GENRES.some((g) => g.key === v),
   drumVol: int(0, 100),
+  // where the floating Start/Stop was dragged: its centre as a share of the screen's width and height
+  harmony: (v) => ['off', 'drone', 'chords'].includes(v),   // the pad: nothing, a drone on the key, or a progression
+  hKey: int(0, 11),
+  hProg: (v) => PROG_KEYS.includes(v),
+  hVol: int(0, 100),
+  neckFollow: (v) => typeof v === 'boolean',   // the Neck block shows the harmony sounding
+  fab: (v) => v === null || (Array.isArray(v) && v.length === 2 && v.every((n) => typeof n === 'number' && n >= 0 && n <= 1)),
 };
 
 function load() {

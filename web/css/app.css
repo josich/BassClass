@@ -450,7 +450,10 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 
 /* Home's headline: the practice log (ring = today against the session length, bars = the last 7 days) */
 .home-head { flex-wrap: nowrap; align-items: stretch; }
-.home-head .level-btn { align-self: center; }
+/* "My level" beside the practice log: a tile as tall as the card, the level big (user, 2026-10-23) */
+.home-head .level-btn { align-self: stretch; flex-direction: column; justify-content: center; gap: 6px; min-width: 104px; padding: 8px 14px; border-radius: 16px;
+  background: linear-gradient(160deg, #262b5e, #1d2346); border: 1px solid rgba(110, 128, 232, 0.35); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06); font-size: 13px; }
+.home-head .level-btn .chip { font-size: 18px; padding: 3px 12px; border-radius: 10px; order: -1; }
 .practice-card {
   flex: 1; min-width: 0; position: relative; display: flex; align-items: center; gap: 16px;
   padding: 8px 40px 8px 12px; border-radius: 16px;
@@ -678,6 +681,8 @@ details.les-more > ul { margin: 0 0 10px; }
 .beat-lights.count i.lit { background: var(--accent-2); border-color: var(--accent-2); box-shadow: 0 0 12px rgba(110, 128, 232, 0.5); }
 /* the room's one Start/Stop, floating at the bottom right wherever the page is scrolled */
 .room-fab { position: fixed; right: 18px; bottom: 16px; z-index: 40; min-width: 132px; height: 52px; justify-content: center; gap: 8px; border-radius: 99px; font-size: 17px; padding: 0 22px; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45); }
+.room-fab { touch-action: none; cursor: grab; }
+.room-fab.dragging { cursor: grabbing; transform: scale(1.06); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55); }
 .room-fab span { display: inline-flex; }
 .room-fab span svg { width: 20px; height: 20px; }
 .room-fab.on { background: #e3876e; border-color: #e3876e; color: #2a1610; }
@@ -714,6 +719,16 @@ details.les-more > ul { margin: 0 0 10px; }
 .drums.off .style-chip.on { border-color: var(--line); background: var(--panel-2); box-shadow: none; }
 .drums.off .style-grid, .drums.off .range-line { opacity: 0.6; }
 .drums .range-line { max-width: 420px; }
+/* the Harmony block: key and progression, the progression's chords (the one sounding lit), the neck, volume */
+.harm-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.harm-row label { font-weight: 600; color: var(--muted); font-size: 13px; }
+.harm-row .prog-sel { max-width: 300px; }
+.chord-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.chord-chip { padding: 5px 10px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--line); font-weight: 700; font-size: 14px; transition: background 0.08s; }
+.chord-chip.on { background: var(--accent-2); border-color: var(--accent-2); color: #fff; box-shadow: 0 0 12px rgba(110, 128, 232, 0.5); }
+.harmony .range-line { max-width: 420px; }
+.harmony.off { gap: 0; }
+.neck.following .neck-sels select:disabled { opacity: 0.5; }
 /* the Neck block (the former Neck explorer): its selects in the head, the board below */
 .neck .block-head { flex-wrap: wrap; }
 .neck-sels { display: flex; flex-wrap: wrap; gap: 6px; }

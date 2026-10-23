@@ -60,6 +60,7 @@ function dayBar(d, isToday, goal, top) {
 
 export function practiceCard() {
   const el = h('section', { class: 'practice-card' });
+  let ro = null;
   const render = () => {
     const goal = sessionMinutes();
     // today keeps today's goal; a past day keeps the goal it had (30′ before goals were kept)
@@ -81,9 +82,11 @@ export function practiceCard() {
       h('div', { class: 'pc-track' }, h('i', { class: 'pc-goal', style: { bottom: goalAt } }),
         days.map((d, i, list) => dayBar(d, i === list.length - 1, goalOf(d, i, list), top))));
     // a mouse wheel scrolls the days sideways; an edge fades while days are hidden beyond it
+    let atEnd = true;
     const fade = () => {
+      atEnd = scroller.scrollLeft >= scroller.scrollWidth - scroller.clientWidth - 2;
       scroller.classList.toggle('more', scroller.scrollLeft > 2);
-      scroller.classList.toggle('after', scroller.scrollLeft < scroller.scrollWidth - scroller.clientWidth - 2);
+      scroller.classList.toggle('after', !atEnd);
     };
     scroller.addEventListener('scroll', fade, { passive: true });
     scroller.addEventListener('wheel', (e) => {
@@ -101,7 +104,10 @@ export function practiceCard() {
           : h('span', { class: 'pc-sub' }, `${on} day${on === 1 ? '' : 's'} practised`, run >= 2 ? h('em', { class: 'pc-streak' }, `🔥 ${run}`, h('span', { class: 'wide-only' }, ' in a row')) : null)),
       h('div', { class: 'pc-chart' }, h('span', { class: 'pc-goal-label', style: { bottom: goalAt } }, `🎯 ${goal}′`), scroller),
       infoBtn(INFO, 'About your practice log'));
-    // today in view, at the right end
+    // today in view, at the right end; it stays there when the card changes size, unless the player scrolled back
+    ro?.disconnect();
+    ro = new ResizeObserver(() => { if (atEnd) scroller.scrollLeft = scroller.scrollWidth; fade(); });
+    ro.observe(scroller);
     requestAnimationFrame(() => { scroller.scrollLeft = scroller.scrollWidth; fade(); });
   };
   render();
