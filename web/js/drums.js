@@ -13,22 +13,38 @@ const REPO = 'https://raw.githubusercontent.com/josich/BassClass/';
 const BASES = IN_APP ? [...new Set([`${REPO}${COMMIT || 'main'}/web/audio/drums/`, `${REPO}main/web/audio/drums/`])] : ['audio/drums/'];
 const CACHE = `bassclass-drums-v${VERSION}`;
 
-// each piece's level in dB over its family as recorded (kit, percussion, brushes), so a groove sits as a
-// drummer would play it: measured from the files' first 50 ms (peaks for the scraped guiro)
-const MIX = {
-  kick: -2, snare: 3, rim: 2, xstick: 8, flam: 8, hhc: 10, hhh: 10, hho: 7, hhp: 14, ride: 14, bell: 14, crash: 10, tomh: 1, toml: 2,
-  shakd: 5, shaku: 8, claves: 12, cowbell: -9, conga: -4, congam: 9, tumba: -1, bongoh: 1, bongol: 12, tamb: 6, guiro: 10, guirol: 14,
-  cabasa: 4, agogoh: 14, agogol: 10, tri: 5, trim: 9, timb: -7, bkick: -1, bsnare: -3, bstir: 3, bhhc: -1, bhhp: -6, bride: 4,
+// The balance, as the ear hears it on a phone or at a moderate level (user, 2026-10-23: the hi-hat and the
+// cumbia's guiro stood out). Each piece has one level: its accent in dB against the snare's accent, A-weighted
+// (the ear's weighting at moderate levels: highs count, lows much less, as on a phone's speaker). Every
+// stroke follows one curve, level × velocity^1.5: normal ("x") 4 dB under the accent, soft ("s") 10, ghost
+// ("g") 21, whichever recorded layer plays it, so no stroke jumps because its layer was recorded louder.
+// A time-keeper sits 8–12 dB under the backbeat in a groove (web/js/dev/drumlevels.js measures it).
+const LEVEL = {
+  kick: -13.5, snare: 0, rim: 0, xstick: -3, flam: 0, tomh: -7, toml: -8, crash: -2,
+  hhc: -12, hhh: -10, hho: -7, hhp: -14, ride: -11, bell: -10,
+  shakd: -12, shaku: -14, cabasa: -13, tamb: -10, guiro: -16, guirol: -14, claves: -4, cowbell: -8, agogoh: -7, agogol: -8,
+  conga: -8, congam: -10, tumba: -8, bongoh: -8, bongol: -8, timb: -6, tri: -12, trim: -14,
+  bkick: -8, bsnare: -4, bstir: -13, bhhc: -12, bhhp: -16, bride: -12,
 };
-// the hi-hat's and ride's soft layers were recorded far softer than a drummer's light strokes: lifted (dB)
-const LAYER_GAIN = { hhc: [8, 6, 4, 0], ride: [10, 3, 0] };
+// each recorded layer's own loudness (A-weighted dB over a hit's first 170 ms, the mean of its round robins),
+// soft to hard: measured from the kit's files by web/js/dev/drumlevels.js (measure again when the kit changes)
+const LAYER_DB = {
+  kick: [-71.6, -60.6, -49.1, -41.9], snare: [-55.1, -49.3, -40.8, -32.7], rim: [-36.5, -30.9], xstick: [-54.6, -44.2, -40.5, -40.0],
+  flam: [-44.1, -37.7], hhc: [-74.3, -65.1, -59.1, -45.7], hhh: [-47.1], hho: [-57.2, -35.5], hhp: [-57.8], ride: [-69.0, -57.2, -51.8],
+  bell: [-54.9], crash: [-47.3, -39.1], tomh: [-45.1, -38.4], toml: [-51.4, -41.6], shakd: [-35.5], shaku: [-44.3], claves: [-45.1],
+  cowbell: [-54.7, -26.8], conga: [-54.1, -41.7, -38.5], congam: [-52.0], tumba: [-52.5, -41.8], bongoh: [-50.8, -36.8], bongol: [-48.4],
+  tamb: [-40.0], guiro: [-54.8], guirol: [-64.7], cabasa: [-54.8, -42.1], agogoh: [-45.0], agogol: [-43.7], tri: [-42.0], trim: [-55.1],
+  timb: [-38.9, -31.0], bkick: [-45.6, -35.5], bsnare: [-47.4, -44.3, -31.4], bstir: [-43.2], bhhc: [-48.0, -37.2], bhhp: [-36.9],
+  bride: [-52.2, -43.7],
+};
+// (the patterns sound as loud as before this balance, by their median: the drum bus and its limiter are set for it)
+const REF = -28.5;
 
 /** The pieces of the kit (the self-test checks that every drum pattern uses only these). */
-export const PIECES = new Set(Object.keys(MIX));
+export const PIECES = new Set(Object.keys(LEVEL));
 
 let kit = null;       // { name: [[AudioBuffer, …] per layer, soft to hard] }
 let loading = null;
-let energy = null;    // { name: [mean energy per layer] }, for even loudness between the patterns
 const turn = {};      // round robin per piece
 let openHat = null;   // the open hi-hat still ringing (a closed or pedal hat chokes it)
 
@@ -79,18 +95,10 @@ export function loadKit(onProgress) {
     };
     await Promise.all(Array.from({ length: 6 }, worker));
     kit = Object.fromEntries(Object.entries(man.pieces).map(([p, layers]) => [p, layers.map((l) => l.map((f) => buffers.get(f)))]));
-    energy = Object.fromEntries(Object.entries(kit).map(([p, layers]) => [p, layers.map((l) => l.reduce((a, b) => a + bufferEnergy(b), 0) / l.length)]));
-    gains.clear();
     return kit;
   })();
   loading.catch(() => { loading = null; });
   return loading;
-}
-
-function bufferEnergy(b) {
-  let e = 0;
-  for (let c = 0; c < b.numberOfChannels; c++) { const d = b.getChannelData(c); for (let i = 0; i < d.length; i++) e += d[i] * d[i]; }
-  return e / b.numberOfChannels / b.sampleRate;
 }
 
 /** The layer a velocity plays: ghost the softest, accent the hardest, the others spread between. */
@@ -98,7 +106,10 @@ function layerOf(n, vel) {
   const f = Math.max(0, Math.min(1, (vel - 0.2) / 0.75));
   return Math.round(f * (n - 1));
 }
-const hitGain = (piece, li, vel) => 10 ** (((MIX[piece] || 0) + (LAYER_GAIN[piece]?.[li] || 0)) / 20) * (0.7 + 0.3 * vel);
+/** A stroke's loudness as heard (A-weighted dB): the piece's level on the velocity curve. */
+export const strokeDb = (piece, vel) => (LEVEL[piece] ?? -20) + 30 * Math.log10(Math.max(0.05, vel)) + REF;
+/** The gain that brings a recorded layer to its stroke's loudness. */
+const hitGain = (piece, li, vel) => 10 ** ((strokeDb(piece, vel) - (LAYER_DB[piece]?.[li] ?? REF)) / 20);
 
 // even loudness: each pattern's level (at its own tempo and subdivision) brought near the patterns' median
 const gains = new Map();
@@ -108,17 +119,14 @@ function loudness(s) {
   for (const [piece, steps] of Object.entries(s.tracks)) {
     steps.forEach((v, i) => {
       if (!v || stepTime(s, s.sub, i % s.grid, piece, v) == null) return;
-      const layers = energy[piece];
-      if (!layers) return;
-      const li = layerOf(layers.length, v);
-      e += layers[li] * hitGain(piece, li, v) ** 2 * (s.bars / (steps.length / per));
+      e += 10 ** (strokeDb(piece, v) / 10) * (s.bars / (steps.length / per));
     });
   }
   return e / ((s.bars * s.beats * 60) / s.bpm);
 }
-/** A pattern's gain for even loudness between the patterns (1 until the kit has loaded). */
+/** A pattern's gain for even loudness between the patterns. */
 export function styleGain(key) {
-  if (!energy || !STYLES[key]) return 1;
+  if (!STYLES[key]) return 1;
   if (!gains.size) {
     const all = Object.values(STYLES).map((s) => [s.key, loudness(s)]);
     const sorted = all.map(([, l]) => l).sort((a, b) => a - b);
