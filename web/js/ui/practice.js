@@ -140,6 +140,8 @@ export function practiceScreen(main, params = {}) {
   // one Start/Stop for the whole room, floating at the bottom so it is in reach wherever the page is scrolled
   const playBtn = h('button', { class: 'btn primary room-fab' });
   const opts = h('div', { class: 'metro-opts' });
+  // (the beat's own settings sit under the beat lights; the click's, muted bars and speed up beside them)
+  const beatOpts = h('div', { class: 'metro-beat' });
   const queue = [];   // scheduled ticks waiting to be shown when they sound
   let shownTick = null;   // the last tick shown (the beat sounding now)
   let raf = null;
@@ -324,12 +326,7 @@ export function practiceScreen(main, params = {}) {
     };
     // (with the drums on, their style sets the beats per bar)
     const fixed = room.drums ? () => toast(`The drum style sets the beats: ${STYLES[room.style].meter}`) : null;
-    opts.replaceChildren(
-      field('Click', h('div', { class: 'seg' }, [true, false].map((v) => h('button', {
-        class: room.click === v ? 'on' : '',
-        onClick: () => { set({ click: v }); drawOpts(); },
-      }, v ? 'On' : 'Off')))),
-      room.click ? clickVolume() : null,
+    beatOpts.replaceChildren(
       field('Beats per bar', h('div', { class: `stepper${fixed ? ' fixed' : ''}` },
         h('button', { class: 'btn round small', 'aria-label': 'Fewer beats', onClick: () => { if (fixed) fixed(); else if (room.beats > 1) { set({ beats: room.beats - 1 }); drawOpts(); drawLights(); } } }, '−'),
         h('b', {}, room.beats),
@@ -337,7 +334,13 @@ export function practiceScreen(main, params = {}) {
       field('Subdivision', h('div', { class: 'seg note-seg' }, subChoices(pattern()).map(([v, ic, name]) => h('button', {
         class: (pattern() && !levelsOf(pattern()).includes(room.sub) ? pattern().sub : room.sub) === v ? 'on' : '', title: name, 'aria-label': name, html: ICONS[ic],
         onClick: () => { set({ sub: v }); drawOpts(); },
-      })))),
+      })))));
+    opts.replaceChildren(...[
+      field('Click', h('div', { class: 'seg' }, [true, false].map((v) => h('button', {
+        class: room.click === v ? 'on' : '',
+        onClick: () => { set({ click: v }); drawOpts(); },
+      }, v ? 'On' : 'Off')))),
+      room.click ? clickVolume() : null,
       field('Accent on 1', h('div', { class: 'seg' }, [true, false].map((v) => h('button', {
         class: room.accent === v ? 'on' : '',
         onClick: () => { set({ accent: v }); drawOpts(); drawLights(); },
@@ -355,7 +358,8 @@ export function practiceScreen(main, params = {}) {
           rangeLine('upBy', 1, 10, 'Add', (v) => `+${v} BPM`),
           rangeLine('upEvery', 1, 16, 'Every', bars),
           rangeLine('upTo', 40, BPM_MAX, 'Up to', (v) => `${v} BPM`),
-        ] : [])));
+        ] : [])),
+    ].filter(Boolean));
     dim();
   };
 
@@ -647,7 +651,8 @@ export function practiceScreen(main, params = {}) {
             faster,
             h('button', { class: 'btn tap-btn', title: 'Tap the beat', onClick: tap }, '👆 Tap')),
           slider,
-          lights),
+          lights,
+          beatOpts),
         opts)),
     drumBlock,
     harmBlock,
