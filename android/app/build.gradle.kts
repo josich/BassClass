@@ -12,12 +12,13 @@ val signingKey = file("bassclass.p12")
 
 android {
     namespace = "com.bassclass.app"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.bassclass.app"
         minSdk = 24
-        targetSdk = 35
+        // Android 16 (API 36): Google Play's target for new apps and updates from Aug 31, 2026
+        targetSdk = 36
         versionCode = buildNumber
         versionName = "1.0.$buildNumber"
     }

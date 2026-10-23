@@ -26,6 +26,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.window.OnBackInvokedDispatcher
 import androidx.webkit.WebViewAssetLoader
 
 /**
@@ -161,6 +162,11 @@ class MainActivity : Activity() {
         hideSystemBars()
         audio.registerAudioDeviceCallback(routeCallback, Handler(Looper.getMainLooper()))
 
+        // Android 13+ (and always from Android 16, API 36): Back arrives here, not in onBackPressed
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            onBackInvokedDispatcher.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT) { goBack() }
+        }
+
         if (savedInstanceState != null) web.restoreState(savedInstanceState)
         else web.loadUrl("https://appassets.androidplatform.net/assets/index.html")
     }
@@ -209,6 +215,12 @@ class MainActivity : Activity() {
         web.saveState(outState)
     }
 
+    /** Back goes through the web app's history; at its start the app goes to the background, as Android does. */
+    private fun goBack() {
+        if (web.canGoBack()) web.goBack() else moveTaskToBack(true)
+    }
+
+    // (Android 12 and older)
     @Deprecated("Back is routed to the web app's history")
     override fun onBackPressed() {
         if (web.canGoBack()) web.goBack() else @Suppress("DEPRECATION") super.onBackPressed()
