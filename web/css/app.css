@@ -724,8 +724,12 @@ details.les-more > ul { margin: 0 0 10px; }
 .harm-row label { font-weight: 600; color: var(--muted); font-size: 13px; }
 .harm-row .prog-sel { max-width: 300px; }
 .chord-row { display: flex; flex-wrap: wrap; gap: 6px; }
-.chord-chip { padding: 5px 10px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--line); font-weight: 700; font-size: 14px; transition: background 0.08s; }
-.chord-chip.on { background: var(--accent-2); border-color: var(--accent-2); color: #fff; box-shadow: 0 0 12px rgba(110, 128, 232, 0.5); }
+.chord-chip { position: relative; overflow: hidden; min-width: 64px; text-align: center; padding: 5px 10px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--line); font-weight: 700; font-size: 14px; transition: background 0.08s; }
+/* the chord sounding fills with the pulse, left to right, over its length (--fill: 0..1, set as it plays) */
+.chord-chip::before { content: ''; position: absolute; inset: 0; background: var(--accent-2); transform: scaleX(var(--fill, 0)); transform-origin: left; }
+.chord-chip > span { position: relative; }
+.chord-chip.done::before { opacity: 0.55; }
+.chord-chip.on { background: rgba(110, 128, 232, 0.28); border-color: var(--accent-2); color: #fff; box-shadow: 0 0 12px rgba(110, 128, 232, 0.5); }
 .harmony .range-line { max-width: 420px; }
 .harmony.off { gap: 0; }
 .neck.following .neck-sels select:disabled { opacity: 0.5; }

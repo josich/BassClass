@@ -131,6 +131,7 @@ export function practiceScreen(main, params = {}) {
   const playBtn = h('button', { class: 'btn primary room-fab' });
   const opts = h('div', { class: 'metro-opts' });
   const queue = [];   // scheduled ticks waiting to be shown when they sound
+  let shownTick = null;   // the last tick shown (the beat sounding now)
   let raf = null;
 
   // (saved settings that do not fit the drum pattern, after a change elsewhere, are brought back in line)
@@ -173,6 +174,13 @@ export function practiceScreen(main, params = {}) {
     let c = null;
     while (chordQ.length && chordQ[0].time <= now) c = chordQ.shift();
     if (c) { curIdx = c.idx; showChord(); }
+    if (t) shownTick = t;
+    // the chord sounding fills its chip with the pulse: full on its last beat's end, when the next one comes
+    const p = shownTick?.chord;
+    if (p && chips[curIdx]) {
+      const into = Math.min(1, Math.max(0, ((now - shownTick.time) * shownTick.bpm) / 60));
+      chips[curIdx].style.setProperty('--fill', Math.min(1, (p.at + into) / p.of).toFixed(4));
+    }
     if (t) {
       [...lights.children].forEach((el, i) => el.classList.toggle('lit', i === t.beat));
       lights.classList.toggle('muted', t.muted);
@@ -183,6 +191,7 @@ export function practiceScreen(main, params = {}) {
   };
   const toggle = async () => {
     queue.length = 0;
+    shownTick = null;
     if (engine.playing || engine.starting) {
       const reached = engine.bpm;
       engine.stop();
@@ -388,7 +397,13 @@ export function practiceScreen(main, params = {}) {
   A.setAudioOptions({ padVol: (room.hVol / 100) * 1.5 });
   /** The chord sounding lit among the chips, and the Neck following it (the first chord, or the drone's key, at rest). */
   const showChord = () => {
-    chips.forEach((el, i) => el.classList.toggle('on', i === curIdx));
+    // (the chords already played stay full until the progression starts again)
+    chips.forEach((el, i) => {
+      const done = Number.isInteger(curIdx) && i < curIdx;
+      el.classList.toggle('on', i === curIdx);
+      el.classList.toggle('done', done);
+      if (i !== curIdx) el.style.setProperty('--fill', done ? 1 : 0);
+    });
     if (!room.neckFollow || room.harmony === 'off') { neck.follow(null); return; }
     if (room.harmony === 'drone') { neck.follow({ root: T.bestRoot(room.hKey, T.SCALES.ionian.iv), type: null, name: keyName(room.hKey, settings.notation) }); return; }
     const ch = chordsNow();
@@ -414,7 +429,7 @@ export function practiceScreen(main, params = {}) {
       volVal.textContent = `${v}%`;
     });
     const ch = chordsNow();
-    chips = ch ? ch.map((c) => h('span', { class: 'chord-chip' }, c.sym)) : [];
+    chips = ch ? ch.map((c) => h('span', { class: 'chord-chip' }, h('span', {}, c.sym))) : [];
     harmBlock.replaceChildren(...[
       h('div', { class: 'block-head' }, h('h2', {}, '🎹 Harmony'), infoBtn(HARMONY_INFO, 'About the harmony'), h('div', { class: 'grow' }),
         h('div', { class: 'seg' }, [['off', 'Off'], ['drone', 'Drone'], ['chords', 'Chords']].map(([v, l]) => h('button', {

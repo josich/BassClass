@@ -15,7 +15,8 @@ export class Room {
   /**
    * `o`: { bpm, beats, sub, accent, click, play, mute, upBy, upEvery, upTo, drums, style, countIn,
    *   harmony ('off' | 'drone' | 'chords'), hProg, hKey, notation };
-   * `onTick({ time, bar, beat, muted, count, bpm })` once per beat (`count`: the count-in bar);
+   * `onTick({ time, bar, beat, muted, count, bpm, chord })` once per beat (`count`: the count-in bar;
+   *   `chord`: { at, of }, this beat's place in the progression's chord sounding, else null);
    * `onChord({ time, idx })` when the harmony's chord changes (idx -1: the drone, null: silent).
    */
   constructor(o, { onTick, onChord } = {}) {
@@ -48,10 +49,13 @@ export class Room {
     return this.chords;
   }
 
-  /** The pad on this beat: the drone, the chord the progression has reached, or silence (off, muted bars). */
+  /**
+   * The pad on this beat: the drone, the chord the progression has reached, or silence (off, muted bars).
+   * Returns the beat's place in the chord ({ at, of }: beat `at` of its `of`), or null.
+   */
   _harmony(t0, muted) {
     if (this.hRestart && this.beat === 0) { this.hRestart = false; this.hBeat = 0; }
-    let midis = null, idx = null;
+    let midis = null, idx = null, place = null;
     if (!muted && !this.hRestart) {
       if (this.o.harmony === 'drone') { midis = droneMidis(this.o.hKey); idx = -1; }
       const chords = this._chords();
@@ -60,6 +64,7 @@ export class Room {
         idx = 0;
         while (pos >= chords[idx].beats) { pos -= chords[idx].beats; idx++; }
         midis = chords[idx].midis;
+        place = { at: pos, of: chords[idx].beats };
       }
     }
     // (the same notes again sound on, as a held chord; new ones, or silence, replace them)
@@ -70,6 +75,7 @@ export class Room {
     }
     if (idx !== this.hIdx) { this.hIdx = idx; this.onChord?.({ time: t0, idx }); }
     this.hBeat++;
+    return place;
   }
 
   async start() {
@@ -142,8 +148,8 @@ export class Room {
         const g = styleGain(style);
         hits.sort((a, b) => a[0] - b[0]).forEach(([t, piece, v]) => playDrum(piece, t, v, g));
       }
-      if (!count) this._harmony(t0, muted);
-      this.onTick?.({ time: t0, bar: this.bar, beat: this.beat, muted, count, bpm: this.bpm });
+      const chord = count ? null : this._harmony(t0, muted);
+      this.onTick?.({ time: t0, bar: this.bar, beat: this.beat, muted, count, bpm: this.bpm, chord });
       this.next += len;
       if (++this.beat >= beats) {
         this.beat = 0;
