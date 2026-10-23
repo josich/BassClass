@@ -19,11 +19,12 @@ const CACHE = `bassclass-drums-v${VERSION}`;
 // stroke follows one curve, level × velocity^1.5: normal ("x") 4 dB under the accent, soft ("s") 10, ghost
 // ("g") 21, whichever recorded layer plays it, so no stroke jumps because its layer was recorded louder.
 // A time-keeper sits 8–12 dB under the backbeat in a groove (web/js/dev/drumlevels.js measures it); the rides
-// (ride, its bell, the brush ride) are 3 dB under that (user, 2026-10-23: "the ride can be a bit quieter").
+// (ride, its bell, the brush ride) and the guiro's scrapes are 3 dB under that (user, 2026-10-23: "the ride
+// can be a bit quieter", "the scratcher in general a bit quieter").
 const LEVEL = {
   kick: -13.5, snare: 0, rim: 0, xstick: -3, flam: 0, tomh: -7, toml: -8, crash: -2,
   hhc: -12, hhh: -10, hho: -7, hhp: -14, ride: -14, bell: -13,
-  shakd: -12, shaku: -14, cabasa: -13, tamb: -10, guiro: -16, guirol: -14, claves: -4, cowbell: -8, agogoh: -7, agogol: -8,
+  shakd: -12, shaku: -14, cabasa: -13, tamb: -10, guiro: -19, guirol: -17, claves: -4, cowbell: -8, agogoh: -7, agogol: -8,
   conga: -8, congam: -10, tumba: -8, bongoh: -8, bongol: -8, timb: -6, tri: -12, trim: -14,
   bkick: -6.7, bsnare: -4.6, bstir: -10.4, bhhc: -8.4, bhhp: -13.1, bride: -12.8,
 };
