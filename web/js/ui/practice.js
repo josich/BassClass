@@ -57,9 +57,35 @@ function subChoices(s) {
 }
 const BEAT_ICON = { q: 'q1', e: 'e1', dq: 'dq' };
 
+// The tempo range and slider of the user's PolyOrbit metronome. Nearly all practice sits between 60 and
+// 160, which an even 1–660 bar would squeeze into a fifth of it: so the left half of the bar carries
+// 1–120 evenly and the right half stretches 120–660, each further beat costing less travel
+//   left   bpm = 1 + LOW·2p          right   bpm = 120 + LOW·t + (HIGH − LOW)·t²,  t = 2p − 1
+// Both halves meet at the same gradient, so the thumb does not change pace at the middle; the right side
+// is a square so it inverts exactly (a tempo tapped or typed puts the thumb back in one step).
+const BPM_MIN = 1, BPM_MAX = 660, BPM_MID = 120;
+const BPM_STOPS = 2000;               // slider positions: every tempo in the range is reachable by drag
+const BPM_LOW = BPM_MID - BPM_MIN, BPM_HIGH = BPM_MAX - BPM_MID;
+function posToBpm(pos) {
+  const p = Math.max(0, Math.min(1, (pos || 0) / BPM_STOPS));
+  if (p <= 0.5) return Math.round(BPM_MIN + BPM_LOW * 2 * p);
+  const t = 2 * p - 1;
+  return Math.round(BPM_MID + BPM_LOW * t + (BPM_HIGH - BPM_LOW) * t * t);
+}
+function bpmToPos(bpm) {
+  let p;
+  if (bpm <= BPM_MID) p = (bpm - BPM_MIN) / BPM_LOW / 2;
+  else {
+    const a = BPM_HIGH - BPM_LOW, b = BPM_LOW, c = BPM_MID - bpm;
+    const t = a > 0 ? (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a) : -c / b;
+    p = (t + 1) / 2;
+  }
+  return Math.round(Math.max(0, Math.min(1, p)) * BPM_STOPS);
+}
+
 /** The tempo's Italian name, as on a metronome. */
 function tempoName(bpm) {
-  return bpm < 60 ? 'Largo' : bpm < 66 ? 'Larghetto' : bpm < 76 ? 'Adagio' : bpm < 108 ? 'Andante'
+  return bpm < 24 ? 'Larghissimo' : bpm < 60 ? 'Largo' : bpm < 66 ? 'Larghetto' : bpm < 76 ? 'Adagio' : bpm < 108 ? 'Andante'
     : bpm < 120 ? 'Moderato' : bpm < 168 ? 'Allegro' : bpm < 200 ? 'Presto' : 'Prestissimo';
 }
 
@@ -91,8 +117,9 @@ export function practiceScreen(main, params = {}) {
   const pattern = () => (room.drums ? STYLES[room.style] : null);
   // "BPM" with the note the beat is (a dotted quarter in 12/8, an 8th in 7/8)
   const drawUnit = () => unitEl.replaceChildren('BPM', h('span', { class: 'beat-ic', title: 'The beat', html: ICONS[BEAT_ICON[pattern()?.beat || 'q']] }));
-  const slider = h('input', { type: 'range', min: 30, max: 260, step: 1, class: 'tempo-slider', 'aria-label': 'Tempo' });
-  const playBtn = h('button', { class: 'btn primary room-play' });
+  const slider = h('input', { type: 'range', min: 0, max: BPM_STOPS, step: 1, class: 'tempo-slider', 'aria-label': 'Tempo' });
+  // one Start/Stop for the whole room, floating at the bottom so it is in reach wherever the page is scrolled
+  const playBtn = h('button', { class: 'btn primary room-fab' });
   const opts = h('div', { class: 'metro-opts' });
   const queue = [];   // scheduled ticks waiting to be shown when they sound
   let raf = null;
@@ -110,10 +137,11 @@ export function practiceScreen(main, params = {}) {
   const showTempo = (bpm) => {
     bpmEl.textContent = bpm;
     nameEl.textContent = tempoName(bpm);
-    slider.value = bpm;
+    if (posToBpm(Number(slider.value)) !== bpm) slider.value = bpmToPos(bpm);
+    slider.setAttribute('aria-valuetext', `${bpm} BPM`);
   };
   const setTempo = (bpm) => {
-    bpm = Math.max(30, Math.min(260, Math.round(bpm)));
+    bpm = Math.max(BPM_MIN, Math.min(BPM_MAX, Math.round(bpm)));
     set({ bpm });
     showTempo(bpm);
   };
@@ -122,12 +150,9 @@ export function practiceScreen(main, params = {}) {
     const starts = groupStarts(room.drums ? STYLES[room.style] : null);
     lights.replaceChildren(...Array.from({ length: room.beats }, (_, i) => h('i', { class: room.accent && starts.has(i) ? (i ? 'accent group' : 'accent') : '' })));
   };
-  const drumPlay = h('button', { class: 'btn small-play', 'aria-label': 'Start or stop' });
   const drawPlay = () => {
     playBtn.replaceChildren(h('span', { html: icon(engine.playing ? 'pause' : 'play') }), engine.playing ? 'Stop' : 'Start');
     playBtn.classList.toggle('on', engine.playing);
-    drumPlay.innerHTML = icon(engine.playing ? 'pause' : 'play');
-    drumPlay.classList.toggle('primary', !engine.playing);
   };
   // the beat lights follow the sound: each tick lights when its time comes
   const frame = () => {
@@ -161,8 +186,15 @@ export function practiceScreen(main, params = {}) {
     drawPlay();
   };
   playBtn.addEventListener('click', toggle);
-  drumPlay.addEventListener('click', toggle);
-  slider.addEventListener('input', () => setTempo(Number(slider.value)));
+  slider.addEventListener('input', () => setTempo(posToBpm(Number(slider.value))));
+  // (one slider step is a sliver of the curve: on the slider the keys move whole beats)
+  slider.addEventListener('keydown', (e) => {
+    const d = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1, PageUp: 10, PageDown: -10 }[e.key];
+    if (e.key === 'Home' || e.key === 'End') { e.preventDefault(); setTempo(e.key === 'Home' ? BPM_MIN : BPM_MAX); return; }
+    if (!d) return;
+    e.preventDefault();
+    setTempo(room.bpm + d);
+  });
 
   // tap tempo: the average of the last taps (a pause of 2 seconds starts again)
   let taps = [];
@@ -219,7 +251,7 @@ export function practiceScreen(main, params = {}) {
       h('div', { class: 'room-group' }, h('label', {}, 'Speed up'),
         rangeLine('upBy', 0, 10, 'Add', (v) => (v ? `+${v} BPM` : 'Off'), dim),
         rangeLine('upEvery', 1, 16, 'Every', bars, dim),
-        rangeLine('upTo', 40, 260, 'Up to', (v) => `${v} BPM`, dim)));
+        rangeLine('upTo', 40, BPM_MAX, 'Up to', (v) => `${v} BPM`, dim)));
     dim();
   };
 
@@ -269,9 +301,7 @@ export function practiceScreen(main, params = {}) {
     });
     drumBlock.classList.toggle('off', !room.drums);
     drumBlock.replaceChildren(
-      // (Start here too: on a small phone the patterns and the metronome's Start are not on screen together)
       h('div', { class: 'block-head' }, h('h2', {}, '🥁 Drums'), infoBtn(DRUM_INFO, 'About the drums'), drumState, h('div', { class: 'grow' }),
-        drumPlay,
         h('div', { class: 'seg' }, [true, false].map((v) => h('button', {
           class: room.drums === v ? 'on' : '',
           onClick: () => drumsOn(v),
@@ -318,11 +348,13 @@ export function practiceScreen(main, params = {}) {
             faster,
             h('button', { class: 'btn tap-btn', title: 'Tap the beat', onClick: tap }, '👆 Tap')),
           slider,
-          lights,
-          playBtn),
+          lights),
         opts)),
     drumBlock,
-    neck.el);
+    neck.el,
+    // (room under the last block for the floating button)
+    h('div', { class: 'room-fab-space' }),
+    playBtn);
   showTempo(room.bpm);
   drawLights();
   drawPlay();

@@ -8,7 +8,7 @@ export const SUBS = [1, 2, 3, 4];        // clicks per beat without drums: quart
 const DEFAULTS = { bpm: 90, beats: 4, sub: 1, accent: true, click: true, play: 2, mute: 0, upBy: 0, upEvery: 4, upTo: 200, drums: false, genre: 'rock', style: 'rock8', drumVol: 80 };
 const int = (lo, hi) => (v) => Number.isInteger(v) && v >= lo && v <= hi;
 const RULES = {
-  bpm: int(30, 260),
+  bpm: int(1, 660),       // the room's range is PolyOrbit's (ui/practice.js)
   beats: int(1, 12),
   sub: (v) => [1, 2, 3, 4, 6].includes(v),   // (6: 16ths of a compound-metre drum pattern)
   accent: (v) => typeof v === 'boolean',
@@ -17,7 +17,7 @@ const RULES = {
   mute: int(0, 8),
   upBy: int(0, 10),       // speed up: + `upBy` BPM (0 = off) every `upEvery` bars
   upEvery: int(1, 16),
-  upTo: int(40, 260),     // ... no faster than this
+  upTo: int(40, 660),     // ... no faster than this
   drums: (v) => typeof v === 'boolean',
   style: (v) => typeof v === 'string' && Object.prototype.hasOwnProperty.call(STYLES, v),
   genre: (v) => GENRES.some((g) => g.key === v),

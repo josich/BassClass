@@ -676,12 +676,13 @@ details.les-more > ul { margin: 0 0 10px; }
 .beat-lights.muted i.lit { background: transparent; border-color: var(--accent); box-shadow: none; }
 .beat-lights i.group { border-style: dashed; }
 .beat-lights.count i.lit { background: var(--accent-2); border-color: var(--accent-2); box-shadow: 0 0 12px rgba(110, 128, 232, 0.5); }
-.btn.small-play { width: 40px; height: 36px; padding: 0; justify-content: center; }
-.btn.small-play svg { width: 18px; height: 18px; }
-.room-play { min-width: 150px; justify-content: center; font-size: 17px; padding: 10px 22px; }
-.room-play span { display: inline-flex; }
-.room-play span svg { width: 20px; height: 20px; }
-.room-play.on { background: var(--panel-3); color: var(--text); border-color: var(--line); }
+/* the room's one Start/Stop, floating at the bottom right wherever the page is scrolled */
+.room-fab { position: fixed; right: 18px; bottom: 16px; z-index: 40; min-width: 132px; height: 52px; justify-content: center; gap: 8px; border-radius: 99px; font-size: 17px; padding: 0 22px; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45); }
+.room-fab span { display: inline-flex; }
+.room-fab span svg { width: 20px; height: 20px; }
+.room-fab.on { background: #e3876e; border-color: #e3876e; color: #2a1610; }
+.room-fab-space { height: 76px; }
+@media (max-height: 420px) { .room-fab { height: 46px; bottom: 10px; right: 12px; min-width: 116px; } .room-fab-space { height: 64px; } }
 .room-field { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .room-field > label, .room-group > label { font-weight: 600; color: var(--muted); font-size: 13px; }
 .room-field .seg button { min-height: 36px; padding: 4px 11px; }
