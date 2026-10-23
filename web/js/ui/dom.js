@@ -89,54 +89,68 @@ export function rng(seed) {
   };
 }
 
-let closeOpenInfo = null; // the one ⓘ bubble open at a time
+let closeOpenInfo = null; // the one bubble open at a time
+
 /**
- * A small ⓘ button that explains a screen or a section on request (instead of grey text on the
- * screen): `text` is a line or a list of them. The bubble closes on a second tap, any other tap or
- * click (keyboard too), Escape, scrolling the page or a screen change; opening another one closes it.
+ * A bubble of short lines beside `anchor`: under it, else above it, else as low as fits, always
+ * inside the window (`width`: its width at most). One bubble at a time; it closes on any other tap or
+ * click (keyboard too), Escape, scrolling (except inside it), a screen change, or a tap on itself.
+ * A tap on the anchor is left to the anchor (to toggle it). Returns the function that closes it.
  */
-export function infoBtn(text, label = 'About this') {
-  const btn = h('button', { class: 'info-btn', type: 'button', title: label, 'aria-label': label, 'aria-expanded': 'false', html: icon('info') });
-  let pop = null;
+export function showBubble(anchor, text, { width = 340, onClose } = {}) {
+  closeOpenInfo?.();
+  const pop = h('div', { class: 'info-pop', role: 'note' }, [].concat(text).map((t) => h('p', {}, t)));
   const close = () => {
-    if (!pop) return;
+    if (!pop.isConnected) return;
     pop.remove();
-    pop = null;
     if (closeOpenInfo === close) closeOpenInfo = null;
-    btn.setAttribute('aria-expanded', 'false');
     document.removeEventListener('pointerdown', outside, true);
     document.removeEventListener('click', outside, true);
     document.removeEventListener('keydown', onKey, true);
     document.removeEventListener('scroll', onScroll, true);
     window.removeEventListener('hashchange', close);
+    onClose?.();
   };
-  const outside = (e) => { if (!pop.contains(e.target) && !btn.contains(e.target)) close(); };
+  const outside = (e) => { if (!pop.contains(e.target) && !anchor.contains(e.target)) close(); };
   const onKey = (e) => { if (e.key === 'Escape') close(); };
   // (scrolling inside a long bubble keeps it open)
   const onScroll = (e) => { if (!pop.contains(e.target)) close(); };
-  btn.addEventListener('click', (e) => {
+  document.body.append(pop);
+  const r = anchor.getBoundingClientRect();
+  const w = Math.min(width, innerWidth - 24);
+  pop.style.width = `${w}px`;
+  pop.style.left = `${Math.max(12, Math.min(innerWidth - w - 12, r.left + r.width / 2 - w / 2))}px`;
+  const ph = pop.offsetHeight;
+  const top = r.bottom + 6 + ph <= innerHeight - 8 ? r.bottom + 6 : r.top - ph - 6 >= 8 ? r.top - ph - 6 : Math.max(8, innerHeight - ph - 8);
+  pop.style.top = `${top}px`;
+  // a tap on the bubble closes it and nothing else (a long one still scrolls)
+  pop.addEventListener('click', (e) => { e.stopPropagation(); close(); });
+  closeOpenInfo = close;
+  document.addEventListener('pointerdown', outside, true);
+  document.addEventListener('click', outside, true);
+  document.addEventListener('keydown', onKey, true);
+  document.addEventListener('scroll', onScroll, true);
+  window.addEventListener('hashchange', close);
+  return close;
+}
+
+/** `el` opens a bubble of `text()` on a tap, and a second tap closes it. */
+export function bubbleOnTap(el, text, opts = {}) {
+  let close = null;
+  el.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (pop) { close(); return; }
-    closeOpenInfo?.();
-    pop = h('div', { class: 'info-pop', role: 'note' }, [].concat(text).map((t) => h('p', {}, t)));
-    document.body.append(pop);
-    // under the button, else above it, else as low as fits: always inside the window
-    const r = btn.getBoundingClientRect();
-    const w = Math.min(340, innerWidth - 24);
-    pop.style.width = `${w}px`;
-    pop.style.left = `${Math.max(12, Math.min(innerWidth - w - 12, r.left + r.width / 2 - w / 2))}px`;
-    const ph = pop.offsetHeight;
-    const top = r.bottom + 6 + ph <= innerHeight - 8 ? r.bottom + 6 : r.top - ph - 6 >= 8 ? r.top - ph - 6 : Math.max(8, innerHeight - ph - 8);
-    pop.style.top = `${top}px`;
-    // a tap on the bubble closes it and nothing else (a long one still scrolls)
-    pop.addEventListener('click', (e) => { e.stopPropagation(); close(); });
-    btn.setAttribute('aria-expanded', 'true');
-    closeOpenInfo = close;
-    document.addEventListener('pointerdown', outside, true);
-    document.addEventListener('click', outside, true);
-    document.addEventListener('keydown', onKey, true);
-    document.addEventListener('scroll', onScroll, true);
-    window.addEventListener('hashchange', close);
+    if (close) { close(); return; }
+    el.setAttribute('aria-expanded', 'true');
+    close = showBubble(el, text(), { ...opts, onClose: () => { close = null; el.setAttribute('aria-expanded', 'false'); } });
   });
-  return btn;
+  return el;
+}
+
+/**
+ * A small ⓘ button that explains a screen or a section on request (instead of grey text on the
+ * screen): `text` is a line or a list of them, shown in a bubble (`showBubble`).
+ */
+export function infoBtn(text, label = 'About this') {
+  const btn = h('button', { class: 'info-btn', type: 'button', title: label, 'aria-label': label, 'aria-expanded': 'false', html: icon('info') });
+  return bubbleOnTap(btn, () => text);
 }

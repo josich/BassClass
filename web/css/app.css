@@ -462,23 +462,30 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 .practice-card > .info-btn { position: absolute; top: 4px; right: 4px; }
-.pc-ring { position: relative; width: 56px; height: 56px; flex: none; padding: 0; border: 0; background: none; }
+.pc-ring { position: relative; width: 56px; height: 56px; flex: none; padding: 0; border: 0; background: none; border-radius: 50%; }
 .pc-ring .pc-arc, .pc-ring .pc-arc svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .pc-ring .pc-in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.05; }
 .pc-ring .pc-in b { font-size: 15px; }
 .pc-ring .pc-in small { font-size: 9px; color: var(--muted); }
 .pc-ring.met .pc-in small { color: #f2cf7e; }
-.pc-week { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.pc-week { flex: none; display: flex; flex-direction: column; line-height: 1.15; }
 .pc-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #aab6ff; }
 .pc-total { font-size: 22px; letter-spacing: -0.01em; }
 .pc-sub { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pc-streak { font-style: normal; margin-left: 8px; padding: 1px 7px; border-radius: 99px; background: rgba(227, 135, 110, 0.2); color: #ffc2ae; font-weight: 600; }
-.pc-bars { position: relative; flex: 1 1 auto; min-width: 150px; max-width: 320px; margin-left: auto; display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; align-items: end; }
-.pc-goal { position: absolute; left: -2px; right: -2px; height: 0; border-top: 1.5px dashed rgba(170, 182, 255, 0.6); pointer-events: none; }
-.pc-goal span { position: absolute; right: 100%; top: -7px; margin-right: 6px; font-size: 9.5px; line-height: 12px; color: #aab6ff; white-space: nowrap; }
-.pc-day { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; padding: 0; border: 0; background: none; }
+.pc-chart { position: relative; flex: 1 1 0; min-width: 110px; max-width: 420px; margin-left: auto; padding-left: 46px; }
+.pc-goal-label { position: absolute; left: 0; transform: translateY(50%); font-size: 9.5px; line-height: 12px; color: #aab6ff; white-space: nowrap; pointer-events: none; }
+.pc-scroll { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+.pc-scroll::-webkit-scrollbar { display: none; }
+.pc-scroll.more { -webkit-mask-image: linear-gradient(to right, transparent, #000 22px); mask-image: linear-gradient(to right, transparent, #000 22px); }
+.pc-scroll.after { -webkit-mask-image: linear-gradient(to left, transparent, #000 22px); mask-image: linear-gradient(to left, transparent, #000 22px); }
+.pc-scroll.more.after { -webkit-mask-image: linear-gradient(to right, transparent, #000 22px, #000 calc(100% - 22px), transparent); mask-image: linear-gradient(to right, transparent, #000 22px, #000 calc(100% - 22px), transparent); }
+.pc-track { position: relative; display: flex; align-items: flex-end; gap: 6px; width: max-content; padding: 0 2px; }
+.pc-goal { position: absolute; left: 0; right: 0; height: 0; border-top: 1.5px dashed rgba(170, 182, 255, 0.6); pointer-events: none; }
+.pc-day { flex: none; width: 22px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0; border: 0; background: none; }
+.pc-day.mon { margin-left: 8px; }
 .pc-day em { height: 11px; font-size: 9.5px; line-height: 11px; font-style: normal; color: var(--muted); white-space: nowrap; }
-.pc-day b { display: flex; align-items: flex-end; width: 100%; max-width: 24px; height: 32px; border-radius: 5px; background: rgba(238, 240, 253, 0.06); overflow: hidden; }
+.pc-day b { display: flex; align-items: flex-end; width: 100%; height: 32px; border-radius: 5px; background: rgba(238, 240, 253, 0.06); overflow: hidden; }
 .pc-day i { display: block; width: 100%; border-radius: 5px 5px 0 0; background: linear-gradient(to top, #2f9e80, #46c9a2 60%, #7fe0c2); }
 .pc-day.met i { background: linear-gradient(to top, #e3876e, #f2cf7e); }
 .pc-day.met em { color: #f2cf7e; }
@@ -489,8 +496,9 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
   .practice-card { gap: 10px; }
   .pc-total { font-size: 18px; }
   .pc-streak { display: none; }
-  .pc-bars { gap: 3px; min-width: 130px; }
-  .pc-goal span { display: none; }
+  .pc-chart { min-width: 120px; padding-left: 0; }
+  .pc-goal-label { display: none; }
+  .pc-day { width: 18px; }
 }
 .session-block .seg button { min-height: 32px; padding: 4px 10px; font-size: 12.5px; }
 .field-head { display: flex; align-items: center; gap: 4px; }
