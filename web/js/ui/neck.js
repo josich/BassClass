@@ -31,7 +31,7 @@ const INFO = [
 ];
 
 /** The Neck block: { el, follow, setBar, dispose }. */
-export function neckPanel() {
+export function neckPanel({ onOwn } = {}) {
   const S = settings;
   const ctx = makeCtx(S);
   let rootPc = 0, set = 's:ionian', label = 'degree', upTo = 12;
@@ -111,7 +111,7 @@ export function neckPanel() {
     info.textContent = notes ? `${what()}: ${notes.map((x) => T.noteName(x.n, S.notation)).join(' – ')}${after ? `   ·   ${after}` : ''}` : 'Natural notes are bright, sharps/flats are dim. Tap any fret to hear it.';
   };
   rootSel.addEventListener('change', () => { rootPc = Number(rootSel.value); render(); });
-  setSel.addEventListener('change', () => { set = setSel.value; render(); });
+  setSel.addEventListener('change', () => { set = setSel.value; render(); onOwn?.(); });
   labSel.addEventListener('change', () => { label = labSel.value; render(); });
   fretSel.addEventListener('change', () => { upTo = Number(fretSel.value); render(); });
   render();
@@ -123,5 +123,7 @@ export function neckPanel() {
   };
   /** The harmony's bar above the board (Follow and the chords), or null for none. */
   const setBar = (node) => bar.replaceChildren(...(node ? [node] : []));
-  return { el, follow, setBar, dispose: () => fb.destroy() };
+  /** The player's own choice: 's:dorian', 'c:min7', 'n:none'. */
+  const own = () => set;
+  return { el, follow, setBar, own, dispose: () => fb.destroy() };
 }

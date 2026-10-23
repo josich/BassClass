@@ -5,6 +5,10 @@
 // Escape, ✕, a tap outside or Back close it (it has its own history entry, so Back stays on the screen).
 import { h, icon, sideScroll } from './dom.js';
 
+let opened = 0;   // pickers open now
+// Forward after Back would land on a picker's entry with no picker: it steps back over it
+addEventListener('popstate', () => { if (history.state?.picker && !opened) history.back(); });
+
 /**
  * Opens a picker. `o`: { title, groups: [{ key, name }], items: [{ key, name, sub, group, tags }], current,
  * open (the group shown first; else the current item's), favs, recent (item keys), onPick(key),
@@ -24,7 +28,7 @@ export function openPicker(o) {
   const chips = h('div', { class: 'picker-chips' });
   const grid = h('div', { class: 'picker-grid' });
   const closeBtn = h('button', { class: 'icon-btn picker-close', type: 'button', 'aria-label': 'Close', html: icon('close') });
-  const panel = h('div', { class: 'picker', role: 'dialog', 'aria-modal': 'true', 'aria-label': o.title },
+  const panel = h('div', { class: 'picker', role: 'dialog', 'aria-modal': 'true', 'aria-label': o.title, tabindex: '-1' },
     h('div', { class: 'picker-head' }, h('h2', {}, o.title), h('span', { class: 'picker-count' }, `${o.items.length}`), h('div', { class: 'grow' }), closeBtn),
     search, chips, grid);
   const backdrop = h('div', { class: 'picker-backdrop' }, panel);
@@ -47,7 +51,7 @@ export function openPicker(o) {
     // (searching, or in Favourites and Recent, a card also names its group)
     const where = query || open.startsWith('*') ? `${groupName.get(it.group) || ''} · ` : '';
     return h('div', { class: `picker-card${it.key === o.current ? ' on' : ''}` },
-      h('button', { class: 'picker-pick', type: 'button', onClick: () => { close(); o.onPick(it.key); } },
+      h('button', { class: 'picker-pick', type: 'button', onClick: () => { if (fresh()) return; close(); o.onPick(it.key); } },
         h('b', {}, it.name), h('small', {}, `${where}${it.sub || ''}`)),
       h('button', {
         class: `picker-star${fav ? ' on' : ''}`, type: 'button', html: icon(fav ? 'star' : 'starO'),
@@ -82,6 +86,9 @@ export function openPicker(o) {
     grid.replaceChildren(...(items.length ? items.map(card) : [h('p', { class: 'muted small picker-none' }, 'Nothing matches that search')]));
   };
 
+  // (the second tap of a double tap on Change would land on a card: picks wait a moment after opening)
+  const openedAt = performance.now();
+  const fresh = () => performance.now() - openedAt < 400;
   search.addEventListener('input', () => { query = search.value.trim(); draw(); grid.scrollTop = 0; });
   closeBtn.addEventListener('click', () => close());
   backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(); });
@@ -92,10 +99,15 @@ export function openPicker(o) {
   const onPop = () => close('back');
   addEventListener('popstate', onPop);
   let closed = false;
+  const opener = document.activeElement;
+  opened++;
   function close(how) {
     if (closed) return;
     closed = true;
+    opened--;
     backdrop.remove();
+    // (the keys go back where they were: Change)
+    if (how !== 'route') opener?.focus?.({ preventScroll: true });
     document.removeEventListener('keydown', onKey, true);
     removeEventListener('popstate', onPop);
     // (closed by hand: its history entry goes too; by Back or a screen leaving: nothing more to undo)
@@ -103,5 +115,8 @@ export function openPicker(o) {
   }
   (o.host || document.body).append(backdrop);
   draw();
+  // the keys move into the picker (Enter cannot open a second one behind it); the search waits for a tap,
+  // so a phone's keyboard does not open by itself
+  panel.focus({ preventScroll: true });
   return close;
 }

@@ -20,9 +20,12 @@ export const QUALITIES = [
 ];
 /** The lengths offered: [beats of 4/4, label in bars]. */
 export const LENGTHS = [[2, '½'], [4, '1'], [8, '2'], [16, '4']];
-// a degree's usual chord in a major key (a chromatic one: its usual borrowing or secondary dominant)
+// a degree's usual chord in a major key, and in a minor one (a chromatic one: its usual borrowing or dominant)
 const USUAL = ['maj7', 'dom7', 'min7', 'maj7', 'min7', 'maj7', 'm7b5', 'dom7', 'maj7', 'min7', 'dom7', 'm7b5'];
-export const usualQuality = (d) => USUAL[d];
+const USUAL_MINOR = ['min7', 'dom7', 'm7b5', 'maj7', 'dom7', 'min7', 'm7b5', 'dom7', 'maj7', 'm7b5', 'dom7', 'dim7'];
+export const usualQuality = (d, minor = false) => (minor ? USUAL_MINOR : USUAL)[d];
+/** My progression to start with: I – vi – ii – V, a bar each (major). */
+export const MINE_START = [{ d: 0, q: 'maj7', b: 4 }, { d: 9, q: 'min7', b: 4 }, { d: 2, q: 'min7', b: 4 }, { d: 7, q: 'dom7', b: 4 }];
 const MINORISH = ['min', 'min7', 'min6', 'min9', 'mMaj7', 'm7b5', 'dim', 'dim7'];
 const SUFFIX = {
   dim: '°', aug: '+', sus2: 'sus2', sus4: 'sus4', dom7: '7', maj7: 'maj7', min7: '7', m7b5: 'ø', dim7: '°7', mMaj7: '(maj7)',
@@ -79,17 +82,29 @@ export function scaleFor(c, next) {
   return FAMILY[familyOf(c.type)].find((m) => holds(m, c.type)) || mode;
 }
 
-/** A preset copied into My progression: its chords by degree, quality and length (the first 16; pop ones as triads). */
+/**
+ * A preset copied into My progression: { minor, chords }, its chords by degree, quality and length (pop ones as
+ * triads), a cycle's chords with their local key (`k`), the first 16 cut at a whole bar.
+ */
 export function mineFrom(key) {
   const prog = PROGS[key];
-  return prog.chords.slice(0, 16).map(([where, type, beats = 4]) => {
+  const chords = prog.chords.slice(0, 16).map(([where, type, beats = 4, keyOff]) => {
     const t = prog.pop ? toTriad(type) : type;
     return {
       d: T.mod(typeof where === 'number' ? where : T.semis(where), 12),
       q: QUALITIES.some(([k]) => k === t) ? t : t.startsWith('dom') ? 'dom7' : MINORISH.includes(t) ? 'min7' : 'maj7',
       b: LENGTHS.reduce((best, [l]) => (Math.abs(l - beats) < Math.abs(best - beats) ? l : best), 4),
+      ...(keyOff != null ? { k: T.mod(keyOff, 12) } : {}),
     };
   });
+  // (cut at a whole bar: the copy of a long cycle does not end on half a ii – V)
+  while (chords.length > 1 && chords.reduce((a, c) => a + c.b, 0) % 4) chords.pop();
+  return { minor: !!prog.minor, chords };
+}
+/** My progression's length in bars, the last chord filling its bar: { bars, padded }. */
+export function mineBars(list) {
+  const beats = list.reduce((a, c) => a + c.b, 0);
+  return { bars: Math.ceil(beats / 4), padded: beats % 4 !== 0 };
 }
 
 /** The progressions offered, by style. */
@@ -136,7 +151,7 @@ export const keyName = (pc, notation, minor = false) => (minor
  * metre's `groups` starts when it has groups (7/8 2 + 2 + 3: 4 + 3), so every bar keeps its length. A
  * 1-beat "bar" is a pulse: there each 4/4 beat is one beat.
  */
-export function progression(key, keyPc, beatsPerBar = 4, S = {}, groups = null, mine = null) {
+export function progression(key, keyPc, beatsPerBar = 4, S = {}, groups = null, mine = null, mineMinor = false) {
   const bpb = beatsPerBar < 2 ? 4 : beatsPerBar;
   const cuts = groups ? groups.reduce((a, g) => [...a, a.at(-1) + g], [0]) : null;
   const at = (pos) => {
@@ -145,7 +160,14 @@ export function progression(key, keyPc, beatsPerBar = 4, S = {}, groups = null, 
     return bar * bpb + beat;
   };
   let pos = 0;
-  const prog = key === MINE ? { chords: (mine || []).map((c) => [DEG_IV[c.d], c.q, c.b]) } : key;
+  // (My progression: its key major or minor, a chord with a local key spelled from it, and the last chord
+  // filling its bar, so the loop keeps the bar lines)
+  let prog = key;
+  if (key === MINE) {
+    const list = mine || [];
+    const pad = (4 - (list.reduce((a, c) => a + c.b, 0) % 4)) % 4;
+    prog = { minor: mineMinor, chords: list.map((c, i) => [c.k != null ? c.d : DEG_IV[c.d], c.q, c.b + (i === list.length - 1 ? pad : 0), c.k]) };
+  }
   return progChords(prog, keyPc, { S }).map((c) => {
     const from = at(pos);
     pos += c.beats;

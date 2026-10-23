@@ -172,6 +172,9 @@ export function sideScroll(row, { from = 0 } = {}) {
   row.addEventListener('scroll', edges, { passive: true });
   row.addEventListener('wheel', (e) => {
     if (row.scrollWidth <= row.clientWidth || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+    // (at an end the page takes the wheel again, so it never stops scrolling over the row)
+    const atEnd = e.deltaY > 0 ? row.scrollLeft >= row.scrollWidth - row.clientWidth - 1 : row.scrollLeft <= 0;
+    if (atEnd) return;
     e.preventDefault();
     row.scrollLeft += e.deltaY;
   }, { passive: false });

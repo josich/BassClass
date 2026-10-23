@@ -33,10 +33,11 @@ export class Room {
 
   /** Changes apply from the next beat; a new tempo also resets the speed-up's climb. */
   set(patch) {
-    const changed = (k) => k in patch && patch[k] !== this.o[k];
+    // (by value: an edit of My progression that changes nothing does not start it again)
+    const changed = (k) => k in patch && JSON.stringify(patch[k]) !== JSON.stringify(this.o[k]);
     // a new key, progression or metre starts the progression again, on the next bar line; another
     // pattern in the same metre only regroups its bars (7/8 2 + 2 + 3 or 3 + 2 + 2)
-    const restart = ['harmony', 'hProg', 'hKey', 'beats', 'myProg'].some(changed);
+    const restart = ['harmony', 'hProg', 'hKey', 'beats', 'myProg', 'myMinor'].some(changed);
     const regroup = restart || changed('style') || changed('drums');
     Object.assign(this.o, patch);
     if (regroup) this.chords = null;
@@ -59,10 +60,10 @@ export class Room {
 
   /** The progression's chords (cached until the key, progression or metre changes). */
   _chords() {
-    const { harmony, hProg, hKey, beats, notation, drums, style, myProg } = this.o;
+    const { harmony, hProg, hKey, beats, notation, drums, style, myProg, myMinor } = this.o;
     if (harmony !== 'chords') return null;
     if (!this.chords) {
-      this.chords = progression(hProg, hKey, beats, { notation }, drums ? STYLES[style]?.groups : null, myProg);
+      this.chords = progression(hProg, hKey, beats, { notation }, drums ? STYLES[style]?.groups : null, myProg, myMinor);
       this.hTotal = this.chords.reduce((a, c) => a + c.beats, 0);
     }
     return this.chords;
