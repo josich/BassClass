@@ -412,34 +412,99 @@ export function padStop(when = now()) {
     // hold the level reached at `when` (a voice not started yet holds 0), then fade out
     if (v.g.gain.cancelAndHoldAtTime) v.g.gain.cancelAndHoldAtTime(when);
     else v.g.gain.cancelScheduledValues(when);
-    v.g.gain.setTargetAtTime(0, when, 0.15);
+    v.g.gain.setTargetAtTime(0, when, v.release ?? 0.15);
     for (const o of v.osc) o.stop(when + 1.2);
   }
   padVoices = [];
 }
-/** Sound a pad chord from `when` (crossfading from the previous one). */
-export function padSet(midis, when = now()) {
+
+/**
+ * The harmony's sounds (the Practice room offers them; an exercise's Backing is the pad), all synthesised:
+ * each builds one note's voice into `g` (its gain, silent at first) and returns its oscillators. `level`
+ * evens their loudness (A-weighted, measured offline), `struck` ones fade and are struck again on each bar.
+ */
+export const PAD_SOUNDS = {
+  // two detuned oscillators, a slow swell: the Backing's pad
+  pad: { level: 1, struck: false, voice(x, f, when, g, peak) {
+    g.gain.setTargetAtTime(peak, when, 0.12);
+    return [['sawtooth', -6], ['triangle', 5]].map(([type, cents]) => osc(x, type, f, cents, when, g));
+  } },
+  // an electric piano (FM): a sine carrier, a sine at the same pitch bending its tone, bright at the strike,
+  // and a short tine; it fades like a struck tine
+  epiano: { level: 2.03, struck: true, release: 0.25, voice(x, f, when, g, peak) {
+    const carrier = osc(x, 'sine', f, 0, when, g);
+    const mod = osc(x, 'sine', f, 0, when, null);
+    const depth = x.createGain();
+    depth.gain.setValueAtTime(f * 2.2, when);
+    depth.gain.setTargetAtTime(f * 0.35, when, 0.25);
+    mod.connect(depth).connect(carrier.frequency);
+    const tine = osc(x, 'sine', f * 14, 0, when, null);
+    const tineDepth = x.createGain();
+    tineDepth.gain.setValueAtTime(f * 1.5, when);
+    tineDepth.gain.setTargetAtTime(0, when, 0.03);
+    tine.connect(tineDepth).connect(carrier.frequency);
+    g.gain.setValueAtTime(0, when);
+    g.gain.linearRampToValueAtTime(peak, when + 0.004);
+    g.gain.setTargetAtTime(peak * 0.55, when + 0.004, 0.25);
+    g.gain.setTargetAtTime(peak * 0.2, when + 0.6, 1.6);
+    return [carrier, mod, tine];
+  } },
+  // a drawbar organ (8′ 4′ 2⅔′ 2′), held, with a slow chorus
+  organ: { level: 1.5, struck: false, release: 0.06, voice(x, f, when, g, peak) {
+    g.gain.setTargetAtTime(peak, when, 0.012);
+    const out = [];
+    for (const [ratio, amount] of [[1, 1], [2, 0.6], [3, 0.42], [4, 0.3]]) {
+      const part = x.createGain();
+      part.gain.value = amount / 2.3;
+      out.push(osc(x, 'sine', f * ratio, 0, when, part));
+      part.connect(g);
+    }
+    const lfo = osc(x, 'sine', 5.6, 0, when, null);
+    const wobble = x.createGain();
+    wobble.gain.value = 4;
+    lfo.connect(wobble);
+    for (const o of out) wobble.connect(o.detune);
+    return [...out, lfo];
+  } },
+  // a string section: three detuned saws, softened, a slow swell and a light vibrato
+  strings: { level: 0.79, struck: false, release: 0.35, voice(x, f, when, g, peak) {
+    const tone = x.createBiquadFilter();
+    tone.type = 'lowpass'; tone.frequency.value = Math.min(4200, f * 6); tone.Q.value = 0.5;
+    tone.connect(g);
+    g.gain.setTargetAtTime(peak, when, 0.3);
+    const out = [-9, 0, 8].map((cents) => osc(x, 'sawtooth', f, cents, when, tone));
+    const lfo = osc(x, 'sine', 5.1, 0, when, null);
+    const vib = x.createGain();
+    vib.gain.value = 6;
+    lfo.connect(vib);
+    for (const o of out) vib.connect(o.detune);
+    return [...out, lfo];
+  } },
+};
+function osc(x, type, f, cents, when, to) {
+  const o = x.createOscillator();
+  o.type = type;
+  o.frequency.value = f;
+  o.detune.value = cents;
+  if (to) o.connect(to);
+  o.start(when);
+  return o;
+}
+/** Sound a chord from `when` on the pad, in one of `PAD_SOUNDS` (crossfading from the previous one). */
+export function padSet(midis, when = now(), sound = 'pad') {
   audioCtx();
   padStop(when);
   if (!midis?.length) return;
-  const level = 0.16 / Math.sqrt(midis.length);
+  const kind = PAD_SOUNDS[sound] || PAD_SOUNDS.pad;
+  const peak = (0.16 / Math.sqrt(midis.length)) * kind.level;
   for (const m of midis) {
     const g = ac.createGain();
     // silent from creation: cancelling its fade-in can never leave it at the default gain of 1
     g.gain.value = 0;
     g.gain.setValueAtTime(0, when);
-    g.gain.setTargetAtTime(level, when, 0.12);
-    const osc = [['sawtooth', -6], ['triangle', 5]].map(([type, cents]) => {
-      const o = ac.createOscillator();
-      o.type = type;
-      o.frequency.value = midiToFreq(m);
-      o.detune.value = cents;
-      o.connect(g);
-      o.start(when);
-      return o;
-    });
+    const oscs = kind.voice(ac, midiToFreq(m), when, g, peak);
     g.connect(padBus);
-    padVoices.push({ g, osc });
+    padVoices.push({ g, osc: oscs, release: kind.release });
   }
 }
 

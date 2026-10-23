@@ -38,6 +38,8 @@ export class Room {
     // a new key, progression or metre starts the progression again, on the next bar line; another
     // pattern in the same metre only regroups its bars (7/8 2 + 2 + 3 or 3 + 2 + 2)
     const restart = ['harmony', 'hProg', 'hKey', 'beats', 'myProg', 'myMinor'].some(changed);
+    // (another sound plays from the next beat, the progression going on)
+    if (changed('hSound')) this.hSig = null;
     const regroup = restart || changed('style') || changed('drums');
     Object.assign(this.o, patch);
     if (regroup) this.chords = null;
@@ -91,8 +93,10 @@ export class Room {
     // silent while the form goes on)
     const sound = muted ? null : midis;
     const sig = sound ? sound.join() : null;
-    if (sig !== this.hSig) {
-      if (sound) A.padSet(sound, t0); else A.padStop(t0);
+    // (a struck sound, the e-piano, is struck again on each bar so a long chord does not die away)
+    const restrike = sound && this.beat === 0 && A.PAD_SOUNDS[this.o.hSound]?.struck;
+    if (sig !== this.hSig || restrike) {
+      if (sound) A.padSet(sound, t0, this.o.hSound); else A.padStop(t0);
       this.hSig = sig;
     }
     if (idx !== this.hIdx) { this.hIdx = idx; this.onChord?.({ time: t0, idx }); }

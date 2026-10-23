@@ -608,6 +608,12 @@ export function practiceScreen(main, params = {}) {
         mode === 'chords' ? progNow : null,
         mode === 'chords' && room.hProg !== MINE ? h('button', { class: 'btn small', title: 'Copy it into My progression to change it', onClick: editPreset }, '✎ Edit') : null),
       ...(mode === 'chords' && room.hProg === MINE ? mineEditor() : []),
+      // its sound: synthesised, so nothing to download
+      mode === 'off' ? null : h('div', { class: 'room-field' }, h('label', {}, 'Sound'),
+        h('div', { class: 'seg' }, [['pad', 'Pad'], ['epiano', 'E-piano'], ['organ', 'Organ'], ['strings', 'Strings']].map(([v, l]) => h('button', {
+          class: room.hSound === v ? 'on' : '', type: 'button',
+          onClick: () => { if (room.hSound !== v) setHarmony({ hSound: v }); },
+        }, l)))),
       mode === 'off' ? null : h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal),
     ].filter(Boolean));
     showChord();

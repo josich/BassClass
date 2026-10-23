@@ -9,7 +9,7 @@ export const SUBS = [1, 2, 3, 4];        // clicks per beat without drums: quart
 const DEFAULTS = { bpm: 90, beats: 4, sub: 1, accent: true, click: true, play: 2, mute: 0, speedUp: false, upBy: 2, upEvery: 4, upTo: 200, drums: false, genre: 'rock', style: 'rock8', drumVol: 80, fab: null,
   harmony: 'off', hKey: 9, hProg: 'blues', hVol: 70, neckShow: 'chord',
   // My progression, to start: I – vi – ii – V, a bar each
-  myProg: MINE_START, myMinor: false,
+  myProg: MINE_START, myMinor: false, hSound: 'pad',
   // the pickers' ★ favourites and recent picks (newest first)
   drumFavs: [], drumRecent: [], progFavs: [], progRecent: [] };
 const int = (lo, hi) => (v) => Number.isInteger(v) && v >= lo && v <= hi;
@@ -48,6 +48,7 @@ const RULES = {
   drumFavs: keysOf(isStyle, 99), drumRecent: keysOf(isStyle, 6), progFavs: keysOf(isProg, 40), progRecent: keysOf(isProg, 6),
   myProg: (v) => Array.isArray(v) && v.length >= 1 && v.length <= 16 && v.every(isChord),
   myMinor: (v) => typeof v === 'boolean',
+  hSound: (v) => ['pad', 'epiano', 'organ', 'strings'].includes(v),   // the harmony's sound (audio.js PAD_SOUNDS)
   neckShow: (v) => ['chord', 'scale', 'off'].includes(v),   // the Neck shows the chord sounding, its scale, or the player's own choice
   // where the floating Start/Stop was dragged: its centre as a share of the screen's width and height
   fab: (v) => v === null || (Array.isArray(v) && v.length === 2 && v.every((n) => typeof n === 'number' && n >= 0 && n <= 1)),
