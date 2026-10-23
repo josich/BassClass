@@ -20,13 +20,14 @@ const CACHE = `bassclass-drums-v${VERSION}`;
 // ("g") 21, whichever recorded layer plays it, so no stroke jumps because its layer was recorded louder.
 // A time-keeper sits 8–12 dB under the backbeat in a groove (web/js/dev/drumlevels.js measures it); the rides
 // (ride, its bell, the brush ride) and the guiro's scrapes are 3 dB under that (user, 2026-10-23: "the ride
-// can be a bit quieter", "the scratcher in general a bit quieter").
+// can be a bit quieter", "the scratcher in general a bit quieter"). The brushes' swish sits well under their
+// taps, a hush behind them (user, 2026-10-23: it "sounds like metal scratching, much lower").
 const LEVEL = {
   kick: -13.5, snare: 0, rim: 0, xstick: -3, flam: 0, tomh: -7, toml: -8, crash: -2,
   hhc: -12, hhh: -10, hho: -7, hhp: -14, ride: -14, bell: -13,
   shakd: -12, shaku: -14, cabasa: -13, tamb: -10, guiro: -19, guirol: -17, claves: -4, cowbell: -8, agogoh: -7, agogol: -8,
   conga: -8, congam: -10, tumba: -8, bongoh: -8, bongol: -8, timb: -6, tri: -12, trim: -14,
-  bkick: -6.7, bsnare: -4.6, bstir: -10.4, bhhc: -8.4, bhhp: -13.1, bride: -12.8,
+  bkick: -6.7, bsnare: -4.6, bstir: -34.4, bhhc: -8.4, bhhp: -13.1, bride: -12.8,
 };
 // the brushes keep their recorded dynamics: their soft strokes are light taps, nearly as one, and only the slap
 // is far louder (user, 2026-10-23: on the curve the brushes swing sounded wrong, its taps over the swish).
@@ -141,13 +142,17 @@ function loudness(s) {
 // (QA round 15: brushes swing sat 18 dB over the median). Each pattern more than 1 dB off the median
 // loudness through the chain gets a correction, measured by web/js/dev/drumlevels.js chain(): all 99 then
 // sit within 1 dB of it (A-weighted, at 100%; peaks -1.85 dB at most). Measure again when patterns change.
+// The two brushes patterns are set by their taps instead (`BY_TAPS`; the swish, now low, no longer their
+// loudness): the snare 6 dB over where it was, the swish 18 dB under, the pattern 6–8 dB under the median
+// (brushes are soft); chain() leaves them as they are.
+export const BY_TAPS = { brushswing: -12, brushballad: -9 };
 const CHAIN_DB = {
   rockride: -3, rockhalf: 2.5, punk: -4.5, rockfloor: -4, rockballad: 5.5, six8rock: 4, dance: -5.5, disco: -4, pophalf: 2.5,
   popballad: 5, indie: -2.5, synthpop: 3, poprock: -3, funkslow: 2.5, funkdisco: -3, soulballad: 5.5, rnbballad: 4, phillysoul: -4,
-  neosoul: 2.5, chicagoshuffle: -2.5, slowblues: 5.5, halfshuffle: 3, hambone: -4.5, swing: -6.5, brushswing: -18, upswing: -7.5,
-  twofeel: -5.5, jazzwaltz: -5.5, brushballad: -15, bebop: -7, jazzfive: -8, jazzshuffle: -3, samba: -7, baiao: -6, chacha: -9,
+  neosoul: 2.5, chicagoshuffle: -2.5, slowblues: 5.5, halfshuffle: 3, hambone: -4.5, swing: -6.5, upswing: -7.5,
+  twofeel: -5.5, jazzwaltz: -5.5, bebop: -7, jazzfive: -8, jazzshuffle: -3, samba: -7, baiao: -6, chacha: -9,
   mambo: -4.5, cumbia: -3.5, rumba: 3.5, afro68: -8.5, onedrop: 7, rockers: 6, steppers: 5, rocksteady: 5.5, reggaeton: -2.5,
-  soca: -6.5, train: -5, bluegrass: -9.5, folk68: 5, jig: -6.5, polka: -3, folkrock: -3,
+  soca: -6.5, train: -5, bluegrass: -9.5, folk68: 5, jig: -6.5, polka: -3, folkrock: -3, ...BY_TAPS,
 };
 
 /** A pattern's gain for even loudness between the patterns (`chain`: with its correction for the drum chain). */

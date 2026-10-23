@@ -673,6 +673,22 @@ details.les-more > ul { margin: 0 0 10px; }
 .metro-opts { display: flex; flex-direction: column; gap: 9px; padding-left: 16px; border-left: 1px solid var(--line); }
 .metro-beat { align-self: stretch; display: flex; flex-direction: column; gap: 9px; margin-top: 2px; padding-top: 10px; border-top: 1px solid var(--line); }
 .tempo-row { display: flex; align-items: center; justify-content: center; gap: 14px; width: 100%; }
+/* tap tempo: on each tap the button squashes and wobbles back like jelly, its edge flashing teal */
+.tap-btn.jelly { animation: jelly 0.6s cubic-bezier(0.25, 0.8, 0.4, 1), tap-edge 0.45s ease-out; }
+@keyframes jelly {
+  0% { transform: scale(1, 1); }
+  15% { transform: scale(1.14, 0.84); }
+  32% { transform: scale(0.9, 1.1); }
+  48% { transform: scale(1.06, 0.95); }
+  64% { transform: scale(0.97, 1.03); }
+  80% { transform: scale(1.015, 0.99); }
+  100% { transform: scale(1, 1); }
+}
+@keyframes tap-edge {
+  0% { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(70, 201, 162, 0.9), 0 0 14px rgba(70, 201, 162, 0.55); }
+  100% { border-color: var(--line); box-shadow: 0 0 0 7px rgba(70, 201, 162, 0), 0 0 0 rgba(70, 201, 162, 0); }
+}
+@media (prefers-reduced-motion: reduce) { .tap-btn.jelly { animation: tap-edge 0.45s ease-out; } }
 .btn.round { width: 46px; height: 46px; padding: 0; justify-content: center; border-radius: 50%; font-size: 24px; line-height: 1; touch-action: manipulation; }
 .btn.round.small { width: 34px; height: 34px; font-size: 18px; }
 .tempo-show { display: flex; flex-direction: column; align-items: center; min-width: 110px; line-height: 1; }
@@ -681,13 +697,17 @@ details.les-more > ul { margin: 0 0 10px; }
 .tempo-name { font-size: 12px; color: #aab6ff; margin-top: 3px; font-style: italic; }
 .tempo-slider { width: 100%; accent-color: var(--accent); }
 .beat-lights { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; min-height: 26px; }
-.beat-lights i { width: 22px; height: 22px; border-radius: 50%; background: var(--panel-3); border: 2px solid var(--line); transition: background 0.05s, transform 0.05s; }
-.beat-lights i.accent { border-color: #dba85a; }
-.beat-lights i.lit { background: var(--accent); border-color: var(--accent); transform: scale(1.15); box-shadow: 0 0 14px rgba(70, 201, 162, 0.55); }
-.beat-lights i.accent.lit { background: #f2cf7e; border-color: #f2cf7e; box-shadow: 0 0 14px rgba(242, 207, 126, 0.55); }
-.beat-lights.muted i.lit { background: transparent; border-color: var(--accent); box-shadow: none; }
-.beat-lights i.group { border-style: dashed; }
-.beat-lights.count i.lit { background: var(--accent-2); border-color: var(--accent-2); box-shadow: 0 0 12px rgba(110, 128, 232, 0.5); }
+.beat-lights > * { position: relative; width: 22px; height: 22px; padding: 0; border-radius: 50%; background: var(--panel-3); border: 2px solid var(--line); transition: background 0.05s, transform 0.05s; cursor: pointer; }
+/* (a tap anywhere 6 px around a light counts: 34 px to aim at) */
+.beat-lights > *::after { content: ''; position: absolute; inset: -8px; border-radius: 50%; }
+.beat-lights > .accent { border-color: #dba85a; }
+.beat-lights > .lit { background: var(--accent); border-color: var(--accent); transform: scale(1.15); box-shadow: 0 0 14px rgba(70, 201, 162, 0.55); }
+.beat-lights > .accent.lit { background: #f2cf7e; border-color: #f2cf7e; box-shadow: 0 0 14px rgba(242, 207, 126, 0.55); }
+.beat-lights.muted > .lit { background: transparent; border-color: var(--accent); box-shadow: none; }
+.beat-lights > .group { border-style: dashed; }
+.beat-lights.count > .lit { background: var(--accent-2); border-color: var(--accent-2); box-shadow: 0 0 12px rgba(110, 128, 232, 0.5); }
+.beat-grouping { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 20px; margin-top: -4px; font-size: 12.5px; font-weight: 600; color: #dba85a; }
+.grouping-reset { min-width: 30px; min-height: 26px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); font-size: 14px; }
 /* the room's one Start/Stop, floating at the bottom right wherever the page is scrolled */
 .room-fab { position: fixed; right: 18px; bottom: 16px; z-index: 40; min-width: 132px; height: 52px; justify-content: center; gap: 8px; border-radius: 99px; font-size: 17px; padding: 0 22px; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45); }
 .room-fab { touch-action: none; cursor: grab; }

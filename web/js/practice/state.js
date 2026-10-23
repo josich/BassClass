@@ -6,7 +6,7 @@ const KEY = 'bassclass.practice.v1';
 
 export const SUBS = [1, 2, 3, 4];        // clicks per beat without drums: quarters, 8ths, triplets, 16ths
 
-const DEFAULTS = { bpm: 90, beats: 4, sub: 1, accent: true, click: true, play: 2, mute: 0, speedUp: false, upBy: 2, upEvery: 4, upTo: 200, drums: false, genre: 'rock', style: 'rock8', drumVol: 80, fab: null,
+const DEFAULTS = { bpm: 90, beats: 4, sub: 1, accents: {}, click: true, play: 2, mute: 0, speedUp: false, upBy: 2, upEvery: 4, upTo: 200, drums: false, genre: 'rock', style: 'rock8', drumVol: 80, fab: null,
   harmony: 'off', hKey: 9, hProg: 'blues', hVol: 70, neckShow: 'chord',
   // My progression, to start: I – vi – ii – V, a bar each
   myProg: MINE_START, myMinor: false, hSound: 'pad',
@@ -29,7 +29,10 @@ const RULES = {
   bpm: int(1, 660),       // the room's range is PolyOrbit's (ui/practice.js)
   beats: int(1, 12),
   sub: (v) => [1, 2, 3, 4, 6].includes(v),   // (6: 16ths of a compound-metre drum pattern)
-  accent: (v) => typeof v === 'boolean',
+  // the player's own accented beats, by the bar's number of beats ({ 7: [0, 3, 5] }); a bar without any
+  // takes its usual grouping (practice/accents.js)
+  accents: (v) => !!v && typeof v === 'object' && !Array.isArray(v) && Object.entries(v).every(([k, list]) => int(1, 12)(Number(k))
+    && Array.isArray(list) && new Set(list).size === list.length && list.every(int(0, Number(k) - 1))),
   click: (v) => typeof v === 'boolean',   // the metronome's sound (off: the drums keep the time alone)
   play: int(1, 8),        // muted bars: `play` bars with the click, then `mute` bars silent (0 = off)
   mute: int(0, 8),
@@ -62,6 +65,8 @@ function load() {
   // speed up had no switch, 0 BPM was off: whatever was kept, it now starts off)
   if (RULES.mute(v.gap) && v.mute == null) { v.play = Math.max(1, v.gap); v.mute = v.gap; }
   if (RULES.upBy(v.trainer) && v.upBy == null) v.upBy = v.trainer;
+  // (the accent was on 1 or off: off, the bar the player had kept no accent)
+  if (v.accent === false && v.accents == null) v.accents = { [RULES.beats(v.beats) ? v.beats : 4]: [] };
   // (the strings gave way to the arpeggio)
   if (v.hSound === 'strings') v.hSound = 'arp';
   // (the Neck's Follow was on or off)

@@ -2,7 +2,7 @@
 import { h, icon, toast, guardSliders } from './ui/dom.js';
 import { byId, byNumber } from './curriculum/index.js';
 import { renderExercise } from './ui/exercise.js';
-import { loadBank, setAudioOptions } from './audio.js';
+import { loadBank, setAudioOptions, tapTick } from './audio.js';
 import { settings } from './store.js';
 import { tunerScreen } from './ui/tuner.js';
 import { practiceScreen } from './ui/practice.js';
@@ -163,6 +163,15 @@ window.addEventListener('hashchange', route);
 route();
 // a scroll that starts on a slider does not move it
 guardSliders();
+// a soft tick on every tap of a control (user, 2026-10-23: subtle, not annoying): a real tap only (a
+// scroll never clicks), not a slider or a text field, not a control that sounds itself (`data-silent`:
+// Start and Play, the beat lights), and not when Settings turns it off
+document.addEventListener('click', (e) => {
+  if (!settings.tapSounds || !e.isTrusted) return;
+  const el = e.target.closest?.('button, a[href], [role="button"], select, summary, .chip');
+  if (!el || el.disabled || el.closest('[data-silent]')) return;
+  tapTick();
+}, true);
 // saved sound settings apply everywhere (Neck, tuner reference notes), not only in exercises
 setAudioOptions({ bassVol: settings.bassVol, clickVol: settings.clickVol });
 // fetch the recorded bass samples in the background (decoded on first sound)

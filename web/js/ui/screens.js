@@ -334,6 +334,7 @@ export function settingsScreen(main) {
       field('Metronome clicks', seg('clickSubs', [[false, 'Beats only'], [true, 'Beats + subdivisions']])),
       field('Bass volume', range('bassVol', 0, 2, 0.1, 2)),
       field('Metronome volume', range('clickVol', 0, 1.5, 0.075, 1.5)),
+      field('Tap sounds', seg('tapSounds', [[true, 'On'], [false, 'Off']])),
       field('Backup', h('div', { class: 'row' },
         h('button', { class: 'btn', onClick: save }, '💾 Save a backup'),
         h('button', { class: 'btn', onClick: () => fileIn.click() }, '📂 Load a backup'), fileIn),

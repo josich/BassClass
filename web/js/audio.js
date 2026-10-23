@@ -3,7 +3,7 @@
 import { midiToFreq } from './theory.js';
 
 let ac = null;
-let bassBus, bassVolume, clickBus, fullPath, phonePath, padBus, padTone, drumBus, drumVolume;
+let bassBus, bassVolume, clickBus, fullPath, phonePath, padBus, padTone, drumBus, drumVolume, accompIn;
 const PAD_LEVEL = 0.38;   // the pad's level at volume 1 (the Practice room's harmony can set its own)
 const ACCOMP_THRESHOLD = -4.5;   // dB: the accompaniment's limiter (see audioCtx)
 /** A DynamicsCompressor's own make-up gain (hard knee), as Chrome applies it (Web Audio spec): linear. */
@@ -121,6 +121,7 @@ export function audioCtx() {
     const accompTrim = ac.createGain();
     accompTrim.gain.value = 1 / makeupGain(ACCOMP_THRESHOLD, 20);
     accomp.connect(accompTrim).connect(clip);
+    accompIn = accomp;
 
     // the metronome joins after the bass's limiter, so a click never pushes the bass down
     clickBus = ac.createGain();
@@ -179,6 +180,26 @@ export function drumChain(ctx) {
   trim.gain.value = 0.84;
   input.connect(comp(-20, 10, 2.5, 0.008, 0.2)).connect(makeup).connect(comp(-10, 0, 20, 0, 0.05)).connect(trim);
   return { input, output: trim };
+}
+
+/**
+ * The tap sound (user, 2026-10-23: subtle, not annoying): a soft, very short wooden tick on a tap of a
+ * control, quiet under the music, through the accompaniment's limiter.
+ */
+export function tapTick() {
+  audioCtx();
+  const t = ac.currentTime + 0.005;
+  const o = ac.createOscillator();
+  o.type = 'triangle';
+  o.frequency.setValueAtTime(1650, t);
+  o.frequency.exponentialRampToValueAtTime(900, t + 0.025);
+  const g = ac.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(0.07, t + 0.002);
+  g.gain.exponentialRampToValueAtTime(0.0005, t + 0.035);
+  o.connect(g).connect(accompIn);
+  o.start(t);
+  o.stop(t + 0.05);
 }
 
 /** Where drum hits go (web/js/drums.js). */

@@ -5,7 +5,7 @@
 import * as A from '../audio.js';
 import { logPlaying } from '../practiceLog.js';
 import { playDrum, kitReady, styleGain, trackGain } from '../drums.js';
-import { STYLES, levelsOf, clickTimes, groupStarts, beatHits } from './styles.js';
+import { STYLES, levelsOf, clickTimes, beatHits } from './styles.js';
 import { progression, droneMidis } from './harmony.js';
 
 const LOOKAHEAD = 0.12;   // seconds scheduled ahead
@@ -13,7 +13,7 @@ const TICK_MS = 25;
 
 export class Room {
   /**
-   * `o`: { bpm, beats, sub, accent, click, play, mute, upBy, upEvery, upTo, drums, style, countIn,
+   * `o`: { bpm, beats, sub, accents (the accented beats: [0, 2, 4]), click, play, mute, upBy, upEvery, upTo, drums, style, countIn,
    *   harmony ('off' | 'drone' | 'chords'), hProg, hKey, notation };
    * `onTick({ time, bar, beat, muted, count, bpm, chord })` once per beat (`count`: the count-in bar;
    *   `chord`: { at, of }, this beat's place in the progression's chord sounding, else null);
@@ -166,7 +166,7 @@ export class Room {
   _tick() {
     const end = A.now() + LOOKAHEAD;
     while (this.next < end) {
-      const { beats, sub, accent, click, play, mute, speedUp, upBy, upEvery, upTo = 660, drums, style } = this.o;
+      const { beats, sub, accents = [0], click, play, mute, speedUp, upBy, upEvery, upTo = 660, drums, style } = this.o;
       if (this.beat >= beats) { this.beat = 0; this.bar++; }   // (fewer beats since the last one)
       const t0 = this.next, len = 60 / this.bpm;
       const count = this.bar < 0;
@@ -175,8 +175,8 @@ export class Room {
       // with the drums on, the subdivision is the pattern's (its swing, shuffle or compound feel)
       const s = drums ? STYLES[style] : null;
       const L = s && !levelsOf(s).includes(sub) ? s.sub : sub;
-      // the bar's first beat is the accent, an odd metre's group starts a lighter one
-      const level = this.beat === 0 && accent ? 2 : accent && groupStarts(s).has(this.beat) ? 1.5 : 1;
+      // an accented beat: beat 1 the strong accent, any other a group's lighter one (the player's groupings)
+      const level = accents.includes(this.beat) ? (this.beat === 0 ? 2 : 1.5) : 1;
       const now = A.now();
       this.ahead = this.ahead.filter(([t]) => t > now);
       if (count) A.click(t0, this.beat === 0 ? 2 : 1);

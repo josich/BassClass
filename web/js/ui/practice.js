@@ -5,7 +5,8 @@ import { h, icon, infoBtn, toast, sideScroll } from './dom.js';
 import * as A from '../audio.js';
 import { Room } from '../practice/engine.js';
 import { room, saveRoom, SUBS } from '../practice/state.js';
-import { STYLES, GENRES, levelsOf, groupStarts } from '../practice/styles.js';
+import { STYLES, GENRES, levelsOf } from '../practice/styles.js';
+import { accentsFor, groupingOf } from '../practice/accents.js';
 import { settings, saveSettings } from '../store.js';
 import { loadKit, kitReady } from '../drums.js';
 import { neckPanel } from './neck.js';
@@ -21,6 +22,7 @@ const INFO = [
   '🔇 Muted bars: the click plays some bars and stops for others, you keep the time',
   '📈 Speed up: a few BPM faster every few bars, up to a ceiling',
   '🔈 Click off: the beat lights and the drums keep the time',
+  '👆 Tap a beat light to accent it and make your groupings (3 + 2 + 2…); ↺ goes back to the usual one',
   '✋ Drag the Start button anywhere on the screen',
 ];
 const DRUM_INFO = [
@@ -129,6 +131,7 @@ const bars = (n) => `${n} bar${n === 1 ? '' : 's'}`;
 
 export function practiceScreen(main, params = {}) {
   const lights = h('div', { class: 'beat-lights' });
+  const grouping = h('div', { class: 'beat-grouping' });
   const bpmEl = h('b', { class: 'tempo-num' });
   const nameEl = h('span', { class: 'tempo-name' });
   const unitEl = h('span', { class: 'tempo-unit' });
@@ -138,7 +141,7 @@ export function practiceScreen(main, params = {}) {
   const drawUnit = () => unitEl.replaceChildren('BPM', h('span', { class: 'beat-ic', title: 'The beat', html: ICONS[BEAT_ICON[pattern()?.beat || 'q']] }));
   const slider = h('input', { type: 'range', min: 0, max: BPM_STOPS, step: 1, class: 'tempo-slider', 'aria-label': 'Tempo' });
   // one Start/Stop for the whole room, floating at the bottom so it is in reach wherever the page is scrolled
-  const playBtn = h('button', { class: 'btn primary room-fab' });
+  const playBtn = h('button', { class: 'btn primary room-fab', 'data-silent': '' });
   const opts = h('div', { class: 'metro-opts' });
   // (the beat's own settings sit under the beat lights; the click's, muted bars and speed up beside them)
   const beatOpts = h('div', { class: 'metro-beat' });
@@ -152,7 +155,7 @@ export function practiceScreen(main, params = {}) {
     if (room.beats !== s.beats || !levelsOf(s).includes(room.sub)) saveRoom({ beats: s.beats, ...(levelsOf(s).includes(room.sub) ? {} : { sub: s.sub }) });
   }
   const chordQ = [];   // chord changes waiting to be shown when they sound
-  const engine = new Room({ ...room, countIn: settings.countIn, notation: settings.notation }, {
+  const engine = new Room({ ...room, accents: accentsFor(room, room.drums ? STYLES[room.style] : null), countIn: settings.countIn, notation: settings.notation }, {
     onTick: (t) => { queue.push(t); },
     onChord: (c) => { chordQ.push(c); },
   });
@@ -170,10 +173,31 @@ export function practiceScreen(main, params = {}) {
     set({ bpm });
     showTempo(bpm);
   };
-  // (gold: the accent on 1, and in an odd metre each group's start)
+  // the beat lights: gold where a beat is accented (dashed: a group's), and a tap on one accents it or not
+  // (the player's own groupings; user, 2026-10-23), with its sound as it now plays
   const drawLights = () => {
-    const starts = groupStarts(room.drums ? STYLES[room.style] : null);
-    lights.replaceChildren(...Array.from({ length: room.beats }, (_, i) => h('i', { class: room.accent && starts.has(i) ? (i ? 'accent group' : 'accent') : '' })));
+    const acc = accentsFor(room, pattern());
+    engine.set({ accents: acc });
+    lights.replaceChildren(...Array.from({ length: room.beats }, (_, i) => h('button', {
+      class: acc.includes(i) ? (i ? 'accent group' : 'accent') : '', type: 'button', 'data-silent': '',
+      title: 'Tap to accent this beat', 'aria-label': `Beat ${i + 1}${acc.includes(i) ? ', accented' : ''}`,
+      onClick: () => {
+        const next = acc.includes(i) ? acc.filter((b) => b !== i) : [...acc, i].sort((a, b) => a - b);
+        saveRoom({ accents: { ...room.accents, [room.beats]: next } });
+        A.click(A.now() + 0.01, next.includes(i) ? (i ? 1.5 : 2) : 1);
+        drawLights();
+      },
+    })));
+    // the grouping they make, and ↺ back to the bar's usual one when the player changed it
+    const g = groupingOf(room.beats, acc);
+    const own = Array.isArray(room.accents?.[room.beats]);
+    grouping.replaceChildren(...[
+      g ? h('span', {}, g) : null,
+      own ? h('button', {
+        class: 'grouping-reset', type: 'button', title: 'Back to the usual grouping', 'aria-label': 'Back to the usual grouping',
+        onClick: () => { const rest = { ...room.accents }; delete rest[room.beats]; saveRoom({ accents: rest }); drawLights(); },
+      }, '↺') : null,
+    ].filter(Boolean));
   };
   const drawPlay = () => {
     // (a six-dot grip at its left: it can be dragged anywhere; user, 2026-10-23)
@@ -284,9 +308,14 @@ export function practiceScreen(main, params = {}) {
     setTempo(room.bpm + d);
   });
 
-  // tap tempo: the average of the last taps (a pause of 2 seconds starts again)
+  // tap tempo: the average of the last taps (a pause of 2 seconds starts again); the button wobbles like jelly
+  // and its edge flashes on each one, the T key's too (user, 2026-10-23)
   let taps = [];
+  const tapBtn = h('button', { class: 'btn tap-btn', type: 'button', title: 'Tap the beat', onClick: () => tap() }, '👆 Tap');
   const tap = () => {
+    tapBtn.classList.remove('jelly');
+    void tapBtn.offsetWidth;   // (restarts the animation on a quick tap)
+    tapBtn.classList.add('jelly');
     const t = performance.now();
     taps = taps.filter((x) => t - x < 2000).concat(t).slice(-6);
     if (taps.length < 2) return;
@@ -341,10 +370,6 @@ export function practiceScreen(main, params = {}) {
         onClick: () => { set({ click: v }); drawOpts(); },
       }, v ? 'On' : 'Off')))),
       room.click ? clickVolume() : null,
-      field('Accent on 1', h('div', { class: 'seg' }, [true, false].map((v) => h('button', {
-        class: room.accent === v ? 'on' : '',
-        onClick: () => { set({ accent: v }); drawOpts(); drawLights(); },
-      }, v ? 'On' : 'Off')))),
       h('div', { class: 'room-group' }, h('label', {}, 'Muted bars'),
         rangeLine('play', 1, 8, 'Play', bars, dim),
         rangeLine('mute', 0, 8, 'Mute', (v) => (v ? bars(v) : 'Off'), dim)),
@@ -649,9 +674,10 @@ export function practiceScreen(main, params = {}) {
             slower,
             h('div', { class: 'tempo-show' }, bpmEl, unitEl, nameEl),
             faster,
-            h('button', { class: 'btn tap-btn', title: 'Tap the beat', onClick: tap }, '👆 Tap')),
+            tapBtn),
           slider,
           lights,
+          grouping,
           beatOpts),
         opts)),
     drumBlock,

@@ -16,6 +16,7 @@ export const DEFAULT_SETTINGS = {
   clickSubs: false,
   bassVol: 2,              // 0..2, shown as 0-100%; above 1 the output is pushed into the limiter
   clickVol: 0.6,
+  tapSounds: true,   // a soft tick on every tap of a control (user, 2026-10-23)
   maxFret: 20,
   level: 1,                // preferred level for warm-ups (new players start at Level 1)
   backing: 'off',          // 'off' | 'drone' | 'chords': a pad under the exercise
@@ -36,7 +37,7 @@ const SETTING_RULES = {
   notation: oneOf(['letters', 'solfege']),
   label: oneOf(['note', 'degree', 'finger', 'none']),
   reveal: oneOf(['gradual', 'full', 'quiz']),
-  lefty: isBool, countIn: isBool, metro: isBool, clickSubs: isBool,
+  lefty: isBool, countIn: isBool, metro: isBool, clickSubs: isBool, tapSounds: isBool,
   a4: numIn(425, 455),
   bassVol: numIn(0, 2), clickVol: numIn(0, 1.5),
   maxFret: oneOf([17, 20, 21, 24]),

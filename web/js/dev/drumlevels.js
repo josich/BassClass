@@ -9,7 +9,7 @@
 //              patterns the limiter pulls away from the median back to it (run again when patterns change).
 // Run in the page:  (await import('./js/dev/drumlevels.js')).balance()
 import { STYLES, stepTime, TIMEKEEP, beatHits } from '../practice/styles.js';
-import { strokeDb, trackGain, styleGain, voice, loadKit } from '../drums.js';
+import { strokeDb, trackGain, styleGain, voice, loadKit, BY_TAPS } from '../drums.js';
 import { drumChain } from '../audio.js';
 
 const N = 8192;   // samples measured: 170 ms at 48 kHz
@@ -131,6 +131,8 @@ export async function chain() {
   // a pattern more than 1 dB off the median gets a correction, checked again through the chain (it is not linear)
   const fix = {};
   for (const [i, s] of styles.entries()) {
+    // (the brushes patterns are set by their taps: drums.js BY_TAPS)
+    if (BY_TAPS[s.key] != null) { fix[s.key] = BY_TAPS[s.key]; continue; }
     let c = mid - first[i].db;
     if (Math.abs(c) <= 1) continue;
     for (let round = 0; round < 3; round++) c += mid - (await render(s, 10 ** (c / 20))).db;

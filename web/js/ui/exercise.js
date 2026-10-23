@@ -118,6 +118,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   // ------------------------------------------------------------ layout
   const btn = (name, title, onClick, cls = '') => h('button', { class: `icon-btn ${cls}`, title, 'aria-label': title, html: icon(name), onClick });
   const playBtn = btn('play', 'Play / pause (space)', () => { player.toggle(); }, 'big');
+  playBtn.dataset.silent = '';
   // all exercise options live behind one clear button (a strip of selects gets cut off on phones)
   const optsSum = h('span', { class: 'opts-sum' });
   const hasParams = Object.keys(tpl.params || {}).length > 0;
