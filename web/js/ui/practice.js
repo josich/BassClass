@@ -1,7 +1,7 @@
 // The Practice room (#/practice). Its first block is the metronome: the tempo, tap tempo, beat lights and
 // Start beside its settings (beats per bar, subdivision, accent, muted bars, speed up). Drums and
 // harmony join as blocks of their own below it.
-import { h, icon, infoBtn, toast } from './dom.js';
+import { h, icon, infoBtn, toast, sideScroll } from './dom.js';
 import * as A from '../audio.js';
 import { Room } from '../practice/engine.js';
 import { room, saveRoom, SUBS } from '../practice/state.js';
@@ -288,11 +288,9 @@ export function practiceScreen(main, params = {}) {
   };
   const field = (name, ...control) => h('div', { class: 'room-field' }, h('label', {}, name), ...control);
   const drawOpts = () => {
-    // (a line that does nothing with the other one at 0 is greyed: "Play" with no muted bars, "Every" with no speed-up)
+    // (a line that does nothing with the other one at 0 is greyed: "Play" with no muted bars)
     const dim = () => {
       opts.querySelector('[data-key="play"]')?.classList.toggle('off', !room.mute);
-      opts.querySelector('[data-key="upEvery"]')?.classList.toggle('off', !room.upBy);
-      opts.querySelector('[data-key="upTo"]')?.classList.toggle('off', !room.upBy);
     };
     // (with the drums on, their style sets the beats per bar)
     const fixed = room.drums ? () => toast(`The drum style sets the beats: ${STYLES[room.style].meter}`) : null;
@@ -316,10 +314,17 @@ export function practiceScreen(main, params = {}) {
       h('div', { class: 'room-group' }, h('label', {}, 'Muted bars'),
         rangeLine('play', 1, 8, 'Play', bars, dim),
         rangeLine('mute', 0, 8, 'Mute', (v) => (v ? bars(v) : 'Off'), dim)),
-      h('div', { class: 'room-group' }, h('label', {}, 'Speed up'),
-        rangeLine('upBy', 0, 10, 'Add', (v) => (v ? `+${v} BPM` : 'Off'), dim),
-        rangeLine('upEvery', 1, 16, 'Every', bars, dim),
-        rangeLine('upTo', 40, BPM_MAX, 'Up to', (v) => `${v} BPM`, dim)));
+      // speed up is off until turned on; its settings show only then
+      h('div', { class: 'room-group' },
+        field('Speed up', h('div', { class: 'seg' }, [true, false].map((v) => h('button', {
+          class: room.speedUp === v ? 'on' : '',
+          onClick: () => { set({ speedUp: v }); drawOpts(); },
+        }, v ? 'On' : 'Off')))),
+        ...(room.speedUp ? [
+          rangeLine('upBy', 1, 10, 'Add', (v) => `+${v} BPM`),
+          rangeLine('upEvery', 1, 16, 'Every', bars),
+          rangeLine('upTo', 40, BPM_MAX, 'Up to', (v) => `${v} BPM`),
+        ] : [])));
     dim();
   };
 
@@ -368,17 +373,18 @@ export function practiceScreen(main, params = {}) {
       volVal.textContent = `${v}%`;
     });
     drumBlock.classList.toggle('off', !room.drums);
+    const tabsAt = drumBlock.querySelector('.genre-tabs')?.scrollLeft || 0;
     drumBlock.replaceChildren(
       h('div', { class: 'block-head' }, h('h2', {}, '🥁 Drums'), infoBtn(DRUM_INFO, 'About the drums'), drumState, h('div', { class: 'grow' }),
         h('div', { class: 'seg' }, [true, false].map((v) => h('button', {
           class: room.drums === v ? 'on' : '',
           onClick: () => drumsOn(v),
         }, v ? 'On' : 'Off')))),
-      // a genre, then its patterns
-      h('div', { class: 'genre-tabs' }, GENRES.map((g) => h('button', {
+      // a genre (the row scrolls sideways, whatever their number), then its patterns
+      sideScroll(h('div', { class: 'genre-tabs' }, GENRES.map((g) => h('button', {
         class: `${room.genre === g.key ? 'on' : ''}${STYLES[room.style].genre === g.key ? ' playing' : ''}`,
         onClick: () => { set({ genre: g.key }); drawDrums(); },
-      }, `${g.icon} ${g.name}`))),
+      }, `${g.icon} ${g.name}`))), { from: tabsAt }),
       h('div', { class: 'style-grid' }, GENRES.find((g) => g.key === room.genre).styles.map((st) => h('button', {
         class: `style-chip${room.style === st.key ? ' on' : ''}`,
         onClick: () => pickStyle(st.key),

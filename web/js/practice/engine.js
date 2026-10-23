@@ -118,7 +118,7 @@ export class Room {
   _tick() {
     const end = A.now() + LOOKAHEAD;
     while (this.next < end) {
-      const { beats, sub, accent, click, play, mute, upBy, upEvery, upTo = 660, drums, style } = this.o;
+      const { beats, sub, accent, click, play, mute, speedUp, upBy, upEvery, upTo = 660, drums, style } = this.o;
       if (this.beat >= beats) { this.beat = 0; this.bar++; }   // (fewer beats since the last one)
       const t0 = this.next, len = 60 / this.bpm;
       const count = this.bar < 0;
@@ -155,7 +155,7 @@ export class Room {
         this.beat = 0;
         this.bar++;
         // speed up: a little faster every `upEvery` bars, up to `upTo`
-        if (upBy && this.bar > 0 && this.bar % upEvery === 0 && this.bpm < upTo) this.bpm = Math.min(upTo, 660, this.bpm + upBy);
+        if (speedUp && upBy && this.bar > 0 && this.bar % upEvery === 0 && this.bpm < upTo) this.bpm = Math.min(upTo, 660, this.bpm + upBy);
       }
     }
   }
