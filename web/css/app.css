@@ -645,3 +645,39 @@ details.les-read > p { margin: 0 0 10px; }
 details.les-more > ul { margin: 0 0 10px; }
 .unit-card h3 .info-btn { margin: -6px 0 -6px 2px; }
 .info-pop p:last-child { margin: 0; }
+
+/* ---------------------------------------------------------------- Practice room (#/practice) */
+.room { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+.room-main { align-items: center; gap: 10px; padding: 14px; }
+.tempo-row { display: flex; align-items: center; justify-content: center; gap: 14px; width: 100%; }
+.btn.round { width: 46px; height: 46px; padding: 0; justify-content: center; border-radius: 50%; font-size: 24px; line-height: 1; touch-action: manipulation; }
+.btn.round.small { width: 34px; height: 34px; font-size: 18px; }
+.tempo-show { display: flex; flex-direction: column; align-items: center; min-width: 120px; line-height: 1; }
+.tempo-num { font-size: 52px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.tempo-unit { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--muted); margin-top: 2px; }
+.tempo-name { font-size: 12px; color: #aab6ff; margin-top: 3px; font-style: italic; }
+.tap-btn { margin-left: 4px; }
+.tempo-slider { width: 100%; accent-color: var(--accent); }
+.beat-lights { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; min-height: 26px; }
+.beat-lights i { width: 22px; height: 22px; border-radius: 50%; background: var(--panel-3); border: 2px solid var(--line); transition: background 0.05s, transform 0.05s; }
+.beat-lights i.accent { border-color: #dba85a; }
+.beat-lights i.lit { background: var(--accent); border-color: var(--accent); transform: scale(1.15); box-shadow: 0 0 14px rgba(70, 201, 162, 0.55); }
+.beat-lights i.accent.lit { background: #f2cf7e; border-color: #f2cf7e; box-shadow: 0 0 14px rgba(242, 207, 126, 0.55); }
+.beat-lights.muted i.lit { background: transparent; border-color: var(--accent); box-shadow: none; }
+.room-play { min-width: 150px; justify-content: center; font-size: 17px; padding: 10px 22px; }
+.room-play span { display: inline-flex; }
+.room-play span svg { width: 20px; height: 20px; }
+.room-play.on { background: var(--panel-3); color: var(--text); border-color: var(--line); }
+.room-side { gap: 10px; }
+.room-field { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.room-field label { font-weight: 600; color: var(--muted); font-size: 13px; }
+.room-field .seg button { min-height: 30px; padding: 4px 10px; }
+.stepper { display: inline-flex; align-items: center; gap: 10px; }
+.stepper b { min-width: 22px; text-align: center; font-size: 17px; }
+@media (max-width: 700px) {
+  .room { grid-template-columns: 1fr; }
+}
+@media (max-height: 420px) {
+  .tempo-num { font-size: 42px; }
+  .room-main { gap: 7px; padding: 10px 12px; }
+}

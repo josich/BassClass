@@ -43,6 +43,7 @@
 - Monetization: free with a one-time unlock, plus donations.
 - Drums for the Practice room: natural recorded sounds from a free (CC0) library, with loops written for BassClass. Name the library, its files and size and get the user's OK before downloading.
 - Still open: whether the repository and its public APK releases stay public.
+- Practice room (phase 2, started 2026-10-23): `#/practice`, a rail item after Library (the rail has 7 items until the Neck explorer joins the room and Path folds into the Library). `ui/practice.js` (screen), `practice/engine.js` (`Room`: a lookahead scheduler; drums and harmony join it as layers), `practice/state.js` (`bassclass.practice.v1`: bpm, beats, sub, accent, gap, trainer). It opens as a plain metronome: tempo with −/+ (hold to repeat), slider, tap tempo (T), beats per bar 1–12, Start (Space); options beside it: clicks per beat, accent on 1, muted bars (N on, N silent), speed up (+2/+4 every 4 bars). Its playing time counts in the practice log.
 
 ## Designer agent (user, 2026-10-22)
 

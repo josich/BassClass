@@ -5,6 +5,7 @@ import { renderExercise } from './ui/exercise.js';
 import { loadBank, setAudioOptions } from './audio.js';
 import { settings } from './store.js';
 import { tunerScreen } from './ui/tuner.js';
+import { practiceScreen } from './ui/practice.js';
 import {
   homeScreen, pathScreen, libraryScreen, moduleScreen, explorerScreen, settingsScreen,
   currentRoutine, routineLabel, routineHref, go,
@@ -19,6 +20,7 @@ const NAV = [
   ['home', '#/', 'Home'],
   ['path', '#/path', 'Path'],
   ['library', '#/library', 'Library'],
+  ['practice', '#/practice', 'Practice'],
   ['explorer', '#/explorer', 'Neck'],
   ['tuner', '#/tuner', 'Tuner'],
   ['settings', '#/settings', 'Settings'],
@@ -137,7 +139,7 @@ function route() {
     return;
   }
   // the daily warm-up and the course live on Home; topics (#/m/...) belong to the Path
-  const key = { '': 'home', course: 'home', path: 'path', library: 'library', m: 'path', explorer: 'explorer', tuner: 'tuner', settings: 'settings' }[parts[0] || ''] || 'home';
+  const key = { '': 'home', course: 'home', path: 'path', library: 'library', m: 'path', explorer: 'explorer', practice: 'practice', tuner: 'tuner', settings: 'settings' }[parts[0] || ''] || 'home';
   const main = shell(key);
   if (parts[0] === 'course' && parts[1] === 'placement') placementScreen(main);
   else if (parts[0] === 'course' && parts[1]) lessonScreen(main, parts[1]);
@@ -146,6 +148,7 @@ function route() {
   else if (parts[0] === 'library') libraryScreen(main, params);
   else if (parts[0] === 'm') moduleScreen(main, parts[1]);
   else if (parts[0] === 'explorer') active = explorerScreen(main);
+  else if (parts[0] === 'practice') active = practiceScreen(main);
   else if (parts[0] === 'tuner') active = tunerScreen(main);
   else if (parts[0] === 'settings') active = settingsScreen(main);
   else homeScreen(main);
