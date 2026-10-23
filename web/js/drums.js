@@ -18,14 +18,19 @@ const CACHE = `bassclass-drums-v${VERSION}`;
 // (the ear's weighting at moderate levels: highs count, lows much less, as on a phone's speaker). Every
 // stroke follows one curve, level × velocity^1.5: normal ("x") 4 dB under the accent, soft ("s") 10, ghost
 // ("g") 21, whichever recorded layer plays it, so no stroke jumps because its layer was recorded louder.
-// A time-keeper sits 8–12 dB under the backbeat in a groove (web/js/dev/drumlevels.js measures it).
+// A time-keeper sits 8–12 dB under the backbeat in a groove (web/js/dev/drumlevels.js measures it); the rides
+// (ride, its bell, the brush ride) are 3 dB under that (user, 2026-10-23: "the ride can be a bit quieter").
 const LEVEL = {
   kick: -13.5, snare: 0, rim: 0, xstick: -3, flam: 0, tomh: -7, toml: -8, crash: -2,
-  hhc: -12, hhh: -10, hho: -7, hhp: -14, ride: -11, bell: -10,
+  hhc: -12, hhh: -10, hho: -7, hhp: -14, ride: -14, bell: -13,
   shakd: -12, shaku: -14, cabasa: -13, tamb: -10, guiro: -16, guirol: -14, claves: -4, cowbell: -8, agogoh: -7, agogol: -8,
   conga: -8, congam: -10, tumba: -8, bongoh: -8, bongol: -8, timb: -6, tri: -12, trim: -14,
-  bkick: -8, bsnare: -4, bstir: -13, bhhc: -12, bhhp: -16, bride: -12,
+  bkick: -6.7, bsnare: -4.6, bstir: -10.4, bhhc: -8.4, bhhp: -13.1, bride: -12.8,
 };
+// the brushes keep their recorded dynamics: their soft strokes are light taps, nearly as one, and only the slap
+// is far louder (user, 2026-10-23: on the curve the brushes swing sounded wrong, its taps over the swish).
+// Their level is their hardest layer's; the others sound as recorded, shaded a little by velocity.
+const NATURAL = new Set(['bkick', 'bsnare', 'bstir', 'bhhc', 'bhhp', 'bride']);
 // each recorded layer's own loudness (A-weighted dB over a hit's first 170 ms, the mean of its round robins),
 // soft to hard: measured from the kit's files by web/js/dev/drumlevels.js (measure again when the kit changes)
 const LAYER_DB = {
@@ -106,8 +111,12 @@ function layerOf(n, vel) {
   const f = Math.max(0, Math.min(1, (vel - 0.2) / 0.75));
   return Math.round(f * (n - 1));
 }
-/** A stroke's loudness as heard (A-weighted dB): the piece's level on the velocity curve. */
-export const strokeDb = (piece, vel) => (LEVEL[piece] ?? -20) + 30 * Math.log10(Math.max(0.05, vel)) + REF;
+/** A stroke's loudness as heard (A-weighted dB): the piece's level on the velocity curve (a brush: as recorded). */
+export function strokeDb(piece, vel) {
+  const level = (LEVEL[piece] ?? -20) + REF, layers = LAYER_DB[piece];
+  if (!NATURAL.has(piece) || !layers) return level + 30 * Math.log10(Math.max(0.05, vel));
+  return level + layers[layerOf(layers.length, vel)] - layers.at(-1) + 20 * Math.log10(0.7 + 0.3 * vel);
+}
 /** A pattern's own level for one of its tracks (`mix`, in dB), as a gain. */
 export const trackGain = (s, piece) => 10 ** ((s?.mix?.[piece] || 0) / 20);
 /** The gain that brings a recorded layer to its stroke's loudness. */
