@@ -508,9 +508,10 @@ export function practiceScreen(main, params = {}) {
     setHarmony({ myProg: mineFrom(room.hProg), hProg: MINE });
     toast(n > 16 ? 'Copied the first 16 chords into My progression' : 'Copied into My progression: tap a chord to change it', 2500);
   };
-  // the room's pad: brighter, and up to 2.5 times an exercise Backing's level, to be heard with a real bass
-  // (user, 2026-10-23: too quiet under a real instrument); the accompaniment's limiter keeps it clean
-  const PAD_MAX = 2.5;
+  // the room's pad: brighter, and up to 4.5 times an exercise Backing's level, to be heard with a real bass
+  // (user, 2026-10-23: too quiet under a real instrument; about 17 dB over an exercise's Backing at 100%);
+  // the accompaniment's limiter keeps it clean
+  const PAD_MAX = 4.5;
   A.setAudioOptions({ padVol: (room.hVol / 100) * PAD_MAX, padTone: 3200 });
   /** The chord sounding lit among the chips, and the Neck following it (the first chord, or the drone's key, at rest). */
   const showChord = () => {

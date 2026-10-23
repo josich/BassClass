@@ -5,7 +5,9 @@ import { midiToFreq } from './theory.js';
 let ac = null;
 let bassBus, bassVolume, clickBus, fullPath, phonePath, padBus, padTone, drumBus, drumVolume;
 const PAD_LEVEL = 0.38;   // the pad's level at volume 1 (the Practice room's harmony can set its own)
-const CLICK_LIFT = 1 / 0.85;   // (the accompaniment's trim taken back for the click: it sounds as loud as before)
+const ACCOMP_THRESHOLD = -4.5;   // dB: the accompaniment's limiter (see audioCtx)
+/** A DynamicsCompressor's own make-up gain (hard knee), as Chrome applies it (Web Audio spec): linear. */
+const makeupGain = (threshold, ratio) => 10 ** ((0.6 * -threshold * (1 - 1 / ratio)) / 20);
 const synthCache = new Map();
 // route: what the Android app reports ('speaker' | 'external'), or null in a browser
 const opts = { bassVol: 2, clickVol: 0.6, drumVol: 0.8, padVol: 1, padTone: 1500, route: null };
@@ -109,31 +111,31 @@ export function audioCtx() {
     top.connect(filter('highpass', 200)).connect(filter('highpass', 200)).connect(filter('peaking', 850, 0.6, PHONE_BOOST))
       .connect(filter('highshelf', 3000, 0.7, -5)).connect(phonePath).connect(glue);
 
-    // the accompaniment (click, pad, drums) meets in its own limiter and trim, after the bass's: together at
-    // their loudest (the room's pad at 100% over the drums at 100%, the click at 150%) its peaks stay at
-    // -1.9 dB, under the clip's knee (measured offline), and it never pushes the bass down
+    // the accompaniment (click, pad, drums) meets in its own limiter, after the bass's, so together at their
+    // loudest they stay under the clip's knee and never push the bass down. A compressor adds its own make-up
+    // gain (the Web Audio spec: 0.6 × the depth of its curve at 0 dB; QA round 16 measured +3.4 dB), taken back
+    // here, so below the threshold it passes the sound unchanged: an exercise's click and Backing sound as
+    // they always did
     const accomp = ac.createDynamicsCompressor();
-    accomp.threshold.value = -6; accomp.knee.value = 0; accomp.ratio.value = 20; accomp.attack.value = 0.001; accomp.release.value = 0.08;
+    accomp.threshold.value = ACCOMP_THRESHOLD; accomp.knee.value = 0; accomp.ratio.value = 20; accomp.attack.value = 0.001; accomp.release.value = 0.08;
     const accompTrim = ac.createGain();
-    accompTrim.gain.value = 0.85;
+    accompTrim.gain.value = 1 / makeupGain(ACCOMP_THRESHOLD, 20);
     accomp.connect(accompTrim).connect(clip);
 
     // the metronome joins after the bass's limiter, so a click never pushes the bass down
     clickBus = ac.createGain();
-    clickBus.gain.value = opts.clickVol * CLICK_LIFT;
+    clickBus.gain.value = opts.clickVol;
     clickBus.connect(accomp);
 
     // backing pad (drone or chords): soft, warm and after the limiter, so it never ducks the bass
     padBus = ac.createGain();
     // with the bass at full level the sum stays inside the soft clip's knee (no hard clipping)
     padBus.gain.value = PAD_LEVEL * opts.padVol;
-    // its tone: soft under an exercise (1.5 kHz), brighter in the Practice room to sound with a real bass;
-    // a limiter lets the room push it loud without the clip distorting it
+    // its tone: soft under an exercise (1.5 kHz), brighter in the Practice room to sound with a real bass
+    // (the accompaniment's limiter keeps a loud room pad clean)
     padTone = ac.createBiquadFilter();
     padTone.type = 'lowpass'; padTone.frequency.value = opts.padTone; padTone.Q.value = 0.3;
-    const padLimit = ac.createDynamicsCompressor();
-    padLimit.threshold.value = -8; padLimit.knee.value = 6; padLimit.ratio.value = 12; padLimit.attack.value = 0.01; padLimit.release.value = 0.25;
-    padBus.connect(padTone).connect(padLimit).connect(accomp);
+    padBus.connect(padTone).connect(accomp);
 
     // drums (the Practice room): their own chain, after the bass's limiter (a kick never ducks the bass);
     // the drum volume comes after it, so the chain shapes the drums alike at any volume
@@ -152,7 +154,7 @@ export function audioCtx() {
 export function setAudioOptions(o) {
   Object.assign(opts, o);
   if (bassVolume) bassVolume.gain.value = opts.bassVol;
-  if (clickBus) clickBus.gain.value = opts.clickVol * CLICK_LIFT;
+  if (clickBus) clickBus.gain.value = opts.clickVol;
   if (drumVolume) drumVolume.gain.value = opts.drumVol;
   if (padBus) padBus.gain.value = PAD_LEVEL * opts.padVol;
   if (padTone) padTone.frequency.value = opts.padTone;
