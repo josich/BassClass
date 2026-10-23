@@ -175,6 +175,17 @@ export function sideScroll(row, { from = 0 } = {}) {
     e.preventDefault();
     row.scrollLeft += e.deltaY;
   }, { passive: false });
+  /** Scroll as little as needed to show `item` (and `next`, the one after it, when it fits too). */
+  const target = (item, next) => {
+    const pad = 24, left = item.offsetLeft - pad, right = (next || item).offsetLeft + (next || item).offsetWidth + pad;
+    if (left < row.scrollLeft) return left;
+    if (right > row.scrollLeft + row.clientWidth) return Math.min(left, right - row.clientWidth);
+    return null;
+  };
+  wrap.show = (item, next) => {
+    const to = item && row.clientWidth ? target(item, next) : null;
+    if (to != null) row.scrollTo({ left: to, behavior: 'smooth' });
+  };
   // once laid out: the place it had, then the chosen item clear of the edges; later, the edges on a resize
   let placed = false;
   const ro = new ResizeObserver(() => {
@@ -183,11 +194,8 @@ export function sideScroll(row, { from = 0 } = {}) {
       placed = true;
       row.scrollLeft = from;
       const on = row.querySelector('.on');
-      if (on) {
-        const pad = 24;
-        if (on.offsetLeft - pad < row.scrollLeft) row.scrollLeft = on.offsetLeft - pad;
-        else if (on.offsetLeft + on.offsetWidth + pad > row.scrollLeft + row.clientWidth) row.scrollLeft = on.offsetLeft + on.offsetWidth + pad - row.clientWidth;
-      }
+      const to = on ? target(on) : null;
+      if (to != null) row.scrollLeft = to;
     }
     edges();
   });

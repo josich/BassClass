@@ -1,6 +1,7 @@
 // The Neck block of the Practice room (it was the Neck explorer screen): a scale, chord or the plain
-// notes on the whole neck, by degree or name; a tap on any fret plays it. While the room's harmony plays,
-// it can follow it: the chord sounding (or, over a drone, the chosen scale on the drone's key).
+// notes on the whole neck, by degree or name; a tap on any fret plays it. With the room's harmony on, its
+// bar (Follow and the chord chips) sits above the board, so the chords and the neck fit one phone screen;
+// following, the board shows the chord sounding (or, over a drone, the chosen scale on the drone's key).
 import { h, infoBtn } from './dom.js';
 import { settings } from '../store.js';
 import { makeCtx } from '../fretboard.js';
@@ -19,9 +20,10 @@ const INFO = [
   '🎸 A scale or chord on the whole neck, in any key',
   '🏷 Degrees, note names or plain dots',
   '👆 Tap any fret to hear it',
+  '🎹 With the Harmony on: its chords above the neck; 🎹 Follow shows the chord sounding',
 ];
 
-/** The Neck block: { el, dispose }. */
+/** The Neck block: { el, follow, setBar, dispose }. */
 export function neckPanel() {
   const S = settings;
   const ctx = makeCtx(S);
@@ -33,10 +35,11 @@ export function neckPanel() {
   const labSel = h('select', { class: 'mini-sel', 'aria-label': 'Labels' }, [['degree', 'Degrees'], ['note', 'Note names'], ['none', 'No labels']].map(([v, l]) => h('option', { value: v }, l)));
   const fretSel = h('select', { class: 'mini-sel', 'aria-label': 'Frets' }, [[12, 'Frets 0–12'], [17, 'Frets 0–17'], [24, 'Frets 0–24']].map(([v, l]) => h('option', { value: v }, l)));
   const info = h('div', { class: 'muted small' });
+  const bar = h('div', { class: 'neck-bar' });
   const el = h('section', { class: 'block room-block neck' },
     h('div', { class: 'block-head' }, h('h2', {}, '🎸 Neck'), infoBtn(INFO, 'About the neck'), h('div', { class: 'grow' }),
       h('div', { class: 'neck-sels' }, rootSel, setSel, labSel, fretSel)),
-    boardWrap, info);
+    bar, boardWrap, info);
   const host = h('div', { class: 'fb-host', style: { inset: '6px' } });
   boardWrap.append(host);
   const fb = new FretboardView(host, {
@@ -53,9 +56,9 @@ export function neckPanel() {
     const ivs = ivsOf() || ['1', '3', '5'];
     const pc = lead ? T.pc(lead.root) : rootPc;
     rootSel.replaceChildren(...T.CHROMATIC_PC.map((p) => h('option', { value: p, selected: p === pc }, T.noteName(T.bestRoot(p, ivs), S.notation))));
-    // (following the harmony, the key and the chord are the harmony's)
-    rootSel.disabled = !!lead;
-    setSel.disabled = !!lead?.type;
+    // (following the harmony, the key and the chord are the harmony's: their pickers step aside)
+    rootSel.style.display = lead ? 'none' : '';
+    setSel.style.display = lead?.type ? 'none' : '';
     el.classList.toggle('following', !!lead);
     fb.configure({ strings: ctx.tuning.length, names: ctx.names, tuning: ctx.tuning, lo: 0, hi: upTo, lefty: S.lefty, zone: null });
     const root = lead?.type ? lead.root : T.bestRoot(pc, ivs);
@@ -92,5 +95,7 @@ export function neckPanel() {
     lead = x;
     render();
   };
-  return { el, follow, dispose: () => fb.destroy() };
+  /** The harmony's bar above the board (Follow and the chords), or null for none. */
+  const setBar = (node) => bar.replaceChildren(...(node ? [node] : []));
+  return { el, follow, setBar, dispose: () => fb.destroy() };
 }

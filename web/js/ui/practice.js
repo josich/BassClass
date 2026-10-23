@@ -62,7 +62,7 @@ const BEAT_ICON = { q: 'q1', e: 'e1', dq: 'dq' };
 const HARMONY_INFO = [
   '🎹 Something to play over: a drone on a key, or a chord progression',
   '🎼 Pick a key and a progression: pop and rock, blues, jazz, minor, vamps',
-  '🎸 On the neck: the chord sounding, its tones by degree (over a drone, your scale on its key)',
+  '🎸 The chords sit above the Neck; 🎹 Follow shows the chord sounding on it (over a drone, your scale on its key)',
   '⏱ It follows the metronome and the drums: start it with the floating button',
 ];
 
@@ -403,6 +403,7 @@ export function practiceScreen(main, params = {}) {
   const harmBlock = h('section', { class: 'block room-block harmony' });
   let curIdx = null;      // the chord sounding: its index, -1 the drone, null silent
   let chips = [];
+  let chipRow = null;     // the chips' sideways row (it keeps the chord sounding and the next in view)
   const chordsNow = () => (room.harmony === 'chords' ? progression(room.hProg, room.hKey, room.beats, { notation: settings.notation }) : null);
   A.setAudioOptions({ padVol: (room.hVol / 100) * 1.5 });
   /** The chord sounding lit among the chips, and the Neck following it (the first chord, or the drone's key, at rest). */
@@ -414,6 +415,7 @@ export function practiceScreen(main, params = {}) {
       el.classList.toggle('done', done);
       if (i !== curIdx) el.style.setProperty('--fill', done ? 1 : 0);
     });
+    if (Number.isInteger(curIdx) && curIdx >= 0) chipRow?.show(chips[curIdx], chips[curIdx + 1]);
     if (!room.neckFollow || room.harmony === 'off') { neck.follow(null); return; }
     if (room.harmony === 'drone') { neck.follow({ root: T.bestRoot(room.hKey, T.SCALES.ionian.iv), type: null, name: keyName(room.hKey, settings.notation) }); return; }
     const ch = chordsNow();
@@ -440,6 +442,18 @@ export function practiceScreen(main, params = {}) {
     });
     const ch = chordsNow();
     chips = ch ? ch.map((c) => h('span', { class: 'chord-chip' }, h('span', {}, c.sym))) : [];
+    chipRow = ch ? sideScroll(h('div', { class: 'chord-row' }, chips)) : null;
+    // above the Neck: Follow, then the chords (or the drone's key), so the two fit one screen
+    neck.setBar(mode === 'off' ? null : h('div', { class: 'harm-bar' },
+      h('button', {
+        class: `follow-btn${room.neckFollow ? ' on' : ''}`, type: 'button', 'aria-pressed': String(room.neckFollow),
+        title: 'The neck follows the harmony',
+        onClick: () => {
+          setHarmony({ neckFollow: !room.neckFollow });
+          toast(room.neckFollow ? 'The neck follows the harmony' : 'The neck shows your own choice');
+        },
+      }, '🎹 Follow'),
+      chipRow || h('span', { class: 'drone-tag' }, `Drone on ${keyName(room.hKey, settings.notation)}`)));
     harmBlock.replaceChildren(...[
       h('div', { class: 'block-head' }, h('h2', {}, '🎹 Harmony'), infoBtn(HARMONY_INFO, 'About the harmony'), h('div', { class: 'grow' }),
         h('div', { class: 'seg' }, [['off', 'Off'], ['drone', 'Drone'], ['chords', 'Chords']].map(([v, l]) => h('button', {
@@ -449,12 +463,6 @@ export function practiceScreen(main, params = {}) {
       mode === 'off' ? null : h('div', { class: 'harm-row' },
         h('label', {}, 'Key'), keySel,
         mode === 'chords' ? h('label', {}, 'Progression') : null, mode === 'chords' ? progSel : null),
-      ch ? h('div', { class: 'chord-row' }, chips) : null,
-      mode === 'off' ? null : h('div', { class: 'room-field' }, h('label', {}, 'On the neck'),
-        h('div', { class: 'seg' }, [[true, 'Follow'], [false, 'Off']].map(([v, l]) => h('button', {
-          class: room.neckFollow === v ? 'on' : '',
-          onClick: () => setHarmony({ neckFollow: v }),
-        }, l)))),
       mode === 'off' ? null : h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal),
     ].filter(Boolean));
     showChord();
