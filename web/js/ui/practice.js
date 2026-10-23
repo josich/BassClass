@@ -457,7 +457,7 @@ export function practiceScreen(main, params = {}) {
         line('Degree', sideScroll(h('div', { class: 'seg' }, DEGREES.map((name, d) => h('button', {
           class: c.d === d ? 'on' : '', onClick: () => patch({ d, q: usualQuality(d) }),
         }, name))))),
-        line('Chord', h('div', { class: 'seg' }, QUALITIES.map(([q, l]) => h('button', { class: c.q === q ? 'on' : '', onClick: () => patch({ q }) }, l)))),
+        line('Chord', h('div', { class: 'seg wrap' }, QUALITIES.map(([q, l]) => h('button', { class: c.q === q ? 'on' : '', onClick: () => patch({ q }) }, l)))),
         line('Length', h('div', { class: 'seg' }, LENGTHS.map(([b, l]) => h('button', { class: c.b === b ? 'on' : '', onClick: () => patch({ b }) }, l))), h('span', { class: 'muted small' }, 'bars')),
         h('div', { class: 'mine-line end' },
           h('button', { class: 'btn small', disabled: list.length < 2, onClick: () => { const i = mineAt; mineAt = null; setMine(list.filter((_, k) => k !== i)); } }, 'Remove'),
@@ -495,7 +495,18 @@ export function practiceScreen(main, params = {}) {
     // the next change: the next chord that is not this one again
     const next = ch.slice(i + 1).concat(ch.slice(0, i)).find((x) => x.sym !== c.sym);
     // its scale by its function in the key, as the chord-scale exercise teaches (ii Dorian, V Mixolydian…)
-    const scale = room.neckShow === 'scale' ? modeFor(c, ch[(i + 1) % ch.length]) : null;
+    // (a chord without its own scale takes its 7th chord's: a 9th or 13th its 7th's, a triad, 6th or sus2
+    // the key's 7th chord on that degree (the V, and a minor key's ♭VII, a dominant), sus4 a dominant's,
+    // ° Locrian, + whole tone)
+    const deg = T.mod(T.pc(c.root) - c.key, 12);
+    const dominant = deg === 7 || (c.minorKey && deg === 10);
+    const base = {
+      dom9: 'dom7', dom13: 'dom7', min9: 'min7', maj9: 'maj7', sus4: 'dom7', dom7sus4: 'dom7', dim: 'm7b5', aug: 'dom7s5', min: 'min7',
+      maj: dominant ? 'dom7' : 'maj7', sus2: dominant ? 'dom7' : 'maj7', maj6: dominant ? 'dom7' : 'maj7',
+    }[c.type];
+    // (a major chord borrowed from the parallel minor, ♭II ♭III ♭VI ♭VII of a major key, is Lydian)
+    const borrowed = !c.minorKey && [1, 3, 8, 10].includes(deg) && ['maj', 'maj7', 'maj6', 'maj9', 'sus2'].includes(c.type);
+    const scale = room.neckShow !== 'scale' ? null : borrowed ? 'lydian' : modeFor(base ? { ...c, type: base } : c, ch[(i + 1) % ch.length]);
     neck.follow({ root: c.root, type: scale ? null : c.type, scale, name: c.sym, next: next?.sym || null });
   };
   const setHarmony = (patch) => { set(patch); drawHarmony(); };

@@ -11,20 +11,27 @@ export const MINE = 'mine';
 const DEG_IV = ['1', 'b2', '2', 'b3', '3', '4', '#4', '5', 'b6', '6', 'b7', '7'];
 /** The degrees by semitones above the key. */
 export const DEGREES = ['I', '♭II', 'II', '♭III', 'III', 'IV', '♯IV', 'V', '♭VI', 'VI', '♭VII', 'VII'];
-/** The qualities offered: [chord type, label]. */
-export const QUALITIES = [['maj', 'maj'], ['min', 'm'], ['dom7', '7'], ['maj7', 'maj7'], ['min7', 'm7'], ['m7b5', 'ø7'], ['dim7', '°7'], ['sus4', 'sus4']];
+/** The qualities offered, as lead sheets write them: triads, 7ths, 6ths, 9ths and 13ths, altered dominants. */
+export const QUALITIES = [
+  ['maj', 'maj'], ['min', 'm'], ['dim', '°'], ['aug', '+'], ['sus2', 'sus2'], ['sus4', 'sus4'],
+  ['dom7', '7'], ['maj7', 'maj7'], ['min7', 'm7'], ['m7b5', 'ø7'], ['dim7', '°7'], ['mMaj7', 'm(maj7)'], ['dom7sus4', '7sus4'],
+  ['maj6', '6'], ['min6', 'm6'], ['dom9', '9'], ['maj9', 'maj9'], ['min9', 'm9'], ['dom13', '13'],
+  ['dom7b9', '7♭9'], ['dom7s9', '7♯9'], ['dom7s11', '7♯11'], ['dom7alt', '7alt'],
+];
 /** The lengths offered: [beats of 4/4, label in bars]. */
 export const LENGTHS = [[2, '½'], [4, '1'], [8, '2'], [16, '4']];
 // a degree's usual chord in a major key (a chromatic one: its usual borrowing or secondary dominant)
 const USUAL = ['maj7', 'dom7', 'min7', 'maj7', 'min7', 'maj7', 'm7b5', 'dom7', 'maj7', 'min7', 'dom7', 'm7b5'];
 export const usualQuality = (d) => USUAL[d];
-/** A chord's numeral: ii, V7, ♭VII7, viiø. */
+const MINORISH = ['min', 'min7', 'min6', 'min9', 'mMaj7', 'm7b5', 'dim', 'dim7'];
+const SUFFIX = {
+  dim: '°', aug: '+', sus2: 'sus2', sus4: 'sus4', dom7: '7', maj7: 'maj7', min7: '7', m7b5: 'ø', dim7: '°7', mMaj7: '(maj7)',
+  dom7sus4: '7sus4', maj6: '6', min6: '6', dom9: '9', maj9: 'maj9', min9: '9', dom13: '13', dom7b9: '7♭9', dom7s9: '7♯9', dom7s11: '7♯11', dom7alt: '7alt',
+};
+/** A chord's numeral: ii, V7, ♭VII7, viiø, Isus2. */
 export function roman(d, q) {
-  const minor = ['min', 'min7', 'm7b5', 'dim7'].includes(q);
-  const n = minor ? DEGREES[d].toLowerCase() : DEGREES[d];
-  return n + ({ dom7: '7', maj7: 'maj7', min7: '7', m7b5: 'ø', dim7: '°', sus4: 'sus' }[q] || '');
+  return (MINORISH.includes(q) ? DEGREES[d].toLowerCase() : DEGREES[d]) + (SUFFIX[q] || '');
 }
-const QUAL_OF = { maj: 'maj', min: 'min', sus4: 'sus4', maj7: 'maj7', maj6: 'maj7', maj9: 'maj7', dom7: 'dom7', min7: 'min7', min6: 'min7', min9: 'min7', mMaj7: 'min7', m7b5: 'm7b5', dim: 'm7b5', dim7: 'dim7', dom7sus4: 'sus4' };
 /** A preset copied into My progression: its chords by degree, quality and length (the first 16; pop ones as triads). */
 export function mineFrom(key) {
   const prog = PROGS[key];
@@ -32,7 +39,7 @@ export function mineFrom(key) {
     const t = prog.pop ? toTriad(type) : type;
     return {
       d: T.mod(typeof where === 'number' ? where : T.semis(where), 12),
-      q: QUAL_OF[t] || (t.startsWith('dom7') ? 'dom7' : 'maj7'),
+      q: QUALITIES.some(([k]) => k === t) ? t : t.startsWith('dom') ? 'dom7' : MINORISH.includes(t) ? 'min7' : 'maj7',
       b: LENGTHS.reduce((best, [l]) => (Math.abs(l - beats) < Math.abs(best - beats) ? l : best), 4),
     };
   });
@@ -56,10 +63,13 @@ export const isMinor = (key) => !!PROGS[key]?.minor;
 // player's own bass stays clear (user, 2026-10-23: the chords were too quiet under a real bass): its root
 // between E3 and D♯4.
 const LOW = 52;
-/** The pad's notes for a chord: its root between E3 and D♯4, its tones up to the 7th above. */
+/** The pad's notes for a chord: its root between E3 and D♯4, its tones above it; with a 9th, 11th or 13th the
+ * plain 5th makes room for them (R 3 ♭7 9), five notes at most. */
 function chordMidis(root, type) {
   const r = LOW + T.mod(T.pc(root) - LOW, 12);
-  return T.CHORDS[type].iv.filter((iv) => !/9|11|13/.test(iv)).slice(0, 4).map((iv) => r + T.semis(iv));
+  let ivs = T.CHORDS[type].iv;
+  if (ivs.length > 4) ivs = ivs.filter((iv) => iv !== '5');
+  return ivs.slice(0, 5).map((iv) => r + T.semis(iv));
 }
 
 /** The drone on a key: root (E3 to D♯4), 5th and octave. */

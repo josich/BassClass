@@ -751,6 +751,7 @@ input[type="range"] { touch-action: pan-y; }
 .mine-line > label { flex: none; width: 52px; font-weight: 600; color: var(--muted); font-size: 12.5px; }
 .mine-line .side-scroll { flex: 1; }
 .mine-line .seg { flex-wrap: nowrap; }
+.mine-line .seg.wrap { flex-wrap: wrap; }
 .mine-line .seg button { min-height: 30px; padding: 3px 8px; font-size: 13px; white-space: nowrap; }
 .mine-line.end { justify-content: flex-end; }
 .chord-row { display: flex; gap: 6px; }
