@@ -75,7 +75,7 @@ export class Room {
    * The pad on this beat: the drone, the chord the progression has reached, or silence (off, muted bars).
    * Returns the beat's place in the chord ({ at, of }: beat `at` of its `of`), or null.
    */
-  _harmony(t0, muted) {
+  _harmony(t0, muted, len, L) {
     if (this.hRestart && this.beat === 0) { this.hRestart = false; this.hBeat = 0; }
     let midis = null, idx = null, place = null;
     if (!this.hRestart) {
@@ -92,12 +92,27 @@ export class Room {
     // (the same notes again sound on, as a held chord; new ones, or silence, replace them; muted bars are
     // silent while the form goes on)
     const sound = muted ? null : midis;
-    const sig = sound ? sound.join() : null;
-    // (a struck sound, the e-piano, is struck again on each bar so a long chord does not die away)
-    const restrike = sound && this.beat === 0 && A.PAD_SOUNDS[this.o.hSound]?.struck;
-    if (sig !== this.hSig || restrike) {
-      if (sound) A.padSet(sound, t0, this.o.hSound); else A.padStop(t0);
-      this.hSig = sig;
+    if (idx !== this.hIdx) this.arpAt = 0;
+    if (A.PAD_SOUNDS[this.o.hSound]?.arp) {
+      // an arpeggio: the chord's notes up and down, one per subdivision of the beat, from its lowest at each change
+      if (this.hSig != null) { A.padStop(t0); this.hSig = null; }
+      if (sound) {
+        const up = [...sound].sort((a, b) => a - b);
+        const turn = up.length > 2 ? [...up, ...up.slice(1, -1).reverse()] : up;
+        for (let k = 0; k < L; k++) {
+          const t = t0 + (k * len) / L;
+          const node = A.arpNote(turn[this.arpAt++ % turn.length], t, L);
+          if (k) this.ahead.push([t, node]);
+        }
+      }
+    } else {
+      const sig = sound ? sound.join() : null;
+      // (a struck sound, the e-piano, is struck again on each bar so a long chord does not die away)
+      const restrike = sound && this.beat === 0 && A.PAD_SOUNDS[this.o.hSound]?.struck;
+      if (sig !== this.hSig || restrike) {
+        if (sound) A.padSet(sound, t0, this.o.hSound); else A.padStop(t0);
+        this.hSig = sig;
+      }
     }
     if (idx !== this.hIdx) { this.hIdx = idx; this.onChord?.({ time: t0, idx }); }
     this.hBeat++;
@@ -124,6 +139,7 @@ export class Room {
     this.hSig = null;
     this.hIdx = null;
     this.hRestart = false;
+    this.arpAt = 0;
     this.next = A.now() + 0.08;
     this.timer = setInterval(() => this._tick(), TICK_MS);
     this._tick();
@@ -137,6 +153,10 @@ export class Room {
     if (!this.playing) return;
     this.playing = false;
     clearInterval(this.timer);
+    // (what was scheduled ahead and has not sounded yet is cut: a slow arpeggio does not ring on after Stop)
+    const now = A.now();
+    for (const [t, node] of this.ahead) if (t > now) node.disconnect();
+    this.ahead = [];
     if (this.hSig != null) A.padStop();
     this.hSig = null;
     if (this.hIdx != null) { this.hIdx = null; this.onChord?.({ time: A.now(), idx: null }); }
@@ -170,7 +190,7 @@ export class Room {
           if (node && f) this.ahead.push([t, node]);
         }
       }
-      const chord = count ? null : this._harmony(t0, muted);
+      const chord = count ? null : this._harmony(t0, muted, len, L);
       this.onTick?.({ time: t0, bar: this.bar, beat: this.beat, muted, count, bpm: this.bpm, chord });
       this.last = t0;
       this.next += len;

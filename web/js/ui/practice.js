@@ -614,7 +614,7 @@ export function practiceScreen(main, params = {}) {
       ...(mode === 'chords' && room.hProg === MINE ? mineEditor() : []),
       // its sound: synthesised, so nothing to download
       mode === 'off' ? null : h('div', { class: 'room-field' }, h('label', {}, 'Sound'),
-        h('div', { class: 'seg' }, [['pad', 'Pad'], ['epiano', 'E-piano'], ['organ', 'Organ'], ['strings', 'Strings']].map(([v, l]) => h('button', {
+        h('div', { class: 'seg' }, [['pad', 'Pad'], ['epiano', 'E-piano'], ['organ', 'Organ'], ['arp', 'Arpeggio']].map(([v, l]) => h('button', {
           class: room.hSound === v ? 'on' : '', type: 'button',
           onClick: () => { if (room.hSound !== v) setHarmony({ hSound: v }); },
         }, l)))),

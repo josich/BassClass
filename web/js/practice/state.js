@@ -48,7 +48,7 @@ const RULES = {
   drumFavs: keysOf(isStyle, 99), drumRecent: keysOf(isStyle, 6), progFavs: keysOf(isProg, 40), progRecent: keysOf(isProg, 6),
   myProg: (v) => Array.isArray(v) && v.length >= 1 && v.length <= 16 && v.every(isChord),
   myMinor: (v) => typeof v === 'boolean',
-  hSound: (v) => ['pad', 'epiano', 'organ', 'strings'].includes(v),   // the harmony's sound (audio.js PAD_SOUNDS)
+  hSound: (v) => ['pad', 'epiano', 'organ', 'arp'].includes(v),   // the harmony's sound (audio.js PAD_SOUNDS)
   neckShow: (v) => ['chord', 'scale', 'off'].includes(v),   // the Neck shows the chord sounding, its scale, or the player's own choice
   // where the floating Start/Stop was dragged: its centre as a share of the screen's width and height
   fab: (v) => v === null || (Array.isArray(v) && v.length === 2 && v.every((n) => typeof n === 'number' && n >= 0 && n <= 1)),
@@ -62,6 +62,8 @@ function load() {
   // speed up had no switch, 0 BPM was off: whatever was kept, it now starts off)
   if (RULES.mute(v.gap) && v.mute == null) { v.play = Math.max(1, v.gap); v.mute = v.gap; }
   if (RULES.upBy(v.trainer) && v.upBy == null) v.upBy = v.trainer;
+  // (the strings gave way to the arpeggio)
+  if (v.hSound === 'strings') v.hSound = 'arp';
   // (the Neck's Follow was on or off)
   if (typeof v.neckFollow === 'boolean' && v.neckShow == null) v.neckShow = v.neckFollow ? 'chord' : 'off';
   for (const [k, clean] of Object.entries(CLEAN)) if (k in v) v[k] = clean(v[k]);

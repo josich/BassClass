@@ -466,19 +466,16 @@ export const PAD_SOUNDS = {
     for (const o of out) wobble.connect(o.detune);
     return [...out, lfo];
   } },
-  // a string section: three detuned saws, softened, a slow swell and a light vibrato
-  strings: { level: 0.79, struck: false, release: 0.35, voice(x, f, when, g, peak) {
-    const tone = x.createBiquadFilter();
-    tone.type = 'lowpass'; tone.frequency.value = Math.min(4200, f * 6); tone.Q.value = 0.5;
-    tone.connect(g);
-    g.gain.setTargetAtTime(peak, when, 0.3);
-    const out = [-9, 0, 8].map((cents) => osc(x, 'sawtooth', f, cents, when, tone));
-    const lfo = osc(x, 'sine', 5.1, 0, when, null);
-    const vib = x.createGain();
-    vib.gain.value = 6;
-    lfo.connect(vib);
-    for (const o of out) vib.connect(o.detune);
-    return [...out, lfo];
+  // an arpeggio (user, 2026-10-23: the strings sounded like the pad): the chord's notes one after another in
+  // the room's subdivision, up and down, plucked like a harp; the engine plays it note by note (`arpNote`)
+  arp: { level: 1.57, struck: true, arp: true, voice(x, f, when, g, peak) {
+    g.gain.setValueAtTime(0, when);
+    g.gain.linearRampToValueAtTime(peak, when + 0.003);
+    g.gain.setTargetAtTime(0, when + 0.003, 0.32);
+    const body = x.createGain();
+    body.gain.value = 0.35;
+    body.connect(g);
+    return [osc(x, 'triangle', f, 0, when, g), osc(x, 'sine', f * 2, 3, when, body)];
   } },
 };
 function osc(x, type, f, cents, when, to) {
@@ -489,6 +486,20 @@ function osc(x, type, f, cents, when, to) {
   if (to) o.connect(to);
   o.start(when);
   return o;
+}
+/**
+ * One plucked note of an arpeggio at `when` on the pad's bus (its own decay), `perBeat` notes to a beat: the
+ * denser, the softer each note, so quarter notes and 16ths sound as loud as the pad (measured: −3 dB a
+ * doubling). Returns its gain node.
+ */
+export function arpNote(midi, when = now(), perBeat = 2) {
+  audioCtx();
+  const kind = PAD_SOUNDS.arp;
+  const g = ac.createGain();
+  g.gain.value = 0;
+  for (const o of kind.voice(ac, midiToFreq(midi), when, g, 0.16 * kind.level * Math.sqrt(2 / perBeat))) o.stop(when + 2);
+  g.connect(padBus);
+  return g;
 }
 /** Sound a chord from `when` on the pad, in one of `PAD_SOUNDS` (crossfading from the previous one). */
 export function padSet(midis, when = now(), sound = 'pad') {
