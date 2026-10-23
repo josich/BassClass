@@ -10,7 +10,8 @@ import { settings, saveSettings } from '../store.js';
 import { modeFor } from '../curriculum/common.js';
 import { loadKit, kitReady } from '../drums.js';
 import { neckPanel } from './neck.js';
-import { HARMONY_PROGS, progName, progression, keyName, isMinor } from '../practice/harmony.js';
+import { HARMONY_PROGS, progName, progression, keyName, isMinor, MINE, DEGREES, QUALITIES, LENGTHS, usualQuality, roman, mineFrom } from '../practice/harmony.js';
+import { PROGS } from '../curriculum/common.js';
 import * as T from '../theory.js';
 
 const INFO = [
@@ -63,6 +64,7 @@ const BEAT_ICON = { q: 'q1', e: 'e1', dq: 'dq' };
 const HARMONY_INFO = [
   '🎹 Something to play over: a drone (the key\'s root and 5th, held) for scales and modes, or a chord progression',
   '🎼 Pick a key and a progression: pop and rock, blues, jazz, minor, vamps',
+  '✎ My progression: your own chords by degree (the Key moves them); ✎ Edit copies a progression into it',
   '🎸 The chords sit above the Neck in order, each lit while it sounds; Chord or Scale shows it on the neck, with the next change (over a drone, your scale on its key)',
   '🔇 Muted bars silence the harmony too, while the chords go on',
   '⏱ It follows the metronome and the drums: start it with the floating button',
@@ -428,7 +430,48 @@ export function practiceScreen(main, params = {}) {
   let curIdx = null;      // the chord sounding: its index, -1 the drone, null silent
   let chips = [];
   let chipRow = null;     // the chips' sideways row (it keeps the chord sounding and the next in view)
-  const chordsNow = () => (room.harmony === 'chords' ? progression(room.hProg, room.hKey, room.beats, { notation: settings.notation }) : null);
+  const chordsNow = () => (room.harmony === 'chords' ? progression(room.hProg, room.hKey, room.beats, { notation: settings.notation }, null, room.myProg) : null);
+  // ---- My progression: its chords as slots, "+" to add one, a tap opens the slot's degree, chord and length
+  let mineAt = null;   // the slot open for editing
+  const setMine = (list) => setHarmony({ myProg: list });
+  const lengthName = (b) => (b === 2 ? '½ bar' : b === 4 ? '1 bar' : `${b / 4} bars`);
+  const mineEditor = () => {
+    const list = room.myProg;
+    const named = progression(MINE, room.hKey, 4, { notation: settings.notation }, null, list);
+    if (mineAt != null && !list[mineAt]) mineAt = null;
+    const slots = list.map((c, i) => h('button', {
+      class: `mine-slot${mineAt === i ? ' on' : ''}`,
+      onClick: () => { mineAt = mineAt === i ? null : i; drawHarmony(); },
+    }, h('b', {}, named[i].sym), h('small', {}, `${roman(c.d, c.q)} · ${lengthName(c.b)}`)));
+    const add = list.length < 16 ? h('button', {
+      class: 'mine-slot add', title: 'Add a chord', 'aria-label': 'Add a chord',
+      onClick: () => { mineAt = list.length; setMine([...list, { ...list.at(-1) }]); },
+    }, '+') : null;
+    let panel = null;
+    if (mineAt != null) {
+      const c = list[mineAt];
+      const patch = (p) => setMine(list.map((x, i) => (i === mineAt ? { ...x, ...p } : x)));
+      const line = (label, ...control) => h('div', { class: 'mine-line' }, h('label', {}, label), ...control);
+      panel = h('div', { class: 'mine-edit' },
+        // (a new degree takes its usual chord in the key: V → V7, ii → m7; the chord can then change)
+        line('Degree', sideScroll(h('div', { class: 'seg' }, DEGREES.map((name, d) => h('button', {
+          class: c.d === d ? 'on' : '', onClick: () => patch({ d, q: usualQuality(d) }),
+        }, name))))),
+        line('Chord', h('div', { class: 'seg' }, QUALITIES.map(([q, l]) => h('button', { class: c.q === q ? 'on' : '', onClick: () => patch({ q }) }, l)))),
+        line('Length', h('div', { class: 'seg' }, LENGTHS.map(([b, l]) => h('button', { class: c.b === b ? 'on' : '', onClick: () => patch({ b }) }, l))), h('span', { class: 'muted small' }, 'bars')),
+        h('div', { class: 'mine-line end' },
+          h('button', { class: 'btn small', disabled: list.length < 2, onClick: () => { const i = mineAt; mineAt = null; setMine(list.filter((_, k) => k !== i)); } }, 'Remove'),
+          h('button', { class: 'btn small primary', onClick: () => { mineAt = null; drawHarmony(); } }, 'Done')));
+    }
+    return [h('div', { class: 'mine-row' }, slots, add), panel];
+  };
+  /** A preset copied into My progression, to change it. */
+  const editPreset = () => {
+    const n = PROGS[room.hProg].chords.length;
+    mineAt = null;
+    setHarmony({ myProg: mineFrom(room.hProg), hProg: MINE });
+    toast(n > 16 ? 'Copied the first 16 chords into My progression' : 'Copied into My progression: tap a chord to change it', 2500);
+  };
   // the room's pad: brighter, and up to 2.5 times an exercise Backing's level, to be heard with a real bass
   // (user, 2026-10-23: too quiet under a real instrument); the accompaniment's limiter keeps it clean
   const PAD_MAX = 2.5;
@@ -495,7 +538,9 @@ export function practiceScreen(main, params = {}) {
         }, l)))),
       mode === 'off' ? null : h('div', { class: 'harm-row' },
         h('label', {}, 'Key'), keySel,
-        mode === 'chords' ? h('label', {}, 'Progression') : null, mode === 'chords' ? progSel : null),
+        mode === 'chords' ? h('label', {}, 'Progression') : null, mode === 'chords' ? progSel : null,
+        mode === 'chords' && room.hProg !== MINE ? h('button', { class: 'btn small', title: 'Copy it into My progression to change it', onClick: editPreset }, '✎ Edit') : null),
+      ...(mode === 'chords' && room.hProg === MINE ? mineEditor() : []),
       mode === 'off' ? null : h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal),
     ].filter(Boolean));
     showChord();

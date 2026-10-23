@@ -292,7 +292,8 @@ export const toTriad = (type) => TRIAD_OF[type] || type;
  * `key` is the pc of the key the chord belongs to (a local key for ii–V–I cycles, Giant Steps).
  */
 export function progChords(progKey, tonicPc, { triads, S = {} } = {}) {
-  const prog = PROGS[progKey];
+  // (a key of PROGS, or a progression of the same shape: the Practice room's own)
+  const prog = typeof progKey === 'string' ? PROGS[progKey] : progKey;
   const tonic = T.bestRoot(tonicPc, prog.minor ? T.SCALES.aeolian.iv : T.SCALES.ionian.iv);
   const asTriads = triads ?? !!prog.pop;
   return prog.chords.map(([where, type0, beats = 4, keyOff]) => {

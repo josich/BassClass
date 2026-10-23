@@ -3,10 +3,44 @@
 // spelled in the chosen key; each 4/4 bar of them becomes one bar of the room's metre, its chords sharing
 // it out where they start (a half bar: 2 + 1 in 3/4, 3 + 2 in 5/4, on the metre's group nearest the half).
 import * as T from '../theory.js';
-import { PROGS, progChords } from '../curriculum/common.js';
+import { PROGS, progChords, toTriad } from '../curriculum/common.js';
+
+// My progression (user, 2026-10-23: "keep it simple"): the player's own, one of it, up to 16 chords, each a
+// degree of the key (so the Key transposes it), one of a few common qualities and a length in bars.
+export const MINE = 'mine';
+const DEG_IV = ['1', 'b2', '2', 'b3', '3', '4', '#4', '5', 'b6', '6', 'b7', '7'];
+/** The degrees by semitones above the key. */
+export const DEGREES = ['I', '♭II', 'II', '♭III', 'III', 'IV', '♯IV', 'V', '♭VI', 'VI', '♭VII', 'VII'];
+/** The qualities offered: [chord type, label]. */
+export const QUALITIES = [['maj', 'maj'], ['min', 'm'], ['dom7', '7'], ['maj7', 'maj7'], ['min7', 'm7'], ['m7b5', 'ø7'], ['dim7', '°7'], ['sus4', 'sus4']];
+/** The lengths offered: [beats of 4/4, label in bars]. */
+export const LENGTHS = [[2, '½'], [4, '1'], [8, '2'], [16, '4']];
+// a degree's usual chord in a major key (a chromatic one: its usual borrowing or secondary dominant)
+const USUAL = ['maj7', 'dom7', 'min7', 'maj7', 'min7', 'maj7', 'm7b5', 'dom7', 'maj7', 'min7', 'dom7', 'm7b5'];
+export const usualQuality = (d) => USUAL[d];
+/** A chord's numeral: ii, V7, ♭VII7, viiø. */
+export function roman(d, q) {
+  const minor = ['min', 'min7', 'm7b5', 'dim7'].includes(q);
+  const n = minor ? DEGREES[d].toLowerCase() : DEGREES[d];
+  return n + ({ dom7: '7', maj7: 'maj7', min7: '7', m7b5: 'ø', dim7: '°', sus4: 'sus' }[q] || '');
+}
+const QUAL_OF = { maj: 'maj', min: 'min', sus4: 'sus4', maj7: 'maj7', maj6: 'maj7', maj9: 'maj7', dom7: 'dom7', min7: 'min7', min6: 'min7', min9: 'min7', mMaj7: 'min7', m7b5: 'm7b5', dim: 'm7b5', dim7: 'dim7', dom7sus4: 'sus4' };
+/** A preset copied into My progression: its chords by degree, quality and length (the first 16; pop ones as triads). */
+export function mineFrom(key) {
+  const prog = PROGS[key];
+  return prog.chords.slice(0, 16).map(([where, type, beats = 4]) => {
+    const t = prog.pop ? toTriad(type) : type;
+    return {
+      d: T.mod(typeof where === 'number' ? where : T.semis(where), 12),
+      q: QUAL_OF[t] || (t.startsWith('dom7') ? 'dom7' : 'maj7'),
+      b: LENGTHS.reduce((best, [l]) => (Math.abs(l - beats) < Math.abs(best - beats) ? l : best), 4),
+    };
+  });
+}
 
 /** The progressions offered, by style. */
 export const HARMONY_PROGS = [
+  ['Mine', [MINE]],
   ['Pop & rock', ['I-V-vi-IV', 'I-vi-IV-V', 'vi-IV-I-V', 'I-IV-V-I', 'I-bVII-IV-I', 'canon']],
   ['Blues', ['blues', 'blues-quick', 'minor-blues', 'jazz-blues']],
   ['Jazz', ['ii-V-I', 'minor-ii-V-i', 'I-vi-ii-V', 'iii-vi-ii-V', 'autumn', 'rhythm-A', 'cycle-251', 'cycle-dom7']],
@@ -14,7 +48,7 @@ export const HARMONY_PROGS = [
   ['Vamps', ['vamp-min', 'vamp-dom']],
 ];
 export const PROG_KEYS = HARMONY_PROGS.flatMap(([, keys]) => keys);
-export const progName = (key) => PROGS[key]?.name || key;
+export const progName = (key) => (key === MINE ? 'My progression' : PROGS[key]?.name || key);
 /** A progression in a minor key (its key is named as a minor key). */
 export const isMinor = (key) => !!PROGS[key]?.minor;
 
@@ -45,7 +79,7 @@ export const keyName = (pc, notation, minor = false) => (minor
  * metre's `groups` starts when it has groups (7/8 2 + 2 + 3: 4 + 3), so every bar keeps its length. A
  * 1-beat "bar" is a pulse: there each 4/4 beat is one beat.
  */
-export function progression(key, keyPc, beatsPerBar = 4, S = {}, groups = null) {
+export function progression(key, keyPc, beatsPerBar = 4, S = {}, groups = null, mine = null) {
   const bpb = beatsPerBar < 2 ? 4 : beatsPerBar;
   const cuts = groups ? groups.reduce((a, g) => [...a, a.at(-1) + g], [0]) : null;
   const at = (pos) => {
@@ -54,7 +88,8 @@ export function progression(key, keyPc, beatsPerBar = 4, S = {}, groups = null) 
     return bar * bpb + beat;
   };
   let pos = 0;
-  return progChords(key, keyPc, { S }).map((c) => {
+  const prog = key === MINE ? { chords: (mine || []).map((c) => [DEG_IV[c.d], c.q, c.b]) } : key;
+  return progChords(prog, keyPc, { S }).map((c) => {
     const from = at(pos);
     pos += c.beats;
     return {
