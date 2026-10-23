@@ -15,7 +15,7 @@ export const DEFAULT_SETTINGS = {
   metro: true,
   clickSubs: false,
   bassVol: 2,              // 0..2, shown as 0-100%; above 1 the output is pushed into the limiter
-  clickVol: 0.6,
+  clickVol: 1.2,
   tapSounds: true,   // a soft tick on every tap of a control (user, 2026-10-23)
   maxFret: 20,
   level: 1,                // preferred level for warm-ups (new players start at Level 1)
@@ -26,7 +26,7 @@ export const DEFAULT_SETTINGS = {
   mapOpen: null,           // the course map stages left open (null: only the next lesson's stage)
   libAt: null,             // the player's level when libOpen was last saved
   mapAt: null,             // the next lesson's stage when mapOpen was last saved
-  v: 2,                    // settings format (see migrate)
+  v: 3,                    // settings format (see migrate)
 };
 
 const oneOf = (list) => (v) => list.includes(v);
@@ -93,10 +93,16 @@ function cleanEntry(e) {
 
 // v2 (2026-10-15): the bass volume scale doubled (0-2 shown as 0-100%, default the maximum).
 // Settings saved before stored the old default, 1, which would now read 50%.
+// v3 (QA round 17): the click's scale halved (audio.js CLICK_TOP): a saved volume doubles, so it sounds as it
+// did (1.4 dB softer), and what was above 75% (limited, the accents flattened) becomes 100%.
 function migrate(raw) {
   if (!(raw.v >= 2)) {
     if (raw.bassVol === 1) raw.bassVol = DEFAULT_SETTINGS.bassVol;
     raw.v = 2;
+  }
+  if (!(raw.v >= 3)) {
+    if (typeof raw.clickVol === 'number') raw.clickVol = Math.min(1.5, raw.clickVol * 2);
+    raw.v = 3;
   }
   return raw;
 }

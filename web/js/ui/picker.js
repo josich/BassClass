@@ -23,6 +23,9 @@ export function openPicker(o) {
   let open = o.open ?? byKey.get(o.current)?.group ?? o.groups[0]?.key;
   let query = '';
   const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  // (the words of a text: a search word matches the start of one, so "ii" finds ii – V, not ♭VII; QA round 17)
+  const wordsOf = (s) => norm(s).split(/[^a-z0-9/+]+/).filter(Boolean);
+  const ROMAN = /^[iv]+$/;
 
   const search = h('input', { type: 'search', class: 'picker-search', placeholder: 'Search', 'aria-label': `Search ${o.title.toLowerCase()}` });
   const chips = h('div', { class: 'picker-chips' });
@@ -33,13 +36,14 @@ export function openPicker(o) {
     search, chips, grid);
   const backdrop = h('div', { class: 'picker-backdrop' }, panel);
 
-  /** The items shown: the search's matches (every word, anywhere), or the open chip's. */
+  /** The items shown: the search's matches (every word starts one of the item's), or the open chip's. */
   const listed = () => {
     if (query) {
-      const words = norm(query).split(/\s+/).filter(Boolean);
+      const words = wordsOf(query);
       return o.items.filter((it) => {
-        const text = norm(`${it.name} ${it.sub || ''} ${groupName.get(it.group) || ''} ${it.tags || ''}`);
-        return words.every((w) => text.includes(w));
+        const text = wordsOf(`${it.name} ${it.sub || ''} ${groupName.get(it.group) || ''} ${it.tags || ''}`);
+        // (a roman numeral is matched whole: "ii" is not the start of "iii")
+        return words.every((w) => text.some((t) => (ROMAN.test(w) && ROMAN.test(t) ? t === w : t.startsWith(w))));
       });
     }
     if (open === '*fav') return o.items.filter((it) => favs.has(it.key));
@@ -51,7 +55,7 @@ export function openPicker(o) {
     // (searching, or in Favourites and Recent, a card also names its group)
     const where = query || open.startsWith('*') ? `${groupName.get(it.group) || ''} · ` : '';
     return h('div', { class: `picker-card${it.key === o.current ? ' on' : ''}` },
-      h('button', { class: 'picker-pick', type: 'button', onClick: () => { if (fresh()) return; close(); o.onPick(it.key); } },
+      h('button', { class: 'picker-pick', type: 'button', onClick: () => { if (fresh()) return; close(); o.onPick(it.key); refocus(); } },
         h('b', {}, it.name), h('small', {}, `${where}${it.sub || ''}`)),
       h('button', {
         class: `picker-star${fav ? ' on' : ''}`, type: 'button', html: icon(fav ? 'star' : 'starO'),
@@ -92,7 +96,15 @@ export function openPicker(o) {
   search.addEventListener('input', () => { query = search.value.trim(); draw(); grid.scrollTop = 0; });
   closeBtn.addEventListener('click', () => close());
   backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(); });
-  const onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); } };
+  const onKey = (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); return; }
+    // (Tab and Shift+Tab go round inside the picker, never to the screen behind it)
+    if (e.key === 'Tab') {
+      const f = [...panel.querySelectorAll('button, input')].filter((x) => !x.disabled && x.offsetParent !== null);
+      const i = f.indexOf(document.activeElement);
+      if (f.length && (e.shiftKey ? i <= 0 : i < 0 || i === f.length - 1)) { e.preventDefault(); (e.shiftKey ? f.at(-1) : f[0]).focus(); }
+    }
+  };
   document.addEventListener('keydown', onKey, true);
   // Back (Android's, or the browser's) closes the picker and stays on the screen
   history.pushState({ ...(history.state || {}), picker: true }, '');
@@ -100,6 +112,13 @@ export function openPicker(o) {
   addEventListener('popstate', onPop);
   let closed = false;
   const opener = document.activeElement;
+  // (a pick redraws the screen and its Change: the keys go to the new one, in the same block)
+  const openerHome = opener?.closest?.('section');
+  const openerSel = opener?.classList?.length ? `.${[...opener.classList].join('.')}` : null;
+  const refocus = () => {
+    if (!opener || opener.isConnected || !openerHome?.isConnected || !openerSel) return;
+    openerHome.querySelector(openerSel)?.focus({ preventScroll: true });
+  };
   opened++;
   function close(how) {
     if (closed) return;

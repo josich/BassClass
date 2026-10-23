@@ -11,8 +11,8 @@ import { settings, saveSettings } from '../store.js';
 import { loadKit, kitReady } from '../drums.js';
 import { neckPanel } from './neck.js';
 import { openPicker } from './picker.js';
-import { HARMONY_PROGS, progName, progression, keyName, isMinor, MINE, DEGREES, QUALITIES, LENGTHS, usualQuality, roman, mineFrom, scaleFor, MINE_START, mineBars } from '../practice/harmony.js';
-import { PROGS } from '../curriculum/common.js';
+import { HARMONY_PROGS, progName, progression, keyName, isMinor, MINE, DEGREES, QUALITIES, LENGTHS, usualQuality, roman, mineFrom, scaleFor, MINE_START, mineBars, PROG_TAGS } from '../practice/harmony.js';
+import { PROGS, toTriad } from '../curriculum/common.js';
 import * as T from '../theory.js';
 
 const INFO = [
@@ -65,11 +65,12 @@ function subChoices(s) {
 }
 const BEAT_ICON = { q: 'q1', e: 'e1', dq: 'dq' };
 // the Neck's scales that name a drone's key as a minor key does (C♯, not D♭)
-const DRONE_MINOR = new Set(['aeolian', 'dorian', 'phrygian', 'locrian', 'minorPent', 'blues', 'harmonicMinor', 'melodicMinor']);
 const HARMONY_INFO = [
   '🎹 Something to play over: a drone (the key\'s root and 5th, held) for scales and modes, or a chord progression',
   '🎼 Pick a key and a progression: pop and rock, blues, jazz, minor, vamps',
   '✎ My progression: your own chords by degree (the Key moves them); ✎ Edit copies a progression into it',
+  '🎼 My progression is in a major or a minor key: Minor turns the usual chords into the minor key\'s (I → i, vi → ♭VI)',
+  '🎛 Sound: a pad, an electric piano, an organ or an arpeggio; another one plays from the next beat',
   '🎸 The chords sit above the Neck in order, each lit while it sounds; Chord or Scale shows it on the neck, with the next change (over a drone, your scale on its key)',
   '🔇 Muted bars silence the harmony too, while the chords go on',
   '⏱ It follows the metronome and the drums: start it with the floating button',
@@ -250,6 +251,9 @@ export function practiceScreen(main, params = {}) {
       drawPlay();
       return;
     }
+    // (a chord tapped while stopped is forgotten: the count-in shows the progression's first)
+    curIdx = null;
+    showChord();
     engine.set({ countIn: settings.countIn });
     await engine.start();
     if (engine.playing && !raf) raf = requestAnimationFrame(frame);
@@ -502,6 +506,19 @@ export function practiceScreen(main, params = {}) {
   // (a tap that changes nothing does nothing: the progression is not started again)
   const setMine = (list) => { if (JSON.stringify(list) !== JSON.stringify(room.myProg)) setHarmony({ myProg: list }); else drawHarmony(); };
   const lengthName = (b) => (b === 2 ? '½ bar' : b === 4 ? '1 bar' : `${b / 4} bars`);
+  // Major | Minor (QA round 17, user's choice): a chord that is its degree's usual one (as a 7th or a triad)
+  // becomes the other key's usual chord on the matching degree (I → i, iii → ♭III, vi → ♭VI, vii° → ♭VII and
+  // back); the chords the player chose stay
+  const MAJOR_TO_MINOR = { 0: 0, 2: 2, 4: 3, 5: 5, 7: 7, 9: 8, 11: 10 };
+  const toMode = (list, minor) => {
+    const map = minor ? MAJOR_TO_MINOR : Object.fromEntries(Object.entries(MAJOR_TO_MINOR).map(([a, b]) => [b, Number(a)]));
+    return list.map((c) => {
+      const usual = usualQuality(c.d, !minor);
+      if (c.k != null || map[c.d] == null || (c.q !== usual && c.q !== toTriad(usual))) return c;
+      const d = map[c.d], q = usualQuality(d, minor);
+      return { ...c, d, q: c.q === usual ? q : toTriad(q) };
+    });
+  };
   const mineEditor = () => {
     const list = room.myProg;
     const named = progression(MINE, room.hKey, 4, { notation: settings.notation }, null, list, room.myMinor);
@@ -512,7 +529,7 @@ export function practiceScreen(main, params = {}) {
     }, h('b', {}, named[i].sym), h('small', {}, `${roman(c.d, c.q)} · ${lengthName(c.b)}`)));
     // its key's quality: My progression in a major or a minor key (spelling, scales, the Key's names)
     const quality = h('div', { class: 'seg mine-key' }, [[false, 'Major'], [true, 'Minor']].map(([v, l]) => h('button', {
-      class: room.myMinor === v ? 'on' : '', type: 'button', onClick: () => { if (room.myMinor !== v) setHarmony({ myMinor: v }); },
+      class: room.myMinor === v ? 'on' : '', type: 'button', onClick: () => { if (room.myMinor !== v) setHarmony({ myMinor: v, myProg: toMode(list, v) }); },
     }, l)));
     const { bars, padded } = mineBars(list);
     const total = h('span', { class: 'muted small mine-total' }, `${bars} bar${bars === 1 ? '' : 's'}${padded ? ' (the last chord fills its bar)' : ''}`);
@@ -546,17 +563,20 @@ export function practiceScreen(main, params = {}) {
   const progLine = (k) => {
     const name = progName(k), group = progGroup(k);
     const bars = PROGS[k].chords.reduce((a, c) => a + (c[2] ?? 4), 0) / 4;
+    // (a name that says its group, even in the singular, "Dorian vamp", or its length, "12-bar blues", is not
+    // repeated; QA round 17)
     return [
-      name.toLowerCase().includes(group.toLowerCase()) ? null : group,
-      name.includes(`${bars} bar`) ? null : `${bars} bars`,
+      name.toLowerCase().includes(group.toLowerCase().replace(/s$/, '')) ? null : group,
+      new RegExp(`\\b${bars}[- ]bars?\\b`).test(name) ? null : `${bars} bars`,
       isMinor(k) && !/minor/i.test(`${name} ${group}`) ? 'minor' : null,
+      PROGS[k].chords.length === 1 ? '1 chord' : null,
     ].filter(Boolean).join(' · ');
   };
   const openProgs = () => {
     closePicker = openPicker({
       title: 'Progressions', host: main,
       groups: HARMONY_PROGS.map(([g]) => ({ key: g, name: g })),
-      items: HARMONY_PROGS.flatMap(([g, keys]) => keys.map((k) => ({ key: k, name: progName(k), group: g, sub: progSub(k).split(' · ').filter((w) => w !== g && w !== 'Yours').join(' · ') }))),
+      items: HARMONY_PROGS.flatMap(([g, keys]) => keys.map((k) => ({ key: k, name: progName(k), group: g, sub: progSub(k).split(' · ').filter((w) => w !== g && w !== 'Yours').join(' · '), tags: PROG_TAGS[k] }))),
       current: room.hProg,
       favs: room.progFavs, recent: room.progRecent,
       onFav: (k, on) => set({ progFavs: favsWith(room.progFavs, k, on) }),
@@ -598,17 +618,22 @@ export function practiceScreen(main, params = {}) {
     // the next change: the next chord that is not this one again
     const next = ch.slice(i + 1).concat(ch.slice(0, i)).find((x) => x.sym !== c.sym);
     // its scale by its function in the key, as the chord-scale exercise teaches (ii Dorian, V Mixolydian…)
-    const scale = room.neckShow === 'scale' ? scaleFor(c, next) : null;
-    neck.follow({ root: c.root, type: scale ? null : c.type, scale, name: c.sym, next: next?.sym || null });
+    const scale = room.neckShow === 'scale' ? scaleFor(c, next, ch) : null;
+    neck.follow({ root: c.root, type: scale ? null : c.type, scale, chord: c.type, name: c.sym, next: next?.sym || null });
   };
-  const setHarmony = (patch) => { set(patch); drawHarmony(); };
+  const setHarmony = (patch) => {
+    // (stopped, a chord tapped on the old progression is forgotten when it changes: QA round 17)
+    if (!engine.playing && ['harmony', 'hProg', 'hKey', 'myProg', 'myMinor'].some((k) => k in patch)) curIdx = null;
+    set(patch);
+    drawHarmony();
+  };
   const drawHarmony = () => {
     const mode = room.harmony;
     harmBlock.classList.toggle('off', mode === 'off');
     const minor = minorNow();
-    // (a drone under a minor-type scale of the Neck is named as that scale spells it: C♯, not D♭)
-    const droneMinor = mode === 'drone' && DRONE_MINOR.has(neck.own().slice(2));
-    const nameOf = (p) => (droneMinor ? T.noteName(T.bestRoot(p, T.SCALES.aeolian.iv), settings.notation) : keyName(p, settings.notation, minor));
+    // (a drone is named as the Neck's own scale or chord names its root: C♯ under C♯ Dorian or C♯m7, A♭ under
+    // A♭ Altered; QA round 17)
+    const nameOf = (p) => (mode === 'drone' ? T.noteName(neck.rootName(p), settings.notation) : keyName(p, settings.notation, minor));
     const keySel = h('select', { class: 'mini-sel', 'aria-label': 'Key' }, T.CHROMATIC_PC.map((p) => h('option', { value: p, selected: p === room.hKey }, nameOf(p))));
     keySel.addEventListener('change', () => setHarmony({ hKey: Number(keySel.value) }));
     const progNow = pickNow(progName(room.hProg), progSub(room.hProg), openProgs);
@@ -624,7 +649,11 @@ export function practiceScreen(main, params = {}) {
     // (stopped, a tap on a chord shows it on the neck, to find its notes before playing; user, 2026-10-23)
     chips = ch ? ch.map((c, i) => h('button', {
       class: 'chord-chip', type: 'button', title: 'Show it on the neck',
-      onClick: () => { if (engine.playing || engine.starting) return; curIdx = i; showChord(); },
+      onClick: () => {
+        if (engine.playing || engine.starting) { toast('Stop to look at a chord on the neck'); return; }
+        curIdx = i;
+        showChord();
+      },
     }, h('span', {}, c.sym))) : [];
     chipRow = ch ? sideScroll(h('div', { class: 'chord-row' }, chips)) : null;
     // above the Neck: Follow, then the chords (or the drone's key), so the two fit one screen

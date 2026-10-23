@@ -304,7 +304,9 @@ export function progChords(progKey, tonicPc, { triads, S = {} } = {}) {
   const prog = typeof progKey === 'string' ? PROGS[progKey] : progKey;
   const tonic = T.bestRoot(tonicPc, prog.minor ? T.SCALES.aeolian.iv : T.SCALES.ionian.iv);
   const asTriads = triads ?? !!prog.pop;
-  return prog.chords.map(([where, type0, beats = 4, keyOff]) => {
+  // each chord's root pitch class, to know where it leads
+  const pcs = prog.chords.map(([where]) => (typeof where === 'number' ? T.mod(tonicPc + where, 12) : T.pc(T.up(tonic, where))));
+  return prog.chords.map(([where, type0, beats = 4, keyOff], i) => {
     const type = asTriads ? toTriad(type0) : type0;
     const ivs = T.CHORDS[type].iv;
     let root;
@@ -317,10 +319,15 @@ export function progChords(progKey, tonicPc, { triads, S = {} } = {}) {
     // a chord of the key keeps the key's spelling (C♭ is the IV of G♭ major); a chord that would need
     // a double accidental takes its lead-sheet name (C♭7 → B7), and so does any chromatic chord
     const chromatic = typeof where === 'number' || !(prog.minor ? T.SCALES.aeolian.iv : T.SCALES.ionian.iv).includes(where);
-    // (QA round 16, user's choice: also when only a chord tone needs it, G♭m7 → F♯m7 in D♭; a tension or a
-    // °7's 7th does not count, being written plainly: A♭7♭9 keeps its name, its ♭9 is A)
-    const core = ivs.filter((iv) => !/9|11|13/.test(iv) && iv !== 'bb7');
-    if ((T.awkward(root) && chromatic) || core.some((iv) => Math.abs(T.up(root, iv).a) > 1)) root = T.bestRoot(T.pc(root), ivs);
+    // (QA round 16, user's choice: also when only a chord tone needs it, G♭m7 → F♯m7 in D♭; a tension, a
+    // dominant's ♭5 or ♯5 or a °7's 7th does not count, being written plainly: A♭7♭9 and A♭7♭5 keep their
+    // names, their ♭9 is A and their ♭5 D; QA round 17)
+    const dom = ivs.includes('3') && ivs.includes('b7');
+    const core = ivs.filter((iv) => !/9|11|13/.test(iv) && iv !== 'bb7' && !(dom && (iv === 'b5' || iv === '#5')));
+    // (a major chord a 5th above the next keeps the key's spelling: its 3rd is the next chord's leading tone,
+    // D♯7 → G♯m in G♯ minor with F𝄪, as the key writes it; QA round 17, user's choice)
+    const leads = ivs.includes('3') && prog.chords.length > 1 && T.mod(T.pc(root) - pcs[(i + 1) % pcs.length], 12) === 7;
+    if ((T.awkward(root) && chromatic) || (!leads && core.some((iv) => Math.abs(T.up(root, iv).a) > 1))) root = T.bestRoot(T.pc(root), ivs);
     const key = keyOff != null ? T.mod(tonicPc + keyOff, 12) : tonicPc;
     return { root, type, beats, ivs, sym: chordName(root, type, S), key, minorKey: !!prog.minor && keyOff == null, vamp: prog.chords.length === 1 };
   });

@@ -59,24 +59,39 @@ const holds = (mode, type) => {
  * - a plain dominant that does not resolve down a 5th, off the key's I, IV, V (minor: IV, V, ♭VII), and not a
  *   one-chord vamp: Lydian ♭7 (Berklee: the tritone sub, the backdoor ♭VII7, the minor blues' ♭VI7);
  * - the scale holds every tone the chord names (Em9: Dorian, A9: Mixolydian, 7♯9: half-whole), else the
- *   next of its family that does.
+ *   next of its family that does (of the chord it acts as: A6 before Dm, Mixolydian);
+ * - a modal tonic takes its mode (`all`, the progression's chords, tells it): i before a major IV Dorian,
+ *   i before a major ♭II Phrygian, I before a ♭VII Mixolydian (its IV then Ionian: the tonic's notes), I
+ *   before a major II Lydian (that II then Mixolydian) (QA round 17, user's choice).
  */
-export function scaleFor(c, next) {
-  const deg = T.mod(T.pc(c.root) - c.key, 12);
+const PLAIN_MAJOR = ['maj', 'sus2', 'maj6'];
+export function scaleFor(c, next, all = null) {
+  const degOf = (x) => T.mod(T.pc(x.root) - c.key, 12);
+  const deg = degOf(c);
   const majorish = ['maj', 'maj6', 'sus2', 'maj7', 'maj9'].includes(c.type);
-  let mode;
-  const nextDeg = next ? T.mod(T.pc(next.root) - c.key, 12) : null;
+  let mode, acts = c.type;
+  const nextDeg = next ? degOf(next) : null;
   const nextMajor = next && !MINORISH.includes(next.type);
-  // (a modal vamp's tonic takes its mode: i before a major IV is Dorian, I before a ♭VII Mixolydian)
+  // (a progression whose major I moves straight to a major chord on `d`: I – ♭VII Mixolydian, I – II Lydian)
+  const tonicTo = (d, types) => (all || []).some((x, i) => {
+    const y = all[(i + 1) % all.length];
+    return x !== y && degOf(x) === 0 && !MINORISH.includes(x.type) && degOf(y) === d && types.includes(y.type);
+  });
   if (deg === 0 && c.minorKey && familyOf(c.type) === 'min' && nextDeg === 5 && nextMajor) mode = 'dorian';
+  else if (deg === 0 && familyOf(c.type) === 'min' && nextDeg === 1 && nextMajor) mode = 'phrygian';
   else if (deg === 0 && !c.minorKey && majorish && nextDeg === 10 && nextMajor) mode = 'mixolydian';
-  else if (!c.minorKey && [1, 3, 8, 10].includes(deg) && majorish) mode = 'lydian';
+  else if (deg === 0 && !c.minorKey && majorish && nextDeg === 2 && PLAIN_MAJOR.includes(next.type)) mode = 'lydian';
+  else if (deg === 5 && !c.minorKey && majorish && tonicTo(10, ['maj', 'maj6', 'sus2', 'maj7', 'maj9', 'dom7'])) mode = 'ionian';
+  else if (deg === 2 && !c.minorKey && PLAIN_MAJOR.includes(c.type) && tonicTo(2, PLAIN_MAJOR)) mode = 'mixolydian';
+  // (a major chord borrowed from the parallel minor, or a minor key's ♭II: Lydian)
+  else if ((c.minorKey ? [1] : [1, 3, 8, 10]).includes(deg) && majorish) mode = 'lydian';
   else {
     const own = c.minorKey ? [3, 8].includes(deg) : [0, 5].includes(deg);
     const as = {
       dom9: 'dom7', dom13: 'dom7', min9: 'min7', maj9: 'maj7', sus4: 'dom7', dom7sus4: 'dom7', dim: 'm7b5', aug: 'dom7s5', min: 'min7',
       maj: own ? 'maj7' : 'dom7', sus2: own ? 'maj7' : 'dom7', maj6: own ? 'maj6' : 'dom7',
     }[c.type] || c.type;
+    acts = as;
     mode = modeFor({ ...c, type: as }, next);
     const plainDom = PLAIN_DOM.includes(c.type) || (as === 'dom7' && !c.type.startsWith('dom7'));
     const resolves = next && T.mod(T.pc(next.root) - T.pc(c.root), 12) === 5;
@@ -85,7 +100,7 @@ export function scaleFor(c, next) {
     if (plainDom && mode === 'mixolydian' && !resolves && !ownDom && !c.vamp) mode = 'lydianDom';
   }
   if (holds(mode, c.type)) return mode;
-  return FAMILY[familyOf(c.type)].find((m) => holds(m, c.type)) || mode;
+  return FAMILY[familyOf(acts)].find((m) => holds(m, c.type)) || FAMILY[familyOf(c.type)].find((m) => holds(m, c.type)) || mode;
 }
 
 /**
@@ -123,6 +138,17 @@ export const HARMONY_PROGS = [
   ['Vamps', ['vamp-min', 'vamp-dom', 'vamp-dorian', 'vamp-mixo', 'vamp-iiV']],
 ];
 export const PROG_KEYS = HARMONY_PROGS.flatMap(([, keys]) => keys);
+/** What players call the progressions, for the picker's search ("2-5-1", "autumn", "modal"; QA round 17). */
+export const PROG_TAGS = {
+  'I-V-vi-IV': '1-5-6-4 1564 axis four chords', 'I-vi-IV-V': '1-6-4-5 1645 doo-wop', 'vi-IV-I-V': '6-4-1-5 6415 axis',
+  'I-IV-V-I': '1-4-5 145 three chords', 'I-bVII-IV-I': 'mixolydian', canon: 'pachelbel',
+  blues: '12 bars', 'blues-quick': '12 bars quick four', 'blues-8': '8 bars', 'minor-blues': '12 bars', 'jazz-blues': '12 bars bebop',
+  'ii-V-I': '2-5-1 251 two five one', 'minor-ii-V-i': '2-5-1 251 two five one', 'I-vi-ii-V': '1-6-2-5 1625',
+  'iii-vi-ii-V': '3-6-2-5-1 36251', autumn: 'autumn leaves 2-5-1 251', 'rhythm-A': 'i got rhythm anatole', 'rhythm-B': 'i got rhythm',
+  'cycle-251': '2-5-1 251 cycle fifths fourths all keys', 'cycle-dom7': 'cycle fifths fourths all keys', 'giant-steps': 'coltrane',
+  'i-bVII-bVI-V': 'flamenco', 'i-bVI-bIII-bVII': 'aeolian', 'i-iv-v-min': 'aeolian natural minor',
+  'vamp-min': 'modal dorian', 'vamp-dom': 'modal mixolydian funk', 'vamp-dorian': 'modal', 'vamp-mixo': 'modal', 'vamp-iiV': '2-5 25 modal',
+};
 export const progName = (key) => (key === MINE ? 'My progression' : PROGS[key]?.name || key);
 /** A progression in a minor key (its key is named as a minor key). */
 export const isMinor = (key) => !!PROGS[key]?.minor;

@@ -26,11 +26,16 @@ const INFO = [
   '🎸 A scale or chord on the whole neck, in any key',
   '🏷 Degrees, note names or plain dots',
   '👆 Tap any fret to hear it',
-  '🎹 With the Harmony on: its chords above the neck; Chord or Scale shows the chord sounding, or its scale, and names the next change; Off: your own scale or chord',
+  '🎹 With the Harmony on, its chords sit above the neck',
+  '🎼 Chord or Scale: the chord sounding or its scale, and the next change',
+  '✋ Off: your own scale or chord',
   '👆 Stopped, a tap on a chord shows it on the neck, to find its notes before you play',
 ];
 
-/** The Neck block: { el, follow, setBar, dispose }. */
+// the altered scale's root is named as its dominant's, flats on the black keys (A♭ Altered, its 3rd C)
+const nameIvs = (shown, ivs) => (shown === 's:altered' ? T.CHORDS.dom7.iv : ivs);
+
+/** The Neck block: { el, follow, setBar, own, rootName, dispose }. */
 export function neckPanel({ onOwn } = {}) {
   const S = settings;
   const ctx = makeCtx(S);
@@ -63,24 +68,34 @@ export function neckPanel({ onOwn } = {}) {
   const render = () => {
     const ivs = ivsOf() || ['1', '3', '5'];
     const pc = lead ? T.pc(lead.root) : rootPc;
-    rootSel.replaceChildren(...T.CHROMATIC_PC.map((p) => h('option', { value: p, selected: p === pc }, T.noteName(T.bestRoot(p, ivs), S.notation))));
+    rootSel.replaceChildren(...T.CHROMATIC_PC.map((p) => h('option', { value: p, selected: p === pc }, T.noteName(T.bestRoot(p, nameIvs(shown(), ivs)), S.notation))));
     // (following the harmony, the key and the chord are the harmony's: their pickers step aside)
     rootSel.style.display = lead ? 'none' : '';
     setSel.style.display = ownRoot() ? 'none' : '';
     el.classList.toggle('following', !!lead);
     fb.configure({ strings: ctx.tuning.length, names: ctx.names, tuning: ctx.tuning, lo: 0, hi: upTo, lefty: S.lefty, zone: null });
-    const root = ownRoot() ? lead.root : T.bestRoot(pc, ivs);
+    const root = ownRoot() ? lead.root : T.bestRoot(pc, nameIvs(shown(), ivs));
     const dots = [];
     const ivsList = ivsOf();
     // each note's spelling and label: the altered scale and the symmetric ones as jazz players write them;
     // following the harmony (a jazz context), a dominant's alterations and the scales' double accidentals plainly
     const [kind, key] = shown().split(':');
+    // following a chord's scale, one spelling per note (QA round 17, user's choice): the chord's own tones as
+    // the Chord view writes them (G♯m(maj7)'s 7th F𝄪, D♭7alt's ♭7 C♭), and over a dominant the scale's other
+    // alterations (♭9, ♯9, ♯11, ♭13) plainly too, as the course's chord-scale exercise does
+    const domChord = !!lead?.chord?.startsWith('dom');
+    const chordNote = (iv) => { const n = T.up(root, iv); return (domChord && ALTERATIONS.has(iv)) || iv === 'bb7' ? T.readable(n) : n; };
+    const asChord = kind === 's' && lead?.scale && lead.chord ? new Map(T.CHORDS[lead.chord].iv.map((iv) => [T.mod(T.semis(iv), 12), chordNote(iv)])) : null;
     const spell = (iv) => {
+      const semi = T.mod(T.semis(iv), 12);
       if (kind === 's' && key === 'altered') {
-        const sp = ALTERED[T.mod(T.semis(iv), 12)];
-        if (sp) return { iv: sp[1], n: T.readable(T.up(root, sp[0])) };
+        const sp = ALTERED[semi];
+        // (its root, 3rd and ♭7 are a dominant's chord tones, kept; its ♭9 ♯9 ♭5 ♭13 plainly)
+        if (sp) return { iv: sp[1], n: asChord?.get(semi) || (['1', '3', 'b7'].includes(sp[1]) ? T.up(root, sp[0]) : T.readable(T.up(root, sp[0]))) };
       }
       const n = T.up(root, iv);
+      if (asChord?.has(semi)) return { iv, n: asChord.get(semi) };
+      if (asChord && domChord && [1, 3, 6, 8].includes(semi)) return { iv, n: T.readable(n) };
       if (kind === 's' && PLAIN.has(key)) return { iv, n: T.readable(n) };
       if (kind === 'c' && lead) return { iv, n: (key.startsWith('dom') && ALTERATIONS.has(iv)) || iv === 'bb7' ? T.readable(n) : n };
       return { iv, n: lead ? T.plain(n) : n };
@@ -125,5 +140,10 @@ export function neckPanel({ onOwn } = {}) {
   const setBar = (node) => bar.replaceChildren(...(node ? [node] : []));
   /** The player's own choice: 's:dorian', 'c:min7', 'n:none'. */
   const own = () => set;
-  return { el, follow, setBar, own, dispose: () => fb.destroy() };
+  /** A root as the player's own choice names it (C♯ Dorian, D♭ major, A♭ Altered): the drone takes its name. */
+  const rootName = (pc) => {
+    const [kind, k] = set.split(':');
+    return T.bestRoot(pc, nameIvs(set, kind === 's' ? T.SCALES[k].iv : kind === 'c' ? T.CHORDS[k].iv : T.SCALES.ionian.iv));
+  };
+  return { el, follow, setBar, own, rootName, dispose: () => fb.destroy() };
 }

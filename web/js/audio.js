@@ -10,7 +10,15 @@ const ACCOMP_THRESHOLD = -4.5;   // dB: the accompaniment's limiter (see audioCt
 const makeupGain = (threshold, ratio) => 10 ** ((0.6 * -threshold * (1 - 1 / ratio)) / 20);
 const synthCache = new Map();
 // route: what the Android app reports ('speaker' | 'external'), or null in a browser
-const opts = { bassVol: 2, clickVol: 0.6, drumVol: 0.8, padVol: 1, padTone: 1500, route: null };
+const opts = { bassVol: 2, clickVol: 1.2, drumVol: 0.8, padVol: 1, padTone: 1500, route: null };
+// The click's level at the top of its slider (clickVol 1.5): its bar accent then peaks at -4.8 dB, just under
+// the accompaniment's limiter, so at any volume the accents stay 3.6 dB over the beat and a click never
+// presses the Backing down (QA round 17: above 44% the old scale was limited, the accents flattened).
+const CLICK_TOP = 0.64 / 1.5;
+// Chrome's DynamicsCompressor delays what passes it by about 6 ms (its look-ahead): the drums pass three
+// (their glue and limiter, then the accompaniment's), the bass two, the click and pad one. These delays bring
+// everything to the drums' 18 ms, so the click, the chords and the bass land with the hits (QA round 17).
+const ALIGN = { click: 0.012, pad: 0.012, bass: 0.006 };
 const PHONE_BOOST = 15; // dB lifted around 850 Hz on the phone speaker
 
 // The Android app tells us when headphones or an external speaker are connected (see MainActivity.kt).
@@ -93,7 +101,9 @@ export function audioCtx() {
     bassVolume = ac.createGain();
     bassVolume.gain.value = opts.bassVol;
     bassBus.connect(low).connect(mid).connect(top);
-    glue.connect(bassVolume).connect(mix);
+    const bassAlign = ac.createDelay(0.05);
+    bassAlign.delayTime.value = ALIGN.bass;
+    glue.connect(bassVolume).connect(bassAlign).connect(mix);
     const filter = (type, freq, q = 0.7, gain = 0) => {
       const f = ac.createBiquadFilter();
       f.type = type; f.frequency.value = freq; f.Q.value = q; f.gain.value = gain;
@@ -125,8 +135,10 @@ export function audioCtx() {
 
     // the metronome joins after the bass's limiter, so a click never pushes the bass down
     clickBus = ac.createGain();
-    clickBus.gain.value = opts.clickVol;
-    clickBus.connect(accomp);
+    clickBus.gain.value = opts.clickVol * CLICK_TOP;
+    const clickAlign = ac.createDelay(0.05);
+    clickAlign.delayTime.value = ALIGN.click;
+    clickBus.connect(clickAlign).connect(accomp);
 
     // backing pad (drone or chords): soft, warm and after the limiter, so it never ducks the bass
     padBus = ac.createGain();
@@ -136,7 +148,9 @@ export function audioCtx() {
     // (the accompaniment's limiter keeps a loud room pad clean)
     padTone = ac.createBiquadFilter();
     padTone.type = 'lowpass'; padTone.frequency.value = opts.padTone; padTone.Q.value = 0.3;
-    padBus.connect(padTone).connect(accomp);
+    const padAlign = ac.createDelay(0.05);
+    padAlign.delayTime.value = ALIGN.pad;
+    padBus.connect(padTone).connect(padAlign).connect(accomp);
 
     // drums (the Practice room): their own chain, after the bass's limiter (a kick never ducks the bass);
     // the drum volume comes after it, so the chain shapes the drums alike at any volume
@@ -155,7 +169,7 @@ export function audioCtx() {
 export function setAudioOptions(o) {
   Object.assign(opts, o);
   if (bassVolume) bassVolume.gain.value = opts.bassVol;
-  if (clickBus) clickBus.gain.value = opts.clickVol;
+  if (clickBus) clickBus.gain.value = opts.clickVol * CLICK_TOP;
   if (drumVolume) drumVolume.gain.value = opts.drumVol;
   if (padBus) padBus.gain.value = PAD_LEVEL * opts.padVol;
   if (padTone) padTone.frequency.value = opts.padTone;
