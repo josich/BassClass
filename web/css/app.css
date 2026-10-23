@@ -780,7 +780,7 @@ input[type="range"] { touch-action: pan-y; }
 .harm-bar > .seg { flex: none; }
 .harm-bar > .seg button { min-height: 32px; padding: 4px 9px; font-size: 13px; }
 .drone-tag { font-weight: 700; font-size: 14px; color: var(--text); }
-.chord-chip { flex: none; position: relative; overflow: hidden; min-width: 64px; text-align: center; padding: 5px 10px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--line); font-weight: 700; font-size: 14px; transition: background 0.08s; }
+.chord-chip { font: inherit; color: inherit; cursor: pointer; flex: none; position: relative; overflow: hidden; min-width: 64px; text-align: center; padding: 5px 10px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--line); font-weight: 700; font-size: 14px; transition: background 0.08s; }
 /* the chord sounding fills with the pulse, left to right, over its length (--fill: 0..1, set as it plays) */
 .chord-chip::before { content: ''; position: absolute; inset: 0; background: var(--accent-2); transform: scaleX(var(--fill, 0)); transform-origin: left; }
 .chord-chip > span { position: relative; }

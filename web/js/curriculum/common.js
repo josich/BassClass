@@ -309,7 +309,10 @@ export function progChords(progKey, tonicPc, { triads, S = {} } = {}) {
     // a chord of the key keeps the key's spelling (C♭ is the IV of G♭ major); a chord that would need
     // a double accidental takes its lead-sheet name (C♭7 → B7), and so does any chromatic chord
     const chromatic = typeof where === 'number' || !(prog.minor ? T.SCALES.aeolian.iv : T.SCALES.ionian.iv).includes(where);
-    if (T.awkward(root) && (chromatic || ivs.some((iv) => Math.abs(T.up(root, iv).a) > 1))) root = T.bestRoot(T.pc(root), ivs);
+    // (QA round 16, user's choice: also when only a chord tone needs it, G♭m7 → F♯m7 in D♭; a tension or a
+    // °7's 7th does not count, being written plainly: A♭7♭9 keeps its name, its ♭9 is A)
+    const core = ivs.filter((iv) => !/9|11|13/.test(iv) && iv !== 'bb7');
+    if ((T.awkward(root) && chromatic) || core.some((iv) => Math.abs(T.up(root, iv).a) > 1)) root = T.bestRoot(T.pc(root), ivs);
     const key = keyOff != null ? T.mod(tonicPc + keyOff, 12) : tonicPc;
     return { root, type, beats, ivs, sym: chordName(root, type, S), key, minorKey: !!prog.minor && keyOff == null, vamp: prog.chords.length === 1 };
   });

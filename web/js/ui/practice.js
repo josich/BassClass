@@ -7,11 +7,10 @@ import { Room } from '../practice/engine.js';
 import { room, saveRoom, SUBS } from '../practice/state.js';
 import { STYLES, GENRES, levelsOf, groupStarts } from '../practice/styles.js';
 import { settings, saveSettings } from '../store.js';
-import { modeFor } from '../curriculum/common.js';
 import { loadKit, kitReady } from '../drums.js';
 import { neckPanel } from './neck.js';
 import { openPicker } from './picker.js';
-import { HARMONY_PROGS, progName, progression, keyName, isMinor, MINE, DEGREES, QUALITIES, LENGTHS, usualQuality, roman, mineFrom } from '../practice/harmony.js';
+import { HARMONY_PROGS, progName, progression, keyName, isMinor, MINE, DEGREES, QUALITIES, LENGTHS, usualQuality, roman, mineFrom, scaleFor } from '../practice/harmony.js';
 import { PROGS } from '../curriculum/common.js';
 import * as T from '../theory.js';
 
@@ -517,7 +516,7 @@ export function practiceScreen(main, params = {}) {
   const showChord = () => {
     // (the chords already played stay full until the progression starts again)
     chips.forEach((el, i) => {
-      const done = Number.isInteger(curIdx) && i < curIdx;
+      const done = engine.playing && Number.isInteger(curIdx) && i < curIdx;
       el.classList.toggle('on', i === curIdx);
       el.classList.toggle('done', done);
       if (i !== curIdx) el.style.setProperty('--fill', done ? 1 : 0);
@@ -532,18 +531,7 @@ export function practiceScreen(main, params = {}) {
     // the next change: the next chord that is not this one again
     const next = ch.slice(i + 1).concat(ch.slice(0, i)).find((x) => x.sym !== c.sym);
     // its scale by its function in the key, as the chord-scale exercise teaches (ii Dorian, V Mixolydian…)
-    // (a chord without its own scale takes its 7th chord's: a 9th or 13th its 7th's, a triad, 6th or sus2
-    // the key's 7th chord on that degree (the V, and a minor key's ♭VII, a dominant), sus4 a dominant's,
-    // ° Locrian, + whole tone)
-    const deg = T.mod(T.pc(c.root) - c.key, 12);
-    const dominant = deg === 7 || (c.minorKey && deg === 10);
-    const base = {
-      dom9: 'dom7', dom13: 'dom7', min9: 'min7', maj9: 'maj7', sus4: 'dom7', dom7sus4: 'dom7', dim: 'm7b5', aug: 'dom7s5', min: 'min7',
-      maj: dominant ? 'dom7' : 'maj7', sus2: dominant ? 'dom7' : 'maj7', maj6: dominant ? 'dom7' : 'maj7',
-    }[c.type];
-    // (a major chord borrowed from the parallel minor, ♭II ♭III ♭VI ♭VII of a major key, is Lydian)
-    const borrowed = !c.minorKey && [1, 3, 8, 10].includes(deg) && ['maj', 'maj7', 'maj6', 'maj9', 'sus2'].includes(c.type);
-    const scale = room.neckShow !== 'scale' ? null : borrowed ? 'lydian' : modeFor(base ? { ...c, type: base } : c, ch[(i + 1) % ch.length]);
+    const scale = room.neckShow === 'scale' ? scaleFor(c, next) : null;
     neck.follow({ root: c.root, type: scale ? null : c.type, scale, name: c.sym, next: next?.sym || null });
   };
   const setHarmony = (patch) => { set(patch); drawHarmony(); };
@@ -563,7 +551,11 @@ export function practiceScreen(main, params = {}) {
       volVal.textContent = `${v}%`;
     });
     const ch = chordsNow();
-    chips = ch ? ch.map((c) => h('span', { class: 'chord-chip' }, h('span', {}, c.sym))) : [];
+    // (stopped, a tap on a chord shows it on the neck, to find its notes before playing; user, 2026-10-23)
+    chips = ch ? ch.map((c, i) => h('button', {
+      class: 'chord-chip', type: 'button', title: 'Show it on the neck',
+      onClick: () => { if (engine.playing || engine.starting) return; curIdx = i; showChord(); },
+    }, h('span', {}, c.sym))) : [];
     chipRow = ch ? sideScroll(h('div', { class: 'chord-row' }, chips)) : null;
     // above the Neck: Follow, then the chords (or the drone's key), so the two fit one screen
     // what the neck shows: the chord sounding, its scale, or the player's own choice (over a drone: the

@@ -3,7 +3,7 @@
 // spelled in the chosen key; each 4/4 bar of them becomes one bar of the room's metre, its chords sharing
 // it out where they start (a half bar: 2 + 1 in 3/4, 3 + 2 in 5/4, on the metre's group nearest the half).
 import * as T from '../theory.js';
-import { PROGS, progChords, toTriad } from '../curriculum/common.js';
+import { PROGS, progChords, toTriad, modeFor } from '../curriculum/common.js';
 
 // My progression (user, 2026-10-23: "keep it simple"): the player's own, one of it, up to 16 chords, each a
 // degree of the key (so the Key transposes it), one of a few common qualities and a length in bars.
@@ -32,6 +32,53 @@ const SUFFIX = {
 export function roman(d, q) {
   return (MINORISH.includes(q) ? DEGREES[d].toLowerCase() : DEGREES[d]) + (SUFFIX[q] || '');
 }
+// ---- the Neck's Scale: a chord's scale in the room (the course's chord-scale rules, `modeFor`, plus the
+// room's own for the chords the course does not have; QA round 16, user's choices)
+const PLAIN_DOM = ['dom7', 'dom9', 'dom13', 'dom7sus4', 'sus4'];
+const FAMILY = {
+  dom: ['mixolydian', 'lydianDom', 'mixolydianB6', 'phrygianDom', 'dimHW', 'altered', 'wholeTone'],
+  min: ['dorian', 'aeolian', 'phrygian', 'melodicMinor', 'harmonicMinor'],
+  maj: ['ionian', 'lydian', 'lydianAug'],
+  hdim: ['locrian', 'locrianN2'],
+  dim7: ['dimWH'],
+};
+const familyOf = (t) => (t === 'dim7' ? 'dim7' : ['m7b5', 'dim'].includes(t) ? 'hdim' : MINORISH.includes(t) ? 'min'
+  : t.startsWith('dom') || t.startsWith('sus') || t === 'aug' ? 'dom' : 'maj');
+const holds = (mode, type) => {
+  const scale = new Set(T.SCALES[mode].iv.map((iv) => T.mod(T.semis(iv), 12)));
+  return T.CHORDS[type].iv.every((iv) => scale.has(T.mod(T.semis(iv), 12)));
+};
+/**
+ * A chord's scale by its function in the key (`c` from `progression`, `next` the next chord that differs):
+ * - a major chord borrowed from the parallel minor (♭II ♭III ♭VI ♭VII of a major key): Lydian;
+ * - a major triad (6th, sus2) other than the key's own I and IV (minor: ♭III, ♭VI) acts as the dominant it
+ *   is (A before Dm: Phrygian dominant, as A7); 9ths and 13ths take their 7th's scale, ° Locrian;
+ * - a plain dominant that does not resolve down a 5th, off the key's I, IV, V (minor: V, ♭VII), and not a
+ *   one-chord vamp: Lydian ♭7 (Berklee: the tritone sub, the backdoor ♭VII7, the minor blues' ♭VI7);
+ * - the scale holds every tone the chord names (Em9: Dorian, A9: Mixolydian, 7♯9: half-whole), else the
+ *   next of its family that does.
+ */
+export function scaleFor(c, next) {
+  const deg = T.mod(T.pc(c.root) - c.key, 12);
+  const majorish = ['maj', 'maj6', 'sus2', 'maj7', 'maj9'].includes(c.type);
+  let mode;
+  if (!c.minorKey && [1, 3, 8, 10].includes(deg) && majorish) mode = 'lydian';
+  else {
+    const own = c.minorKey ? [3, 8].includes(deg) : [0, 5].includes(deg);
+    const as = {
+      dom9: 'dom7', dom13: 'dom7', min9: 'min7', maj9: 'maj7', sus4: 'dom7', dom7sus4: 'dom7', dim: 'm7b5', aug: 'dom7s5', min: 'min7',
+      maj: own ? 'maj7' : 'dom7', sus2: own ? 'maj7' : 'dom7', maj6: own ? 'maj6' : 'dom7',
+    }[c.type] || c.type;
+    mode = modeFor({ ...c, type: as }, next);
+    const plainDom = PLAIN_DOM.includes(c.type) || (as === 'dom7' && !c.type.startsWith('dom7'));
+    const resolves = next && T.mod(T.pc(next.root) - T.pc(c.root), 12) === 5;
+    const ownDom = c.minorKey ? [7, 10].includes(deg) : [0, 5, 7].includes(deg);
+    if (plainDom && mode === 'mixolydian' && !resolves && !ownDom && !c.vamp) mode = 'lydianDom';
+  }
+  if (holds(mode, c.type)) return mode;
+  return FAMILY[familyOf(c.type)].find((m) => holds(m, c.type)) || mode;
+}
+
 /** A preset copied into My progression: its chords by degree, quality and length (the first 16; pop ones as triads). */
 export function mineFrom(key) {
   const prog = PROGS[key];
