@@ -55,7 +55,8 @@ export function homeScreen(main) {
   main.replaceChildren(
     h('div', { class: 'page-head home-head' }, card,
       h('button', { class: 'btn level-btn', title: 'My level: a short survey that sets where the course starts and what today\'s session holds', onClick: () => go('#/course/placement') },
-        'My level', known ? h('span', { class: `chip lv lv${playerLevel()}` }, `L${playerLevel()}`) : null)),
+        // (a new player's tile holds a "?" where the level will be)
+        'My level', h('span', { class: known ? `chip lv lv${playerLevel()}` : 'chip lv lv-new' }, known ? `L${playerLevel()}` : '?'))),
     h('div', { class: 'home-cols' }, courseBlock(), sessionBlock({ onLength: () => card.refresh() }), favoritesBlock()));
 }
 

@@ -38,6 +38,11 @@ const RAW = [
       hhc: 'xgsg|sgsg|xgsg|sgsg', kick: 'X...|....|X.x.|....', snare: '....|X...|....|X...' },
     { key: 'rockshuffle', name: 'Rock shuffle', grid: 3, bpm: 120, sub: 2,
       hhc: 'Xgx|xgx|Xgx|xgx', kick: 'X..|...|X.x|...', snare: '...|X..|...|X.g' },
+    // (3/4 and 6/8 are not odd metres: they sit with the rock grooves, QA round 15)
+    { key: 'six8rock', name: '6/8 rock', meter: '6/8', beats: 2, beat: 'dq', grid: 3, bpm: 72, sub: 3,
+      hhc: 'xss|xss', kick: 'X..|..x', snare: '...|X..' },
+    { key: 'threefour', name: '3/4 rock', meter: '3/4', beats: 3, bpm: 120, sub: 2,
+      hhc: 'Xgxg|xgxg|xgxg', kick: 'X...|..x.|....', snare: '....|....|X...' },
   ] },
   { key: 'pop', name: 'Pop', icon: '🎤', patterns: [
     { key: 'pop8', name: 'Pop 8ths', bpm: 100, sub: 2,
@@ -170,7 +175,7 @@ const RAW = [
     { key: 'rumba', name: 'Rumba (3-2 rumba clave, 2 bars)', bpm: 104, sub: 2,
       claves: 'x...|..x.|....|..x.|....|x...|x...|....', congam: 'x.g.|X.g.|x.g.|....|x.g.|X.g.|x.g.|....',
       conga: '....|....|....|x.x.|....|....|....|x.x.', tumba: '....|....|....|....|....|....|....|..x.', kick: '....|....|....|s...|....|....|....|s...' },
-    { key: 'afro68', name: 'Afro-Cuban 6/8 (bembé)', meter: '12/8', beat: 'dq', grid: 3, bpm: 100, sub: 3,
+    { key: 'afro68', name: 'Afro-Cuban 12/8 (bembé)', meter: '12/8', beat: 'dq', grid: 3, bpm: 100, sub: 3,
       cowbell: 'x.x|.xx|.x.|x.x', shakd: 'x.s|x.s|x.s|x.s', conga: '...|...|...|xx.', tumba: '...|...|x..|...', kick: 'x..|...|x..|...' },
     { key: 'habanera', name: 'Habanera (tango)', bpm: 80, sub: 2,
       toml: 'X..x|x.x.|X..x|x.x.', kick: 'X...|....|X...|....', xstick: '....|x...|....|x...' },
@@ -236,10 +241,6 @@ const RAW = [
       hhc: 'Xg|xg|Xg|xg|Xg|xg|Xg|xg|xg', kick: 'X.|..|..|..|X.|..|..|..|..', snare: '..|..|X.|..|..|..|X.|..|..' },
     { key: 'eleven8', name: '11/8 (2 + 2 + 3 + 2 + 2)', meter: '11/8', beats: 11, groups: [2, 2, 3, 2, 2], beat: 'e', grid: 2, bpm: 240, sub: 1,
       hhc: 'Xg|xg|Xg|xg|Xg|xg|xg|Xg|xg|Xg|xg', kick: 'X.|..|..|..|X.|..|..|..|..|..|..', snare: '..|..|X.|..|..|..|..|X.|..|X.|..' },
-    { key: 'six8rock', name: '6/8 rock', meter: '6/8', beats: 2, beat: 'dq', grid: 3, bpm: 72, sub: 3,
-      hhc: 'xss|xss', kick: 'X..|..x', snare: '...|X..' },
-    { key: 'threefour', name: '3/4 rock', meter: '3/4', beats: 3, bpm: 120, sub: 2,
-      hhc: 'Xgxg|xgxg|xgxg', kick: 'X...|..x.|....', snare: '....|....|X...' },
   ] },
 ];
 

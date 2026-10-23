@@ -215,7 +215,7 @@ export const PROGS = {
   'I-vi-IV-V': { name: 'I – vi – IV – V (50s)', pop: true, chords: [['1', 'maj7'], ['6', 'min7'], ['4', 'maj7'], ['5', 'dom7']] },
   'vi-IV-I-V': { name: 'vi – IV – I – V', pop: true, chords: [['6', 'min7'], ['4', 'maj7'], ['1', 'maj7'], ['5', 'dom7']] },
   'I-bVII-IV-I': { name: 'I – ♭VII – IV – I (rock)', pop: true, chords: [['1', 'maj7'], ['b7', 'maj7'], ['4', 'maj7'], ['1', 'maj7']] },
-  canon: { name: 'Canon (I–V–vi–iii–IV–I–IV–V)', pop: true, chords: [['1', 'maj7'], ['5', 'dom7'], ['6', 'min7'], ['3', 'min7'], ['4', 'maj7'], ['1', 'maj7'], ['4', 'maj7'], ['5', 'dom7']] },
+  canon: { name: 'Canon (I – V – vi – iii – IV – I – IV – V)', pop: true, chords: [['1', 'maj7'], ['5', 'dom7'], ['6', 'min7'], ['3', 'min7'], ['4', 'maj7'], ['1', 'maj7'], ['4', 'maj7'], ['5', 'dom7']] },
   'ii-V-I': { name: 'ii – V – I', chords: [['2', 'min7'], ['5', 'dom7'], ['1', 'maj7', 8]] },
   'I-vi-ii-V': { name: 'I – vi – ii – V (turnaround)', chords: [['1', 'maj7'], ['6', 'min7'], ['2', 'min7'], ['5', 'dom7']] },
   'iii-vi-ii-V': { name: 'iii – vi – ii – V – I', chords: [['3', 'min7'], ['6', 'min7'], ['2', 'min7'], ['5', 'dom7'], ['1', 'maj7']] },
@@ -245,7 +245,7 @@ export const PROGS = {
       ['1', 'dom7'], ['6', 'dom7'], ['2', 'min7'], ['5', 'dom7'], ['1', 'dom7', 2], ['6', 'dom7', 2], ['2', 'min7', 2], ['5', 'dom7', 2]],
   },
   autumn: {
-    name: 'ii–V–I–IV–iiø–V–i (relative minor cycle)', chords: [['2', 'min7'], ['5', 'dom7'], ['1', 'maj7'], ['4', 'maj7'],
+    name: 'ii – V – I – IV – iiø – V – i (relative minor cycle)', chords: [['2', 'min7'], ['5', 'dom7'], ['1', 'maj7'], ['4', 'maj7'],
       ['7', 'm7b5'], ['3', 'dom7'], ['6', 'min7'], ['6', 'min7']],
   },
   'rhythm-A': {
@@ -264,7 +264,7 @@ export const PROGS = {
     name: 'Dominant 7ths around the cycle', chords: [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7].map((o) => [o, 'dom7']),
   },
   'cycle-251': {
-    name: 'ii–V–I in all 12 keys', chords: [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7].flatMap((o) => [[o + 2, 'min7', 2, o], [o + 7, 'dom7', 2, o], [o, 'maj7', 4, o]]),
+    name: 'ii – V – I in all 12 keys', chords: [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7].flatMap((o) => [[o + 2, 'min7', 2, o], [o + 7, 'dom7', 2, o], [o, 'maj7', 4, o]]),
   },
   // each chord is spelled from the key it leads to (4th element): F♯7 – B, not G♭7 – B
   'giant-steps': {

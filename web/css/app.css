@@ -451,9 +451,10 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 /* Home's headline: the practice log (ring = today against the session length, bars = the last 7 days) */
 .home-head { flex-wrap: nowrap; align-items: stretch; }
 /* "My level" beside the practice log: a tile as tall as the card, the level big (user, 2026-10-23) */
-.home-head .level-btn { align-self: stretch; flex-direction: column; justify-content: center; gap: 6px; min-width: 104px; padding: 8px 14px; border-radius: 16px;
+.home-head .level-btn { align-self: stretch; flex-direction: column; justify-content: center; gap: 6px; min-width: 84px; padding: 8px 10px; border-radius: 16px;
   background: linear-gradient(160deg, #262b5e, #1d2346); border: 1px solid rgba(110, 128, 232, 0.35); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06); font-size: 13px; }
 .home-head .level-btn .chip { font-size: 18px; padding: 3px 12px; border-radius: 10px; order: -1; }
+.chip.lv-new { background: rgba(110, 128, 232, 0.3); color: var(--text); }
 .practice-card {
   flex: 1; min-width: 0; position: relative; display: flex; align-items: center; gap: 16px;
   padding: 8px 40px 8px 12px; border-radius: 16px;
@@ -497,17 +498,22 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .pc-day.today b { box-shadow: 0 0 0 1.5px rgba(238, 240, 253, 0.5); }
 .pc-day.today span, .pc-day.today em { color: var(--text); font-weight: 700; }
 @media (max-width: 640px) {
-  .practice-card { gap: 10px; }
+  /* (tight, so the 7 days the headline counts are all in view beside My level: QA round 15) */
+  .practice-card { gap: 8px; padding: 8px 36px 8px 10px; }
   .pc-total { font-size: 18px; }
   .pc-streak { margin-left: 5px; padding: 1px 5px; }
   .wide-only { display: none; }
-  .pc-chart { min-width: 120px; padding-left: 34px; }
+  .pc-chart { min-width: 120px; padding-left: 30px; }
   .pc-goal-label { font-size: 8.5px; }
-  .pc-day { width: 22px; }
+  .pc-track { gap: 5px; }
+  .pc-day { width: 20px; }
+  .pc-day em { font-size: 9px; }
+  .home-head .level-btn { min-width: 76px; padding: 8px 8px; }
 }
 /* portrait phones (web): the card wraps, the days take the whole width under the ring and the totals */
 @media (max-width: 520px) {
   .home-head { flex-wrap: wrap; }
+  .home-head .level-btn { flex: 1 1 100%; flex-direction: row; gap: 10px; }
   .practice-card { flex-wrap: wrap; }
   .pc-chart { flex: 1 1 100%; max-width: none; margin-left: 0; }
 }
@@ -718,6 +724,7 @@ input[type="range"] { touch-action: pan-y; }
 .genre-tabs button { flex: none; padding: 6px 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); font-weight: 600; font-size: 13px; white-space: nowrap; }
 .genre-tabs button.on { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
 .genre-tabs button.playing:not(.on) { border-color: var(--accent); color: var(--text); }
+.drums.off .genre-tabs button.playing:not(.on) { border-color: var(--line); color: var(--muted); }
 .tempo-unit { display: inline-flex; align-items: center; gap: 4px; }
 .tempo-unit .beat-ic svg { height: 14px; width: auto; display: block; }
 .style-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }

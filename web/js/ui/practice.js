@@ -60,9 +60,10 @@ function subChoices(s) {
 }
 const BEAT_ICON = { q: 'q1', e: 'e1', dq: 'dq' };
 const HARMONY_INFO = [
-  '🎹 Something to play over: a drone on a key, or a chord progression',
+  '🎹 Something to play over: a drone (the key\'s root and 5th, held) for scales and modes, or a chord progression',
   '🎼 Pick a key and a progression: pop and rock, blues, jazz, minor, vamps',
-  '🎸 The chords sit above the Neck; 🎹 Follow shows the chord sounding on it (over a drone, your scale on its key)',
+  '🎸 The chords sit above the Neck in order, each lit while it sounds; 🎹 Follow shows it on the neck (over a drone, your scale on its key)',
+  '🔇 Muted bars silence the harmony too, while the chords go on',
   '⏱ It follows the metronome and the drums: start it with the floating button',
 ];
 
@@ -223,10 +224,12 @@ export function practiceScreen(main, params = {}) {
   playBtn.addEventListener('click', () => { if (!dragged) toggle(); });
   // the button can be dragged anywhere (its place is kept); a press that moves is a drag, not a tap
   let drag = null, dragged = false;
+  // (never over the rail: it stays right of it)
+  const leftEdge = () => (document.querySelector('.rail')?.getBoundingClientRect().right || 0) + 8;
   const placeFab = () => {
     if (!room.fab) { playBtn.style.left = playBtn.style.top = playBtn.style.right = playBtn.style.bottom = ''; return; }
     const w = playBtn.offsetWidth, hgt = playBtn.offsetHeight;
-    const x = Math.max(8, Math.min(innerWidth - w - 8, room.fab[0] * innerWidth - w / 2));
+    const x = Math.max(leftEdge(), Math.min(innerWidth - w - 8, room.fab[0] * innerWidth - w / 2));
     const y = Math.max(8, Math.min(innerHeight - hgt - 8, room.fab[1] * innerHeight - hgt / 2));
     Object.assign(playBtn.style, { left: `${x}px`, top: `${y}px`, right: 'auto', bottom: 'auto' });
   };
@@ -245,7 +248,7 @@ export function practiceScreen(main, params = {}) {
       playBtn.classList.add('dragging');
     }
     const w = playBtn.offsetWidth, hgt = playBtn.offsetHeight;
-    const x = Math.max(8, Math.min(innerWidth - w - 8, e.clientX - drag.dx));
+    const x = Math.max(leftEdge(), Math.min(innerWidth - w - 8, e.clientX - drag.dx));
     const y = Math.max(8, Math.min(innerHeight - hgt - 8, e.clientY - drag.dy));
     Object.assign(playBtn.style, { left: `${x}px`, top: `${y}px`, right: 'auto', bottom: 'auto' });
   });
@@ -362,7 +365,8 @@ export function practiceScreen(main, params = {}) {
     setTempo(s.bpm);
     ensureKit();
     redraw();
-    toast(`${s.name} · ${s.meter} · ${s.bpm} BPM`);
+    // (a name that already says its metre does not repeat it, as on the cards)
+    toast(`${s.name}${s.name.includes(s.meter) ? '' : ` · ${s.meter}`} · ${s.bpm} BPM`);
   };
   /** Drums on (the pattern's metre, keeping the tempo) or off (the plain metronome). */
   const drumsOn = (on) => {
@@ -454,7 +458,7 @@ export function practiceScreen(main, params = {}) {
     neck.setBar(mode === 'off' ? null : h('div', { class: 'harm-bar' },
       h('button', {
         class: `follow-btn${room.neckFollow ? ' on' : ''}`, type: 'button', 'aria-pressed': String(room.neckFollow),
-        title: 'The neck follows the harmony',
+        title: 'The neck follows the chords',
         onClick: () => {
           setHarmony({ neckFollow: !room.neckFollow });
           toast(room.neckFollow ? 'The neck follows the harmony' : 'The neck shows your own choice');
