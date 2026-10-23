@@ -10,6 +10,7 @@ import { settings, saveSettings } from '../store.js';
 import { modeFor } from '../curriculum/common.js';
 import { loadKit, kitReady } from '../drums.js';
 import { neckPanel } from './neck.js';
+import { openPicker } from './picker.js';
 import { HARMONY_PROGS, progName, progression, keyName, isMinor, MINE, DEGREES, QUALITIES, LENGTHS, usualQuality, roman, mineFrom } from '../practice/harmony.js';
 import { PROGS } from '../curriculum/common.js';
 import * as T from '../theory.js';
@@ -24,7 +25,7 @@ const INFO = [
   '✋ Drag the Start button anywhere on the screen',
 ];
 const DRUM_INFO = [
-  '🥁 A drummer to play with: pick a genre, then a pattern, and press Start',
+  '🥁 A drummer to play with: Change opens the patterns (by genre, a search, your ★ favourites), then press Start',
   '🎚 A pattern sets its metre, its usual tempo and its subdivision',
   '🎵 Subdivision: fewer or more notes of the pattern (16ths: its fills)',
   '🔇 Muted bars and Speed up work on the drums too',
@@ -374,6 +375,33 @@ export function practiceScreen(main, params = {}) {
       });
   };
   const redraw = () => { drawDrums(); drawOpts(); drawLights(); drawUnit(); drawHarmony(); };
+  // ---- the shared picker for the drum patterns and the progressions
+  let closePicker = null;
+  /** A library's current choice on one line, and Change. */
+  const pickNow = (name, sub, onOpen) => h('button', { class: 'pick-now', type: 'button', onClick: onOpen },
+    h('span', { class: 'pick-text' }, h('b', {}, name), h('small', {}, sub)),
+    h('span', { class: 'pick-change' }, 'Change', h('span', { html: icon('next') })));
+  // (a name that already says its metre, "5/4 (3 + 2)", does not repeat it)
+  const styleSub = (s) => `${s.name.includes(s.meter) ? '' : `${s.meter} · `}${s.bpm} BPM`;
+  const brushes = (s) => Object.keys(s.tracks).some((p) => /^b(snare|stir|kick|hh|ride)/.test(p));
+  /** A pick joins the recent ones (newest first, six of them). */
+  const recentWith = (list, k) => [k, ...list.filter((x) => x !== k)].slice(0, 6);
+  const favsWith = (list, k, on) => (on ? [...list.filter((x) => x !== k), k] : list.filter((x) => x !== k));
+  const openDrums = () => {
+    closePicker = openPicker({
+      title: 'Drum patterns', host: main,
+      groups: GENRES.map((g) => ({ key: g.key, name: `${g.icon} ${g.name}` })),
+      items: Object.values(STYLES).map((s) => ({
+        key: s.key, name: s.name, group: s.genre, sub: styleSub(s),
+        tags: `${s.meter}${brushes(s) ? ' brushes' : ''}${s.groups ? ' odd' : ''}`,
+      })),
+      current: room.style, open: room.genre,
+      favs: room.drumFavs, recent: room.drumRecent,
+      onGroup: (g) => set({ genre: g }),
+      onFav: (k, on) => set({ drumFavs: favsWith(room.drumFavs, k, on) }),
+      onPick: (k) => { set({ drumRecent: recentWith(room.drumRecent, k) }); pickStyle(k); },
+    });
+  };
   /** A pattern chosen: the drums on, with its metre, its usual subdivision and tempo. */
   const pickStyle = (key) => {
     const s = STYLES[key];
@@ -403,23 +431,15 @@ export function practiceScreen(main, params = {}) {
       volVal.textContent = `${v}%`;
     });
     drumBlock.classList.toggle('off', !room.drums);
-    const tabsAt = drumBlock.querySelector('.genre-tabs')?.scrollLeft || 0;
+    const s = STYLES[room.style];
     drumBlock.replaceChildren(
       h('div', { class: 'block-head' }, h('h2', {}, '🥁 Drums'), infoBtn(DRUM_INFO, 'About the drums'), drumState, h('div', { class: 'grow' }),
         h('div', { class: 'seg' }, [true, false].map((v) => h('button', {
           class: room.drums === v ? 'on' : '',
           onClick: () => drumsOn(v),
         }, v ? 'On' : 'Off')))),
-      // a genre (the row scrolls sideways, whatever their number), then its patterns
-      sideScroll(h('div', { class: 'genre-tabs' }, GENRES.map((g) => h('button', {
-        class: `${room.genre === g.key ? 'on' : ''}${STYLES[room.style].genre === g.key ? ' playing' : ''}`,
-        onClick: () => { set({ genre: g.key }); drawDrums(); },
-      }, `${g.icon} ${g.name}`))), { from: tabsAt }),
-      h('div', { class: 'style-grid' }, GENRES.find((g) => g.key === room.genre).styles.map((st) => h('button', {
-        class: `style-chip${room.style === st.key ? ' on' : ''}`,
-        onClick: () => pickStyle(st.key),
-      // (a name that already says its metre, "5/4 (3 + 2)", does not repeat it)
-      }, h('b', {}, st.name), h('span', {}, st.name.includes(st.meter) ? `${st.bpm} BPM` : `${st.meter} · ${st.bpm} BPM`)))),
+      // the pattern playing; Change opens them all (the shared picker: by genre, a search, ★ favourites)
+      pickNow(s.name, `${GENRES.find((g) => g.key === s.genre).name} · ${styleSub(s)}`, openDrums),
       h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal));
   };
   if (room.drums) ensureKit();
@@ -464,6 +484,22 @@ export function practiceScreen(main, params = {}) {
           h('button', { class: 'btn small primary', onClick: () => { mineAt = null; drawHarmony(); } }, 'Done')));
     }
     return [h('div', { class: 'mine-row' }, slots, add), panel];
+  };
+  // a progression's line under its name: its style and length (yours: its chords)
+  const progGroup = (k) => HARMONY_PROGS.find(([, keys]) => keys.includes(k))?.[0] || '';
+  const progSub = (k) => (k === MINE
+    ? `Yours · ${room.myProg.length} chord${room.myProg.length === 1 ? '' : 's'}`
+    : `${progGroup(k)} · ${PROGS[k].chords.reduce((a, c) => a + (c[2] ?? 4), 0) / 4} bars${isMinor(k) ? ' · minor' : ''}`);
+  const openProgs = () => {
+    closePicker = openPicker({
+      title: 'Progressions', host: main,
+      groups: HARMONY_PROGS.map(([g]) => ({ key: g, name: g })),
+      items: HARMONY_PROGS.flatMap(([g, keys]) => keys.map((k) => ({ key: k, name: progName(k), group: g, sub: progSub(k).replace(/^[^·]*· /, '') }))),
+      current: room.hProg,
+      favs: room.progFavs, recent: room.progRecent,
+      onFav: (k, on) => set({ progFavs: favsWith(room.progFavs, k, on) }),
+      onPick: (k) => { set({ progRecent: recentWith(room.progRecent, k) }); mineAt = null; setHarmony({ hProg: k }); },
+    });
   };
   /** A preset copied into My progression, to change it. */
   const editPreset = () => {
@@ -516,9 +552,7 @@ export function practiceScreen(main, params = {}) {
     const minor = mode === 'chords' && isMinor(room.hProg);
     const keySel = h('select', { class: 'mini-sel', 'aria-label': 'Key' }, T.CHROMATIC_PC.map((p) => h('option', { value: p, selected: p === room.hKey }, keyName(p, settings.notation, minor))));
     keySel.addEventListener('change', () => setHarmony({ hKey: Number(keySel.value) }));
-    const progSel = h('select', { class: 'mini-sel prog-sel', 'aria-label': 'Progression' }, HARMONY_PROGS.map(([g, keys]) => h('optgroup', { label: g },
-      keys.map((k) => h('option', { value: k, selected: room.hProg === k }, progName(k))))));
-    progSel.addEventListener('change', () => setHarmony({ hProg: progSel.value }));
+    const progNow = pickNow(progName(room.hProg), progSub(room.hProg), openProgs);
     const vol = h('input', { type: 'range', min: 0, max: 100, step: 1, value: room.hVol, 'aria-label': 'Harmony volume' });
     const volVal = h('b', { class: 'rl-val' }, `${room.hVol}%`);
     vol.addEventListener('input', () => {
@@ -549,7 +583,7 @@ export function practiceScreen(main, params = {}) {
         }, l)))),
       mode === 'off' ? null : h('div', { class: 'harm-row' },
         h('label', {}, 'Key'), keySel,
-        mode === 'chords' ? h('label', {}, 'Progression') : null, mode === 'chords' ? progSel : null,
+        mode === 'chords' ? progNow : null,
         mode === 'chords' && room.hProg !== MINE ? h('button', { class: 'btn small', title: 'Copy it into My progression to change it', onClick: editPreset }, '✎ Edit') : null),
       ...(mode === 'chords' && room.hProg === MINE ? mineEditor() : []),
       mode === 'off' ? null : h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal),
@@ -565,7 +599,7 @@ export function practiceScreen(main, params = {}) {
   const faster = holdButton('+', 'Faster', () => setTempo(room.bpm + 1));
 
   const onKey = (e) => {
-    if (e.target.closest?.('input, select, textarea')) return;
+    if (e.target.closest?.('input, select, textarea') || main.querySelector('.picker-backdrop')) return;
     if (e.key === ' ') { e.preventDefault(); toggle(); }
     else if (e.key === '+' || e.key === '=' || e.key === 'ArrowUp') { e.preventDefault(); setTempo(room.bpm + 1); }
     else if (e.key === '-' || e.key === 'ArrowDown') { e.preventDefault(); setTempo(room.bpm - 1); }
@@ -608,6 +642,7 @@ export function practiceScreen(main, params = {}) {
       slower.stopHold();
       faster.stopHold();
       neck.dispose();
+      closePicker?.('route');
       // (an exercise's Backing has its own level)
       A.setAudioOptions({ padVol: 1, padTone: 1500 });
       cancelAnimationFrame(raf);

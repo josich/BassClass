@@ -9,8 +9,12 @@ export const SUBS = [1, 2, 3, 4];        // clicks per beat without drums: quart
 const DEFAULTS = { bpm: 90, beats: 4, sub: 1, accent: true, click: true, play: 2, mute: 0, speedUp: false, upBy: 2, upEvery: 4, upTo: 200, drums: false, genre: 'rock', style: 'rock8', drumVol: 80, fab: null,
   harmony: 'off', hKey: 9, hProg: 'blues', hVol: 70, neckShow: 'chord',
   // My progression, to start: I – vi – ii – V, a bar each
-  myProg: [{ d: 0, q: 'maj7', b: 4 }, { d: 9, q: 'min7', b: 4 }, { d: 2, q: 'min7', b: 4 }, { d: 7, q: 'dom7', b: 4 }] };
+  myProg: [{ d: 0, q: 'maj7', b: 4 }, { d: 9, q: 'min7', b: 4 }, { d: 2, q: 'min7', b: 4 }, { d: 7, q: 'dom7', b: 4 }],
+  // the pickers' ★ favourites and recent picks (newest first)
+  drumFavs: [], drumRecent: [], progFavs: [], progRecent: [] };
 const int = (lo, hi) => (v) => Number.isInteger(v) && v >= lo && v <= hi;
+// (a list of a library's keys, each once, at most `max`)
+const keysOf = (ok, max) => (v) => Array.isArray(v) && v.length <= max && new Set(v).size === v.length && v.every((k) => typeof k === 'string' && ok(k));
 const RULES = {
   bpm: int(1, 660),       // the room's range is PolyOrbit's (ui/practice.js)
   beats: int(1, 12),
@@ -31,6 +35,8 @@ const RULES = {
   hKey: int(0, 11),
   hProg: (v) => PROG_KEYS.includes(v),
   hVol: int(0, 100),
+  drumFavs: keysOf((k) => !!STYLES[k], 99), drumRecent: keysOf((k) => !!STYLES[k], 6),
+  progFavs: keysOf((k) => PROG_KEYS.includes(k), 40), progRecent: keysOf((k) => PROG_KEYS.includes(k), 6),
   myProg: (v) => Array.isArray(v) && v.length >= 1 && v.length <= 16 && v.every((c) => c && int(0, 11)(c.d)
     && QUALITIES.some(([q]) => q === c.q) && LENGTHS.some(([b]) => b === c.b)),
   neckShow: (v) => ['chord', 'scale', 'off'].includes(v),   // the Neck shows the chord sounding, its scale, or the player's own choice
