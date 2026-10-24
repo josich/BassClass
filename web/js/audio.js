@@ -10,15 +10,22 @@ const ACCOMP_THRESHOLD = -4.5;   // dB: the accompaniment's limiter (see audioCt
 const makeupGain = (threshold, ratio) => 10 ** ((0.6 * -threshold * (1 - 1 / ratio)) / 20);
 const synthCache = new Map();
 // route: what the Android app reports ('speaker' | 'external'), or null in a browser
-const opts = { bassVol: 2, clickVol: 1.2, drumVol: 0.8, padVol: 1, padTone: 1500, route: null };
-// The click's level at the top of its slider (clickVol 1.5): its bar accent then peaks at -4.8 dB, just under
-// the accompaniment's limiter, so at any volume the accents stay 3.6 dB over the beat and a click never
-// presses the Backing down (QA round 17: above 44% the old scale was limited, the accents flattened).
-const CLICK_TOP = 0.64 / 1.5;
-// Chrome's DynamicsCompressor delays what passes it by about 6 ms (its look-ahead): the drums pass three
-// (their glue and limiter, then the accompaniment's), the bass two, the click and pad one. These delays bring
-// everything to the drums' 18 ms, so the click, the chords and the bass land with the hits (QA round 17).
-const ALIGN = { click: 0.012, pad: 0.012, bass: 0.006 };
+const opts = { bassVol: 2, clickVol: 0.75, drumVol: 0.8, padVol: 1, padTone: 1500, route: null };
+// The click (user, 2026-10-24: too quiet at 100% with the phone at its loudest): it joins the output past the
+// accompaniment's limiter, so at the top of its slider (clickVol 1.5) its bar accent peaks at -2.8 dB, the
+// loudest it can be without distortion (measured through this graph: with drums and the room's pad at 100%,
+// no sample over the soft clip's knee); the accents stay 3.6 dB over the beat at every volume. Its tail is
+// longer (90 ms): the same peak sounds 2.3 dB louder (A-weighted). At 100% it sounds 4.2-4.5 dB louder than
+// before.
+const CLICK_PEAK = -2.8;   // dB, the bar accent at 100%
+const CLICK_TOP = 10 ** (CLICK_PEAK / 20) / (0.9 * 1.5);
+// the output's last limiter, for the click and the accompaniment together, under the soft clip's knee (an
+// instant attack: its overshoot on a click landing with a drum hit still stays under the knee)
+const TOP_THRESHOLD = -2.6;
+// Chrome's DynamicsCompressor delays what passes it by about 6 ms (its look-ahead): the drums pass four
+// (their glue and limiter, the accompaniment's, the last one), the pad two, the bass two, the click one. These
+// delays bring everything to the drums' 24 ms, so the click, the chords and the bass land with the hits.
+const ALIGN = { click: 0.018, pad: 0.012, bass: 0.012 };
 const PHONE_BOOST = 15; // dB lifted around 850 Hz on the phone speaker
 
 // The Android app tells us when headphones or an external speaker are connected (see MainActivity.kt).
@@ -130,7 +137,13 @@ export function audioCtx() {
     accomp.threshold.value = ACCOMP_THRESHOLD; accomp.knee.value = 0; accomp.ratio.value = 20; accomp.attack.value = 0.001; accomp.release.value = 0.08;
     const accompTrim = ac.createGain();
     accompTrim.gain.value = 1 / makeupGain(ACCOMP_THRESHOLD, 20);
-    accomp.connect(accompTrim).connect(clip);
+    // the last limiter: the accompaniment and the click meet there, under the clip's knee (its make-up gain
+    // taken back as the accompaniment's is)
+    const last = ac.createDynamicsCompressor();
+    last.threshold.value = TOP_THRESHOLD; last.knee.value = 0; last.ratio.value = 20; last.attack.value = 0; last.release.value = 0.06;
+    const lastTrim = ac.createGain();
+    lastTrim.gain.value = 1 / makeupGain(TOP_THRESHOLD, 20);
+    accomp.connect(accompTrim).connect(last).connect(lastTrim).connect(clip);
     accompIn = accomp;
 
     // the metronome joins after the bass's limiter, so a click never pushes the bass down
@@ -138,7 +151,7 @@ export function audioCtx() {
     clickBus.gain.value = opts.clickVol * CLICK_TOP;
     const clickAlign = ac.createDelay(0.05);
     clickAlign.delayTime.value = ALIGN.click;
-    clickBus.connect(clickAlign).connect(accomp);
+    clickBus.connect(clickAlign).connect(last);
 
     // backing pad (drone or chords): soft, warm and after the limiter, so it never ducks the bass
     padBus = ac.createGain();
@@ -430,10 +443,11 @@ export function click(when = now(), level = 1) {
   const v = level === 2 ? 0.9 : level === 1.5 ? 0.75 : level === 1 ? 0.6 : 0.25;
   g.gain.setValueAtTime(0, when);
   g.gain.linearRampToValueAtTime(v, when + 0.001);
-  g.gain.exponentialRampToValueAtTime(0.0001, when + (level === 0 ? 0.03 : 0.05));
+  // (the beat's clicks ring 90 ms: louder for the same peak; a subdivision's stay short, under the beat)
+  g.gain.exponentialRampToValueAtTime(0.0001, when + (level === 0 ? 0.03 : 0.09));
   o.connect(g).connect(clickBus);
   o.start(when);
-  o.stop(when + 0.07);
+  o.stop(when + 0.11);
   return g;   // (disconnected, a click not yet sounded is cancelled)
 }
 

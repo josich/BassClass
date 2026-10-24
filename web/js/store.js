@@ -15,7 +15,7 @@ export const DEFAULT_SETTINGS = {
   metro: true,
   clickSubs: false,
   bassVol: 2,              // 0..2, shown as 0-100%; above 1 the output is pushed into the limiter
-  clickVol: 1.2,
+  clickVol: 0.75,
   tapSounds: true,   // a soft tick on every tap of a control (user, 2026-10-23)
   maxFret: 20,
   level: 1,                // preferred level for warm-ups (new players start at Level 1)
@@ -26,7 +26,7 @@ export const DEFAULT_SETTINGS = {
   mapOpen: null,           // the course map stages left open (null: only the next lesson's stage)
   libAt: null,             // the player's level when libOpen was last saved
   mapAt: null,             // the next lesson's stage when mapOpen was last saved
-  v: 3,                    // settings format (see migrate)
+  v: 4,                    // settings format (see migrate)
 };
 
 const oneOf = (list) => (v) => list.includes(v);
@@ -103,6 +103,12 @@ function migrate(raw) {
   if (!(raw.v >= 3)) {
     if (typeof raw.clickVol === 'number') raw.clickVol = Math.min(1.5, raw.clickVol * 2);
     raw.v = 3;
+  }
+  // v4 (user, 2026-10-24: the click too quiet at 100%): the click's scale is 5 dB louder; a volume left at the
+  // old default (80%) becomes the new one (50%), which sounds as it did, and any other keeps its place
+  if (!(raw.v >= 4)) {
+    if (raw.clickVol === 1.2) raw.clickVol = DEFAULT_SETTINGS.clickVol;
+    raw.v = 4;
   }
   return raw;
 }
