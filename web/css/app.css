@@ -406,6 +406,7 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .card h3 { padding-right: 28px; }
 .chip.core { background: rgba(70, 201, 162, 0.14); color: var(--accent); }
 .chip.mastered { background: rgba(70, 201, 162, 0.2); color: var(--good); }
+.chip.goal { color: #dba85a; }
 
 .home-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
 @media (min-width: 700px) { .home-cols { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); } }
@@ -696,10 +697,11 @@ details.les-more > ul { margin: 0 0 10px; }
 .tempo-unit { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--muted); margin-top: 2px; }
 .tempo-name { font-size: 12px; color: #aab6ff; margin-top: 3px; font-style: italic; }
 .tempo-slider { width: 100%; accent-color: var(--accent); }
-/* −5 and +5 at the slider's ends */
+/* − and + at the slider's ends; −5 and +5 beside the tempo */
 .tempo-slide { display: flex; align-items: center; gap: 10px; width: 100%; }
 .tempo-slide .tempo-slider { flex: 1; min-width: 0; }
-.btn.round.step5 { font-size: 13px; font-weight: 700; flex: none; }
+.tempo-slide .btn.round { flex: none; }
+.btn.round.step5 { font-size: 17px; font-weight: 700; }
 .beat-lights { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; min-height: 26px; }
 .beat-lights > * { position: relative; width: 22px; height: 22px; padding: 0; border-radius: 50%; background: var(--panel-3); border: 2px solid var(--line); transition: background 0.05s, transform 0.05s; cursor: pointer; }
 /* (a tap anywhere 6 px around a light counts: 34 px to aim at) */

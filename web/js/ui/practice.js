@@ -720,11 +720,11 @@ export function practiceScreen(main, params = {}) {
   const neck = neckPanel({ onOwn: () => { if (room.harmony === 'drone') drawHarmony(); } });
   drawHarmony();
 
-  const slower = holdButton('−', 'Slower', () => setTempo(room.bpm - 1));
-  const faster = holdButton('+', 'Faster', () => setTempo(room.bpm + 1));
-  // (and 5 at a time, at the slider's ends; user, 2026-10-26)
-  const slower5 = holdButton('−5', '5 BPM slower', () => setTempo(room.bpm - 5), 'small step5');
-  const faster5 = holdButton('+5', '5 BPM faster', () => setTempo(room.bpm + 5), 'small step5');
+  // −5 and +5 beside the tempo, − and + (one at a time) at the slider's ends (user, 2026-10-26)
+  const slower = holdButton('−', 'Slower', () => setTempo(room.bpm - 1), 'small');
+  const faster = holdButton('+', 'Faster', () => setTempo(room.bpm + 1), 'small');
+  const slower5 = holdButton('−5', '5 BPM slower', () => setTempo(room.bpm - 5), 'step5');
+  const faster5 = holdButton('+5', '5 BPM faster', () => setTempo(room.bpm + 5), 'step5');
 
   const onKey = (e) => {
     if (e.target.closest?.('input, select, textarea') || main.querySelector('.picker-backdrop')) return;
@@ -742,11 +742,11 @@ export function practiceScreen(main, params = {}) {
       h('div', { class: 'metro-body' },
         h('div', { class: 'metro-main' },
           h('div', { class: 'tempo-row' },
-            slower,
+            slower5,
             h('div', { class: 'tempo-show' }, bpmEl, unitEl, nameEl),
-            faster,
+            faster5,
             tapBtn),
-          h('div', { class: 'tempo-slide' }, slower5, slider, faster5),
+          h('div', { class: 'tempo-slide' }, slower, slider, faster),
           lights,
           grouping,
           beatOpts),
