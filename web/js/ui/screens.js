@@ -8,6 +8,7 @@ import { paramOptions } from './exercise.js';
 import { starButton, dragToReorder } from './favorites.js';
 import { courseBlock, sessionBlock, playerLevel } from './course.js';
 import { practiceCard } from './practiceCard.js';
+import { goalOf, goalText, LEVEL_PASS } from '../mastery.js';
 import { resetCourse, placed, anyProgress } from '../course/progress.js';
 import { replaceHash, goBack, canGoBack } from './nav.js';
 import { saveBackup, parseBackup, restoreBackup } from '../backup.js';
@@ -33,6 +34,8 @@ function card(t, { level = true, topic = true } = {}) {
       t.star ? h('span', { class: 'chip core' }, '★ core') : null,
       pr.done ? h('span', { class: 'chip mastered' }, '✓ mastered') : null,
       pr.bestBpm ? h('span', { class: 'chip' }, `${pr.bestBpm} BPM`) : null,
+      // (the goal that masters it, until it is mastered)
+      !pr.done && goalOf(t.id) ? h('span', { class: 'chip goal', title: `To master it: ${goalText(t.id)}, then ✓ Mastered` }, `🎯 ${goalOf(t.id).bpm}`) : null,
       t.summary ? infoBtn(t.summary, `About ${t.title}`) : null));
 }
 
@@ -261,7 +264,7 @@ export function libraryScreen(main, params = {}) {
   // (a level the player has just reached opens: the page scrolls to it once, when it is not the first)
   const reached = settings.libOpen != null && settings.libAt !== playerLevel() && !params.l ? playerLevel() : null;
   main.replaceChildren(
-    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '▸ Levels: tap a level to open or fold it', '🗂 Topics: one card per topic, its exercises Level 1 to 6', '🔎 Search by name, topic, song, artist or number (#42)', '★ core: a key exercise of its level', 'ⓘ on a card: what it is'], 'About the Library'), views, h('div', { class: 'grow' }), search),
+    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '▸ Levels: tap a level to open or fold it', '🗂 Topics: one card per topic, its exercises Level 1 to 6', '🔎 Search by name, topic, song, artist or number (#42)', '★ core: a key exercise of its level', `🎯 Master an exercise: a full loop at its goal, then ✓ Mastered; it counts in the course too`, `📈 ${Math.round(LEVEL_PASS * 100)}% of a level mastered moves your level on`, 'ⓘ on a card: what it is'], 'About the Library'), views, h('div', { class: 'grow' }), search),
     jumps,
     results);
   render();

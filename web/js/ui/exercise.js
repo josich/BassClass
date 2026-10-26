@@ -12,6 +12,7 @@ import { moduleOf, LEVELS, defaultParams } from '../curriculum/index.js';
 import { CYCLE_OPTS, PROGS, tonicFor } from '../curriculum/common.js';
 import { harmonyTrack, harmonyAt, NO_BACKING } from '../harmony.js';
 import { recordLoop, rememberTempo, stepState, stepPassed, stepClean, setClean, isDue, isComplete, reviewed } from '../course/progress.js';
+import { goalOf, goalText as masteryGoal, meetsGoal, setMastered } from '../mastery.js';
 
 // what a lesson step's goal tempo counts in ("goal 96 BPM in 8ths")
 export const SUB_NAMES = { 0.25: 'whole notes', 0.5: 'half notes', 1: 'quarter notes', 2: '8ths', 3: 'triplets', 4: '16ths', 5: 'quintuplets', 6: 'sextuplets' };
@@ -223,7 +224,10 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       if (played != null && !demo) routine?.played?.();
       if (!lesson) {
         const pr = getProgress(tpl.id) || {};
-        updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, ...(played != null ? { bestBpm: Math.max(pr.bestBpm || 0, played) } : {}), ...keep(), lastBpm: player.bpm });
+        // (a full loop at the goal: ✓ Mastered can be ticked, here or anywhere; user, 2026-10-26)
+        const met = played != null && !pr.met && !demo && meetsGoal(tpl.id, played, inst?.uniform ? player.sub : null);
+        updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, ...(played != null ? { bestBpm: Math.max(pr.bestBpm || 0, played) } : {}), ...keep(), lastBpm: player.bpm, ...(met ? { met: true } : {}) });
+        if (met && !pr.done) tip(`🎯 Goal reached (${masteryGoal(tpl.id)}): when it is clean, tick ✓ Mastered under ⋯`);
       }
       // a lesson step counts only with the lesson's options (another key is fine where the lesson leaves it free)
       if (lesson && !demo && played != null && presetOk()) {
@@ -574,12 +578,23 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     }
     syncToggles();
   }
+  // ✓ Mastered: once a full loop reached the exercise's goal (here, in the Library or the session, or in a
+  // lesson step), and then it counts everywhere: the Library, the session and the course's steps on it
+  // (mastery.js; user, 2026-10-26)
   function toggleDone() {
     const pr = getProgress(tpl.id) || {};
     const done = !pr.done;
-    // (in a lesson step the exercise's own best tempo stays as it was: lessons do not change it)
-    updateProgress(tpl.id, done ? { done, ...(lesson ? {} : { bestBpm: Math.max(pr.bestBpm || 0, player.bpm) }) } : { done });
-    toast(done ? `Mastered at ${player.bpm} BPM ✓` : 'Unmarked');
+    if (done) {
+      const g = goalOf(tpl.id);
+      const inLesson = lesson && !demo && g && stepState(L.id, LI).best >= g.bpm && (g.sub == null || (LS.sub ?? g.sub) >= g.sub);
+      const anyLoop = !g && (pr.plays > 0 || (lesson && stepState(L.id, LI).loops > 0));
+      if (!pr.met && !inLesson && !anyLoop) {
+        tip(`🎯 To master it: ${g ? `a full loop at ${masteryGoal(tpl.id)}` : 'one full loop'}, then ✓ Mastered`);
+        return;
+      }
+    }
+    setMastered(tpl.id, done);
+    toast(done ? 'Mastered ✓: it counts in the Library and the course' : 'Unmarked');
     syncToggles();
   }
   function syncToggles() {
@@ -650,7 +665,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         <p class="muted small" style="margin-top:8px">A dot labelled → is an approach note: a passing note that leads into the next chord tone.</p>
         ${tpl.source ? `<h4>Based on</h4><p class="muted small">${esc(tpl.source)}</p>` : ''}
         <h4>Your progress</h4>
-        <p class="muted">${pr.plays ? `${pr.plays} loops played · best ${pr.bestBpm || '–'} BPM` : 'Not played yet.'}${pr.done ? ' · <b style="color:var(--good)">mastered</b>' : ''}</p>
+        <p class="muted">${pr.plays ? `${pr.plays} loops played · best ${pr.bestBpm || '–'} BPM` : 'Not played yet.'}${pr.done ? ' · <b style="color:var(--good)">mastered</b>' : ` · 🎯 to master it: ${esc(masteryGoal(tpl.id))}, then ✓ Mastered`}</p>
       </div>`;
     drawer.querySelector('[data-close]').addEventListener('click', () => drawer.classList.remove('open'));
     drawer.classList.add('open');

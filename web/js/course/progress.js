@@ -2,6 +2,7 @@
 // the loops played and the "clean" tick; per lesson the day it was completed and its reviews; the
 // "I can" ticks of checkpoints; the units the placement check marked as known.
 import { STAGES, LESSONS, UNITS, lessonById } from './data.js';
+import { masteryCovers, stepMasters, setMastered, onMastery, levelPassed } from '../mastery.js';
 
 const KEY = 'bassclass.course.v1';
 const DAY = 86400000;
@@ -123,13 +124,24 @@ delete state.filled;
 const skey = (lid, i) => `${lid}.${i}`;
 export const stepState = (lid, i) => state.steps[skey(lid, i)] || { best: 0, last: 0, loops: 0, clean: 0 };
 
-/** Has this step's tempo goal been reached (no goal: one full loop played)? */
-export function stepPassed(lesson, i) {
+/** Has this step's tempo goal been reached here (no goal: one full loop played)? */
+function ownPassed(lesson, i) {
   const st = stepState(lesson.id, i);
   const goal = lesson.steps[i]?.goal;
   return goal ? st.best >= goal : st.loops > 0;
 }
-export const stepClean = (lesson, i) => !!stepState(lesson.id, i).clean;
+const ownClean = (lesson, i) => !!stepState(lesson.id, i).clean;
+// (a step on an exercise mastered anywhere, at a goal no harder than the exercise's, is passed and clean:
+// one record of progress everywhere; user, 2026-10-26)
+const covered = (lesson, i) => !!lesson.steps[i] && masteryCovers(lesson.steps[i]);
+/** Has this step's tempo goal been reached (no goal: one full loop played), here or by mastering its exercise? */
+export const stepPassed = (lesson, i) => ownPassed(lesson, i) || covered(lesson, i);
+export const stepClean = (lesson, i) => ownClean(lesson, i) || covered(lesson, i);
+/** A step passed and ✓ Clean that is at least as hard as its exercise's goal masters the exercise everywhere. */
+function masterFrom(lesson, i) {
+  const step = lesson.steps[i];
+  if (step && ownPassed(lesson, i) && ownClean(lesson, i) && stepMasters(step)) setMastered(step.ex, true);
+}
 
 /** A full loop of a lesson step was played at `bpm`. Returns true when this loop reached the goal for the first time. */
 export function recordLoop(lesson, i, bpm) {
@@ -140,6 +152,7 @@ export function recordLoop(lesson, i, bpm) {
   st.last = bpm;
   state.steps[skey(lesson.id, i)] = st;
   save();
+  masterFrom(lesson, i);
   return !was && stepPassed(lesson, i);
 }
 /** The tempo the step was last practised at (where it reopens). */
@@ -151,6 +164,7 @@ export function rememberTempo(lesson, i, bpm) {
 /** Tick or untick "clean" on a step. Returns true when this completed the lesson. */
 export function setClean(lesson, i, on) {
   state.steps[skey(lesson.id, i)] = { ...stepState(lesson.id, i), clean: on ? Date.now() : 0 };
+  if (on) masterFrom(lesson, i);
   return settle(lesson);
 }
 export const canTicked = (lesson, i) => !!state.can[skey(lesson.id, i)];
@@ -199,7 +213,9 @@ export function reviewed(lesson) {
 export const dueLessons = () => LESSONS.filter(isDue).sort((a, b) => nextReview(a) - nextReview(b));
 
 // ---------------------------------------------------------------- placement & status
-export const isKnown = (lesson) => (lesson.unit ? !!state.known[lesson.unit.id] : lesson.stage.units.every((u) => state.known[u.id]));
+// (known: the placement said so, or the stage's Library level is 80% mastered; user, 2026-10-26)
+export const isKnown = (lesson) => levelPassed(STAGES.indexOf(lesson.stage) + 1)
+  || (lesson.unit ? !!state.known[lesson.unit.id] : lesson.stage.units.every((u) => state.known[u.id]));
 export const knownUnits = () => ({ ...state.known });
 export function setKnown(ids) {
   state.known = Object.fromEntries(ids.map((id) => [id, true]));
@@ -251,6 +267,24 @@ export const firstGap = () => LESSONS.find(open) || null;
 export function courseStats() {
   const list = LESSONS.filter((l) => !l.optional && l.kind === 'lesson');
   return { done: list.filter((l) => status(l) === 'done').length, known: list.filter((l) => status(l) === 'known').length, total: list.length };
+}
+
+// an exercise mastered (or taken back) anywhere: the lessons that use it are settled again, so one
+// completed by it gets its completion day and its reviews
+onMastery((ex) => {
+  let fresh = false;
+  for (const l of LESSONS) if (l.steps.some((s) => s.ex === ex) && isComplete(l) && !state.lessons[l.id]?.done) { record(l); fresh = true; }
+  if (fresh) save();
+});
+function record(lesson) {
+  const now = Date.now();
+  state.lessons[lesson.id] = { done: now, reviews: 0, next: now + INTERVALS[0] * DAY, n: lesson.steps.length, c: (lesson.can || []).length };
+}
+// (lessons completed by exercises mastered before this rule get their records once, on load)
+{
+  let fresh = false;
+  for (const l of LESSONS) if (!state.lessons[l.id]?.done && isComplete(l)) { record(l); fresh = true; }
+  if (fresh) save();
 }
 
 export const sessionMinutes = () => state.minutes;

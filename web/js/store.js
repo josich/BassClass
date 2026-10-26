@@ -82,6 +82,7 @@ function cleanEntry(e) {
   if (numIn(30, 260)(e.bestBpm)) out.bestBpm = e.bestBpm;
   if (numIn(30, 260)(e.lastBpm)) out.lastBpm = e.lastBpm;
   if (isBool(e.done)) out.done = e.done;
+  if (isBool(e.met)) out.met = e.met;   // a full loop reached the exercise's goal (mastery.js), outside a lesson
   if (SUB_VALUES.includes(e.sub)) out.sub = e.sub;
   if (LABEL_VALUES.includes(e.label)) out.label = e.label;
   if (numIn(0, 1e15)(e.last)) out.last = e.last;
