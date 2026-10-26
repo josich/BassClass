@@ -6,7 +6,7 @@ const KEY = 'bassclass.practice.v1';
 
 export const SUBS = [1, 2, 3, 4];        // clicks per beat without drums: quarters, 8ths, triplets, 16ths
 
-const DEFAULTS = { bpm: 90, beats: 4, sub: 1, accents: {}, lightsTapped: false, click: true, play: 2, mute: 0, speedUp: false, upBy: 2, upEvery: 4, upTo: 200, drums: false, genre: 'rock', style: 'rock8', drumVol: 80, fab: null,
+const DEFAULTS = { bpm: 90, beats: 4, sub: 1, accents: {}, lightsTapped: false, upFrom: null, click: true, play: 2, mute: 0, speedUp: false, upBy: 2, upEvery: 4, upTo: 200, drums: false, genre: 'rock', style: 'rock8', drumVol: 80, fab: null,
   harmony: 'off', hKey: 9, hProg: 'blues', hVol: 70, neckShow: 'chord',
   // My progression, to start: I – vi – ii – V, a bar each
   myProg: MINE_START, myMinor: false, hSound: 'pad',
@@ -46,6 +46,7 @@ const RULES = {
   upBy: int(1, 10),
   upEvery: int(1, 16),
   upTo: int(40, 660),     // ... no faster than this
+  upFrom: (v) => v === null || int(1, 660)(v),   // the tempo a speed-up climb started from (Off goes back to it)
   drums: (v) => typeof v === 'boolean',
   style: (v) => typeof v === 'string' && Object.prototype.hasOwnProperty.call(STYLES, v),
   genre: (v) => GENRES.some((g) => g.key === v),

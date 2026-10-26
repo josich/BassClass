@@ -20,7 +20,7 @@ const INFO = [
   '💡 Tap a beat light to accent it: your groupings (3 + 2 + 2…); ↺ the usual one',
   '🎵 Subdivision: quarters, 8ths, triplets or 16ths (with drums: how much of the pattern plays)',
   '🔇 Muted bars: the click stops for some bars, you keep the time',
-  '📈 Speed up: a few BPM faster every few bars, up to a ceiling',
+  '📈 Speed up: faster every few bars, up to a ceiling; Stop pauses it, Off goes back to where it started',
   '🔈 Click off: the lights and the drums keep the time',
   '✋ Drag Start anywhere on the screen',
 ];
@@ -108,10 +108,10 @@ function tempoName(bpm) {
 }
 
 /** A button that repeats while held (− and + on the tempo); `btn.stopHold()` ends a hold (leaving the room). */
-function holdButton(label, title, step) {
+function holdButton(label, title, step, cls = '') {
   let wait = null, rep = null, tap = false;
   const stop = () => { clearTimeout(wait); clearInterval(rep); wait = rep = null; tap = false; };
-  const btn = h('button', { class: 'btn round', title, 'aria-label': title }, label);
+  const btn = h('button', { class: `btn round ${cls}`, title, 'aria-label': title }, label);
   btn.stopHold = stop;
   btn.addEventListener('pointerdown', (e) => {
     e.preventDefault();
@@ -169,9 +169,10 @@ export function practiceScreen(main, params = {}) {
     if (posToBpm(Number(slider.value)) !== bpm) slider.value = bpmToPos(bpm);
     slider.setAttribute('aria-valuetext', `${bpm} BPM`);
   };
+  // (a tempo the player sets is a new starting point: a paused speed-up climb is forgotten)
   const setTempo = (bpm) => {
     bpm = Math.max(BPM_MIN, Math.min(BPM_MAX, Math.round(bpm)));
-    set({ bpm });
+    set({ bpm, ...(room.upFrom != null ? { upFrom: null } : {}) });
     showTempo(bpm);
   };
   // the beat lights: gold where a beat is accented (dashed: a group's), and a tap on one accents it or not
@@ -251,8 +252,12 @@ export function practiceScreen(main, params = {}) {
       showChord();
       [...lights.children].forEach((el) => el.classList.remove('lit'));
       lights.classList.remove('muted', 'count');
-      // (the speed-up climb ends and the tempo set stays: the tempo reached is named)
-      if (reached > room.bpm) toast(`Reached ${reached} BPM`, 2500);
+      // speed up pauses (user, 2026-10-26): the tempo reached stays and Start goes on from it; switching
+      // Speed up off goes back to the tempo the climb started from (`upFrom`)
+      if (room.speedUp && reached > room.bpm) {
+        set({ bpm: reached });
+        toast(`Paused at ${reached} BPM: Start goes on from here`, 2500);
+      }
       showTempo(room.bpm);
       drawPlay();
       return;
@@ -260,6 +265,8 @@ export function practiceScreen(main, params = {}) {
     // (a chord tapped while stopped is forgotten: the count-in shows the progression's first)
     curIdx = null;
     showChord();
+    // (a speed-up climb remembers where it starts, the first time)
+    if (room.speedUp && room.upFrom == null) saveRoom({ upFrom: room.bpm });
     engine.set({ countIn: settings.countIn });
     await engine.start();
     if (engine.playing && !raf) raf = requestAnimationFrame(frame);
@@ -389,7 +396,14 @@ export function practiceScreen(main, params = {}) {
       h('div', { class: 'room-group' },
         field('Speed up', h('div', { class: 'seg' }, [true, false].map((v) => h('button', {
           class: room.speedUp === v ? 'on' : '',
-          onClick: () => { set({ speedUp: v, ...(v ? ceiling(room.bpm) : {}) }); drawOpts(); },
+          onClick: () => {
+            if (room.speedUp === v) return;
+            // (off: back to the tempo the climb started from, playing or not; on while playing: it starts here)
+            const back = !v ? room.upFrom : null;
+            set({ speedUp: v, ...(v ? ceiling(room.bpm) : {}), upFrom: v && engine.playing ? room.bpm : null });
+            if (back != null && back !== room.bpm) { setTempo(back); toast(`Back to ${back} BPM`); }
+            drawOpts();
+          },
         }, v ? 'On' : 'Off')))),
         ...(room.speedUp ? [
           rangeLine('upBy', 1, 10, 'Add', (v) => `+${v} BPM`),
@@ -708,6 +722,9 @@ export function practiceScreen(main, params = {}) {
 
   const slower = holdButton('−', 'Slower', () => setTempo(room.bpm - 1));
   const faster = holdButton('+', 'Faster', () => setTempo(room.bpm + 1));
+  // (and 5 at a time, at the slider's ends; user, 2026-10-26)
+  const slower5 = holdButton('−5', '5 BPM slower', () => setTempo(room.bpm - 5), 'small step5');
+  const faster5 = holdButton('+5', '5 BPM faster', () => setTempo(room.bpm + 5), 'small step5');
 
   const onKey = (e) => {
     if (e.target.closest?.('input, select, textarea') || main.querySelector('.picker-backdrop')) return;
@@ -729,7 +746,7 @@ export function practiceScreen(main, params = {}) {
             h('div', { class: 'tempo-show' }, bpmEl, unitEl, nameEl),
             faster,
             tapBtn),
-          slider,
+          h('div', { class: 'tempo-slide' }, slower5, slider, faster5),
           lights,
           grouping,
           beatOpts),
@@ -752,8 +769,7 @@ export function practiceScreen(main, params = {}) {
   return {
     dispose: () => {
       engine.stop();
-      slower.stopHold();
-      faster.stopHold();
+      for (const b of [slower, faster, slower5, faster5]) b.stopHold();
       neck.dispose();
       closePicker?.('route');
       // (an exercise's Backing has its own level)

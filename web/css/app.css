@@ -696,6 +696,10 @@ details.les-more > ul { margin: 0 0 10px; }
 .tempo-unit { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: var(--muted); margin-top: 2px; }
 .tempo-name { font-size: 12px; color: #aab6ff; margin-top: 3px; font-style: italic; }
 .tempo-slider { width: 100%; accent-color: var(--accent); }
+/* −5 and +5 at the slider's ends */
+.tempo-slide { display: flex; align-items: center; gap: 10px; width: 100%; }
+.tempo-slide .tempo-slider { flex: 1; min-width: 0; }
+.btn.round.step5 { font-size: 13px; font-weight: 700; flex: none; }
 .beat-lights { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; min-height: 26px; }
 .beat-lights > * { position: relative; width: 22px; height: 22px; padding: 0; border-radius: 50%; background: var(--panel-3); border: 2px solid var(--line); transition: background 0.05s, transform 0.05s; cursor: pointer; }
 /* (a tap anywhere 6 px around a light counts: 34 px to aim at) */
