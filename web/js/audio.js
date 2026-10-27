@@ -30,9 +30,9 @@ const DRUM_DRIVE = 4, DRUM_TRIM = 1.2;
 // delays bring everything to the drums' 24 ms, so the click, the chords and the bass land with the hits.
 const ALIGN = { click: 0.018, pad: 0.012, bass: 0.012 };
 const PHONE_BOOST = 15; // dB lifted around 850 Hz on the phone speaker
-// the guitar amp's output level (its distortion is set by its own drive): its chugs as loud as the other sounds
-// (A-weighted, measured; a chord rung once on the Neck sounds 2.7 dB over them)
-const AMP_OUT = 0.118;
+// the guitar amp's output level (its distortion is set by its own drive): its chugs 5 dB over the pad (user,
+// 2026-10-27: "it needs to be louder compared to other sounds"; A-weighted, measured)
+const AMP_OUT = 0.12;
 // The bass's limiter (user, 2026-10-27: "the bass sounds distorted on the phone speakers, less in headphones";
 // measured offline at 100%): its own make-up gain (+2.3 dB, Web Audio spec) is taken back, so it no longer
 // drives every peak into the soft clip (2.7% of a low phrase's samples were in the clip, 0.03% now), and it
@@ -578,16 +578,16 @@ export const PAD_SOUNDS = {
   guitar: { level: 1, struck: true, amp: true, chug: true, release: 0.09, chord: (m) => [m[0] - 12, m[0] - 5, m[0]], voice(x, f, when, g, peak, muted = false) {
     const out = [];
     const midi = Math.round(69 + 12 * Math.log2(f / 440));
-    for (const [take, side, late] of [[0, -1, 0], [1, 1, muted ? 0.007 : 0.012]]) {
-      const t = when + late + Math.random() * 0.003;
+    // (the two takes keep their places and levels at every strike: user, 2026-10-27, it "feels like panning
+    // from side to side"; a strike's small lateness is the same for both)
+    const late = Math.random() * 0.003;
+    for (const [take, side, offset] of [[0, -1, 0], [1, 1, 0.016]]) {
       const s = x.createBufferSource();
       s.buffer = pluck(x, midi, muted, take);
-      const lv = x.createGain();
-      lv.gain.value = 0.9 + Math.random() * 0.2;
       const p = x.createStereoPanner();
-      p.pan.value = side * 0.9;
-      s.connect(lv).connect(p).connect(g);
-      s.start(t);
+      p.pan.value = side * 0.6;
+      s.connect(p).connect(g);
+      s.start(when + late + offset);
       out.push(s);
     }
     g.gain.setValueAtTime(peak, when);
@@ -638,9 +638,9 @@ function leslie(x, to) {
  * and variant (cached per audio context; three variants played in turn, so repeated strikes differ as a hand's
  * do): its loop is the string's period (whole samples, the loop filter's delay and an all-pass for the fraction),
  * losing its highs and its level at every pass as a string does (open: rings 2–4 s, lower strings longer;
- * palm-muted: damped in 0.15 s, darker); it is set going by a burst of noise shaped by the pick (brighter open)
- * and by where it strikes (a comb, a seventh of the string from the bridge), and heard through a bridge pickup
- * (another comb, a tenth from the bridge).
+ * palm-muted: half-damped, about 0.7 s, darker); it is set going by a burst of noise shaped by the pick (brighter
+ * open) and, half-way, by where it strikes (a comb, a seventh of the string from the bridge). (User,
+ * 2026-10-27: "short, metallic, little bass": a pickup's comb and a full pick comb took the lows away.)
  */
 const plucks = new WeakMap();
 const turns = new Map();
@@ -660,16 +660,18 @@ function pluck(x, midi, muted, take) {
   const N = Math.max(2, Math.floor(P - k / 2 - 0.1));
   const frac = P - N - k / 2;
   const a = (1 - frac) / (1 + frac);
-  const t60 = muted ? 0.15 : 3.2 * Math.sqrt(82 / f);
+  // (user, 2026-10-27: "too short, it needs to sustain longer": a chug half-muted, an open note long)
+  const t60 = muted ? 0.7 : 6 * Math.sqrt(82 / f);
   const rho = 10 ** ((-3 * P) / (sr * t60));
-  const n = Math.round((muted ? 0.5 : Math.min(4, t60 + 0.5)) * sr);
+  const n = Math.round((muted ? 0.9 : Math.min(4, t60)) * sr);
   // the pick: noise, brighter when open, and the comb of where it strikes
   const d = new Float32Array(N);
   let lp = 0;
-  const bright = muted ? 0.35 : 0.6;
+  const bright = muted ? 0.25 : 0.4;
   for (let i = 0; i < N; i++) { lp += bright * (Math.random() * 2 - 1 - lp); d[i] = lp; }
+  // (the pick's place shapes the overtones, half-way: a full comb took the string's low end away)
   const at = Math.max(1, Math.round(N / 7));
-  for (let i = N - 1; i >= at; i--) d[i] -= d[i - at];
+  for (let i = N - 1; i >= at; i--) d[i] -= 0.5 * d[i - at];
   let mean = 0;
   for (const y of d) mean += y / N;
   for (let i = 0; i < N; i++) d[i] -= mean;
@@ -686,9 +688,6 @@ function pluck(x, midi, muted, take) {
     d[p] = rho * ap;
     p = p + 1 === N ? 0 : p + 1;
   }
-  // the bridge pickup: what it hears is the string's motion less its copy a tenth of a period on
-  const pu = Math.max(1, Math.round(P / 10));
-  for (let i = n - 1; i >= pu; i--) out[i] -= 0.8 * out[i - pu];
   const fade = Math.round(sr * 0.03);
   for (let i = 0; i < fade; i++) out[n - fade + i] *= 1 - i / fade;
   const b = x.createBuffer(1, n, sr);
@@ -698,10 +697,12 @@ function pluck(x, midi, muted, take) {
 }
 
 /**
- * The guitar's amp, on any context, into `to`: tightened lows and a pushed middle (an overdrive in front), two
- * gain stages (a soft one, then an uneven one, as a tube's; each side on its own, so the double-tracked takes
- * stay apart) with a treble cut between them, then a 4×12 cabinet: its low resonance, scooped low middle, cone
- * peaks and steep top; and a little room around it. Returns its input.
+ * The guitar's amp, on any context, into `to`, a modern high-gain metal rhythm tone (user, 2026-10-27, an
+ * example: Ola Englund's Chug Lite demo): an overdrive in front that tightens the lows and pushes the middle,
+ * two gain stages driven hard (soft, then uneven as a tube's; each side on its own, so the double-tracked takes
+ * stay apart), so a note stays saturated as it fades and sustains, with a treble cut between them; then a 4×12
+ * cabinet: the low thump of a palm mute ("more bass"), a scooped low middle, presence and a steep top (no
+ * narrow peaks: they rang metallic); a little room around it. Returns its input.
  */
 let stage1 = null, stage2 = null;
 function amp(x, to) {
@@ -715,17 +716,16 @@ function amp(x, to) {
     for (let i = 0; i < n; i++) c[i] = (Math.tanh(k * ((i / (n - 1)) * 2 - 1) + bias) - Math.tanh(bias)) / Math.tanh(k);
     return c;
   };
-  stage1 ??= curve(4, 0);
-  stage2 ??= curve(3, 0.25);
+  stage1 ??= curve(3, 0);
+  stage2 ??= curve(2.5, 0.2);
   const shaper = (c) => { const w = x.createWaveShaper(); w.curve = c; w.oversample = '4x'; return w; };
   const gain = (v) => { const g = x.createGain(); g.gain.value = v; return g; };
   const input = gain(1);
   const out = gain(AMP_OUT);
-  input.connect(f('highpass', 130, 0.7)).connect(f('peaking', 750, 0.8, 7)).connect(gain(4)).connect(shaper(stage1))
-    .connect(f('lowpass', 7000, 0.6)).connect(f('highpass', 90, 0.6)).connect(gain(3)).connect(shaper(stage2))
-    .connect(f('peaking', 110, 1.2, 3)).connect(f('peaking', 450, 1, -6)).connect(f('peaking', 1300, 2, 2))
-    .connect(f('peaking', 2600, 1.4, 4)).connect(f('peaking', 3700, 3, 2)).connect(f('lowpass', 5200, 0.8))
-    .connect(f('lowpass', 6200, 0.6)).connect(out).connect(to);
+  input.connect(f('highpass', 90, 0.7)).connect(f('peaking', 800, 0.7, 6)).connect(gain(20)).connect(shaper(stage1))
+    .connect(f('lowpass', 6000, 0.6)).connect(f('highpass', 40, 0.6)).connect(gain(3)).connect(shaper(stage2))
+    .connect(f('peaking', 90, 0.9, 6)).connect(f('peaking', 500, 0.9, -5)).connect(f('peaking', 2500, 1, 3))
+    .connect(f('lowpass', 5000, 0.9)).connect(f('lowpass', 6000, 0.6)).connect(out).connect(to);
   // the room: a short stereo tail of darkened noise
   const room = x.createConvolver();
   const len = Math.round(x.sampleRate * 0.35), ir = x.createBuffer(2, len, x.sampleRate);
@@ -735,7 +735,7 @@ function amp(x, to) {
     for (let i = 0; i < len; i++) { lp += 0.25 * (Math.random() * 2 - 1 - lp); d[i] = lp * Math.exp(-i / (x.sampleRate * 0.07)); }
   }
   room.buffer = ir;
-  out.connect(room).connect(gain(0.35)).connect(to);
+  out.connect(room).connect(gain(0.2)).connect(to);
   return input;
 }
 // a key's click (the organ's contacts), made once per audio context
@@ -791,7 +791,8 @@ export function chugNote(midis, when = now(), rate = 4, accent = false) {
   const notes = kind.chord(midis);
   const g = ac.createGain();
   g.gain.value = 0;
-  const len = Math.min(0.3, 0.85 / Math.max(0.5, rate));
+  // (each chug rings on to the next: user, 2026-10-27, "it needs to sustain longer")
+  const len = Math.min(0.7, 0.97 / Math.max(0.5, rate));
   const peak = (0.16 / Math.sqrt(notes.length)) * kind.level * (accent ? 1.41 : 1);
   for (const m of notes) for (const o of kind.voice(ac, midiToFreq(m), when, g, peak, true)) o.stop(when + len + 0.15);
   g.gain.setValueAtTime(peak, when + len);
