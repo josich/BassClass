@@ -25,11 +25,10 @@ MONETIZATION-PLAN.md. Tick items off here as they are done; the user's decisions
 
 ## Still the user's
 
-- [ ] **Developer name** shown on Play (one account for Polyorbit and BassClass? "josich" or a studio name).
+- [x] **Developer name** (user, 2026-10-27): Josich, shown on Play and in About (`DEVELOPER` in `web/js/ui/about.js`).
 - [ ] **Account type**: personal or organisation; identity verification. USD 25 once (check).
 - [x] **Contact email** (user, 2026-10-27): polyorbit.app@gmail.com, the same as Polyorbit, in `web/js/feedback.js`
   (`CONTACT`): Settings → Feedback writes to it, About and the privacy policy show it. Use it on the Play listing too.
-  Still to fill: `DEVELOPER` in `web/js/ui/about.js`.
 - [ ] **EU trader details** (Digital Services Act): the address, phone and email Play shows on the listing.
 - [ ] **Payments profile** (to sell): bank and tax details.
 - [ ] **The products** in the Play Console: `bassclass_pro` (one-time), `bassclass_tip_2` and `bassclass_tip_4`

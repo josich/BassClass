@@ -2,7 +2,7 @@
 // all legal and mandatory documentation under the app logo"): the version, the credits of every recorded sound
 // with their licences (the CC BY one as its licence asks: who made it, the licence, what was changed), the licence
 // files themselves, where the content comes from, the privacy policy, the terms of the purchase. The legal texts are
-// drafts to review before the Play Store launch (LAUNCH-TODO.md); CONTACT and DEVELOPER fill in then.
+// drafts to review before the Play Store launch (LAUNCH-TODO.md). Made by Josich; the contact is Settings' Feedback one.
 import { h, icon } from './dom.js';
 import { VERSION, COMMIT } from '../version.js';
 import { canGoBack, goBack } from './nav.js';
@@ -11,8 +11,8 @@ import { FREE_LEVELS } from '../pro.js';
 import { FREE_LINE } from './proSheet.js';
 import { CONTACT } from '../feedback.js';
 
-/** The developer's name, once chosen (LAUNCH-TODO.md); the contact address is Settings' Feedback one (feedback.js). */
-const DEVELOPER = '';
+/** The developer's name (user, 2026-10-27), as on Google Play; the contact address is Settings' Feedback one (feedback.js). */
+const DEVELOPER = 'Josich';
 const UPDATED = '27 October 2026';
 
 const section = (title, open, ...kids) => h('details', { class: 'lv-fold about-fold', open },
@@ -76,7 +76,7 @@ export function aboutScreen(main) {
       licenceFile('licenses/APACHE-2.0.txt')),
 
     section('🔒 Privacy policy', false,
-      p(`Last updated: ${UPDATED}.`),
+      p(`Last updated: ${UPDATED}. BassClass is made by ${DEVELOPER}${CONTACT ? ` (${CONTACT})` : ''}.`),
       p('BassClass collects no personal data. It has no account, no ads, no analytics and no tracking, and it sends nothing about you anywhere.'),
       h('ul', { class: 'about-list' },
         li(h('b', {}, 'Your progress stays on your device. '), 'Settings, progress, the course, sessions, favourites and the practice log are stored on your phone (or in your browser), and BassClass never sends them anywhere. Android\'s own backup, when it is on in your phone\'s settings, may copy the app\'s data to your Google account and bring it back on a new phone; otherwise uninstalling the app (or clearing the browser\'s data) deletes them.'),

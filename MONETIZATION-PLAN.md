@@ -138,9 +138,8 @@ natively, the way the backup's `BassClassNative.saveFile` already talks to the p
 - [ ] A payments profile (to sell in-app products), bank details, tax information.
 - [ ] **EU trader status** (Digital Services Act): a developer who earns money from an app is a trader, and Play shows
   the trader's address, phone and email on the listing. Decide what to show (a business address or a PO box may do).
-- [ ] A contact email for players and the listing (Polyorbit uses polyorbit.app@gmail.com; e.g. bassclass.app@gmail.com,
-  or one studio address for both apps).
-- [ ] The developer name shown on Play (Polyorbit's open question too: "josich" or a studio name for both apps).
+- [x] A contact email for players and the listing: polyorbit.app@gmail.com, shared with Polyorbit (user, 2026-10-27).
+- [x] The developer name shown on Play: Josich (user, 2026-10-27).
 - [ ] The three products in the Console; promo codes and licence testers.
 - [ ] **Closed testing**: a new personal account must run a closed test with at least 12 testers for 14 days in a row
   before it can publish to production (check). Twelve friends with Android phones, opted in through a link.
