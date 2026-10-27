@@ -49,6 +49,8 @@ export class Room {
     if (restart) this.hRestart = true;
     if ('bpm' in patch) {
       this.bpm = patch.bpm;
+      // (the beats scheduled before a tempo set by the player carry the old tempo: `gen` tells them apart)
+      this.tempoGen = (this.tempoGen || 0) + 1;
       // the next beat counts from the last one at the new tempo: one left far ahead by a slow tempo
       // (the slider's left end, a moment ago) comes in at once
       if (this.playing && this.last != null) {
@@ -210,7 +212,7 @@ export class Room {
         }
       }
       const chord = count ? null : this._harmony(t0, muted, len, L);
-      this.onTick?.({ time: t0, bar: this.bar, beat: this.beat, muted, count, bpm: this.bpm, chord });
+      this.onTick?.({ time: t0, bar: this.bar, beat: this.beat, muted, count, bpm: this.bpm, gen: this.tempoGen || 0, chord });
       this.last = t0;
       this.next += len;
       if (++this.beat >= beats) {

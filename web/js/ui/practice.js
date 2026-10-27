@@ -236,7 +236,9 @@ export function practiceScreen(main, params = {}) {
       [...lights.children].forEach((el, i) => el.classList.toggle('lit', i === t.beat));
       lights.classList.toggle('muted', t.muted);
       lights.classList.toggle('count', !!t.count);
-      if (t.bpm !== Number(bpmEl.textContent)) showTempo(t.bpm);
+      // (the tempo shown follows the speed-up climb; a beat scheduled before the player's last change of
+      // tempo does not put the old number back: user, 2026-10-27, the numbers jumped while changing it)
+      if ((t.gen ?? 0) === (engine.tempoGen || 0) && t.bpm !== Number(bpmEl.textContent)) showTempo(t.bpm);
     }
     raf = engine.playing ? requestAnimationFrame(frame) : null;
   };
