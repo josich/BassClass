@@ -1,6 +1,12 @@
-Drum and percussion samples: Virtuosity Drums by Versilian Studios and Karoryfer Samples, and the
-brushes of Swirly Drums by Karoryfer Samples, all released under CC0 1.0 Universal (public domain):
-https://creativecommons.org/publicdomain/zero/1.0/
-Sources: https://github.com/sfzinstruments/virtuosity_drums (kick mic, snare mic and overheads; the
-percussion's close mic and overheads) and https://github.com/sfzinstruments/karoryfer.swirly-drums
-(brushes), summed, trimmed and encoded as Opus for BassClass by web/js/dev/drumprep.js.
+Drum kit (kick, snare, toms, hi-hats, ride and crash): MuldjordKit by Lars Muldjord
+(www.muldjord.com, DrumGizmo.org), in the stereo build assembled by the FreePats project
+(https://freepats.zenvoid.org/Percussion/acoustic-drum-kit.html), licensed under the Creative Commons
+Attribution 4.0 International License: https://creativecommons.org/licenses/by/4.0/
+Changes: a selection of its hits, trimmed, faded, levelled and encoded as Opus for BassClass by
+web/js/dev/drumprep.js; the half-open hi-hat is its open hi-hat cut short.
+
+Rim shot, cross-stick, flam, pedal hi-hat and percussion: Virtuosity Drums by Versilian Studios and
+Karoryfer Samples; brushes: Swirly Drums by Karoryfer Samples; both released under CC0 1.0 Universal
+(public domain): https://creativecommons.org/publicdomain/zero/1.0/
+Sources: https://github.com/sfzinstruments/virtuosity_drums and
+https://github.com/sfzinstruments/karoryfer.swirly-drums (summed, trimmed and encoded as Opus).

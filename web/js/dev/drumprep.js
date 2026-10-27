@@ -1,8 +1,11 @@
 // Dev tool (not used by the app at runtime): builds the drum kit in web/audio/drums/ (Ogg Opus files and
-// kit.json) from raw CC0 samples staged in web/_raw/drums2/ with kit2.json (piece → layers soft to hard →
-// round robins → the mic files of one hit, "repo:Samples/…", staged as "repo_Samples_…").
-//   - the kit: Virtuosity Drums (Versilian Studios + Karoryfer), its kick mic, snare mic and overheads
-//     summed into stereo;
+// kit.json) from raw samples staged in web/_raw/drums2/ with kit2.json (piece → layers soft to hard →
+// round robins → the mic files of one hit, "repo:Samples/…", staged as "repo_Samples_…"), and in
+// web/_raw/kits/muldjord/ (MULDJORD below).
+//   - the kit (user, 2026-10-27: "the kick feels like a goliath drum", MuldjordKit chosen by ear from clips):
+//     MuldjordKit by Lars Muldjord (DrumGizmo.org), its FreePats stereo build (CC BY 4.0): kick, snare,
+//     toms, hi-hats, ride, bell and crash; the pieces it has not (rim, cross-stick, flam, pedal hat) stay
+//     Virtuosity Drums' (Versilian Studios + Karoryfer, CC0), its kick mic, snare mic and overheads summed;
 //   - percussion: Virtuosity's close mic and overheads, stereo;
 //   - brushes ("b…" pieces): Karoryfer's Swirly Drums, one mic, mono.
 // Needs tools/serve.py (localhost write endpoint). Run:  (await import('./js/dev/drumprep.js')).run()
@@ -16,9 +19,38 @@ const MAX = {
   bongoh: 0.7, bongol: 0.7, tamb: 0.8, guiro: 0.5, guirol: 0.9, cabasa: 0.5, agogoh: 0.8, agogol: 0.8, tri: 1.6, trim: 0.4,
   timb: 0.9, bkick: 0.8, bsnare: 0.9, bhhc: 0.6, bhhp: 0.6, bride: 2.5,
 };
+// MuldjordKit's pieces: a folder of stereo FLAC hits each; the hits sorted by peak, `layers` of them taken
+// soft to hard at even steps, two round robins each (`max`: seconds kept, as MAX)
+const MUL = '/_raw/kits/muldjord/MuldjordKit SFZ+FLAC-20201018/samples/';
+const MULDJORD = {
+  kick: { folder: 'KdrumL', layers: 4 }, snare: { folder: 'Snare1', layers: 4 }, tomh: { folder: 'Tom1', layers: 2 },
+  toml: { folder: 'Tom4', layers: 2 }, hhc: { folder: 'HihatClosed', layers: 4 }, hho: { folder: 'HihatOpen', layers: 2 },
+  // (a half-open hat: the open hat choked early)
+  hhh: { folder: 'HihatOpen', layers: 1, max: 0.45 }, ride: { folder: 'RideL', layers: 3 }, bell: { folder: 'RideLBell', layers: 1 },
+  crash: { folder: 'CrashL', layers: 2 },
+};
+/** A MuldjordKit piece: its hits, trimmed, as layers soft to hard of two round robins. */
+async function muldjord(name, { folder, layers, max }) {
+  const html = await (await fetch(MUL + encodeURIComponent(folder) + '/')).text();
+  const files = [...html.matchAll(/href="([^"]+\.flac)"/g)].map((m) => decodeURIComponent(m[1]));
+  const hits = [];
+  for (const f of files) {
+    const b = await decode(MUL + encodeURIComponent(folder) + '/' + encodeURIComponent(f));
+    hits.push(trim([0, 1].map((c) => b.getChannelData(Math.min(c, b.numberOfChannels - 1)).slice()), max ?? MAX[name] ?? 1));
+  }
+  hits.sort((a, b) => peakOf(a) - peakOf(b));
+  const out = [];
+  for (let l = 0; l < layers; l++) {
+    // the layer's place among the hits, softest to hardest; it and the next one up as its round robins
+    const at = Math.round(((l + 1) / layers) * (hits.length - 1));
+    out.push([hits[Math.max(0, at - 1)], hits[at]]);
+  }
+  return out;
+}
+
 // the brush stir is a long sweep: a two-beat swish cut from it (start and length in seconds)
 const SEG = { bstir: [[0.6, 1.8], [3.2, 1.8]] };
-const GROUP = (p) => (p.startsWith('b') && p !== 'bell' && p !== 'bongoh' && p !== 'bongol' ? 'brush'
+const GROUP = (p) => (MULDJORD[p] ? 'muldjord' : p.startsWith('b') && p !== 'bell' && p !== 'bongoh' && p !== 'bongol' ? 'brush'
   : ['shakd', 'shaku', 'claves', 'cowbell', 'conga', 'congam', 'tumba', 'bongoh', 'bongol', 'tamb', 'guiro', 'guirol', 'cabasa', 'agogoh', 'agogol', 'tri', 'trim', 'timb'].includes(p) ? 'perc' : 'kit');
 
 const staged = (f) => DIR + f.replace(':', '_').replace(/\//g, '_');
@@ -165,6 +197,11 @@ export async function run() {
   const groupPeak = {};
   for (const [name, layers] of Object.entries(spec)) {
     done[name] = [];
+    if (MULDJORD[name]) {
+      done[name] = await muldjord(name, MULDJORD[name]);
+      for (const row of done[name]) for (const y of row) groupPeak[GROUP(name)] = Math.max(groupPeak[GROUP(name)] || 0, peakOf(y));
+      continue;
+    }
     for (const layer of layers) {
       const row = [];
       for (let r = 0; r < layer.length; r++) {
@@ -177,10 +214,10 @@ export async function run() {
     }
   }
   const manifest = {
-    name: 'Virtuosity Drums (Versilian Studios + Karoryfer: kick mic, snare mic and overheads, percussion close and overheads), and Swirly Drums brushes (Karoryfer)',
-    license: 'CC0-1.0',
-    source: ['https://github.com/sfzinstruments/virtuosity_drums', 'https://github.com/sfzinstruments/karoryfer.swirly-drums'],
-    v: 2,
+    name: 'MuldjordKit (Lars Muldjord, DrumGizmo.org; FreePats stereo build), Virtuosity Drums (Versilian Studios + Karoryfer) and Swirly Drums brushes (Karoryfer)',
+    license: 'CC-BY-4.0 (MuldjordKit) and CC0-1.0 (Virtuosity Drums, Swirly Drums)',
+    source: ['https://freepats.zenvoid.org/Percussion/acoustic-drum-kit.html', 'https://drumgizmo.org/wiki/doku.php?id=kits:muldjordkit', 'https://github.com/sfzinstruments/virtuosity_drums', 'https://github.com/sfzinstruments/karoryfer.swirly-drums'],
+    v: 3,
     pieces: {},
   };
   let bytes = 0, seconds = 0;
@@ -203,12 +240,18 @@ export async function run() {
   }
   await put('kit.json', JSON.stringify(manifest, null, 1), 'application/json');
   await put('LICENSE.txt', [
-    'Drum and percussion samples: Virtuosity Drums by Versilian Studios and Karoryfer Samples, and the',
-    'brushes of Swirly Drums by Karoryfer Samples, all released under CC0 1.0 Universal (public domain):',
-    'https://creativecommons.org/publicdomain/zero/1.0/',
-    'Sources: https://github.com/sfzinstruments/virtuosity_drums (kick mic, snare mic and overheads; the',
-    'percussion\'s close mic and overheads) and https://github.com/sfzinstruments/karoryfer.swirly-drums',
-    '(brushes), summed, trimmed and encoded as Opus for BassClass by web/js/dev/drumprep.js.',
+    'Drum kit (kick, snare, toms, hi-hats, ride and crash): MuldjordKit by Lars Muldjord',
+    '(www.muldjord.com, DrumGizmo.org), in the stereo build assembled by the FreePats project',
+    '(https://freepats.zenvoid.org/Percussion/acoustic-drum-kit.html), licensed under the Creative Commons',
+    'Attribution 4.0 International License: https://creativecommons.org/licenses/by/4.0/',
+    'Changes: a selection of its hits, trimmed, faded, levelled and encoded as Opus for BassClass by',
+    'web/js/dev/drumprep.js; the half-open hi-hat is its open hi-hat cut short.',
+    '',
+    'Rim shot, cross-stick, flam, pedal hi-hat and percussion: Virtuosity Drums by Versilian Studios and',
+    'Karoryfer Samples; brushes: Swirly Drums by Karoryfer Samples; both released under CC0 1.0 Universal',
+    '(public domain): https://creativecommons.org/publicdomain/zero/1.0/',
+    'Sources: https://github.com/sfzinstruments/virtuosity_drums and',
+    'https://github.com/sfzinstruments/karoryfer.swirly-drums (summed, trimmed and encoded as Opus).',
     '',
   ].join('\n'), 'text/plain');
   return { files: Object.values(manifest.pieces).flat(2).length, kb: Math.round(bytes / 1024), seconds: +seconds.toFixed(1) };

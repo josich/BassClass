@@ -351,5 +351,8 @@ export function settingsScreen(main) {
           toast('Settings restored');
         } }, 'Restore defaults')))),
     // the release number (written by the build) and the commit it was built from
-    h('p', { class: 'muted small version' }, infoBtn(['📴 Works offline once loaded', '🎸 Recorded CC0 bass samples (Karoryfer "darkblack"), a synth as backup', ...(location.hostname === 'appassets.androidplatform.net' ? [] : ['📲 Browser menu → Add to Home screen: full screen, landscape'])], 'About BassClass'), ' ', VERSION ? `BassClass ${VERSION}${COMMIT ? ` · build ${COMMIT}` : ''}` : `BassClass · development version${COMMIT ? ` · build ${COMMIT}` : ''}`));
+    h('p', { class: 'muted small version' }, infoBtn(['📴 Works offline once loaded', '🎸 Recorded CC0 bass samples (Karoryfer "darkblack"), a synth as backup', ...(location.hostname === 'appassets.androidplatform.net' ? [] : ['📲 Browser menu → Add to Home screen: full screen, landscape'])], 'About BassClass'), ' ', VERSION ? `BassClass ${VERSION}${COMMIT ? ` · build ${COMMIT}` : ''}` : `BassClass · development version${COMMIT ? ` · build ${COMMIT}` : ''}`),
+    // the drum kit's credit, as its licence asks (CC BY 4.0: who made it, the licence, and that it was changed);
+    // the licence's address as text, not a link (the Android app's WebView would leave the app for it)
+    h('p', { class: 'muted small credits' }, 'Drums: MuldjordKit by Lars Muldjord (DrumGizmo.org; FreePats stereo build), CC BY 4.0 (creativecommons.org/licenses/by/4.0), trimmed, levelled and encoded for BassClass. Percussion and brushes: Virtuosity Drums (Versilian Studios, Karoryfer) and Swirly Drums (Karoryfer), CC0. Bass: Karoryfer "darkblack", CC0.'));
 }

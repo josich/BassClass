@@ -5,7 +5,7 @@ import { midiToFreq } from './theory.js';
 let ac = null;
 let bassBus, bassVolume, clickBus, fullPath, phonePath, padBus, padTone, drumBus, drumVolume, accompIn;
 const PAD_LEVEL = 0.38;   // the pad's level at volume 1 (the Practice room's harmony can set its own)
-const ACCOMP_THRESHOLD = -4.5;   // dB: the accompaniment's limiter (see audioCtx)
+const ACCOMP_THRESHOLD = -3.0;   // dB: the accompaniment's limiter (see audioCtx)
 /** A DynamicsCompressor's own make-up gain (hard knee), as Chrome applies it (Web Audio spec): linear. */
 const makeupGain = (threshold, ratio) => 10 ** ((0.6 * -threshold * (1 - 1 / ratio)) / 20);
 const synthCache = new Map();
@@ -22,6 +22,8 @@ const CLICK_TOP = 10 ** (CLICK_PEAK / 20) / (0.9 * 1.5);
 // the output's last limiter, for the click and the accompaniment together, under the soft clip's knee (an
 // instant attack: its overshoot on a click landing with a drum hit still stays under the knee)
 const TOP_THRESHOLD = -2.6;
+// the drums' drive into their own limiter and the level after it (tuned by measurement, see drumChain)
+const DRUM_DRIVE = 4, DRUM_TRIM = 1.0;
 // Chrome's DynamicsCompressor delays what passes it by about 6 ms (its look-ahead): the drums pass four
 // (their glue and limiter, the accompaniment's, the last one), the pad two, the bass two, the click one. These
 // delays bring everything to the drums' 24 ms, so the click, the chords and the bass land with the hits.
@@ -202,9 +204,9 @@ export function drumChain(ctx) {
   };
   const input = ctx.createGain();
   const makeup = ctx.createGain();
-  makeup.gain.value = 1.4;
+  makeup.gain.value = DRUM_DRIVE;
   const trim = ctx.createGain();
-  trim.gain.value = 0.84;
+  trim.gain.value = DRUM_TRIM;
   input.connect(comp(-20, 10, 2.5, 0.008, 0.2)).connect(makeup).connect(comp(-10, 0, 20, 0, 0.05)).connect(trim);
   return { input, output: trim };
 }

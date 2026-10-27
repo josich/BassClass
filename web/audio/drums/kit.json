@@ -1,11 +1,13 @@
 {
- "name": "Virtuosity Drums (Versilian Studios + Karoryfer: kick mic, snare mic and overheads, percussion close and overheads), and Swirly Drums brushes (Karoryfer)",
- "license": "CC0-1.0",
+ "name": "MuldjordKit (Lars Muldjord, DrumGizmo.org; FreePats stereo build), Virtuosity Drums (Versilian Studios + Karoryfer) and Swirly Drums brushes (Karoryfer)",
+ "license": "CC-BY-4.0 (MuldjordKit) and CC0-1.0 (Virtuosity Drums, Swirly Drums)",
  "source": [
+  "https://freepats.zenvoid.org/Percussion/acoustic-drum-kit.html",
+  "https://drumgizmo.org/wiki/doku.php?id=kits:muldjordkit",
   "https://github.com/sfzinstruments/virtuosity_drums",
   "https://github.com/sfzinstruments/karoryfer.swirly-drums"
  ],
- "v": 2,
+ "v": 3,
  "pieces": {
   "kick": [
    [
@@ -99,10 +101,12 @@
   ],
   "hho": [
    [
-    "hho-1-1.ogg"
+    "hho-1-1.ogg",
+    "hho-1-2.ogg"
    ],
    [
-    "hho-2-1.ogg"
+    "hho-2-1.ogg",
+    "hho-2-2.ogg"
    ]
   ],
   "hhp": [
@@ -133,26 +137,32 @@
   ],
   "crash": [
    [
-    "crash-1-1.ogg"
+    "crash-1-1.ogg",
+    "crash-1-2.ogg"
    ],
    [
-    "crash-2-1.ogg"
+    "crash-2-1.ogg",
+    "crash-2-2.ogg"
    ]
   ],
   "tomh": [
    [
-    "tomh-1-1.ogg"
+    "tomh-1-1.ogg",
+    "tomh-1-2.ogg"
    ],
    [
-    "tomh-2-1.ogg"
+    "tomh-2-1.ogg",
+    "tomh-2-2.ogg"
    ]
   ],
   "toml": [
    [
-    "toml-1-1.ogg"
+    "toml-1-1.ogg",
+    "toml-1-2.ogg"
    ],
    [
-    "toml-2-1.ogg"
+    "toml-2-1.ogg",
+    "toml-2-2.ogg"
    ]
   ],
   "shakd": [
