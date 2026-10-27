@@ -61,6 +61,8 @@ export function devPanel(rerender) {
       h('button', { class: 'btn small', type: 'button', onClick: () => openPro('Level 4 is part of BassClass Pro (test)') }, 'Open the Pro sheet'),
       h('button', { class: 'btn small', type: 'button', onClick: async () => { await syncPro({ force: true }); rerender(); } }, 'Check with Play now'),
       h('button', { class: 'btn small', type: 'button', onClick: () => { setDev({ sim: dev().sim.filter((x) => x !== PRO_ID) }); toast('Play no longer reports Pro (a refund): check twice, a day apart'); rerender(); } }, 'Refund'),
+      // (a new phone, or the app reinstalled: this phone has forgotten Pro, Google Play still has it; Restore brings it back)
+      h('button', { class: 'btn small', type: 'button', onClick: () => { setOwned(false); setDev({ sim: [...new Set([...dev().sim, PRO_ID])] }); toast('A new phone: Pro forgotten here, Google Play still has it. Try Restore purchase'); rerender(); } }, 'New phone'),
       h('button', { class: 'btn small', type: 'button', onClick: () => { pretendDayPassed(); rerender(); } }, 'A day passes'),
       h('button', { class: 'btn small', type: 'button', onClick: () => { setOwned(false); setDev({ sim: [], next: 'ok' }); rerender(); } }, 'Reset'))),
     line('State', h('code', { class: 'dev-state' }, `gates ${gatesOn() ? 'on' : 'off'} · everything open: ${isPro() ? 'yes' : 'no'} · owned: ${owned() ? 'yes' : 'no'} · record ${JSON.stringify(r)} · Play reports: ${JSON.stringify(d.sim)}`)),
