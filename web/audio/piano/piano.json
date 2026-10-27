@@ -1,0 +1,23 @@
+{
+ "name": "Grand Piano, Kawai: Versilian Community Sample Library (VCSL), Versilian Studios",
+ "license": "CC0-1.0",
+ "source": "https://github.com/sgossner/VCSL (Chordophones/Zithers/Grand Piano, Kawai/Sustains, v3)",
+ "v": 1,
+ "notes": {
+  "50": "50.ogg",
+  "52": "52.ogg",
+  "54": "54.ogg",
+  "56": "56.ogg",
+  "58": "58.ogg",
+  "60": "60.ogg",
+  "62": "62.ogg",
+  "64": "64.ogg",
+  "66": "66.ogg",
+  "68": "68.ogg",
+  "70": "70.ogg",
+  "72": "72.ogg",
+  "75": "75.ogg",
+  "78": "78.ogg",
+  "81": "81.ogg"
+ }
+}

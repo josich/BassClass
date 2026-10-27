@@ -9,6 +9,7 @@ import { STYLES, GENRES, levelsOf, regroup } from '../practice/styles.js';
 import { accentsFor, groupsOf } from '../practice/accents.js';
 import { settings, saveSettings } from '../store.js';
 import { loadKit, kitReady } from '../drums.js';
+import { loadPiano, pianoReady } from '../piano.js';
 import { neckPanel } from './neck.js';
 import { openPicker } from './picker.js';
 import { HARMONY_PROGS, progName, progression, keyName, isMinor, MINE, DEGREES, QUALITIES, LENGTHS, usualQuality, roman, mineFrom, scaleFor, MINE_START, mineBars } from '../practice/harmony.js';
@@ -70,7 +71,7 @@ const HARMONY_INFO = [
   '🎼 Pick a key and a progression: pop and rock, blues, jazz, minor, vamps',
   '✎ My progression: your own chords by degree (the Key moves them); ✎ Edit copies a progression into it',
   '🎼 My progression is in a major or a minor key: Minor turns the usual chords into the minor key\'s (I → i, vi → ♭VI)',
-  '🎛 Sound: a pad, an electric piano, an organ or an arpeggio (it moves with the Subdivision); another one plays from the next beat',
+  '🎛 Sound: a pad, an electric piano, a grand piano (recorded: about 1 MB the first time), an organ, a distorted rock guitar (power chords) or an arpeggio (it moves with the Subdivision); another one plays from the next beat',
   '🎸 The chords sit above the Neck in order, each lit while it sounds; Chord or Scale shows it on the neck, with the next change (over a drone, your scale on its key)',
   '🔇 Muted bars silence the harmony too, while the chords go on',
   '⏱ It follows the metronome and the drums: start it with the floating button',
@@ -435,6 +436,18 @@ export function practiceScreen(main, params = {}) {
       });
   };
   const redraw = () => { drawDrums(); drawOpts(); drawLights(); drawUnit(); drawHarmony(); };
+  // the piano loads the first time it is picked (about 1 MB); until then the e-piano plays in its place
+  const pianoState = h('span', { class: 'drum-state muted small' });
+  const ensurePiano = () => {
+    if (room.hSound !== 'piano' || pianoReady()) { pianoState.textContent = ''; return; }
+    pianoState.textContent = 'Loading the piano…';
+    loadPiano((n, total) => { pianoState.textContent = `Loading the piano… ${Math.round((n / total) * 100)}%`; })
+      .then(() => { pianoState.textContent = ''; })
+      .catch(() => {
+        pianoState.textContent = '';
+        toast('The piano needs an internet connection the first time: the e-piano plays meanwhile', 3500);
+      });
+  };
   // ---- the shared picker for the drum patterns and the progressions
   let closePicker = null;
   /** A library's current choice on one line, and Change. */
@@ -712,12 +725,12 @@ export function practiceScreen(main, params = {}) {
         mode === 'chords' ? progNow : null,
         mode === 'chords' && room.hProg !== MINE ? h('button', { class: 'btn small', title: 'Copy it into My progression to change it', onClick: editPreset }, '✎ Edit') : null),
       ...(mode === 'chords' && room.hProg === MINE ? mineEditor() : []),
-      // its sound: synthesised, so nothing to download
+      // its sound: synthesised, but the piano (recorded, loaded the first time it is picked)
       mode === 'off' ? null : h('div', { class: 'room-field' }, h('label', {}, 'Sound'),
-        h('div', { class: 'seg' }, [['pad', 'Pad'], ['epiano', 'E-piano'], ['organ', 'Organ'], ['arp', 'Arpeggio']].map(([v, l]) => h('button', {
+        h('div', { class: 'seg' }, [['pad', 'Pad'], ['epiano', 'E-piano'], ['piano', 'Piano'], ['organ', 'Organ'], ['guitar', 'Guitar'], ['arp', 'Arpeggio']].map(([v, l]) => h('button', {
           class: room.hSound === v ? 'on' : '', type: 'button',
-          onClick: () => { if (room.hSound !== v) setHarmony({ hSound: v }); },
-        }, l)))),
+          onClick: () => { if (room.hSound !== v) { setHarmony({ hSound: v }); ensurePiano(); } },
+        }, l))), pianoState),
       mode === 'off' ? null : h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal),
     ].filter(Boolean));
     showChord();
@@ -726,6 +739,7 @@ export function practiceScreen(main, params = {}) {
   // ---------------------------------------------------------------- neck (the former Neck explorer)
   const neck = neckPanel({ onOwn: () => { if (room.harmony === 'drone') drawHarmony(); } });
   drawHarmony();
+  if (room.harmony !== 'off') ensurePiano();
 
   // −5 and +5 beside the tempo, − and + (one at a time) at the slider's ends (user, 2026-10-26)
   const slower = holdButton('−', 'Slower', () => setTempo(room.bpm - 1), 'small');

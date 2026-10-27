@@ -47,6 +47,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             out = os.path.join(ROOT, *self.path[len('/__write/'):].split('/'))
         elif re.fullmatch(r'/__write/audio/drums/(?:[a-z0-9]+(?:-[a-z0-9]+)*\.ogg|kit\.json|LICENSE\.txt)', self.path):
             out = os.path.join(ROOT, *self.path[len('/__write/'):].split('/'))
+        elif re.fullmatch(r'/__write/audio/piano/(?:\d{2,3}\.ogg|piano\.json|LICENSE\.txt)', self.path):
+            out = os.path.join(ROOT, *self.path[len('/__write/'):].split('/'))
         elif re.fullmatch(r'/__write/_raw/audition/[a-z0-9]+(?:-[a-z0-9]+)*\.wav', self.path):
             # listening clips of candidate drum kits (web/js/dev/drumaudition.js; web/_raw is not committed)
             out = os.path.join(ROOT, *self.path[len('/__write/'):].split('/'))

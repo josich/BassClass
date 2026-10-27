@@ -159,7 +159,7 @@ function page(packets, { granule, seq, flags = 0, serial }) {
 }
 
 /** Mono or stereo samples at 48 kHz → an Ogg Opus file (the encoder's own OpusHead gives the pre-skip). */
-async function encodeOpus(chs) {
+export async function encodeOpus(chs, bitrate) {
   const packets = [];
   let head = null;
   const ch = chs.length, n = chs[0].length;
@@ -172,7 +172,7 @@ async function encodeOpus(chs) {
     },
     error: (e) => { throw e; },
   });
-  enc.configure({ codec: 'opus', sampleRate: SR, numberOfChannels: ch, bitrate: ch > 1 ? 128000 : 96000 });
+  enc.configure({ codec: 'opus', sampleRate: SR, numberOfChannels: ch, bitrate: bitrate ?? (ch > 1 ? 128000 : 96000) });
   const data = new Float32Array(n * ch);
   chs.forEach((c, i) => data.set(c, i * n));
   enc.encode(new AudioData({ format: 'f32-planar', sampleRate: SR, numberOfFrames: n, numberOfChannels: ch, timestamp: 0, data }));

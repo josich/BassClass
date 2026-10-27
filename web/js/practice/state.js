@@ -59,7 +59,7 @@ const RULES = {
   drumFavs: keysOf(isStyle, 99), drumRecent: keysOf(isStyle, 6), progFavs: keysOf(isProg, 40), progRecent: keysOf(isProg, 6),
   myProg: (v) => Array.isArray(v) && v.length >= 1 && v.length <= 16 && v.every(isChord),
   myMinor: (v) => typeof v === 'boolean',
-  hSound: (v) => ['pad', 'epiano', 'organ', 'arp'].includes(v),   // the harmony's sound (audio.js PAD_SOUNDS)
+  hSound: (v) => ['pad', 'epiano', 'piano', 'organ', 'guitar', 'arp'].includes(v),   // the harmony's sound (audio.js PAD_SOUNDS)
   neckShow: (v) => ['chord', 'scale', 'off'].includes(v),   // the Neck shows the chord sounding, its scale, or the player's own choice
   // where the floating Start/Stop was dragged: its centre as a share of the screen's width and height
   fab: (v) => v === null || (Array.isArray(v) && v.length === 2 && v.every((n) => typeof n === 'number' && n >= 0 && n <= 1)),

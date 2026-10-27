@@ -3,7 +3,7 @@
 import { midiToFreq } from './theory.js';
 
 let ac = null;
-let bassBus, bassVolume, clickBus, fullPath, phonePath, padBus, padTone, drumBus, drumVolume, accompIn;
+let bassBus, bassVolume, clickBus, fullPath, phonePath, padBus, padTone, padRaw, leslieIn, ampIn, drumBus, drumVolume, accompIn;
 const PAD_LEVEL = 0.38;   // the pad's level at volume 1 (the Practice room's harmony can set its own)
 const ACCOMP_THRESHOLD = -3.0;   // dB: the accompaniment's limiter (see audioCtx)
 /** A DynamicsCompressor's own make-up gain (hard knee), as Chrome applies it (Web Audio spec): linear. */
@@ -30,6 +30,8 @@ const DRUM_DRIVE = 4, DRUM_TRIM = 1.2;
 // delays bring everything to the drums' 24 ms, so the click, the chords and the bass land with the hits.
 const ALIGN = { click: 0.018, pad: 0.012, bass: 0.012 };
 const PHONE_BOOST = 15; // dB lifted around 850 Hz on the phone speaker
+// the guitar amp's output level (its distortion is set by its own drive; this evens it with the other sounds)
+const AMP_OUT = 0.146;
 // The bass's limiter (user, 2026-10-27: "the bass sounds distorted on the phone speakers, less in headphones";
 // measured offline at 100%): its own make-up gain (+2.3 dB, Web Audio spec) is taken back, so it no longer
 // drives every peak into the soft clip (2.7% of a low phrase's samples were in the clip, 0.03% now), and it
@@ -178,6 +180,14 @@ export function audioCtx() {
     const padAlign = ac.createDelay(0.05);
     padAlign.delayTime.value = ALIGN.pad;
     padBus.connect(padTone).connect(padAlign).connect(accomp);
+    // (a recorded sound, the piano, keeps its own brightness: past the tone filter)
+    padRaw = ac.createGain();
+    padRaw.gain.value = PAD_LEVEL * opts.padVol;
+    padRaw.connect(padAlign);
+    // (the organ plays through its rotating speaker, into the same)
+    leslieIn = leslie(ac, padRaw);
+    // (the guitar through its amp, into the same)
+    ampIn = amp(ac, padRaw);
 
     // drums (the Practice room): their own chain, after the bass's limiter (a kick never ducks the bass);
     // the drum volume comes after it, so the chain shapes the drums alike at any volume
@@ -199,6 +209,7 @@ export function setAudioOptions(o) {
   if (clickBus) clickBus.gain.value = opts.clickVol * CLICK_TOP;
   if (drumVolume) drumVolume.gain.value = opts.drumVol;
   if (padBus) padBus.gain.value = PAD_LEVEL * opts.padVol;
+  if (padRaw) padRaw.gain.value = PAD_LEVEL * opts.padVol;
   if (padTone) padTone.frequency.value = opts.padTone;
 }
 
@@ -512,22 +523,75 @@ export const PAD_SOUNDS = {
     g.gain.setTargetAtTime(peak * 0.2, when + 0.6, 1.6);
     return [carrier, mod, tine];
   } },
-  // a drawbar organ (8′ 4′ 2⅔′ 2′), held, with a slow chorus
-  organ: { level: 1.5, struck: false, release: 0.06, voice(x, f, when, g, peak) {
-    g.gain.setTargetAtTime(peak, when, 0.012);
+  // a grand piano (user, 2026-10-27): the recorded Kawai of web/js/piano.js, each note from the nearest of its
+  // notes (two or three semitones apart), struck again on each bar, past the tone filter (`raw`); until it has
+  // loaded, the e-piano plays in its place
+  piano: { level: 8.2, struck: true, raw: true, release: 0.18, voice(x, f, when, g, peak) {
+    if (!pianoBank) return PAD_SOUNDS.epiano.voice(x, f, when, g, (peak * PAD_SOUNDS.epiano.level) / PAD_SOUNDS.piano.level);
+    const midi = 69 + 12 * Math.log2(f / 440);
+    let near = null;
+    for (const k of pianoBank.keys()) if (near == null || Math.abs(k - midi) < Math.abs(near - midi)) near = k;
+    const s = x.createBufferSource();
+    s.buffer = pianoBank.get(near);
+    s.playbackRate.value = 2 ** ((midi - near) / 12);
+    s.connect(g);
+    g.gain.setValueAtTime(peak, when);
+    s.start(when);
+    return [s];
+  } },
+  // a tonewheel organ (user, 2026-10-27: "the pad and the organ sound too similar… more stereo"): drawbars
+  // 16′ 5⅓′ 8′ 4′ 2⅔′ 2′ in a gospel and rock registration, speaking at once, each wheel a little off the
+  // tempered pitch; the percussion (its 2⅔′ struck and fading) and a key click on each new chord; held, through
+  // the rotating speaker (`leslie`), whose turning horn and drum swirl it across the stereo field
+  organ: { level: 3.3, struck: false, leslie: true, release: 0.06, voice(x, f, when, g, peak) {
+    g.gain.setValueAtTime(0, when);
+    g.gain.linearRampToValueAtTime(peak, when + 0.004);
     const out = [];
-    for (const [ratio, amount] of [[1, 1], [2, 0.6], [3, 0.42], [4, 0.3]]) {
+    for (const [ratio, amount] of [[0.5, 0.75], [1.5, 0.7], [1, 1], [2, 0.45], [3, 0.25], [4, 0.2]]) {
       const part = x.createGain();
-      part.gain.value = amount / 2.3;
-      out.push(osc(x, 'sine', f * ratio, 0, when, part));
+      part.gain.value = amount / 3.35;
+      out.push(osc(x, 'sine', f * ratio, (Math.random() - 0.5) * 3, when, part));
       part.connect(g);
     }
-    const lfo = osc(x, 'sine', 5.6, 0, when, null);
-    const wobble = x.createGain();
-    wobble.gain.value = 4;
-    lfo.connect(wobble);
-    for (const o of out) wobble.connect(o.detune);
-    return [...out, lfo];
+    const perc = osc(x, 'sine', f * 3, 0, when, null);
+    const pg = x.createGain();
+    pg.gain.setValueAtTime(0.28, when);
+    pg.gain.setTargetAtTime(0, when, 0.18);
+    perc.connect(pg).connect(g);
+    const click = x.createBufferSource();
+    click.buffer = clickNoise(x);
+    const band = x.createBiquadFilter();
+    band.type = 'bandpass'; band.frequency.value = 3000; band.Q.value = 0.8;
+    const cg = x.createGain();
+    cg.gain.value = 0.06;
+    click.connect(band).connect(cg).connect(g);
+    click.start(when);
+    return [...out, perc, click];
+  } },
+  // a distorted rock and metal rhythm guitar (user, 2026-10-27): power chords (`chord`: root, 5th and octave, an
+  // octave under the chord, as a guitar plays them; full chords turn to mud under distortion), each note a saw,
+  // bright at the pick and mellowing, double-tracked (two takes a few cents and ms apart, left and right), struck
+  // on each bar, through the amp (`amp`: its drive, a clipping curve, a 4×12 cabinet's tone)
+  guitar: { level: 1, struck: true, amp: true, release: 0.09, chord: (m) => [m[0] - 12, m[0] - 5, m[0]], voice(x, f, when, g, peak) {
+    const out = [];
+    for (const [side, cents, late] of [[-1, -4, 0], [1, 5, 0.011]]) {
+      const t = when + late;
+      const s = osc(x, 'sawtooth', f, cents + (Math.random() - 0.5) * 2, t, null);
+      const pick = x.createBiquadFilter();
+      pick.type = 'lowpass'; pick.Q.value = 0.7;
+      pick.frequency.setValueAtTime(Math.min(9000, f * 24), t);
+      pick.frequency.setTargetAtTime(Math.min(4000, f * 8), t, 0.08);
+      const env = x.createGain();
+      env.gain.setValueAtTime(0, t);
+      env.gain.linearRampToValueAtTime(1, t + 0.003);
+      env.gain.setTargetAtTime(0.5, t + 0.003, 0.6);
+      const p = x.createStereoPanner();
+      p.pan.value = side * 0.85;
+      s.connect(pick).connect(env).connect(p).connect(g);
+      out.push(s);
+    }
+    g.gain.setValueAtTime(peak, when);
+    return out;
   } },
   // an arpeggio (user, 2026-10-23: the strings sounded like the pad): the chord's notes one after another in
   // the room's subdivision, up and down, plucked like a harp; the engine plays it note by note (`arpNote`)
@@ -541,6 +605,80 @@ export const PAD_SOUNDS = {
     return [osc(x, 'triangle', f, 0, when, g), osc(x, 'sine', f * 2, 3, when, body)];
   } },
 };
+/**
+ * The organ's rotating speaker (a Leslie), on any context, into `to`: the treble (a horn) and the bass (a drum)
+ * turn at their own speeds, each moving its sound left and right, louder and softer, its pitch bending a little
+ * with the motion (Doppler). Returns its input.
+ */
+function leslie(x, to) {
+  const input = x.createGain();
+  const rotor = (type, freq, rate, am, pan, bend) => {
+    const split = x.createBiquadFilter();
+    split.type = type; split.frequency.value = freq; split.Q.value = 0.6;
+    const d = x.createDelay(0.02);
+    d.delayTime.value = 0.004;
+    const level = x.createGain();
+    level.gain.value = 1 - am;
+    const p = x.createStereoPanner();
+    // (two turning phases a quarter turn apart: the level with one, the place and the pitch with the other)
+    const t0 = x.currentTime;
+    const a = x.createOscillator(); a.frequency.value = rate; a.start(t0);
+    const b = x.createOscillator(); b.frequency.value = rate; b.start(t0 + 0.25 / rate);
+    const ag = x.createGain(); ag.gain.value = am; a.connect(ag).connect(level.gain);
+    const pg = x.createGain(); pg.gain.value = pan; b.connect(pg).connect(p.pan);
+    const bg = x.createGain(); bg.gain.value = bend; b.connect(bg).connect(d.delayTime);
+    input.connect(split).connect(d).connect(level).connect(p).connect(to);
+  };
+  rotor('highpass', 800, 2.6, 0.3, 0.85, 0.0005);
+  rotor('lowpass', 800, 2.1, 0.15, 0.45, 0.0002);
+  return input;
+}
+/**
+ * The guitar's amp, on any context, into `to`: tightened lows and a pushed middle into the drive, a soft
+ * clipping curve (each side on its own: the double-tracked takes stay apart), then a 4×12 cabinet: its scooped
+ * low middle, its presence and its steep top. Returns its input.
+ */
+let driveCurve = null;
+function amp(x, to) {
+  const f = (type, freq, q, gain = 0) => {
+    const b = x.createBiquadFilter();
+    b.type = type; b.frequency.value = freq; b.Q.value = q; b.gain.value = gain;
+    return b;
+  };
+  if (!driveCurve) {
+    const n = 4096, k = 10, a = 0.08;
+    driveCurve = new Float32Array(n);
+    for (let i = 0; i < n; i++) driveCurve[i] = (Math.tanh(k * ((i / (n - 1)) * 2 - 1) + a) - Math.tanh(a)) / Math.tanh(k);
+  }
+  const input = x.createGain();
+  const drive = x.createGain();
+  drive.gain.value = 3;
+  const shape = x.createWaveShaper();
+  shape.curve = driveCurve;
+  shape.oversample = '4x';
+  const out = x.createGain();
+  out.gain.value = AMP_OUT;
+  input.connect(f('highpass', 110, 0.7)).connect(f('peaking', 800, 0.9, 6)).connect(drive).connect(shape)
+    .connect(f('highpass', 80, 0.7)).connect(f('peaking', 420, 1, -5)).connect(f('peaking', 2300, 1, 3))
+    .connect(f('lowpass', 4500, 1)).connect(f('lowpass', 6000, 0.7)).connect(out).connect(to);
+  return input;
+}
+// a key's click (the organ's contacts), made once per audio context
+const clicks = new WeakMap();
+function clickNoise(x) {
+  let b = clicks.get(x);
+  if (!b) {
+    b = x.createBuffer(1, Math.round(x.sampleRate * 0.006), x.sampleRate);
+    const d = b.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 3;
+    clicks.set(x, b);
+  }
+  return b;
+}
+// the piano's notes (web/js/piano.js hands them over once loaded): MIDI note → its recording
+let pianoBank = null;
+export function setPianoBank(bank) { pianoBank = bank; }
+export const pianoLoaded = () => !!pianoBank;
 function osc(x, type, f, cents, when, to) {
   const o = x.createOscillator();
   o.type = type;
@@ -587,6 +725,8 @@ export function padSet(midis, when = now(), sound = 'pad') {
   padStop(when);
   if (!midis?.length) return;
   const kind = PAD_SOUNDS[sound] || PAD_SOUNDS.pad;
+  // (the guitar plays its own shape of the chord: a power chord)
+  if (kind.chord) midis = kind.chord(midis);
   const peak = (0.16 / Math.sqrt(midis.length)) * kind.level;
   for (const m of midis) {
     const g = ac.createGain();
@@ -594,7 +734,7 @@ export function padSet(midis, when = now(), sound = 'pad') {
     g.gain.value = 0;
     g.gain.setValueAtTime(0, when);
     const oscs = kind.voice(ac, midiToFreq(m), when, g, peak);
-    g.connect(padBus);
+    g.connect(kind.leslie ? leslieIn : kind.amp ? ampIn : kind.raw && pianoBank ? padRaw : padBus);
     padVoices.push({ g, osc: oscs, release: kind.release });
   }
 }

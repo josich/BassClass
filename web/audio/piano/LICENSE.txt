@@ -1,0 +1,4 @@
+Piano: the Kawai grand piano of the Versilian Community Sample Library (VCSL) by Versilian Studios,
+released under CC0 1.0 Universal (public domain): https://creativecommons.org/publicdomain/zero/1.0/
+Source: https://github.com/sgossner/VCSL (its sustained mezzo-forte notes from D3 to A5), trimmed, faded
+and encoded as Opus for BassClass by web/js/dev/pianoprep.js.
