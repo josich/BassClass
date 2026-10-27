@@ -25,6 +25,12 @@ export const FREE_LEVELS = 3;
 const FREE_DRUMS = 3;   // patterns of each genre
 const FREE_PROG_GROUPS = new Set(['Pop & rock', 'Blues']);
 export const FREE_SOUNDS = new Set(['pad', 'epiano', 'arp']);
+/** Each Pro sound's line in Settings' Pro details (a new Pro sound adds its own: the self-test checks it). */
+export const PRO_SOUND_NOTES = {
+  piano: 'Piano: a recorded Kawai grand',
+  organ: 'Organ: tonewheels through a rotating speaker',
+  guitar: 'Guitar: rock and metal power chords, chugging in time',
+};
 
 export const STORE = (typeof window !== 'undefined' && window.BASS_STORE) || '';
 export const PLAY = STORE === 'play';

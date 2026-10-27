@@ -3,7 +3,8 @@
 // payment gates"). The panel opens with seven taps on the version line, in every build but the Play one (where test
 // switches would hand out Pro); it is kept apart from the player's data (pro.js `dev`), so a backup never carries it.
 import { h, toast, icon, bubbleOnTap } from './dom.js';
-import { PLAY, PRO_ID, TIPS, PRICE, FREE_LEVELS, gatesOn, isPro, owned, proRecord, dev, setDev, setOwned, proRoomItems } from '../pro.js';
+import { PLAY, PRO_ID, TIPS, PRICE, FREE_LEVELS, FREE_SOUNDS, PRO_SOUND_NOTES, gatesOn, isPro, owned, proRecord, dev, setDev, setOwned, proRoomItems } from '../pro.js';
+import { PAD_SOUNDS } from '../audio.js';
 import { STAGES, LESSONS, UNITS } from '../course/data.js';
 import { LEVELS, EXERCISES, moduleOf } from '../curriculum/index.js';
 import { STYLES, GENRES } from '../practice/styles.js';
@@ -40,7 +41,8 @@ export function proFields(field) {
 }
 
 /**
- * Everything Pro opens, in full, counted and named from the data (so new content shows on its own): the Course's
+ * Everything Pro opens, in full, counted and named from the data, so the list grows with the app (user, 2026-10-27:
+ * "remember to update the list if the app grows"; a new Pro sound adds its line to pro.js PRO_SOUND_NOTES): the Course's
  * stages and their units, the Library's levels and their topics, the song studies, the drum patterns by genre and the
  * fills, the progressions by name and My progression, the sounds; then what stays free.
  */
@@ -79,8 +81,9 @@ function proDetails() {
   const progs = room.progGroups.flatMap(([, keys]) => keys);
   out.push(head(`🎹 ${progs.length} more progressions, and My progression (your own, up to 16 chords)`));
   for (const [g, keys] of room.progGroups) out.push(sub(`${g}: ${keys.map(progName).join(', ')}`));
-  out.push(head('🎛 3 more sounds for the harmony'));
-  out.push(sub('Piano: a recorded Kawai grand'), sub('Organ: tonewheels through a rotating speaker'), sub('Guitar: rock and metal power chords, chugging in time'));
+  const sounds = Object.keys(PAD_SOUNDS).filter((k) => !FREE_SOUNDS.has(k));
+  out.push(head(`🎛 ${sounds.length} more sounds for the harmony`));
+  out.push(...sounds.map((k) => sub(PRO_SOUND_NOTES[k] || k)));
   out.push(head('✨ And everything we add next: new levels, lessons, studies, patterns and sounds'));
   out.push(head(`🆓 Always free: Levels 1–${FREE_LEVELS}, the tuner, the metronome, the practice log and backup`));
   out.push('💳 One payment, yours for good: no subscription, no ads. A new phone: Restore purchase.');

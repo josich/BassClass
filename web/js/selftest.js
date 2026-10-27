@@ -14,7 +14,7 @@ import * as T from './theory.js';
 import { GENRES } from './practice/styles.js';
 import { HARMONY_PROGS, PROG_KEYS } from './practice/harmony.js';
 import { PAD_SOUNDS } from './audio.js';
-import { FREE_SOUNDS, FREE_LEVELS, isPro, gatesOn, exerciseLock, lessonLock, styleLock, progLock } from './pro.js';
+import { FREE_SOUNDS, FREE_LEVELS, PRO_SOUND_NOTES, isPro, gatesOn, exerciseLock, lessonLock, styleLock, progLock } from './pro.js';
 
 function combos(params, limit = 400, strings = 4) {
   const keys = Object.keys(params);
@@ -86,6 +86,8 @@ function checkPro(problems) {
     if (list.length < 3) problems.push(`pro: genre ${g.key} has fewer than 3 patterns (3 are free)`);
   }
   for (const v of FREE_SOUNDS) if (!PAD_SOUNDS[v]) problems.push(`pro: free sound ${v} does not exist`);
+  // (Settings' Pro details name every Pro sound: a new one needs its line)
+  for (const v of Object.keys(PAD_SOUNDS)) if (!FREE_SOUNDS.has(v) && !PRO_SOUND_NOTES[v]) problems.push(`pro: Pro sound ${v} has no line in PRO_SOUND_NOTES`);
   if (!HARMONY_PROGS.some(([g]) => g === 'Pop & rock') || !HARMONY_PROGS.some(([g]) => g === 'Blues')) problems.push('pro: the free progression groups are missing');
   if (FREE_LEVELS < 1 || FREE_LEVELS > 6) problems.push(`pro: FREE_LEVELS ${FREE_LEVELS}`);
   if (!gatesOn()) {
