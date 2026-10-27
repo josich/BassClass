@@ -148,7 +148,7 @@ function favRow(t, rerender) {
   const mod = moduleOf(t.module);
   const grip = h('button', { class: 'grip', title: 'Drag to reorder (or arrow keys)', 'aria-label': `Move ${t.title} (arrow keys)`, html: icon('grip') });
   const info = [`${mod?.icon ?? ''} ${mod?.name ?? ''}`, pr.done ? '✓ mastered' : '', pr.bestBpm ? `best ${pr.bestBpm} BPM` : ''].filter(Boolean).join(' · ');
-  const row = h('div', { class: 'item fav', 'data-id': t.id, onClick: () => go(exHref(t.id)) },
+  const row = h('div', { class: `item fav${exerciseLock(t) ? ' locked' : ''}`, 'data-id': t.id, onClick: () => go(exHref(t.id)) },
     grip,
     h('div', { class: 't' }, h('b', {}, h('span', { class: 'ex-num' }, t.num), t.title), h('span', {}, info)),
     proChip(exerciseLock(t)),

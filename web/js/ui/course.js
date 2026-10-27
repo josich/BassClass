@@ -371,7 +371,7 @@ export function courseScreen(main) {
   const row = (l) => {
     const st = status(l);
     const isNext = l === cont;
-    return h('a', { class: `les-row ${st}${isNext ? ' next' : ''}${l.kind !== 'lesson' ? ' check' : ''}`, href: lessonHref(l) },
+    return h('a', { class: `les-row ${st}${isNext ? ' next' : ''}${l.kind !== 'lesson' ? ' check' : ''}${lessonLock(l) ? ' locked' : ''}`, href: lessonHref(l) },
       h('span', { class: 'st' }, isNext ? '▶' : STATUS_ICON[st]),
       h('span', { class: 'num' }, l.num),
       h('span', { class: 'tt' }, l.kind === 'lesson' ? l.title : l.kind === 'check' ? 'Checkpoint' : l.title),

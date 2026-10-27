@@ -534,7 +534,7 @@ export function practiceScreen(main, params = {}) {
       // fills: off by default; a crash at each phrase and a fill at its end (user, 2026-10-27)
       h('div', { class: 'room-field' }, h('label', {}, 'Fills'),
         h('div', { class: 'seg' }, [[0, 'Off'], [4, 'Every 4 bars'], [8, 'Every 8 bars']].map(([v, l]) => h('button', {
-          class: room.fills === v ? 'on' : '', type: 'button',
+          class: room.fills === v ? 'on' : v && fillsLock() ? 'locked' : '', type: 'button',
           onClick: () => { if (v && fillsLock()) { openPro(fillsLock()); return; } if (room.fills !== v) { set({ fills: v }); drawDrums(); } },
         }, l, v ? proChip(fillsLock()) : null)))),
       h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal));
@@ -732,12 +732,12 @@ export function practiceScreen(main, params = {}) {
       mode === 'off' ? null : h('div', { class: 'harm-row' },
         h('label', {}, 'Key'), keySel,
         mode === 'chords' ? progNow : null,
-        mode === 'chords' && room.hProg !== MINE ? h('button', { class: 'btn small', title: 'Copy it into My progression to change it', onClick: editPreset }, '✎ Edit') : null),
+        mode === 'chords' && room.hProg !== MINE ? h('button', { class: `btn small${progLock(MINE) ? ' locked' : ''}`, title: 'Copy it into My progression to change it', onClick: editPreset }, '✎ Edit', proChip(progLock(MINE))) : null),
       ...(mode === 'chords' && room.hProg === MINE ? mineEditor() : []),
       // its sound: synthesised, but the piano (recorded, loaded the first time it is picked)
       mode === 'off' ? null : h('div', { class: 'room-field' }, h('label', {}, 'Sound'),
         h('div', { class: 'seg' }, [['pad', 'Pad'], ['epiano', 'E-piano'], ['piano', 'Piano'], ['organ', 'Organ'], ['guitar', 'Guitar'], ['arp', 'Arpeggio']].map(([v, l]) => h('button', {
-          class: room.hSound === v ? 'on' : '', type: 'button',
+          class: room.hSound === v ? 'on' : soundLock(v) ? 'locked' : '', type: 'button',
           onClick: () => { if (soundLock(v)) { openPro(soundLock(v)); return; } if (room.hSound !== v) { setHarmony({ hSound: v }); ensurePiano(); } },
         }, l, proChip(soundLock(v))))), pianoState),
       mode === 'off' ? null : h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal),
