@@ -66,6 +66,16 @@ Signing) and we upload with a **new upload key** kept out of git (a GitHub secre
 update into the Play version: its owner saves a backup (Settings → Backup), uninstalls, installs from Play and loads the
 backup, and keeps everything.
 
+**Which key is which** (user, 2026-10-27: "I keep the Play signing key in Drive for Polyorbit, is that the same key?"):
+no. Polyorbit's `polyorbit-release.p12` (alias polyorbit, 4096-bit RSA) was made privately and is kept secret, in the
+user's Drive. BassClass's `bassclass.p12` (alias bassclass, 2048-bit, password "bassclass") was made by the build robot
+on 2026-10-14 and committed to the public repository: not secret, hence Play's key for BassClass. With Play App
+Signing, Google keeps BassClass's app signing key itself; what the user keeps is an **upload key**: a new one, made for
+BassClass alone (not Polyorbit's: one key per app, so a leak never touches the other), made like Polyorbit's (a file
+and a "keep secret" note outside git, plus what to paste into GitHub's secrets), and saved in the user's Drive beside
+Polyorbit's. A lost upload key can be replaced through Play support (an app signing key could not).
+- [ ] Make BassClass's upload key with the Play build; the user saves it in Drive.
+
 ## The repository and the free copies (the user's concern)
 
 Today the repository is **public**: anyone on the internet can see every file, download the APK (the releases) and use
