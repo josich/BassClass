@@ -5,7 +5,7 @@
 import * as A from '../audio.js';
 import { logPlaying } from '../practiceLog.js';
 import { playDrum, kitReady, styleGain, trackGain } from '../drums.js';
-import { STYLES, levelsOf, clickTimes, beatHits, regroup } from './styles.js';
+import { STYLES, levelsOf, clickTimes, phraseHits, regroup } from './styles.js';
 import { groupsOf } from './accents.js';
 import { progression, droneMidis } from './harmony.js';
 
@@ -205,7 +205,7 @@ export class Room {
       if (s && kitReady() && !muted && !count) {
         // in time order, so a closed hi-hat after an open one closes it
         const g = styleGain(style);
-        for (const [f, piece, v] of beatHits(s, L, this.bar, this.beat)) {
+        for (const [f, piece, v] of phraseHits(s, L, this.bar, this.beat, this.o.fills || 0, this.bpm)) {
           const t = t0 + f * len;
           const node = playDrum(piece, t, v, g * trackGain(s, piece));
           if (node && f) this.ahead.push([t, node]);

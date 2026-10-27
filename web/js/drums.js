@@ -152,7 +152,10 @@ const CHAIN_DB = {
   neosoul: 2.5, chicagoshuffle: -2.5, slowblues: 5.5, halfshuffle: 3, hambone: -4.5, swing: -6.5, upswing: -7.5,
   twofeel: -5.5, jazzwaltz: -5.5, bebop: -7, jazzfive: -8, jazzshuffle: -3, samba: -7, baiao: -6, chacha: -9,
   mambo: -4.5, cumbia: -3.5, rumba: 3.5, afro68: -8.5, onedrop: 7, rockers: 6, steppers: 5, rocksteady: 5.5, reggaeton: -2.5,
-  soca: -6.5, train: -5, bluegrass: -9.5, folk68: 5, jig: -6.5, polka: -3, folkrock: -3, ...BY_TAPS,
+  soca: -6.5, train: -5, bluegrass: -9.5, folk68: 5, jig: -6.5, polka: -3, folkrock: -3,
+  // (the 25 patterns of 2026-10-27, measured the same way against the median of all 124)
+  afrobeat: -3, baggy: -3, blast: -10, breakdown: -8, dbeat: -3, doom: -7.5, highlife: -2, lofi: 4, maqsum: -4.5,
+  partidoalto: -6.5, poppunk: -4.5, skank: -5.5, songo: -6, surf: -4.5, techno: -3, ...BY_TAPS,
 };
 
 /** A pattern's gain for even loudness between the patterns (`chain`: with its correction for the drum chain). */

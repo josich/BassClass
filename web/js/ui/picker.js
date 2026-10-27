@@ -1,7 +1,7 @@
 // The shared picker (user, 2026-10-23: every library must take more content without the room growing): a
 // block names its current choice and opens this to change it. Its groups come from the data (chips that
-// scroll sideways, with ★ Favourites and Recent first once they hold something), a search finds an item by
-// its name, group or tags, and a tap on a card picks it and closes. It opens over the screen it came from;
+// scroll sideways, with ★ Favourites and Recent first once they hold something; no search: user, 2026-10-27,
+// it was not much use), and a tap on a card picks it and closes. It opens over the screen it came from;
 // Escape, ✕, a tap outside or Back close it (it has its own history entry, so Back stays on the screen).
 import { h, icon, sideScroll } from './dom.js';
 
@@ -10,7 +10,7 @@ let opened = 0;   // pickers open now
 addEventListener('popstate', () => { if (history.state?.picker && !opened) history.back(); });
 
 /**
- * Opens a picker. `o`: { title, groups: [{ key, name }], items: [{ key, name, sub, group, tags }], current,
+ * Opens a picker. `o`: { title, groups: [{ key, name }], items: [{ key, name, sub, group }], current,
  * open (the group shown first; else the current item's), favs, recent (item keys), onPick(key),
  * onFav(key, on), onGroup(key) (a group opened), host (where it goes; document.body by default) }.
  * Returns close(how): 'route' closes it without going back in the history (the screen is leaving).
@@ -21,41 +21,25 @@ export function openPicker(o) {
   const favs = new Set((o.favs || []).filter((k) => byKey.has(k)));
   const recent = (o.recent || []).filter((k) => byKey.has(k));
   let open = o.open ?? byKey.get(o.current)?.group ?? o.groups[0]?.key;
-  let query = '';
-  const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-  // (the words of a text: a search word matches the start of one, so "ii" finds ii – V, not ♭VII; QA round 17;
-  // "1-4-5" is one word, "3+2" two, "bvii" is ♭VII as a phone keyboard types it; QA round 18)
-  const ROMAN = /^[iv]+$/;
-  const wordsOf = (s) => norm(s).replace(/(\d)-(?=\d)/g, '$1~').split(/[^a-z0-9/~]+/).filter(Boolean)
-    .map((w) => (/^b[iv]+$/.test(w) ? w.slice(1) : w));
 
-  const search = h('input', { type: 'search', class: 'picker-search', placeholder: 'Search', 'aria-label': `Search ${o.title.toLowerCase()}` });
   const chips = h('div', { class: 'picker-chips' });
   const grid = h('div', { class: 'picker-grid' });
   const closeBtn = h('button', { class: 'icon-btn picker-close', type: 'button', 'aria-label': 'Close', html: icon('close') });
   const panel = h('div', { class: 'picker', role: 'dialog', 'aria-modal': 'true', 'aria-label': o.title, tabindex: '-1' },
     h('div', { class: 'picker-head' }, h('h2', {}, o.title), h('span', { class: 'picker-count' }, `${o.items.length}`), h('div', { class: 'grow' }), closeBtn),
-    search, chips, grid);
+    chips, grid);
   const backdrop = h('div', { class: 'picker-backdrop' }, panel);
 
-  /** The items shown: the search's matches (every word starts one of the item's), or the open chip's. */
+  /** The items shown: the open chip's. */
   const listed = () => {
-    if (query) {
-      const words = wordsOf(query);
-      return o.items.filter((it) => {
-        const text = wordsOf(`${it.name} ${it.sub || ''} ${groupName.get(it.group) || ''} ${it.tags || ''}`);
-        // (a roman numeral is matched whole: "ii" is not the start of "iii")
-        return words.every((w) => text.some((t) => (ROMAN.test(w) && ROMAN.test(t) ? t === w : t.startsWith(w))));
-      });
-    }
     if (open === '*fav') return o.items.filter((it) => favs.has(it.key));
     if (open === '*recent') return recent.map((k) => byKey.get(k));
     return o.items.filter((it) => it.group === open);
   };
   const card = (it) => {
     const fav = favs.has(it.key);
-    // (searching, or in Favourites and Recent, a card also names its group)
-    const where = query || open.startsWith('*') ? `${groupName.get(it.group) || ''} · ` : '';
+    // (in Favourites and Recent a card also names its group)
+    const where = open.startsWith('*') ? `${groupName.get(it.group) || ''} · ` : '';
     return h('div', { class: `picker-card${it.key === o.current ? ' on' : ''}` },
       h('button', { class: 'picker-pick', type: 'button', onClick: () => { if (fresh()) return; close(); o.onPick(it.key); refocus(); } },
         h('b', {}, it.name), h('small', {}, `${where}${it.sub || ''}`)),
@@ -78,24 +62,21 @@ export function openPicker(o) {
       ...o.groups,
     ];
     chips.replaceChildren(sideScroll(h('div', { class: 'picker-chip-row' }, list.map((g) => h('button', {
-      class: !query && g.key === open ? 'on' : '', type: 'button',
+      class: g.key === open ? 'on' : '', type: 'button',
       onClick: () => {
         open = g.key;
-        query = '';
-        search.value = '';
         if (!g.key.startsWith('*')) o.onGroup?.(g.key);
         draw();
         grid.scrollTop = 0;
       },
     }, g.name)))));
     const items = listed();
-    grid.replaceChildren(...(items.length ? items.map(card) : [h('p', { class: 'muted small picker-none' }, 'Nothing matches that search')]));
+    grid.replaceChildren(...items.map(card));
   };
 
   // (the second tap of a double tap on Change would land on a card: picks wait a moment after opening)
   const openedAt = performance.now();
   const fresh = () => performance.now() - openedAt < 400;
-  search.addEventListener('input', () => { query = search.value.trim(); draw(); grid.scrollTop = 0; });
   closeBtn.addEventListener('click', () => close());
   backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(); });
   const onKey = (e) => {
@@ -136,8 +117,7 @@ export function openPicker(o) {
   }
   (o.host || document.body).append(backdrop);
   draw();
-  // the keys move into the picker (Enter cannot open a second one behind it); the search waits for a tap,
-  // so a phone's keyboard does not open by itself
+  // the keys move into the picker (Enter cannot open a second one behind it)
   panel.focus({ preventScroll: true });
   return close;
 }

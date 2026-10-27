@@ -43,6 +43,33 @@ const RAW = [
       hhc: 'xss|xss', kick: 'X..|..x', snare: '...|X..' },
     { key: 'threefour', name: '3/4 rock', meter: '3/4', beats: 3, bpm: 120, sub: 2,
       hhc: 'Xgxg|xgxg|xgxg', kick: 'X...|..x.|....', snare: '....|....|X...' },
+    // (user, 2026-10-27: inspired by the drum tracks players jam to on wikiloops; written for BassClass)
+    { key: 'poppunk', name: 'Pop punk', bpm: 172, sub: 2, mix: { hho: -5 },
+      hho: 'x.x.|x.x.|x.x.|x.x.', kick: 'X.x.|..x.|X.x.|..x.', snare: '....|X...|....|X...' },
+    { key: 'dbeat', name: 'D-beat (hardcore)', bpm: 168, sub: 2,
+      ride: 'x.x.|x.x.|x.x.|x.x.', kick: 'X...|..x.|x...|..x.', snare: '....|X...|....|X...' },
+    { key: 'surf', name: 'Surf (tom drive)', bpm: 160, sub: 4,
+      toml: 'x.xx|x.xx|x.xx|x.xx', kick: 'X...|....|X...|....', snare: '....|X...|....|X...' },
+    { key: 'rockhalfshuffle', name: 'Half-time rock shuffle', grid: 3, bpm: 88, sub: 3,
+      hhc: 'x.x|x.x|x.x|x.x', kick: 'X..|..x|...|..x', snare: '..g|.g.|X.g|.g.' },
+  ] },
+  { key: 'metal', name: 'Metal', icon: '🤘', patterns: [
+    { key: 'metaldk', name: 'Double-kick 8ths', bpm: 120, sub: 4,
+      hhc: 'X.x.|x.x.|X.x.|x.x.', kick: 'Xxxx|Xxxx|Xxxx|Xxxx', snare: '....|X...|....|X...' },
+    { key: 'gallop', name: 'Thrash gallop', bpm: 180, sub: 4,
+      hhc: 'X.x.|x.x.|X.x.|x.x.', kick: 'X.xx|x.xx|X.xx|x.xx', snare: '....|X...|....|X...' },
+    { key: 'skank', name: 'Thrash skank beat', grid: 2, bpm: 200, sub: 2,
+      ride: 'X.|x.|x.|x.', kick: 'X.|x.|x.|x.', snare: '.X|.x|.x|.x' },
+    { key: 'breakdown', name: 'Half-time breakdown', bpm: 140, sub: 4, mix: { crash: -6 },
+      crash: 'X...|....|....|....', bell: '....|x...|x...|x...', kick: 'X..x|.x..|..x.|.xx.', snare: '....|....|X...|....' },
+    { key: 'blast', name: 'Blast beat', bpm: 180, sub: 4,
+      ride: 'xxxx|xxxx|xxxx|xxxx', kick: 'x.x.|x.x.|x.x.|x.x.', snare: '.x.x|.x.x|.x.x|.x.x' },
+    { key: 'doom', name: 'Doom (slow and heavy)', bpm: 60, sub: 2, mix: { crash: -6 },
+      crash: 'X...|....|....|....', ride: '....|x...|x...|x...', kick: 'X...|....|..x.|....', snare: '....|....|X...|....', toml: '....|....|....|..x.' },
+    { key: 'djent', name: 'Djent (syncopated kick)', bpm: 110, sub: 4,
+      bell: 'X...|x...|X...|x...', kick: 'X..X|..X.|.X..|X.X.', snare: '....|....|X...|....' },
+    { key: 'metalshuffle', name: 'Metal shuffle (triplet kicks)', grid: 3, bpm: 120, sub: 3,
+      ride: 'x..|x..|x..|x..', kick: 'Xxx|xxx|Xxx|xxx', snare: '...|X..|...|X..' },
   ] },
   { key: 'pop', name: 'Pop', icon: '🎤', patterns: [
     { key: 'pop8', name: 'Pop 8ths', bpm: 100, sub: 2,
@@ -65,6 +92,8 @@ const RAW = [
       bell: 'x.x.|x.x.|x.x.|x.x.', kick: 'X...|..x.|X...|....', snare: '....|X...|....|X...' },
     { key: 'stomp', name: 'Stomp and clap', bpm: 96, sub: 2,
       kick: 'X.x.|....|X.x.|....', snare: '....|X...|....|X...', tamb: 'x.g.|x.g.|x.g.|x.g.' },
+    { key: 'baggy', name: 'Madchester (baggy)', bpm: 98, sub: 4,
+      hhc: 'xg.g|xgxg|xg.g|xgxg', hho: '..x.|....|..x.|....', kick: 'X..x|..x.|X..x|.x..', snare: '....|X..g|....|X...', tamb: 's.s.|s.s.|s.s.|s.s.' },
   ] },
   { key: 'funk', name: 'Funk', icon: '🕺', patterns: [
     { key: 'funk16', name: '16th funk', bpm: 96, sub: 4,
@@ -110,6 +139,20 @@ const RAW = [
       hhc: 'xgx|xgx|xgx|xgx', kick: 'X..|.x.|..x|...', snare: '...|X..|...|X.g' },
     { key: 'uptownsoul', name: 'Soul (16th tambourine)', bpm: 104, sub: 4,
       tamb: 'xgsg|xgsg|xgsg|xgsg', kick: 'X..x|..x.|X..x|....', snare: '....|X...|....|X...' },
+  ] },
+  { key: 'electronic', name: 'Electronic', icon: '🎛️', patterns: [
+    { key: 'dnb', name: 'Drum & bass', bpm: 172, sub: 4,
+      hhc: '..x.|..x.|..x.|..x.', shaku: '.g.g|.g.g|.g.g|.g.g', kick: 'X...|....|..x.|....', snare: '....|X...|....|X..g' },
+    { key: 'breakbeat', name: 'Breakbeat', bpm: 128, sub: 4,
+      hhc: 'xgxg|xgxg|xgxg|xgxg', kick: 'X.x.|....|..x.|..x.', snare: '....|X..g|.g..|X..g' },
+    { key: 'triphop', name: 'Trip-hop', bpm: 84, sub: 4,
+      hhc: 'x.x.|x.xg|x.x.|x.x.', shakd: 's.s.|s.s.|s.s.|s.s.', kick: 'X...|...x|..x.|....', snare: '....|X...|....|X...' },
+    { key: 'techno', name: 'Techno', bpm: 130, sub: 4, mix: { hhc: -4, hho: -4 },
+      hhc: 'xx.x|xx.x|xx.x|xx.x', hho: '..x.|..x.|..x.|..x.', kick: 'X...|X...|X...|X...', rim: '....|x...|....|x...' },
+    { key: 'garage', name: 'UK garage (2-step)', bpm: 132, sub: 3,
+      hhc: '..x.|..xx|..x.|..x.', shaku: '.g.g|.g.g|.g.g|.g.g', kick: 'X...|....|.x..|..x.', snare: '....|X...|....|X...' },
+    { key: 'lofi', name: 'Lo-fi hip-hop (swung)', bpm: 78, sub: 3,
+      hhc: 'x.xg|x.x.|x.xg|x.x.', kick: 'X..x|....|..x.|.x..', snare: '....|X...|....|X...' },
   ] },
   { key: 'blues', name: 'Blues', icon: '🎷', patterns: [
     { key: 'texasshuffle', name: 'Texas shuffle', grid: 3, bpm: 120, sub: 2,
@@ -181,6 +224,20 @@ const RAW = [
       toml: 'X..x|x.x.|X..x|x.x.', kick: 'X...|....|X...|....', xstick: '....|x...|....|x...' },
     { key: 'latinrock', name: 'Latin rock', bpm: 112, sub: 2, mix: { cowbell: -5 },
       cowbell: 'x.x.|X.x.|x.x.|X.x.', kick: 'X..x|..x.|X..x|..x.', snare: '....|X...|....|X...', conga: '..x.|..x.|..x.|..x.' },
+    { key: 'songo', name: 'Songo', bpm: 112, sub: 4, mix: { cowbell: -5 },
+      cowbell: 'X.x.|x.x.|X.x.|x.x.', rim: '..x.|...x|..x.|.x..', tumba: '....|...x|....|...x', kick: '....|..x.|....|..x.' },
+    { key: 'partidoalto', name: 'Partido alto', bpm: 96, sub: 4,
+      shakd: 'Xsxs|xsXs|Xsxs|xsXs', rim: 'x..x|..x.|..x.|x...', kick: 'X..x|..x.|X..x|..x.' },
+  ] },
+  { key: 'world', name: 'World', icon: '🌍', patterns: [
+    { key: 'afrobeat', name: 'Afrobeat', bpm: 110, sub: 4,
+      hhc: 'x.xx|x...|xx.x|x...', hho: '....|..x.|....|..x.', kick: 'X...|..x.|.x..|x...', snare: '..g.|X.g.|g.g.|X..g' },
+    { key: 'highlife', name: 'Highlife', bpm: 120, sub: 2, mix: { cowbell: -6 },
+      cowbell: 'X.x.|..x.|x.x.|..x.', shakd: 's.s.|s.s.|s.s.|s.s.', kick: 'X...|..x.|X...|..x.', xstick: '....|....|....|X...' },
+    { key: 'secondline', name: 'Second line (New Orleans, 2 bars)', bpm: 104, sub: 4,
+      snare: 'X.gg|x.g.|gX.g|x.gg|X.gg|x.g.|gXgg|X...', kick: 'X...|..x.|..x.|x...|X...|..x.|..x.|....', hhp: '....|x...|....|x...|....|x...|....|x...' },
+    { key: 'maqsum', name: 'Maqsum (Middle-Eastern)', grid: 2, bpm: 100, sub: 2,
+      toml: 'X.|..|X.|..', rim: '.x|.x|..|x.', shakd: 's.|s.|s.|s.' },
   ] },
   { key: 'reggae', name: 'Reggae & Caribbean', icon: '🌴', patterns: [
     { key: 'onedrop', name: 'One drop', grid: 3, bpm: 76, sub: 2,
@@ -364,6 +421,39 @@ export function beatHits(s, L, bar, beat) {
     }
   }
   return hits.sort((a, b) => a[0] - b[0]);
+}
+
+/**
+ * Fills (user, 2026-10-27: the drums played like a drummer, as the tracks players jam to do): every `every`
+ * bars (4 or 8; 0 off) a crash on the phrase's first beat and a fill over its last beats, in the pattern's
+ * own voice: a kit's snare and toms, the brushes' snare, or its hand drums. The fill runs in 16ths (8ths when
+ * fast), triplets on a triplet or compound pattern, over the last two beats (one when fast; the last three
+ * 8ths of an x/8 bar), getting louder to the bar line; the kick keeps its strokes under it.
+ */
+function fillVoices(s) {
+  const t = s.tracks;
+  if (t.bsnare || t.bkick) return { voices: ['bsnare'], crash: null };
+  if (t.snare || t.rim || t.xstick || t.kick) return { voices: ['snare', 'snare', 'tomh', 'toml'], crash: 'crash' };
+  if (t.conga || t.congam || t.tumba) return { voices: ['congam', 'conga', 'tumba'], crash: null };
+  return { voices: ['tomh', 'toml'], crash: null };
+}
+/** One beat of a pattern with its phrase's crash and fill (`every` bars; 0: as written). */
+export function phraseHits(s, L, bar, beat, every, bpm) {
+  const hits = beatHits(s, L, bar, beat);
+  if (!every || bar < 0) return hits;
+  const { voices, crash } = fillVoices(s);
+  if (bar % every === 0 && beat === 0) return crash ? [[0, crash, 0.85], ...hits] : hits;
+  if (bar % every !== every - 1) return hits;
+  const n = s.beat === 'e' ? Math.min(3, s.beats) : s.beat === 'dq' || bpm > 140 ? 1 : 2;
+  if (beat < s.beats - n) return hits;
+  const g = s.grid === 3 || s.beat === 'dq' ? 3 : s.beat === 'e' ? 2 : bpm <= 150 ? 4 : 2;
+  const total = n * g, first = (beat - (s.beats - n)) * g;
+  const fill = Array.from({ length: g }, (_, j) => {
+    const i = first + j;
+    const voice = voices[Math.min(voices.length - 1, Math.floor((i / total) * voices.length))];
+    return [j / g, voice, i === total - 1 ? 0.95 : 0.5 + (0.4 * i) / Math.max(1, total - 1)];
+  });
+  return [...hits.filter(([, p]) => p === 'kick' || p === 'bkick'), ...fill].sort((a, b) => a[0] - b[0]);
 }
 
 /** Every pattern by key, with its tracks as velocity arrays; a track that is not whole bars throws. */

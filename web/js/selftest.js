@@ -8,7 +8,7 @@ import { CHANGED_STEPS } from './course/progress.js';
 import { CYCLE_OPTS } from './curriculum/common.js';
 import { NO_BACKING } from './harmony.js';
 import { makeCtx } from './fretboard.js';
-import { STYLES, levelsOf, regroup } from './practice/styles.js';
+import { STYLES, levelsOf, regroup, phraseHits } from './practice/styles.js';
 import { PIECES } from './drums.js';
 import * as T from './theory.js';
 
@@ -45,6 +45,12 @@ function checkDrums(problems) {
     if (!(s.bpm >= 30 && s.bpm <= 260)) problems.push(`drums ${s.key}: tempo ${s.bpm}`);
     if (!levelsOf(s).includes(s.sub)) problems.push(`drums ${s.key}: subdivision ${s.sub}`);
     if (!(s.beats >= 1 && s.beats <= 12)) problems.push(`drums ${s.key}: ${s.beats} beats`);
+    // its phrases with fills: every piece in the kit, every stroke inside its beat, at its usual tempo and fast
+    for (const bpm of [s.bpm, 200]) for (const every of [4, 8]) for (let bar = 0; bar < every; bar++) for (let beat = 0; beat < s.beats; beat++) {
+      for (const [f, p, v] of phraseHits(s, s.sub, bar, beat, every, bpm)) {
+        if (!PIECES.has(p) || !(f >= 0 && f < 1) || !(v > 0 && v <= 1)) problems.push(`drums ${s.key}: fill bar ${bar} beat ${beat} ${p} ${f} ${v}`);
+      }
+    }
     // an odd metre in every grouping the player can tap (groups of 1 to 4): whole bars, its downbeat kept,
     // and each group starting on one of the pattern's own group heads
     if (!s.groups) continue;

@@ -140,17 +140,6 @@ export const HARMONY_PROGS = [
   ['Vamps', ['vamp-min', 'vamp-dom', 'vamp-dorian', 'vamp-mixo', 'vamp-iiV']],
 ];
 export const PROG_KEYS = HARMONY_PROGS.flatMap(([, keys]) => keys);
-/** What players call the progressions, for the picker's search ("2-5-1", "autumn", "modal"; QA round 17). */
-export const PROG_TAGS = {
-  'I-V-vi-IV': '1-5-6-4 1564 axis four chords', 'I-vi-IV-V': '1-6-4-5 1645 doo-wop', 'vi-IV-I-V': '6-4-1-5 6415 axis',
-  'I-IV-V-I': '1-4-5 145 three chords', 'I-bVII-IV-I': 'mixolydian', canon: 'pachelbel',
-  blues: '12 bars', 'blues-quick': '12 bars quick four', 'blues-8': '8 bars', 'minor-blues': '12 bars', 'jazz-blues': '12 bars bebop',
-  'ii-V-I': '2-5-1 251 two five one', 'minor-ii-V-i': '2-5-1 251 two five one', 'I-vi-ii-V': '1-6-2-5 1625',
-  'iii-vi-ii-V': '3-6-2-5-1 36251', autumn: 'autumn leaves 2-5-1 251', 'rhythm-A': 'i got rhythm anatole', 'rhythm-B': 'i got rhythm',
-  'cycle-251': '2-5-1 251 cycle fifths fourths all keys', 'cycle-dom7': 'cycle fifths fourths all keys', 'giant-steps': 'coltrane',
-  'i-bVII-bVI-V': 'flamenco', 'i-bVI-bIII-bVII': 'aeolian', 'i-iv-v-min': 'aeolian natural minor',
-  'vamp-min': 'modal dorian', 'vamp-dom': 'modal mixolydian funk', 'vamp-dorian': 'modal', 'vamp-mixo': 'modal', 'vamp-iiV': '2-5 25 modal',
-};
 export const progName = (key) => (key === MINE ? 'My progression' : PROGS[key]?.name || key);
 /** A progression in a minor key (its key is named as a minor key). */
 export const isMinor = (key) => !!PROGS[key]?.minor;

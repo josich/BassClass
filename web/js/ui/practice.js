@@ -11,7 +11,7 @@ import { settings, saveSettings } from '../store.js';
 import { loadKit, kitReady } from '../drums.js';
 import { neckPanel } from './neck.js';
 import { openPicker } from './picker.js';
-import { HARMONY_PROGS, progName, progression, keyName, isMinor, MINE, DEGREES, QUALITIES, LENGTHS, usualQuality, roman, mineFrom, scaleFor, MINE_START, mineBars, PROG_TAGS } from '../practice/harmony.js';
+import { HARMONY_PROGS, progName, progression, keyName, isMinor, MINE, DEGREES, QUALITIES, LENGTHS, usualQuality, roman, mineFrom, scaleFor, MINE_START, mineBars } from '../practice/harmony.js';
 import { PROGS, toTriad } from '../curriculum/common.js';
 import * as T from '../theory.js';
 
@@ -29,6 +29,7 @@ const DRUM_INFO = [
   '🎚 A pattern sets its metre, its usual tempo and its subdivision',
   '🎵 Subdivision: fewer or more notes of the pattern (16ths: its fills)',
   '🔢 In odd metres the drums play the grouping you tap on the beat lights ("played 3 + 2 + 2")',
+  '💥 Fills: a crash at each phrase and a fill at its end, every 4 or 8 bars',
   '🔇 Muted bars and Speed up work on the drums too',
   '📶 The drums load once (about 2 MB) and then play offline',
 ];
@@ -442,7 +443,6 @@ export function practiceScreen(main, params = {}) {
     h('span', { class: 'pick-change' }, 'Change', h('span', { html: icon('next') })));
   // (a name that already says its metre, "5/4 (3 + 2)", does not repeat it)
   const styleSub = (s) => `${s.name.includes(s.meter) ? '' : `${s.meter} · `}${s.bpm}\u00a0BPM`;
-  const brushes = (s) => Object.keys(s.tracks).some((p) => /^b(snare|stir|kick|hh|ride)/.test(p));
   /** A pick joins the recent ones (newest first, six of them). */
   const recentWith = (list, k) => [k, ...list.filter((x) => x !== k)].slice(0, 6);
   const favsWith = (list, k, on) => (on ? [...list.filter((x) => x !== k), k] : list.filter((x) => x !== k));
@@ -452,7 +452,6 @@ export function practiceScreen(main, params = {}) {
       groups: GENRES.map((g) => ({ key: g.key, name: `${g.icon} ${g.name}` })),
       items: Object.values(STYLES).map((s) => ({
         key: s.key, name: s.name, group: s.genre, sub: styleSub(s),
-        tags: `${s.meter}${brushes(s) ? ' brushes' : ''}${s.groups ? ' odd' : ''}`,
       })),
       current: room.style, open: room.genre,
       favs: room.drumFavs, recent: room.drumRecent,
@@ -512,6 +511,12 @@ export function practiceScreen(main, params = {}) {
       // the pattern playing; Change opens them all (the shared picker: by genre, a search, ★ favourites)
       // (in the player's own grouping, the line says so)
       pickNow(s.name, `${GENRES.find((g) => g.key === s.genre).name} · ${styleSub(s)}${played(s)}`, openDrums),
+      // fills: off by default; a crash at each phrase and a fill at its end (user, 2026-10-27)
+      h('div', { class: 'room-field' }, h('label', {}, 'Fills'),
+        h('div', { class: 'seg' }, [[0, 'Off'], [4, 'Every 4 bars'], [8, 'Every 8 bars']].map(([v, l]) => h('button', {
+          class: room.fills === v ? 'on' : '', type: 'button',
+          onClick: () => { if (room.fills !== v) { set({ fills: v }); drawDrums(); } },
+        }, l)))),
       h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal));
   };
   if (room.drums) ensureKit();
@@ -603,7 +608,7 @@ export function practiceScreen(main, params = {}) {
     closePicker = openPicker({
       title: 'Progressions', host: main,
       groups: HARMONY_PROGS.map(([g]) => ({ key: g, name: g })),
-      items: HARMONY_PROGS.flatMap(([g, keys]) => keys.map((k) => ({ key: k, name: progName(k), group: g, sub: progSub(k).split(' · ').filter((w) => w !== g && w !== 'Yours').join(' · '), tags: PROG_TAGS[k] }))),
+      items: HARMONY_PROGS.flatMap(([g, keys]) => keys.map((k) => ({ key: k, name: progName(k), group: g, sub: progSub(k).split(' · ').filter((w) => w !== g && w !== 'Yours').join(' · ') }))),
       current: room.hProg,
       favs: room.progFavs, recent: room.progRecent,
       onFav: (k, on) => set({ progFavs: favsWith(room.progFavs, k, on) }),

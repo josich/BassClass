@@ -763,7 +763,6 @@ details.les-more > ul { margin: 0 0 10px; }
 .picker-head h2 { margin: 0; font-size: 16px; }
 .picker-count { font-size: 12px; color: var(--muted); }
 .picker-close { width: 34px; height: 34px; }
-.picker-search { width: 100%; min-height: 36px; padding: 6px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 14px; }
 .picker-chip-row { display: flex; gap: 6px; }
 .picker-chip-row button { flex: none; min-height: 36px; padding: 5px 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); font-weight: 600; font-size: 13px; white-space: nowrap; }
 .picker-chip-row button.on { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
@@ -777,7 +776,7 @@ details.les-more > ul { margin: 0 0 10px; }
 .picker-star svg { width: 18px; height: 18px; }
 .picker-star.on { color: #f2cf7e; }
 .picker-none { grid-column: 1 / -1; margin: 8px 2px; }
-@media (max-height: 420px) { .picker { padding: 8px 10px 10px; gap: 6px; } .picker-search { min-height: 32px; padding: 4px 10px; } }
+@media (max-height: 420px) { .picker { padding: 8px 10px 10px; gap: 6px; } }
 /* sliders leave vertical swipes to the page (guardSliders holds a touch until it goes sideways) */
 input[type="range"] { touch-action: pan-y; }
 /* a row that scrolls sideways (sideScroll): an edge fades while items hide beyond it */
