@@ -71,7 +71,7 @@ const HARMONY_INFO = [
   '🎼 Pick a key and a progression: pop and rock, blues, jazz, minor, vamps',
   '✎ My progression: your own chords by degree (the Key moves them); ✎ Edit copies a progression into it',
   '🎼 My progression is in a major or a minor key: Minor turns the usual chords into the minor key\'s (I → i, vi → ♭VI)',
-  '🎛 Sound: a pad, an electric piano, a grand piano (recorded: about 1 MB the first time), an organ, a distorted rock guitar (power chords) or an arpeggio (it moves with the Subdivision); another one plays from the next beat',
+  '🎛 Sound: a pad, an electric piano, a grand piano (recorded: about 1 MB the first time), an organ, a distorted rock guitar (power chords, chugging) or an arpeggio (the guitar and the arpeggio move with the Subdivision); another one plays from the next beat',
   '🎸 The chords sit above the Neck in order, each lit while it sounds; Chord or Scale shows it on the neck, with the next change (over a drone, your scale on its key)',
   '🔇 Muted bars silence the harmony too, while the chords go on',
   '⏱ It follows the metronome and the drums: start it with the floating button',

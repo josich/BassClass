@@ -30,8 +30,9 @@ const DRUM_DRIVE = 4, DRUM_TRIM = 1.2;
 // delays bring everything to the drums' 24 ms, so the click, the chords and the bass land with the hits.
 const ALIGN = { click: 0.018, pad: 0.012, bass: 0.012 };
 const PHONE_BOOST = 15; // dB lifted around 850 Hz on the phone speaker
-// the guitar amp's output level (its distortion is set by its own drive; this evens it with the other sounds)
-const AMP_OUT = 0.146;
+// the guitar amp's output level (its distortion is set by its own drive): its chugs as loud as the other sounds
+// (A-weighted, measured; a chord rung once on the Neck sounds 2.7 dB over them)
+const AMP_OUT = 0.2;
 // The bass's limiter (user, 2026-10-27: "the bass sounds distorted on the phone speakers, less in headphones";
 // measured offline at 100%): its own make-up gain (+2.3 dB, Web Audio spec) is taken back, so it no longer
 // drives every peak into the soft clip (2.7% of a low phrase's samples were in the clip, 0.03% now), and it
@@ -570,21 +571,24 @@ export const PAD_SOUNDS = {
   } },
   // a distorted rock and metal rhythm guitar (user, 2026-10-27): power chords (`chord`: root, 5th and octave, an
   // octave under the chord, as a guitar plays them; full chords turn to mud under distortion), each note a saw,
-  // bright at the pick and mellowing, double-tracked (two takes a few cents and ms apart, left and right), struck
-  // on each bar, through the amp (`amp`: its drive, a clipping curve, a 4×12 cabinet's tone)
-  guitar: { level: 1, struck: true, amp: true, release: 0.09, chord: (m) => [m[0] - 12, m[0] - 5, m[0]], voice(x, f, when, g, peak) {
+  // bright at the pick and mellowing, double-tracked (two takes a few cents and ms apart, left and right),
+  // through the amp (`amp`: its drive, a clipping curve, a 4×12 cabinet's tone). In the room it chugs (user,
+  // 2026-10-27: "chug the guitar"): palm-muted strikes, one on each subdivision (`chugNote`); a chord tapped on
+  // the Neck rings once (`muted` false)
+  guitar: { level: 1, struck: true, amp: true, chug: true, release: 0.09, chord: (m) => [m[0] - 12, m[0] - 5, m[0]], voice(x, f, when, g, peak, muted = false) {
     const out = [];
-    for (const [side, cents, late] of [[-1, -4, 0], [1, 5, 0.011]]) {
+    for (const [side, cents, late] of [[-1, -4, 0], [1, 5, muted ? 0.006 : 0.011]]) {
       const t = when + late;
       const s = osc(x, 'sawtooth', f, cents + (Math.random() - 0.5) * 2, t, null);
       const pick = x.createBiquadFilter();
       pick.type = 'lowpass'; pick.Q.value = 0.7;
-      pick.frequency.setValueAtTime(Math.min(9000, f * 24), t);
-      pick.frequency.setTargetAtTime(Math.min(4000, f * 8), t, 0.08);
+      pick.frequency.setValueAtTime(Math.min(9000, f * (muted ? 14 : 24)), t);
+      pick.frequency.setTargetAtTime(Math.min(4000, f * (muted ? 4 : 8)), t, muted ? 0.03 : 0.08);
       const env = x.createGain();
       env.gain.setValueAtTime(0, t);
       env.gain.linearRampToValueAtTime(1, t + 0.003);
-      env.gain.setTargetAtTime(0.5, t + 0.003, 0.6);
+      // (a palm on the strings damps them at once)
+      env.gain.setTargetAtTime(muted ? 0.15 : 0.5, t + 0.003, muted ? 0.07 : 0.6);
       const p = x.createStereoPanner();
       p.pan.value = side * 0.85;
       s.connect(pick).connect(env).connect(p).connect(g);
@@ -702,6 +706,26 @@ export function arpNote(midi, when = now(), rate = 4) {
   const each = Math.min(2, Math.sqrt(4 / Math.max(0.01, rate)));
   for (const o of kind.voice(ac, midiToFreq(midi), when, g, 0.16 * kind.level * each)) o.stop(when + 1.5);
   g.connect(padBus);
+  return g;
+}
+
+/**
+ * One palm-muted strike of the guitar's power chord at `when` on its amp (user, 2026-10-27: "chug the guitar"):
+ * the engine plays one on each subdivision of the beat, in the groove's feel, as the arpeggio; `rate` strikes a
+ * second (faster ones a little shorter), `accent` the beat's own (3 dB up). Returns its gain node.
+ */
+export function chugNote(midis, when = now(), rate = 4, accent = false) {
+  audioCtx();
+  const kind = PAD_SOUNDS.guitar;
+  const notes = kind.chord(midis);
+  const g = ac.createGain();
+  g.gain.value = 0;
+  const len = Math.min(0.3, 0.85 / Math.max(0.5, rate));
+  const peak = (0.16 / Math.sqrt(notes.length)) * kind.level * (accent ? 1.41 : 1);
+  for (const m of notes) for (const o of kind.voice(ac, midiToFreq(m), when, g, peak, true)) o.stop(when + len + 0.15);
+  g.gain.setValueAtTime(peak, when + len);
+  g.gain.setTargetAtTime(0, when + len, 0.02);
+  g.connect(ampIn);
   return g;
 }
 

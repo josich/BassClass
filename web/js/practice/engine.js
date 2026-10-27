@@ -121,6 +121,19 @@ export class Room {
           if (k) this.ahead.push([t, node]);
         }
       } else this.arpSig = null;
+    } else if (A.PAD_SOUNDS[this.o.hSound]?.chug) {
+      // the guitar chugs: its palm-muted power chord on each subdivision, in the groove's feel, the beat's own
+      // accented
+      if (this.hSig != null || this.hSwitch) { A.padStop(t0); this.hSig = null; }
+      if (sound) {
+        const at = clickTimes(this._pattern(), L);
+        for (const [k, f] of at.entries()) {
+          const t = t0 + f * len;
+          const node = A.chugNote(sound, t, (this.bpm * at.length) / 60, k === 0);
+          if (k) this.ahead.push([t, node]);
+        }
+      }
+      this.arpSig = null;
     } else {
       const sig = sound ? sound.join() : null;
       // (a struck sound, the e-piano, is struck again on each bar so a long chord does not die away)
