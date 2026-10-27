@@ -59,11 +59,14 @@ export function parseBackup(text) {
 }
 
 /** Replaces every BassClass record on this device with the backup's. The page must reload after it. */
+// (Pro stays the device's own: a backup never turns it on or off, QA round 19: a one-word edit of the file must not
+// open Pro; a buyer's new phone gets it back from Google Play, Restore purchase)
+const KEEP = new Set(['bassclass.pro.v1']);
 export function restoreBackup(data) {
   const old = Object.fromEntries(ownKeys().map((k) => [k, localStorage.getItem(k)]));
   try {
-    for (const k of Object.keys(old)) localStorage.removeItem(k);
-    for (const [k, s] of Object.entries(data)) localStorage.setItem(k, s);
+    for (const k of Object.keys(old)) if (!KEEP.has(k)) localStorage.removeItem(k);
+    for (const [k, s] of Object.entries(data)) if (!KEEP.has(k)) localStorage.setItem(k, s);
   } catch (err) {
     // (storage full or blocked: put the device's own records back)
     try {

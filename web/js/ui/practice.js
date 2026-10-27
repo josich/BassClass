@@ -29,13 +29,13 @@ const INFO = [
   '✋ Drag Start anywhere on the screen',
 ];
 const DRUM_INFO = [
-  '🥁 A drummer to play with: Change opens the patterns (by genre, a search, your ★ favourites), then press Start',
+  '🥁 A drummer to play with: Change opens the patterns (by genre, your ★ favourites and recent ones), then press Start',
   '🎚 A pattern sets its metre, its usual tempo and its subdivision',
   '🎵 Subdivision: fewer or more notes of the pattern (16ths: its fills)',
   '🔢 In odd metres the drums play the grouping you tap on the beat lights ("played 3 + 2 + 2")',
   '💥 Fills: a crash at each phrase and a fill at its end, every 4 or 8 bars',
   '🔇 Muted bars and Speed up work on the drums too',
-  '📶 The drums load once (about 2 MB) and then play offline',
+  '📴 The drums play offline',
 ];
 
 // subdivision icons, drawn (phone fonts may lack the note characters): a quarter, two 8ths, a triplet, four 16ths
@@ -74,7 +74,7 @@ const HARMONY_INFO = [
   '🎼 Pick a key and a progression: pop and rock, blues, jazz, minor, vamps',
   '✎ My progression: your own chords by degree (the Key moves them); ✎ Edit copies a progression into it',
   '🎼 My progression is in a major or a minor key: Minor turns the usual chords into the minor key\'s (I → i, vi → ♭VI)',
-  '🎛 Sound: a pad, an electric piano, a grand piano (recorded: about 1 MB the first time), an organ, a distorted rock guitar (power chords, chugging) or an arpeggio (the guitar and the arpeggio move with the Subdivision); another one plays from the next beat',
+  '🎛 Sound: a pad, an electric piano, a recorded grand piano, an organ, a distorted rock guitar (power chords, chugging) or an arpeggio (the guitar and the arpeggio move with the Subdivision); another one plays from the next beat',
   '🎸 The chords sit above the Neck in order, each lit while it sounds; Chord or Scale shows it on the neck, with the next change (over a drone, your scale on its key)',
   '🔇 Muted bars silence the harmony too, while the chords go on',
   '⏱ It follows the metronome and the drums: start it with the floating button',
@@ -438,7 +438,7 @@ export function practiceScreen(main, params = {}) {
         drumState.textContent = '';
         set({ drums: false });
         drawDrums(); drawOpts();
-        toast('The drums need an internet connection the first time', 3500);
+        toast('The drums could not load. Try again.', 3500);
       });
   };
   const redraw = () => { drawDrums(); drawOpts(); drawLights(); drawUnit(); drawHarmony(); };
@@ -451,7 +451,7 @@ export function practiceScreen(main, params = {}) {
       .then(() => { pianoState.textContent = ''; })
       .catch(() => {
         pianoState.textContent = '';
-        toast('The piano needs an internet connection the first time: the e-piano plays meanwhile', 3500);
+        toast('The piano could not load: the e-piano plays meanwhile', 3500);
       });
   };
   // ---- the shared picker for the drum patterns and the progressions
@@ -474,7 +474,8 @@ export function practiceScreen(main, params = {}) {
       })),
       current: room.style, open: room.genre,
       favs: room.drumFavs, recent: room.drumRecent,
-      onLocked: openPro,
+      // (a Pro pattern: the Pro sheet; bought, it plays; closed, the picker opens again where it was)
+      onLocked: (why, k) => openPro(why, { then: () => { set({ drumRecent: recentWith(room.drumRecent, k) }); pickStyle(k); }, cancel: openDrums }),
       onGroup: (g) => set({ genre: g }),
       onFav: (k, on) => set({ drumFavs: favsWith(room.drumFavs, k, on) }),
       onPick: (k) => { set({ drumRecent: recentWith(room.drumRecent, k) }); pickStyle(k); },
@@ -528,14 +529,14 @@ export function practiceScreen(main, params = {}) {
           class: room.drums === v ? 'on' : '',
           onClick: () => drumsOn(v),
         }, v ? 'On' : 'Off')))),
-      // the pattern playing; Change opens them all (the shared picker: by genre, a search, ★ favourites)
+      // the pattern playing; Change opens them all (the shared picker: by genre, ★ favourites, recent)
       // (in the player's own grouping, the line says so)
       pickNow(s.name, `${GENRES.find((g) => g.key === s.genre).name} · ${styleSub(s)}${played(s)}`, openDrums),
       // fills: off by default; a crash at each phrase and a fill at its end (user, 2026-10-27)
       h('div', { class: 'room-field' }, h('label', {}, 'Fills'),
         h('div', { class: 'seg' }, [[0, 'Off'], [4, 'Every 4 bars'], [8, 'Every 8 bars']].map(([v, l]) => h('button', {
           class: room.fills === v ? 'on' : v && fillsLock() ? 'locked' : '', type: 'button',
-          onClick: () => { if (v && fillsLock()) { openPro(fillsLock()); return; } if (room.fills !== v) { set({ fills: v }); drawDrums(); } },
+          onClick: () => { if (v && fillsLock()) { openPro(fillsLock(), { then: () => { set({ fills: v }); drawDrums(); } }); return; } if (room.fills !== v) { set({ fills: v }); drawDrums(); } },
         }, l, v ? proChip(fillsLock()) : null)))),
       h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal));
   };
@@ -631,14 +632,14 @@ export function practiceScreen(main, params = {}) {
       items: HARMONY_PROGS.flatMap(([g, keys]) => keys.map((k) => ({ key: k, name: progName(k), group: g, sub: progSub(k).split(' · ').filter((w) => w !== g && w !== 'Yours').join(' · '), lock: progLock(k) }))),
       current: room.hProg,
       favs: room.progFavs, recent: room.progRecent,
-      onLocked: openPro,
+      onLocked: (why, k) => openPro(why, { then: () => { set({ progRecent: recentWith(room.progRecent, k) }); mineAt = null; setHarmony({ hProg: k }); }, cancel: openProgs }),
       onFav: (k, on) => set({ progFavs: favsWith(room.progFavs, k, on) }),
       onPick: (k) => { set({ progRecent: recentWith(room.progRecent, k) }); mineAt = null; setHarmony({ hProg: k }); },
     });
   };
   /** A preset copied into My progression, to change it. */
   const editPreset = () => {
-    if (progLock(MINE)) { openPro(progLock(MINE)); return; }
+    if (progLock(MINE)) { openPro(progLock(MINE), { then: editPreset }); return; }
     const copy = mineFrom(room.hProg);
     // (yours is not lost without a word)
     const yours = JSON.stringify(room.myProg) !== JSON.stringify(MINE_START);
@@ -738,7 +739,7 @@ export function practiceScreen(main, params = {}) {
       mode === 'off' ? null : h('div', { class: 'room-field' }, h('label', {}, 'Sound'),
         h('div', { class: 'seg' }, [['pad', 'Pad'], ['epiano', 'E-piano'], ['piano', 'Piano'], ['organ', 'Organ'], ['guitar', 'Guitar'], ['arp', 'Arpeggio']].map(([v, l]) => h('button', {
           class: room.hSound === v ? 'on' : soundLock(v) ? 'locked' : '', type: 'button',
-          onClick: () => { if (soundLock(v)) { openPro(soundLock(v)); return; } if (room.hSound !== v) { setHarmony({ hSound: v }); ensurePiano(); } },
+          onClick: () => { if (soundLock(v)) { openPro(soundLock(v), { then: () => { setHarmony({ hSound: v }); ensurePiano(); } }); return; } if (room.hSound !== v) { setHarmony({ hSound: v }); ensurePiano(); } },
         }, l, proChip(soundLock(v))))), pianoState),
       mode === 'off' ? null : h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal),
     ].filter(Boolean));
@@ -797,6 +798,8 @@ export function practiceScreen(main, params = {}) {
   if (params.to === 'neck') requestAnimationFrame(() => neck.el.scrollIntoView({ block: 'start' }));
 
   return {
+    // (Pro bought or taken back: the blocks redraw in place, so what was playing goes on)
+    proChanged: () => { const free = freeRoom(room); if (free) set(free); redraw(); },
     dispose: () => {
       engine.stop();
       for (const b of [slower, faster, slower5, faster5]) b.stopHold();

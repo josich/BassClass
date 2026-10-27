@@ -34,7 +34,8 @@ function goals() {
 
 /** An exercise's goal: { bpm, sub } or null (one full loop is enough). */
 export const goalOf = (id) => goals().get(id) || null;
-const SUB_NAMES = { 1: 'quarters', 2: '8ths', 3: 'triplets', 4: '16ths', 6: '16ths' };
+/** What a goal tempo counts in ("92 BPM in 8ths"): one list for the Library, the lessons and the session (QA round 19). */
+export const SUB_NAMES = { 0.25: 'whole notes', 0.5: 'half notes', 1: 'quarter notes', 2: '8ths', 3: 'triplets', 4: '16ths', 5: 'quintuplets', 6: 'sextuplets' };
 /** The goal in words: "92 BPM in 8ths", "120 BPM", or "one full loop". */
 export function goalText(id) {
   const g = goalOf(id);

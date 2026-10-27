@@ -3,7 +3,7 @@
 import { midiToFreq } from './theory.js';
 
 let ac = null;
-let bassBus, bassVolume, clickBus, fullPath, phonePath, padBus, padTone, padRaw, leslieIn, ampIn, drumBus, drumVolume, accompIn;
+let bassBus, bassVolume, clickBus, fullPath, phonePath, padBus, padTone, padRaw, drumBus, drumVolume, accompIn;
 const PAD_LEVEL = 0.38;   // the pad's level at volume 1 (the Practice room's harmony can set its own)
 const ACCOMP_THRESHOLD = -3.0;   // dB: the accompaniment's limiter (see audioCtx)
 /** A DynamicsCompressor's own make-up gain (hard knee), as Chrome applies it (Web Audio spec): linear. */
@@ -185,10 +185,7 @@ export function audioCtx() {
     padRaw = ac.createGain();
     padRaw.gain.value = PAD_LEVEL * opts.padVol;
     padRaw.connect(padAlign);
-    // (the organ plays through its rotating speaker, into the same)
-    leslieIn = leslie(ac, padRaw);
-    // (the guitar through its amp, into the same)
-    ampIn = amp(ac, padRaw);
+    // (the organ's rotating speaker and the guitar's amp, into the same, are built when first played: fxIn)
 
     // drums (the Practice room): their own chain, after the bass's limiter (a kick never ducks the bass);
     // the drum volume comes after it, so the chain shapes the drums alike at any volume
@@ -525,9 +522,10 @@ export const PAD_SOUNDS = {
     return [carrier, mod, tine];
   } },
   // a grand piano (user, 2026-10-27): the recorded Kawai of web/js/piano.js, each note from the nearest of its
-  // notes (two or three semitones apart), struck again on each bar, past the tone filter (`raw`); until it has
-  // loaded, the e-piano plays in its place
-  piano: { level: 8.2, struck: true, raw: true, release: 0.18, voice(x, f, when, g, peak) {
+  // notes (two semitones apart), struck again on each bar, past the tone filter (`raw`), 1 dB over the e-piano
+  // (A-weighted, measured again for the notes an octave lower, QA round 19); until it has loaded, the e-piano plays
+  // in its place
+  piano: { level: 9.6, struck: true, raw: true, release: 0.18, voice(x, f, when, g, peak) {
     if (!pianoBank) return PAD_SOUNDS.epiano.voice(x, f, when, g, (peak * PAD_SOUNDS.epiano.level) / PAD_SOUNDS.piano.level);
     const midi = 69 + 12 * Math.log2(f / 440);
     let near = null;
@@ -575,7 +573,7 @@ export const PAD_SOUNDS = {
   // (`pluck`, user, 2026-10-27: "more realistic, no sample"), open or palm-muted, a little different at every
   // strike. In the room it chugs ("chug the guitar"): palm-muted strikes, one on each subdivision (`chugNote`);
   // a chord tapped on the Neck rings once (`muted` false)
-  guitar: { level: 1, struck: true, amp: true, chug: true, release: 0.09, chord: (m) => [m[0] - 12, m[0] - 5, m[0]], voice(x, f, when, g, peak, muted = false) {
+  guitar: { level: 1, struck: true, amp: true, chug: true, release: 0.09, chord: powerChord, voice(x, f, when, g, peak, muted = false) {
     const out = [];
     const midi = Math.round(69 + 12 * Math.log2(f / 440));
     // (the two takes keep their places and levels at every strike: user, 2026-10-27, it "feels like panning
@@ -628,11 +626,47 @@ function leslie(x, to) {
     const pg = x.createGain(); pg.gain.value = pan; b.connect(pg).connect(p.pan);
     const bg = x.createGain(); bg.gain.value = bend; b.connect(bg).connect(d.delayTime);
     input.connect(split).connect(d).connect(level).connect(p).connect(to);
+    oscs.push(a, b);
+    outs.push(p);
   };
+  const oscs = [], outs = [];
   rotor('highpass', 800, 2.6, 0.3, 0.85, 0.0005);
   rotor('lowpass', 800, 2.1, 0.15, 0.45, 0.0002);
-  return input;
+  return { input, stop: () => { for (const o of oscs) { try { o.stop(); } catch { /* stopped */ } } input.disconnect(); for (const n of outs) n.disconnect(); } };
 }
+
+// The organ's rotating speaker and the guitar's amp are built the first time they play and taken down once unused
+// (QA round 19: running from the first sound of a session, they cost several times the idle graph, on a phone too):
+// the organ's while none of its chords sound, the amp's 20 s after its last strike.
+const fx = { leslie: null, amp: null, used: { leslie: 0, amp: 0 }, timer: null };
+function fxIn(kind) {
+  fx.used[kind] = performance.now();
+  if (!fx[kind]) fx[kind] = kind === 'leslie' ? leslie(ac, padRaw) : amp(ac, padRaw);
+  if (!fx.timer) fx.timer = setInterval(fxSweep, 5000);
+  return fx[kind].input;
+}
+function fxSweep() {
+  const now = performance.now();
+  for (const k of ['leslie', 'amp']) {
+    if (!fx[k] || now - fx.used[k] < 20000 || padVoices.some((v) => v.fx === k)) continue;
+    fx[k].stop();
+    fx[k] = null;
+  }
+  if (!fx.leslie && !fx.amp) { clearInterval(fx.timer); fx.timer = null; }
+}
+/**
+ * The guitar's shape of a chord (its notes from the room's voicing, root first): root, 5th and octave, an octave
+ * under the chord. Its own 5th (QA round 19: a perfect 5th over m7♭5 or °7 is the wrong chord): perfect, ♭5 (°, ø, °7,
+ * 7♭5) or ♯5 (+, 7♯5, maj7♯5), read from the notes within the octave; a chord that dropped its plain 5th for a 9th,
+ * 11th or 13th keeps the perfect one; an altered dominant (♯9 and ♭13, no 5th of its own) plays root and octave.
+ */
+function powerChord(m) {
+  const r = m[0], d = new Set(m.map((x) => x - r));
+  if (!d.has(7) && d.has(20) && (d.has(15) || d.has(13))) return [r - 12, r];
+  const fifth = d.has(7) ? 7 : d.has(6) ? 6 : d.has(8) ? 8 : 7;
+  return [r - 12, r - 12 + fifth, r];
+}
+
 /**
  * A plucked string (an extended Karplus–Strong string), computed in code, once per note, way of playing, take
  * and variant (cached per audio context; three variants played in turn, so repeated strikes differ as a hand's
@@ -735,8 +769,9 @@ function amp(x, to) {
     for (let i = 0; i < len; i++) { lp += 0.25 * (Math.random() * 2 - 1 - lp); d[i] = lp * Math.exp(-i / (x.sampleRate * 0.07)); }
   }
   room.buffer = ir;
-  out.connect(room).connect(gain(0.2)).connect(to);
-  return input;
+  const wet = gain(0.2);
+  out.connect(room).connect(wet).connect(to);
+  return { input, stop: () => { input.disconnect(); out.disconnect(); wet.disconnect(); } };
 }
 // a key's click (the organ's contacts), made once per audio context
 const clicks = new WeakMap();
@@ -797,7 +832,7 @@ export function chugNote(midis, when = now(), rate = 4, accent = false) {
   for (const m of notes) for (const o of kind.voice(ac, midiToFreq(m), when, g, peak, true)) o.stop(when + len + 0.15);
   g.gain.setValueAtTime(peak, when + len);
   g.gain.setTargetAtTime(0, when + len, 0.02);
-  g.connect(ampIn);
+  g.connect(fxIn('amp'));
   return g;
 }
 
@@ -830,8 +865,9 @@ export function padSet(midis, when = now(), sound = 'pad') {
     g.gain.value = 0;
     g.gain.setValueAtTime(0, when);
     const oscs = kind.voice(ac, midiToFreq(m), when, g, peak);
-    g.connect(kind.leslie ? leslieIn : kind.amp ? ampIn : kind.raw && pianoBank ? padRaw : padBus);
-    padVoices.push({ g, osc: oscs, release: kind.release });
+    const fxKind = kind.leslie ? 'leslie' : kind.amp ? 'amp' : null;
+    g.connect(fxKind ? fxIn(fxKind) : kind.raw && pianoBank ? padRaw : padBus);
+    padVoices.push({ g, osc: oscs, release: kind.release, fx: fxKind });
   }
 }
 

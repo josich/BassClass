@@ -409,7 +409,8 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .chip.goal { color: #dba85a; }
 
 .home-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
-@media (min-width: 700px) { .home-cols { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); } }
+/* (the session and the favourites share the width evenly: the session's rows carry titles only; user, 2026-10-27) */
+@media (min-width: 700px) { .home-cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 .home-cols .course-block { grid-column: 1 / -1; background: linear-gradient(135deg, #1d3a45, var(--panel) 65%); border-color: #2d5560; }
 .lv-name { font-size: 12.5px; font-weight: 700; color: var(--muted); }
 .lv-jump { margin: -4px 0 6px; }
@@ -432,6 +433,7 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 }
 .course-go span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 .course-done { font-weight: 700; color: var(--accent); }
+.course-wall { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .session-path { display: flex; gap: 6px; flex-wrap: wrap; }
 .session-path .chip { margin: 0; }
 .session-sub { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 4px 0 -2px; }
@@ -606,6 +608,8 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .step-row .t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .step-row .chip.var { margin-left: 6px; font-weight: 600; vertical-align: 1px; }
 .step-row .tempo { color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.step-row .tempo { flex-wrap: wrap; column-gap: 0.3em; row-gap: 0; flex: initial; }
+.step-row .by-mastery { color: var(--good); }
 .step-row .go { color: var(--dim); display: grid; flex: none; }
 .step-row .go svg { width: 18px; height: 18px; }
 .step-row b .chip { margin-left: 6px; vertical-align: 1px; }
@@ -870,15 +874,18 @@ input[type="range"] { touch-action: pan-y; }
 .les-row.locked .num, .les-row.locked .tt, .les-row.locked .st, .seg button.locked { color: var(--dim); }
 .card.locked .ex-num, .card.locked .meta > .chip:not(.pro) { opacity: 0.7; }
 .card.locked .chip.pro, .les-row.locked .chip.pro, .picker-card.locked .chip.pro, .seg button.locked .chip.pro { color: #e9bd73; opacity: 1; }
-.picker-card.locked .picker-pick b { display: inline-flex; align-items: center; gap: 4px; }
+.picker-pick small .chip.pro { margin: 0 5px 0 0; font-size: 9px; padding: 0 5px; }
 .seg button .chip.pro { margin-left: 5px; font-size: 9px; padding: 0 5px; }
-.course-go .chip.pro { margin-left: 6px; }
+/* (inside the green Continue: dark gold, readable, never squeezed: QA round 19) */
+.course-go .chip.pro { margin-left: 6px; flex: none; background: #2b2108; color: #f2cf7e; border-color: #8a6a2a; }
 .pro-sheet { max-width: 520px; }
-.pro-body { padding: 4px 18px 18px; overflow-y: auto; }
+/* (the list scrolls; Buy and Restore stay in view at the foot, on the smallest landscape phones too: QA round 19) */
+.pro-body { flex: 1 1 auto; min-height: 0; padding: 4px 18px 6px; overflow-y: auto; overscroll-behavior: contain; }
+.pro-foot { flex: none; padding: 0 18px 4px; }
 .pro-why { font-weight: 700; color: #e9bd73; margin: 6px 0 10px; }
 .pro-list { margin: 0 0 10px; padding-left: 4px; list-style: none; display: grid; gap: 7px; font-size: 14px; }
 .pro-msg { color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font-size: 13px; }
-.pro-actions { gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.pro-actions { gap: 10px; margin-top: 4px; flex-wrap: wrap; align-items: center; }
 .pro-buy { min-width: 220px; }
 .pro-owned { font-weight: 700; color: #e9bd73; }
 .dev-panel { border: 1px dashed #e9bd73; margin-bottom: 14px; }

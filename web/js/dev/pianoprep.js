@@ -1,8 +1,10 @@
 // Dev tool (not used by the app at runtime): builds the Practice room's piano (user, 2026-10-27, chosen by ear
 // from a clip: "yes add the piano") in web/audio/piano/: one Ogg Opus file a note (<midi>.ogg) and piano.json.
 // The notes are the Kawai grand of the Versilian Community Sample Library (VCSL, Versilian Studios, CC0), its
-// sustained mezzo-forte layer (v3) from D3 to A5, a note every two or three semitones (the app plays the others
-// by shifting the nearest), staged in web/_raw/kits/vcsl/ (not committed). Each note from its onset, at most
+// sustained mezzo-forte layer (v3) sounding from D3 to C6, a note every two semitones (the app plays the others
+// by shifting the nearest), staged in web/_raw/kits/vcsl/ (not committed). VCSL names these notes an octave low
+// (its lowest key is "A-1"): the file "D2" sounds D3, so each is stored at its label + 12 (QA round 19: the piano
+// played an octave high). Each note from its onset, at most
 // KEEP s, faded over its last FADE s (a chord is struck again on each bar), all at one gain (their recorded
 // balance kept), stereo at 96 kb/s: about 1.2 MB. The app fetches them on first use (web/js/piano.js), as
 // the drums.
@@ -11,7 +13,8 @@ import { encodeOpus } from './drumprep.js';
 
 const SR = 48000;
 const DIR = '/_raw/kits/vcsl/Chordophones/Zithers/Grand%20Piano,%20Kawai/Sustains/';
-const NOTES = ['D3', 'E3', 'F#3', 'G#3', 'A#3', 'C4', 'D4', 'E4', 'F#4', 'G#4', 'A#4', 'C5', 'D#5', 'F#5', 'A5'];
+// (the files' labels; each sounds an octave above it)
+const NOTES = ['D2', 'E2', 'F#2', 'G#2', 'A#2', 'C3', 'D3', 'E3', 'F#3', 'G#3', 'A#3', 'C4', 'D4', 'E4', 'F#4', 'G#4', 'A#4', 'C5'];
 const KEEP = 6.5, FADE = 1.5;
 const PC = { C: 0, 'C#': 1, D: 2, 'D#': 3, E: 4, F: 5, 'F#': 6, G: 7, 'G#': 8, A: 9, 'A#': 10, B: 11 };
 const midiOf = (n) => { const m = n.match(/^([A-G]#?)(-?\d)$/); return 12 * (Number(m[2]) + 1) + PC[m[1]]; };
@@ -41,7 +44,7 @@ export async function run() {
       for (let i = 0; i < f && i < len; i++) y[len - f + i] *= 0.5 + 0.5 * Math.cos((Math.PI * i) / f);
       return y;
     });
-    notes.push({ midi: midiOf(n), chs: out });
+    notes.push({ midi: midiOf(n) + 12, chs: out });
   }
   let peak = 0;
   for (const { chs } of notes) for (const c of chs) for (const v of c) peak = Math.max(peak, Math.abs(v));
@@ -58,14 +61,14 @@ export async function run() {
     name: 'Grand Piano, Kawai: Versilian Community Sample Library (VCSL), Versilian Studios',
     license: 'CC0-1.0',
     source: 'https://github.com/sgossner/VCSL (Chordophones/Zithers/Grand Piano, Kawai/Sustains, v3)',
-    v: 1,
+    v: 2,
     notes: files,
   }, null, 1), 'application/json');
   await put('LICENSE.txt', [
     'Piano: the Kawai grand piano of the Versilian Community Sample Library (VCSL) by Versilian Studios,',
     'released under CC0 1.0 Universal (public domain): https://creativecommons.org/publicdomain/zero/1.0/',
-    'Source: https://github.com/sgossner/VCSL (its sustained mezzo-forte notes from D3 to A5), trimmed, faded',
-    'and encoded as Opus for BassClass by web/js/dev/pianoprep.js.',
+    'Source: https://github.com/sgossner/VCSL (its sustained mezzo-forte notes sounding from D3 to C6, the files',
+    'named D2 to C5), trimmed, faded and encoded as Opus for BassClass by web/js/dev/pianoprep.js.',
     '',
   ].join('\n'), 'text/plain');
   return { files: notes.length, kb: Math.round(bytes / 1024) };

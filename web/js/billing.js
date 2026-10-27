@@ -61,6 +61,8 @@ export async function buy(id, consumable = false) {
   const d = n ? await ask((req) => n.billingBuy(id, !!consumable, req)) : PLAY ? { result: 'error', error: 'Google Play is not available' } : await sim.buy(id, consumable);
   note(`buy ${id}: ${d.result}${d.error ? ` (${d.error})` : ''}`);
   if (!consumable && (d.result === 'ok' || d.result === 'owned') && id === PRO_ID) setOwned(true);
+  // (a pending purchase is looked for at every return to the app until it completes, QA round 19)
+  if (!consumable && d.result === 'pending' && id === PRO_ID) pendingPro = true;
   return d.result || 'error';
 }
 
@@ -74,20 +76,34 @@ export async function prices() {
 }
 
 let lastSync = 0;
+let pendingPro = false;
 /**
  * Asks Google Play what the account owns and follows it: a purchase made on another phone (or before a reinstall)
  * turns Pro on; a refund turns it off, but only when a second check at least a day after the first miss still
- * finds nothing (a phone offline or a slow Play never takes Pro away by mistake). `force`: now, whatever the time.
- * Resolves true when Pro is owned.
+ * finds nothing (a phone offline or a slow Play never takes Pro away by mistake). `force`: now, whatever the time
+ * (otherwise at most every 30 minutes, unless a purchase is pending). Resolves true when Pro is owned.
  */
 export async function syncPro({ force = false } = {}) {
-  if (!gatesOn()) return true;
-  if (!force && Date.now() - lastSync < 30 * 60 * 1000) return proRecord().owned;
+  return (await check({ force })).owned;
+}
+/** Restore purchase: 'owned', 'none', or 'error' when Google Play could not be asked (never "not bought" then). */
+export async function restorePro() {
+  const r = await check({ force: true });
+  return r.error ? 'error' : r.owned ? 'owned' : 'none';
+}
+async function check({ force }) {
+  if (!gatesOn()) return { owned: true };
+  if (!force && !pendingPro && Date.now() - lastSync < 30 * 60 * 1000) return { owned: proRecord().owned };
   lastSync = Date.now();
   const n = native();
   const d = n ? await ask((req) => n.billingOwned(req)) : PLAY ? { result: 'error' } : await sim.owned();
-  if (d.result !== 'ok') { note(`check: ${d.result} (nothing changed)`); return proRecord().owned; }
+  if (d.result !== 'ok') { note(`check: ${d.result} (nothing changed)`); return { owned: proRecord().owned, error: true }; }
   const has = (d.ids || []).includes(PRO_ID);
+  if (has) pendingPro = false;
+  return { owned: settle(has) };
+}
+/** What the check found, applied: Pro on, kept for a day after a first miss, or taken back after it. */
+function settle(has) {
   const r = proRecord();
   if (has) {
     if (!r.owned || r.miss) { setOwned(true); note('check: Pro owned'); }

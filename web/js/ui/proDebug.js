@@ -9,16 +9,20 @@ import { STAGES, LESSONS, UNITS } from '../course/data.js';
 import { LEVELS, EXERCISES, moduleOf } from '../curriculum/index.js';
 import { STYLES, GENRES } from '../practice/styles.js';
 import { progName } from '../practice/harmony.js';
-import { syncPro, billingLog, pretendDayPassed, canBuy, prices } from '../billing.js';
-import { openPro, tip } from './proSheet.js';
+import { syncPro, restorePro, billingLog, pretendDayPassed, canBuy, prices } from '../billing.js';
+import { openPro, tip, FREE_LINE } from './proSheet.js';
 
 /** The Pro card and Support BassClass (the tips), for Settings; nothing while the gates are off. */
 export function proFields(field) {
   if (!gatesOn()) return [];
   const mine = owned();
+  // (one at a time; Google Play not reached is not "never bought": QA round 19)
+  let restoring = false;
   const restore = async () => {
-    const on = await syncPro({ force: true });
-    toast(on && owned() ? 'Pro restored: thank you!' : 'No purchase of Pro was found on this Google account', 3000);
+    if (restoring) return;
+    restoring = true;
+    const r = await restorePro().finally(() => { restoring = false; });
+    toast(r === 'owned' ? 'Pro restored: thank you!' : r === 'error' ? 'Google Play could not be reached. Try again.' : 'No purchase of Pro was found on this Google account', 3000);
   };
   // the offer: gold, with its full price (Google Play's, in the player's currency, once it answers; user, 2026-10-27:
   // "add the full price and make the button appealing")
@@ -36,7 +40,7 @@ export function proFields(field) {
     ...(canBuy() ? TIPS.map(([id, label]) => h('button', { class: 'btn', 'data-tip': id, onClick: () => tip(id) }, `💛 Tip ${label}`)) : []));
   // (the tips' prices in the player's currency)
   if (canBuy()) prices().then((p) => tipRow.querySelectorAll('[data-tip]').forEach((b) => { if (p[b.dataset.tip]) b.textContent = `💛 Tip ${p[b.dataset.tip]}`; })).catch(() => {});
-  out.push(field('Support BassClass', tipRow, ['⭐ A rating and a few words on Google Play help other bass players find BassClass', '☕ A tip helps: buy me a coffee', '🔓 Neither unlocks anything: Pro is the same for everyone']));
+  out.push(field('Support BassClass', tipRow, ['⭐ A rating and a few words on Google Play help other bass players find BassClass', '☕ A tip helps: buy me a coffee', '🔓 Neither unlocks anything: they just say thank you']));
   return out;
 }
 
@@ -52,16 +56,20 @@ function proDetails() {
   const out = [head('⭐ BassClass Pro opens all of this, for good:')];
   // the Course
   const stages = STAGES.filter((s) => s.level > FREE_LEVELS);
-  const lessonsOf = (s) => LESSONS.filter((l) => l.stage === s && l.kind === 'lesson');
+  // (lessons as the map counts them, the optional ones apart: QA round 19)
+  const lessonsOf = (s) => LESSONS.filter((l) => l.stage === s && l.kind === 'lesson' && !l.optional);
+  const optional = LESSONS.filter((l) => stages.includes(l.stage) && l.kind === 'lesson' && l.optional).length;
   const units = UNITS.filter((u) => stages.includes(u.stage));
-  out.push(head(`🎓 Course Stages ${FREE_LEVELS + 1}–6: ${stages.reduce((a, s) => a + lessonsOf(s).length, 0)} lessons in ${units.length} units, with their checkpoints, stage tests and reviews`));
+  out.push(head(`🎓 Course Stages ${FREE_LEVELS + 1}–6: ${stages.reduce((a, s) => a + lessonsOf(s).length, 0)} lessons${optional ? ` (and ${optional} optional ones)` : ''} in ${units.length} units, with their checkpoints, stage tests and reviews`));
   for (const s of stages) {
     out.push(`Stage ${s.level} · ${s.title}: ${lessonsOf(s).length} lessons`);
     for (const u of units.filter((x) => x.stage === s)) out.push(sub(`${u.n}. ${u.title}`));
   }
   // the Library
   const pro = EXERCISES.filter((t) => t.level > FREE_LEVELS);
-  out.push(head(`📚 Library Levels ${FREE_LEVELS + 1}–6: ${pro.length} more exercises, each in every key with its own variations`));
+  const songs = pro.filter((t) => t.module === 'music').length;
+  // ("most in every key": the rhythm drills and the song studies keep theirs, QA round 19)
+  out.push(head(`📚 Library Levels ${FREE_LEVELS + 1}–6: ${pro.length} more exercises (${songs} of them song-style studies, with their backing), most in every key, each with its own variations`));
   for (const L of LEVELS.filter((x) => x.n > FREE_LEVELS)) {
     const list = pro.filter((t) => t.level === L.n);
     const byTopic = new Map();
@@ -69,8 +77,6 @@ function proDetails() {
     out.push(`Level ${L.n} · ${L.name}: ${list.length} exercises`);
     out.push(sub([...byTopic].map(([m, n]) => `${moduleOf(m)?.name || m} ${n}`).join(' · ')));
   }
-  const songs = pro.filter((t) => t.module === 'music').length;
-  if (songs) out.push(head(`🎵 ${songs} more song-style studies, with their backing`));
   // the Practice room
   const room = proRoomItems();
   out.push(head(`🥁 ${room.styles.length} more drum patterns (all ${Object.keys(STYLES).length}), and fills every 4 or 8 bars`));
@@ -85,7 +91,7 @@ function proDetails() {
   out.push(head(`🎛 ${sounds.length} more sounds for the harmony`));
   out.push(...sounds.map((k) => sub(PRO_SOUND_NOTES[k] || k)));
   out.push(head('✨ And everything we add next: new levels, lessons, studies, patterns and sounds'));
-  out.push(head(`🆓 Always free: Levels 1–${FREE_LEVELS}, the tuner, the metronome, the practice log and backup`));
+  out.push(head(`🆓 Always free: ${FREE_LINE}, the practice log and backup`));
   out.push('💳 One payment, yours for good: no subscription, no ads. A new phone: Restore purchase.');
   return out;
 }

@@ -20,7 +20,8 @@ import { proFields, devTaps, devPanel } from './proDebug.js';
 /** Goes to an address in the app; one that is Pro (an exercise, a lesson) opens the Pro sheet instead. */
 export const go = (hash) => {
   const why = hashLock(hash);
-  if (why) { openPro(why); return; }
+  // (bought there and then, "Let's play" opens it)
+  if (why) { openPro(why, { then: () => { location.hash = hash; } }); return; }
   location.hash = hash;
 };
 /** The small "Pro" chip of something a free player cannot open (`why`: its reason, or null). */
@@ -344,7 +345,6 @@ export function settingsScreen(main) {
     h('div', { class: 'page-head' }, h('h1', {}, 'Settings')),
     ...[devPanel(rerender)].filter(Boolean),
     h('div', { class: 'form' },
-      ...proFields(field),
       field('Strings', seg('strings', [[4, '4-string'], [5, '5-string (low B)'], [6, '6-string (low B, high C)']]), 'Exercises adapt their fingerings to your instrument.'),
       field('Note names', seg('notation', [['letters', 'C D E'], ['solfege', 'Do Re Mi']])),
       field('Handedness', seg('lefty', [[false, 'Right-handed'], [true, 'Left-handed']]), 'Mirrors the fretboard.'),
@@ -365,10 +365,12 @@ export function settingsScreen(main) {
           A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol });
           settingsScreen(main);
           toast('Settings restored');
-        } }, 'Restore defaults')))),
+        } }, 'Restore defaults'))),
+      // Pro and Support after the bass's own settings: the offer is one tap away on every Pro item (QA round 19)
+      ...proFields(field)),
     // the credits, the licences and the legal texts: About (also the rail's logo)
-    h('div', { class: 'row about-row' }, h('button', { class: 'btn', onClick: () => go('#/about') }, 'ⓘ About BassClass: credits, licences, privacy')),
+    h('div', { class: 'row about-row' }, h('button', { class: 'btn', onClick: () => go('#/about') }, 'About BassClass: credits, licences, privacy')),
     // the release number (written by the build) and the commit it was built from (seven taps: the Pro debug panel,
     // test builds only)
-    devTaps(h('p', { class: 'muted small version' }, infoBtn(['📴 Works offline once loaded', '🎸 Recorded CC0 bass samples (Karoryfer "darkblack"), a synth as backup', ...(location.hostname === 'appassets.androidplatform.net' ? [] : ['📲 Browser menu → Add to Home screen: full screen, landscape'])], 'About BassClass'), ' ', VERSION ? `BassClass ${VERSION}${COMMIT ? ` · build ${COMMIT}` : ''}` : `BassClass · development version${COMMIT ? ` · build ${COMMIT}` : ''}`), rerender));
+    devTaps(h('p', { class: 'muted small version' }, infoBtn(['📴 Works offline once loaded', ...(location.hostname === 'appassets.androidplatform.net' ? [] : ['📲 Browser menu → Add to Home screen: full screen, landscape'])], 'About BassClass'), ' ', VERSION ? `BassClass ${VERSION}${COMMIT ? ` · build ${COMMIT}` : ''}` : `BassClass · development version${COMMIT ? ` · build ${COMMIT}` : ''}`), rerender));
 }

@@ -1,10 +1,10 @@
 // The Practice room's piano (user, 2026-10-27): the Kawai grand of the Versilian Community Sample Library
-// (Versilian Studios, CC0), a note every two or three semitones from D3 to A5 (Ogg Opus in web/audio/piano/,
+// (Versilian Studios, CC0), a note every two semitones from D3 to C6 (Ogg Opus in web/audio/piano/,
 // made by web/js/dev/pianoprep.js; the app plays the others by shifting the nearest). Like the drums it loads on
 // first use, from the app's own files (inside the Android app too: about 1 MB), and stays in the browser's cache.
 import * as A from './audio.js';
 
-const VERSION = 1;   // bump when the files change: they are fetched (and cached) again
+const VERSION = 2;   // bump when the files change: they are fetched (and cached) again (2: an octave lower, QA round 19)
 const BASES = ['audio/piano/'];
 const CACHE = `bassclass-piano-v${VERSION}`;
 

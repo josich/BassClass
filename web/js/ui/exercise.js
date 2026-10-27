@@ -11,11 +11,11 @@ import * as T from '../theory.js';
 import { moduleOf, LEVELS, defaultParams } from '../curriculum/index.js';
 import { CYCLE_OPTS, PROGS, tonicFor } from '../curriculum/common.js';
 import { harmonyTrack, harmonyAt, NO_BACKING } from '../harmony.js';
-import { recordLoop, rememberTempo, stepState, stepPassed, stepClean, setClean, isDue, isComplete, reviewed } from '../course/progress.js';
-import { goalOf, goalText as masteryGoal, meetsGoal, setMastered } from '../mastery.js';
+import { recordLoop, rememberTempo, stepState, stepPassed, stepClean, stepCovered, setClean, isDue, isComplete, reviewed } from '../course/progress.js';
+import { goalOf, goalText as masteryGoal, meetsGoal, setMastered, isMastered, SUB_NAMES } from '../mastery.js';
 
-// what a lesson step's goal tempo counts in ("goal 96 BPM in 8ths")
-export const SUB_NAMES = { 0.25: 'whole notes', 0.5: 'half notes', 1: 'quarter notes', 2: '8ths', 3: 'triplets', 4: '16ths', 5: 'quintuplets', 6: 'sextuplets' };
+// what a lesson step's goal tempo counts in ("goal 96 BPM in 8ths"; the list lives in mastery.js)
+export { SUB_NAMES };
 const SUBS = [['0.25', 'Whole'], ['0.5', 'Half'], ['1', '♩ 1/beat'], ['2', '♪ 2/beat'], ['3', '3 triplets'], ['4', '4 16ths'], ['5', '5 quint.'], ['6', '6 sext.']];
 // the modules whose drills have no backing (see harmony.js), named for the greyed Backing's toast
 const NO_BACKING_NAME = { technique: 'technique drills', rhythm: 'rhythm drills', fretboard: 'note-finding drills', intervals: 'interval drills', ear: 'ear training' };
@@ -482,11 +482,17 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       reviewing = false;
       toast(`Reviewed ✓ Next review in ${days} days`, 3000);
     } else if (stepClean(L, LI)) {
-      // a ticked step stays ticked here (a second tap must not undo a lesson): untick it on the lesson page
-      tip('Already ticked ✓. To practise this step again from scratch, untick it on the lesson page.');
+      // a ticked step stays ticked here (a second tap must not undo a lesson): untick it on the lesson page, or,
+      // when the exercise's mastery ticks it, take ✓ Mastered back in the Library (QA round 19)
+      tip(stepCovered(L, LI)
+        ? 'Already ticked ✓: you mastered this exercise. To practise this step again from scratch, open it in the Library and take back ✓ Mastered (under ⋯).'
+        : 'Already ticked ✓. To practise this step again from scratch, untick it on the lesson page.');
     } else {
+      const ex = L.steps[LI].ex, was = isMastered(ex);
       const complete = setClean(L, LI, true);
-      toast(complete ? `${lessonName} complete ✓` : 'Step done ✓', complete ? 3000 : 1800);
+      // (a step at least as hard as the exercise's goal masters it everywhere: say so, QA round 19)
+      const mastered = !was && isMastered(ex) ? ' · the exercise is ✓ mastered in the Library too' : '';
+      toast(`${complete ? `${lessonName} complete ✓` : 'Step done ✓'}${mastered}`, complete || mastered ? 3000 : 1800);
       if (nextBtn && !routine) {
         nextBtn.classList.add('primary');
         if (complete) { lessonDone = true; nextBtn.replaceChildren('Done ›'); nextBtn.title = 'Back to the lesson'; }
@@ -589,6 +595,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       const inLesson = lesson && !demo && g && stepState(L.id, LI).best >= g.bpm && (g.sub == null || (LS.sub ?? g.sub) >= g.sub);
       const anyLoop = !g && (pr.plays > 0 || (lesson && stepState(L.id, LI).loops > 0));
       if (!pr.met && !inLesson && !anyLoop) {
+        closeMore(); // (the tip sits where the menu was: QA round 19)
         tip(`🎯 To master it: ${g ? `a full loop at ${masteryGoal(tpl.id)}` : 'one full loop'}, then ✓ Mastered`);
         return;
       }

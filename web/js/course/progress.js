@@ -137,6 +137,8 @@ const covered = (lesson, i) => !!lesson.steps[i] && masteryCovers(lesson.steps[i
 /** Has this step's tempo goal been reached (no goal: one full loop played), here or by mastering its exercise? */
 export const stepPassed = (lesson, i) => ownPassed(lesson, i) || covered(lesson, i);
 export const stepClean = (lesson, i) => ownClean(lesson, i) || covered(lesson, i);
+/** Is this step ticked by its exercise's mastery (then only unmastering it takes the tick back: QA round 19)? */
+export const stepCovered = covered;
 /** A step passed and ✓ Clean that is at least as hard as its exercise's goal masters the exercise everywhere. */
 function masterFrom(lesson, i) {
   const step = lesson.steps[i];

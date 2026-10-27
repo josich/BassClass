@@ -48,7 +48,7 @@ export function openPicker(o) {
           // (the Pro sheet opens once the picker's own history entry is gone, or Back would close it at once)
           const why = it.lock;
           let done = false;
-          const show = () => { if (!done) { done = true; o.onLocked?.(why); } };
+          const show = () => { if (!done) { done = true; o.onLocked?.(why, it.key); } };
           if (history.state?.picker) { addEventListener('popstate', () => setTimeout(show, 0), { once: true }); setTimeout(show, 400); }
           close();
           if (!history.state?.picker) show();
@@ -58,7 +58,8 @@ export function openPicker(o) {
         o.onPick(it.key);
         refocus();
       } },
-        h('b', {}, it.name, it.lock ? h('span', { class: 'chip pro' }, 'Pro') : null), h('small', {}, `${where}${it.sub || ''}`)),
+        // (the Pro chip on the small line, so a long name keeps its room: QA round 19)
+        h('b', {}, it.name), h('small', {}, it.lock ? h('span', { class: 'chip pro' }, 'Pro') : null, `${where}${it.sub || ''}`)),
       h('button', {
         class: `picker-star${fav ? ' on' : ''}`, type: 'button', html: icon(fav ? 'star' : 'starO'),
         'aria-label': fav ? `Remove ${it.name} from favourites` : `Add ${it.name} to favourites`,

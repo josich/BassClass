@@ -12,7 +12,7 @@
 // The gates are on only in the Play Store build (`window.BASS_STORE === 'play'`, set by that build) or, for
 // testing, with the debug switch (Settings: seven taps on the version line). Everywhere else (the web version, the
 // GitHub APK) nothing is locked and nothing changes. The purchase itself: web/js/billing.js.
-import { byId } from './curriculum/index.js';
+import { byId, byNumber } from './curriculum/index.js';
 import { lessonById } from './course/data.js';
 import { STYLES, GENRES } from './practice/styles.js';
 import { HARMONY_PROGS, MINE } from './practice/harmony.js';
@@ -22,7 +22,7 @@ export const TIPS = [['bassclass_tip_2', '€2'], ['bassclass_tip_4', '€4']];
 /** The price shown until Google Play gives the player's own (in their currency). */
 export const PRICE = '€7.99';
 export const FREE_LEVELS = 3;
-const FREE_DRUMS = 3;   // patterns of each genre
+export const FREE_DRUMS = 3;   // patterns of each genre
 const FREE_PROG_GROUPS = new Set(['Pop & rock', 'Blues']);
 export const FREE_SOUNDS = new Set(['pad', 'epiano', 'arp']);
 /** Each Pro sound's line in Settings' Pro details (a new Pro sound adds its own: the self-test checks it). */
@@ -87,9 +87,11 @@ const levelWhy = (n) => `Level ${n} is part of BassClass Pro`;
 /** Why an exercise is closed (a reason to show), or null. Inside a free lesson its steps always play. */
 export function exerciseLock(t, ls = '') {
   if (isPro() || !t) return null;
+  // (only when that step of that lesson really is this exercise: QA round 19, any free lesson's `ls` opened them all)
   if (ls) {
-    const L = lessonById.get(String(ls).split('.')[0]);
-    if (L) return lessonLock(L);
+    const [lid, n] = String(ls).split('.');
+    const L = lessonById.get(lid);
+    if (L && L.steps[Number(n)]?.ex === t.id) return lessonLock(L);
   }
   const m = marked(t);
   if (m) return m === 'pro' ? `${t.title} is part of BassClass Pro` : null;
@@ -105,13 +107,14 @@ export function lessonLock(L) {
 /** A course stage (or a Library level) beyond the free ones. */
 export const levelLocked = (n) => !isPro() && n > FREE_LEVELS;
 
-const FREE_STYLE = (() => {
+export const FREE_STYLE = (() => {
   const free = new Set();
+  // (the three of each genre chosen by hand, `free: true` in styles.js, QA round 19; a genre without any: its first three)
   for (const g of GENRES) {
-    const list = Object.values(STYLES).filter((s) => s.genre === g.key && s.free !== false && !s.pro);
-    for (const s of list.slice(0, FREE_DRUMS)) free.add(s.key);
+    const list = Object.values(STYLES).filter((s) => s.genre === g.key && !s.pro);
+    const chosen = list.filter((s) => s.free === true);
+    for (const s of chosen.length ? chosen : list.slice(0, FREE_DRUMS)) free.add(s.key);
   }
-  for (const s of Object.values(STYLES)) if (s.free === true) free.add(s.key);
   return free;
 })();
 export function styleLock(key) {
@@ -141,7 +144,8 @@ export function hashLock(hash) {
   const [path, query] = String(hash || '').replace(/^#/, '').split('?');
   const parts = path.split('/').filter(Boolean);
   if (parts[0] === 'ex') {
-    const t = byId.get(parts[1]);
+    // (by its id, or by its number, as the router opens it: QA round 19)
+    const t = byId.get(parts[1]) || (/^\d+$/.test(parts[1] || '') ? byNumber.get(Number(parts[1])) : null);
     return t ? exerciseLock(t, new URLSearchParams(query || '').get('ls') || '') : null;
   }
   if (parts[0] === 'course' && parts[1] && parts[1] !== 'placement') return lessonLock(lessonById.get(parts[1]));
@@ -169,7 +173,8 @@ export function proRoomItems() {
 
 /** What Pro opens, counted from the data (for the Pro sheet). */
 export function proContents(EXERCISES, LESSONS) {
-  const ex = EXERCISES.filter((t) => !t.free && (t.pro || t.level > FREE_LEVELS)).length;
-  const les = LESSONS.filter((l) => l.kind === 'lesson' && (l.pro || l.stage?.level > FREE_LEVELS)).length;
-  return { ex, les, styles: Object.keys(STYLES).length };
+  const ex = EXERCISES.filter((t) => !t.free && (t.pro || t.level > FREE_LEVELS));
+  // (lessons as the map counts them, the optional ones apart: QA round 19)
+  const les = LESSONS.filter((l) => l.kind === 'lesson' && (l.pro || l.stage?.level > FREE_LEVELS));
+  return { ex: ex.length, songs: ex.filter((t) => t.module === 'music').length, les: les.filter((l) => !l.optional).length, optional: les.filter((l) => l.optional).length, styles: Object.keys(STYLES).length };
 }

@@ -8,6 +8,7 @@ import { VERSION, COMMIT } from '../version.js';
 import { canGoBack, goBack } from './nav.js';
 import { go } from './screens.js';
 import { FREE_LEVELS } from '../pro.js';
+import { FREE_LINE } from './proSheet.js';
 
 /** The developer's name and contact address, once chosen (LAUNCH-TODO.md): shown here and in the privacy policy. */
 const DEVELOPER = '';
@@ -19,11 +20,17 @@ const section = (title, open, ...kids) => h('details', { class: 'lv-fold about-f
 const p = (...kids) => h('p', {}, ...kids);
 const li = (...kids) => h('li', {}, ...kids);
 
-/** A licence file of the app (audio/<what>/LICENSE.txt), shown as it is. */
+/**
+ * A licence file of the app, its paragraphs joined so they wrap to the screen (the files are hard-wrapped at about
+ * 100 characters) and the developer tools' paths left out (QA round 19).
+ */
 function licenceFile(path) {
-  const pre = h('pre', { class: 'about-licence' }, 'Loading…');
-  fetch(path).then((r) => (r.ok ? r.text() : Promise.reject())).then((t) => { pre.textContent = t.trim(); }).catch(() => { pre.textContent = `(${path} could not be read)`; });
-  return pre;
+  const box = h('div', { class: 'about-licence' }, 'Loading…');
+  fetch(path).then((r) => (r.ok ? r.text() : Promise.reject())).then((t) => {
+    const paras = t.trim().split(/\n\s*\n/).map((x) => x.replace(/\s*\n\s*/g, ' ').replace(/ by web\/js\/dev\/[a-z]+\.js/g, '').trim());
+    box.replaceChildren(...paras.map((x) => h('p', {}, x)));
+  }).catch(() => { box.textContent = `(${path} could not be read)`; });
+  return box;
 }
 
 export function aboutScreen(main) {
@@ -58,28 +65,36 @@ export function aboutScreen(main) {
 
     section('🎼 The content', false,
       p('The exercises, lessons, licks, grooves, drum patterns and progressions were written for BassClass. The song-style studies are original lines in the style of famous songs: they keep a song\'s key, feel and technique, never its notes, and are not transcriptions. Song titles, artists and the methods named in an exercise\'s sources are mentioned for reference only; BassClass is not affiliated with or endorsed by them, and their names and trademarks belong to their owners.'),
-      p('BassClass uses no third-party code, fonts or tracking: everything in it was written for it.')),
+      p('BassClass has no tracking, no ads and no third-party web code or fonts: the app itself was written for it. The Android app is built with a few open-source libraries (below).')),
+
+    section('🧩 Open-source libraries', false,
+      p('The Android app uses these libraries, each under the Apache License 2.0:'),
+      h('ul', { class: 'about-list' },
+        li(h('b', {}, 'AndroidX WebKit '), 'and the AndroidX libraries it uses: Copyright The Android Open Source Project.'),
+        li(h('b', {}, 'The Kotlin standard library: '), 'Copyright JetBrains s.r.o. and Kotlin Programming Language contributors.')),
+      p('Licensed under the Apache License, Version 2.0 (the "License"); you may not use these files except in compliance with the License. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. The License in full:'),
+      licenceFile('licenses/APACHE-2.0.txt')),
 
     section('🔒 Privacy policy', false,
       p(`Last updated: ${UPDATED}.`),
       p('BassClass collects no personal data. It has no account, no ads, no analytics and no tracking, and it sends nothing about you anywhere.'),
       h('ul', { class: 'about-list' },
-        li(h('b', {}, 'Your progress stays on your device. '), 'Settings, progress, the course, sessions, favourites and the practice log are stored only on your phone (or in your browser). Uninstalling the app (or clearing the browser\'s data) deletes them.'),
+        li(h('b', {}, 'Your progress stays on your device. '), 'Settings, progress, the course, sessions, favourites and the practice log are stored on your phone (or in your browser), and BassClass never sends them anywhere. Android\'s own backup, when it is on in your phone\'s settings, may copy the app\'s data to your Google account and bring it back on a new phone; otherwise uninstalling the app (or clearing the browser\'s data) deletes them.'),
         li(h('b', {}, 'Backups are yours. '), 'A backup is a file saved where you choose; BassClass never sends it anywhere.'),
         li(h('b', {}, 'The microphone '), 'is used only by the tuner, only while it is open, and only on your device: the sound is analysed to find the pitch and is never recorded, stored or sent.'),
         li(h('b', {}, 'Purchases '), 'are made through Google Play. BassClass receives only whether a purchase was made; Google\'s own privacy policy covers your payment.'),
-        li(h('b', {}, 'Network: '), 'the Android app works without an internet connection; it talks only to Google Play, for purchases. The web version loads the app from its site.'),
+        li(h('b', {}, 'Network: '), 'the Android app works without an internet connection; it talks only to Google Play, for purchases. The web version loads the app from its site, GitHub Pages, which, like any web server, may log visitors\' IP addresses.'),
         li(h('b', {}, 'Children: '), 'BassClass is not directed to children under 13 and collects no data from anyone.')),
       CONTACT ? p(`Questions: ${CONTACT}`) : null),
 
     section('🧾 Terms of the purchase', false,
       h('ul', { class: 'about-list' },
-        li(`BassClass is free to use: Levels 1–${FREE_LEVELS} of the course and the Library, the tuner and the metronome, with no time limit.`),
+        li(`BassClass is free to use, with no time limit: ${FREE_LINE}.`),
         li('BassClass Pro is a one-time purchase made through Google Play, tied to your Google account. It is yours for good: no subscription, no ads. On a new phone, use Restore purchase with the same Google account.'),
         li(`Pro opens Levels ${FREE_LEVELS + 1}–6, every drum pattern and the fills, every progression and My progression, the extra sounds, and what we add to them later. What is free today stays free.`),
         li('Prices are shown by Google Play in your currency. Refunds follow Google Play\'s refund policy; a refunded purchase closes Pro again.'),
-        li('Tips are optional, unlock nothing, and are not refundable once used, as Google Play allows.'))),
+        li('Tips are optional and unlock nothing; refunds follow Google Play\'s policy.'))),
 
     section('⚠ Good to know', false,
-      p('Practise at a comfortable volume, with headphones too, and take breaks: stop if your hands or wrists hurt. BassClass is provided as it is, without warranty; it is a practice tool, not a substitute for a teacher\'s care.')));
+      p('Practise at a comfortable volume, also with headphones, and take breaks: stop if your hands or wrists hurt. BassClass is provided as is, without warranty; it is a practice tool, not a substitute for a teacher\'s care.')));
 }

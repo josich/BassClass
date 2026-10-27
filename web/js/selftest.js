@@ -14,7 +14,7 @@ import * as T from './theory.js';
 import { GENRES } from './practice/styles.js';
 import { HARMONY_PROGS, PROG_KEYS } from './practice/harmony.js';
 import { PAD_SOUNDS } from './audio.js';
-import { FREE_SOUNDS, FREE_LEVELS, PRO_SOUND_NOTES, isPro, gatesOn, exerciseLock, lessonLock, styleLock, progLock } from './pro.js';
+import { FREE_SOUNDS, FREE_LEVELS, FREE_DRUMS, FREE_STYLE, PRO_SOUND_NOTES, isPro, gatesOn, exerciseLock, lessonLock, styleLock, progLock } from './pro.js';
 
 function combos(params, limit = 400, strings = 4) {
   const keys = Object.keys(params);
@@ -50,7 +50,8 @@ function checkDrums(problems) {
     if (!levelsOf(s).includes(s.sub)) problems.push(`drums ${s.key}: subdivision ${s.sub}`);
     if (!(s.beats >= 1 && s.beats <= 12)) problems.push(`drums ${s.key}: ${s.beats} beats`);
     // its phrases with fills: every piece in the kit, every stroke inside its beat, at its usual tempo and fast
-    for (const bpm of [s.bpm, 200]) for (const every of [4, 8]) for (let bar = 0; bar < every; bar++) for (let beat = 0; beat < s.beats; beat++) {
+    // (and each of the four fills that take turns)
+    for (const bpm of [s.bpm, 200]) for (const every of [4, 8]) for (let bar = 0; bar < every * 4; bar++) for (let beat = 0; beat < s.beats; beat++) {
       for (const [f, p, v] of phraseHits(s, s.sub, bar, beat, every, bpm)) {
         if (!PIECES.has(p) || !(f >= 0 && f < 1) || !(v > 0 && v <= 1)) problems.push(`drums ${s.key}: fill bar ${bar} beat ${beat} ${p} ${f} ${v}`);
       }
@@ -84,6 +85,9 @@ function checkPro(problems) {
   for (const g of GENRES) {
     const list = Object.values(STYLES).filter((s) => s.genre === g.key);
     if (list.length < 3) problems.push(`pro: genre ${g.key} has fewer than 3 patterns (3 are free)`);
+    // (the free three are chosen by hand, `free: true` in styles.js: QA round 19)
+    const free = list.filter((s) => FREE_STYLE.has(s.key)).length;
+    if (free !== FREE_DRUMS) problems.push(`pro: genre ${g.key} has ${free} free patterns, not ${FREE_DRUMS}`);
   }
   for (const v of FREE_SOUNDS) if (!PAD_SOUNDS[v]) problems.push(`pro: free sound ${v} does not exist`);
   // (Settings' Pro details name every Pro sound: a new one needs its line)

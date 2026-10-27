@@ -74,8 +74,12 @@ function route() {
   // before it stays, and the Pro sheet opens (MONETIZATION-PLAN.md)
   const why = hashLock(location.hash);
   if (why) {
-    replaceHash(hashLock(lastHash) ? '#/' : lastHash);
-    openPro(why);
+    const want = location.hash;
+    const to = hashLock(lastHash) ? '#/' : lastHash;
+    const open = () => openPro(why, { then: () => { location.hash = want; } });
+    // (the sheet opens once the screen it covers is drawn again, so its history entry sits above that screen's,
+    // with the right depth: QA round 19)
+    if (location.hash !== to) { addEventListener('hashchange', () => setTimeout(open, 0), { once: true }); replaceHash(to); } else open();
     return;
   }
   lastHash = location.hash || '#/';
@@ -187,9 +191,11 @@ document.addEventListener('click', (e) => {
   if (!why) return;
   e.preventDefault();
   e.stopPropagation();
-  openPro(why);
+  const href = a.getAttribute('href');
+  openPro(why, { then: () => { location.hash = href; } });
 }, true);
-window.addEventListener('bassclass-pro', () => route());
+// (the Practice room redraws in place, so what it was doing goes on; the other screens are drawn again)
+window.addEventListener('bassclass-pro', () => { if (active?.proChanged) active.proChanged(); else route(); });
 setTimeout(() => { if (gatesOn()) syncPro(); }, 2500);
 document.addEventListener('visibilitychange', () => { if (!document.hidden && gatesOn()) syncPro(); });
 // a scroll that starts on a slider does not move it
