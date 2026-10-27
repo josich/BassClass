@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- the app's files (audio/drums/…) resolve from the site root, as in the app -->
+<base href="/">
+<title>Drum lab</title>
+<!-- Dev tool (not used by the app; user, 2026-10-27): tune the Practice room's drum kit by ear. Each piece
+     (kick, snare, hi-hat, ride, crash, toms) takes its sound from one of the candidate kits staged in
+     web/_raw/kits/ (see drumlab.js), with its volume, room (overheads against close mics), tone, body and
+     length, over any of the room's patterns, through the app's own drum chain. The settings are kept in this
+     browser (localStorage "drumlab.v1"); Claude reads them to build the kit. -->
+<style>
+  :root { --page: #0f1b2d; --card: #172741; --line: #2a3d5e; --ink: #e8eefc; --soft: #94a3c4; --teal: #2fb5a8; --peach: #f2a477; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 14px 16px 40px; background: var(--page); color: var(--ink); font: 14px/1.4 system-ui, sans-serif; }
+  h1 { font-size: 18px; margin: 0 0 2px; }
+  p.note { margin: 0 0 12px; color: var(--soft); font-size: 12px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+  button, select, input[type=number] { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; min-height: 34px; }
+  button { cursor: pointer; }
+  button.on, button.play { background: var(--teal); border-color: var(--teal); color: #08131f; font-weight: 600; }
+  button.play.playing { background: var(--peach); border-color: var(--peach); }
+  input[type=number] { width: 72px; }
+  .presets button { font-size: 13px; }
+  table { border-collapse: collapse; width: 100%; background: var(--card); border-radius: 10px; overflow: hidden; }
+  th, td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+  th { font-size: 11px; color: var(--soft); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+  td.name { font-weight: 600; white-space: nowrap; }
+  .sl { display: flex; align-items: center; gap: 6px; min-width: 120px; }
+  .sl input { width: 100%; accent-color: var(--teal); }
+  .sl span { width: 52px; text-align: right; font-variant-numeric: tabular-nums; color: var(--soft); font-size: 12px; }
+  .sl.off { opacity: .35; }
+  td select { max-width: 230px; }
+  .small { font-size: 12px; color: var(--soft); }
+  #status { color: var(--peach); }
+  textarea { width: 100%; min-height: 90px; margin-top: 10px; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; font: 12px ui-monospace, monospace; display: none; }
+</style>
+</head>
+<body>
+<h1>Drum lab</h1>
+<p class="note">Pick a groove, press Play, then change each piece's kit and sliders while it plays. Presets switch whole kits. Everything is saved in this browser.</p>
+<div class="bar">
+  <select id="pattern"></select>
+  <label class="small">BPM <input id="bpm" type="number" min="30" max="300"></label>
+  <button id="play" class="play">▶ Play</button>
+  <label class="small sl" style="min-width:200px">Drums <input id="drums" type="range" min="0" max="100"><span id="drumsV"></span></label>
+  <span id="status">Loading the kits…</span>
+</div>
+<div class="bar presets" id="presets"></div>
+<table>
+  <thead><tr><th>Piece</th><th>Kit</th><th>Volume</th><th>Room</th><th>Tone</th><th>Body</th><th>Length</th><th></th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+<div class="bar" style="margin-top:12px">
+  <button id="reset">Reset sliders</button>
+  <button id="copy">Show settings</button>
+  <span class="small">Room: the overhead mics against the close ones (not on a stereo-only kit). Tone: the highs. Body: the lows. Length: shorter cuts the ring and the room's tail.</span>
+</div>
+<textarea id="out" readonly></textarea>
+<script type="module" src="/js/dev/drumlab.js"></script>
+</body>
+</html>
