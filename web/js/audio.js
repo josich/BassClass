@@ -481,25 +481,54 @@ export const PAD_SOUNDS = {
     g.gain.setTargetAtTime(peak, when, 0.12);
     return [['sawtooth', -6], ['triangle', 5]].map(([type, cents]) => osc(x, type, f, cents, when, g));
   } },
-  // an electric piano (FM): a sine carrier, a sine at the same pitch bending its tone, bright at the strike,
-  // and a short tine; it fades like a struck tine
-  epiano: { level: 2.03, struck: true, release: 0.25, voice(x, f, when, g, peak) {
-    const carrier = osc(x, 'sine', f, 0, when, g);
-    const mod = osc(x, 'sine', f, 0, when, null);
-    const depth = x.createGain();
-    depth.gain.setValueAtTime(f * 2.2, when);
-    depth.gain.setTargetAtTime(f * 0.35, when, 0.25);
-    mod.connect(depth).connect(carrier.frequency);
-    const tine = osc(x, 'sine', f * 14, 0, when, null);
-    const tineDepth = x.createGain();
-    tineDepth.gain.setValueAtTime(f * 1.5, when);
-    tineDepth.gain.setTargetAtTime(0, when, 0.03);
-    tine.connect(tineDepth).connect(carrier.frequency);
-    g.gain.setValueAtTime(0, when);
-    g.gain.linearRampToValueAtTime(peak, when + 0.004);
-    g.gain.setTargetAtTime(peak * 0.55, when + 0.004, 0.25);
-    g.gain.setTargetAtTime(peak * 0.2, when + 0.6, 1.6);
-    return [carrier, mod, tine];
+  // an electric piano as a Rhodes makes its sound (user, 2026-10-27: "more natural, less synthy", without
+  // samples): a struck tine rings nearly as a pure tone, and its pickup (an asymmetric soft curve) adds the
+  // warm, slightly barking harmonics, more at the strike and the lower notes, fewer as the ring fades; the
+  // tine's own high mode dings at the strike, the hammer thumps softly, the suitcase's tremolo pans it gently;
+  // each strike a little louder or softer, and the chord's notes a few ms apart, low to high (`strum`)
+  epiano: { level: 8.8, struck: true, release: 0.12, strum: 0.009, voice(x, f, when, g, peak) {
+    const vel = 0.85 + Math.random() * 0.3;
+    const low = Math.min(1.5, Math.max(0.7, Math.sqrt(262 / f)));
+    const drive = 0.6 * vel * low;
+    const tine = osc(x, 'sine', f, (Math.random() - 0.5) * 5, when, null);
+    const ring = x.createGain();
+    ring.gain.setValueAtTime(0, when);
+    ring.gain.linearRampToValueAtTime(drive, when + 0.0015);
+    ring.gain.setTargetAtTime(drive * 0.62, when + 0.0015, 0.14);
+    ring.gain.setTargetAtTime(0, when + 0.3, 0.9 + 1.2 * low);
+    const pick = x.createWaveShaper();
+    pick.curve = pickupCurve();
+    pick.oversample = '2x';
+    const out = x.createGain();
+    out.gain.value = 1.4;
+    tine.connect(ring).connect(pick).connect(out);
+    // the tine's second mode (a cantilever's, 6.27 times its pitch) at the strike
+    const ding = osc(x, 'sine', Math.min(f * 6.27, 7000), 0, when, null);
+    const dg = x.createGain();
+    dg.gain.setValueAtTime(0.06 * vel, when);
+    dg.gain.setTargetAtTime(0, when, 0.025);
+    ding.connect(dg).connect(out);
+    // the hammer's soft thump
+    const thump = x.createBufferSource();
+    thump.buffer = noiseOf(x);
+    const band = x.createBiquadFilter();
+    band.type = 'bandpass'; band.frequency.value = Math.min(1800, f * 3); band.Q.value = 1.4;
+    const tg = x.createGain();
+    tg.gain.value = 0.045 * vel;
+    thump.connect(band).connect(tg).connect(out);
+    thump.start(when);
+    // the tremolo: the whole chord panning slowly, as one (after a high-pass: the pickup's offset curve leaves
+    // a slow swell of DC under each strike)
+    const dc = x.createBiquadFilter();
+    dc.type = 'highpass'; dc.frequency.value = 35; dc.Q.value = 0.7;
+    const pan = x.createStereoPanner();
+    const lfo = osc(x, 'sine', 4.4, 0, when, null);
+    const width = x.createGain();
+    width.gain.value = 0.3;
+    lfo.connect(width).connect(pan.pan);
+    out.connect(dc).connect(pan).connect(g);
+    g.gain.setValueAtTime(peak * vel, when);
+    return [tine, ding, lfo, thump];
   } },
   // a drawbar organ (8′ 4′ 2⅔′ 2′), held, with a slow chorus
   organ: { level: 1.5, struck: false, release: 0.06, voice(x, f, when, g, peak) {
@@ -530,6 +559,28 @@ export const PAD_SOUNDS = {
     return [osc(x, 'triangle', f, 0, when, g), osc(x, 'sine', f * 2, 3, when, body)];
   } },
 };
+// the e-piano's pickup: a soft curve, offset so its two halves differ (the even harmonics of a Rhodes pickup)
+let pickup = null;
+function pickupCurve() {
+  if (!pickup) {
+    const n = 2048, b = 0.35, k = 1.4, at = (v) => v / (1 + Math.abs(v) * k);
+    pickup = new Float32Array(n);
+    for (let i = 0; i < n; i++) pickup[i] = at((i / (n - 1)) * 2 - 1 + b) - at(b);
+  }
+  return pickup;
+}
+// a short burst of noise (a hammer's thump), made once per audio context
+const noises = new WeakMap();
+function noiseOf(x) {
+  let b = noises.get(x);
+  if (!b) {
+    b = x.createBuffer(1, Math.round(x.sampleRate * 0.03), x.sampleRate);
+    const d = b.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 2;
+    noises.set(x, b);
+  }
+  return b;
+}
 function osc(x, type, f, cents, when, to) {
   const o = x.createOscillator();
   o.type = type;
@@ -577,12 +628,15 @@ export function padSet(midis, when = now(), sound = 'pad') {
   if (!midis?.length) return;
   const kind = PAD_SOUNDS[sound] || PAD_SOUNDS.pad;
   const peak = (0.16 / Math.sqrt(midis.length)) * kind.level;
+  // (a struck chord's notes a few ms apart, low to high, as a hand plays them)
+  const order = [...midis].sort((a, b) => a - b);
   for (const m of midis) {
+    const at = when + (kind.strum ? order.indexOf(m) * kind.strum + Math.random() * 0.003 : 0);
     const g = ac.createGain();
     // silent from creation: cancelling its fade-in can never leave it at the default gain of 1
     g.gain.value = 0;
     g.gain.setValueAtTime(0, when);
-    const oscs = kind.voice(ac, midiToFreq(m), when, g, peak);
+    const oscs = kind.voice(ac, midiToFreq(m), at, g, peak);
     g.connect(padBus);
     padVoices.push({ g, osc: oscs, release: kind.release });
   }
