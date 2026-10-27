@@ -10,6 +10,9 @@ import { accentsFor, groupsOf } from '../practice/accents.js';
 import { settings, saveSettings } from '../store.js';
 import { loadKit, kitReady } from '../drums.js';
 import { loadPiano, pianoReady } from '../piano.js';
+import { styleLock, progLock, soundLock, fillsLock, freeRoom } from '../pro.js';
+import { openPro } from './proSheet.js';
+import { proChip } from './screens.js';
 import { neckPanel } from './neck.js';
 import { openPicker } from './picker.js';
 import { HARMONY_PROGS, progName, progression, keyName, isMinor, MINE, DEGREES, QUALITIES, LENGTHS, usualQuality, roman, mineFrom, scaleFor, MINE_START, mineBars } from '../practice/harmony.js';
@@ -152,6 +155,9 @@ export function practiceScreen(main, params = {}) {
   let shownTick = null;   // the last tick shown (the beat sounding now)
   let raf = null;
 
+  // (a choice that is Pro, made before the gates came on or Pro was taken back, goes back to a free one: pro.js)
+  const free = freeRoom(room);
+  if (free) saveRoom(free);
   // (saved settings that do not fit the drum pattern, after a change elsewhere, are brought back in line)
   if (room.drums && STYLES[room.style]) {
     const s = STYLES[room.style];
@@ -464,10 +470,11 @@ export function practiceScreen(main, params = {}) {
       title: 'Drum patterns', host: main,
       groups: GENRES.map((g) => ({ key: g.key, name: `${g.icon} ${g.name}` })),
       items: Object.values(STYLES).map((s) => ({
-        key: s.key, name: s.name, group: s.genre, sub: styleSub(s),
+        key: s.key, name: s.name, group: s.genre, sub: styleSub(s), lock: styleLock(s.key),
       })),
       current: room.style, open: room.genre,
       favs: room.drumFavs, recent: room.drumRecent,
+      onLocked: openPro,
       onGroup: (g) => set({ genre: g }),
       onFav: (k, on) => set({ drumFavs: favsWith(room.drumFavs, k, on) }),
       onPick: (k) => { set({ drumRecent: recentWith(room.drumRecent, k) }); pickStyle(k); },
@@ -528,8 +535,8 @@ export function practiceScreen(main, params = {}) {
       h('div', { class: 'room-field' }, h('label', {}, 'Fills'),
         h('div', { class: 'seg' }, [[0, 'Off'], [4, 'Every 4 bars'], [8, 'Every 8 bars']].map(([v, l]) => h('button', {
           class: room.fills === v ? 'on' : '', type: 'button',
-          onClick: () => { if (room.fills !== v) { set({ fills: v }); drawDrums(); } },
-        }, l)))),
+          onClick: () => { if (v && fillsLock()) { openPro(fillsLock()); return; } if (room.fills !== v) { set({ fills: v }); drawDrums(); } },
+        }, l, v ? proChip(fillsLock()) : null)))),
       h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal));
   };
   if (room.drums) ensureKit();
@@ -621,15 +628,17 @@ export function practiceScreen(main, params = {}) {
     closePicker = openPicker({
       title: 'Progressions', host: main,
       groups: HARMONY_PROGS.map(([g]) => ({ key: g, name: g })),
-      items: HARMONY_PROGS.flatMap(([g, keys]) => keys.map((k) => ({ key: k, name: progName(k), group: g, sub: progSub(k).split(' · ').filter((w) => w !== g && w !== 'Yours').join(' · ') }))),
+      items: HARMONY_PROGS.flatMap(([g, keys]) => keys.map((k) => ({ key: k, name: progName(k), group: g, sub: progSub(k).split(' · ').filter((w) => w !== g && w !== 'Yours').join(' · '), lock: progLock(k) }))),
       current: room.hProg,
       favs: room.progFavs, recent: room.progRecent,
+      onLocked: openPro,
       onFav: (k, on) => set({ progFavs: favsWith(room.progFavs, k, on) }),
       onPick: (k) => { set({ progRecent: recentWith(room.progRecent, k) }); mineAt = null; setHarmony({ hProg: k }); },
     });
   };
   /** A preset copied into My progression, to change it. */
   const editPreset = () => {
+    if (progLock(MINE)) { openPro(progLock(MINE)); return; }
     const copy = mineFrom(room.hProg);
     // (yours is not lost without a word)
     const yours = JSON.stringify(room.myProg) !== JSON.stringify(MINE_START);
@@ -729,8 +738,8 @@ export function practiceScreen(main, params = {}) {
       mode === 'off' ? null : h('div', { class: 'room-field' }, h('label', {}, 'Sound'),
         h('div', { class: 'seg' }, [['pad', 'Pad'], ['epiano', 'E-piano'], ['piano', 'Piano'], ['organ', 'Organ'], ['guitar', 'Guitar'], ['arp', 'Arpeggio']].map(([v, l]) => h('button', {
           class: room.hSound === v ? 'on' : '', type: 'button',
-          onClick: () => { if (room.hSound !== v) { setHarmony({ hSound: v }); ensurePiano(); } },
-        }, l))), pianoState),
+          onClick: () => { if (soundLock(v)) { openPro(soundLock(v)); return; } if (room.hSound !== v) { setHarmony({ hSound: v }); ensurePiano(); } },
+        }, l, proChip(soundLock(v))))), pianoState),
       mode === 'off' ? null : h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal),
     ].filter(Boolean));
     showChord();

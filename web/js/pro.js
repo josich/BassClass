@@ -1,0 +1,161 @@
+// BassClass Pro (MONETIZATION-PLAN.md; the user's decisions of 2026-10-27): a free app with one payment, once, that
+// opens the rest for good. Free, everywhere: Levels 1–3 (the Library's exercises and song studies, the Course's
+// Stages 1–3), the tuner, the whole metronome, the Neck, the drone, the log and backup, and the Practice room's
+// starter set (three drum patterns of each genre, the Pop & rock and Blues progressions, the Pad, E-piano and
+// Arpeggio sounds). Pro: Levels 4–6, every drum pattern and the fills, every progression and My progression, the
+// Piano, Organ and Guitar sounds, and whatever comes next.
+//
+// Built to grow: what is Pro is worked out from the data, so new content takes its side on its own. An exercise,
+// a lesson (or its unit or stage), a drum pattern or a progression marked `pro: true` is Pro whatever its level;
+// `free: true` makes it free. Anything above FREE_LEVELS is Pro.
+//
+// The gates are on only in the Play Store build (`window.BASS_STORE === 'play'`, set by that build) or, for
+// testing, with the debug switch (Settings: seven taps on the version line). Everywhere else (the web version, the
+// GitHub APK) nothing is locked and nothing changes. The purchase itself: web/js/billing.js.
+import { byId } from './curriculum/index.js';
+import { lessonById } from './course/data.js';
+import { STYLES, GENRES } from './practice/styles.js';
+import { HARMONY_PROGS, MINE } from './practice/harmony.js';
+
+export const PRO_ID = 'bassclass_pro';
+export const TIPS = [['bassclass_tip_2', '€2'], ['bassclass_tip_4', '€4']];
+/** The price shown until Google Play gives the player's own (in their currency). */
+export const PRICE = '€7.99';
+export const FREE_LEVELS = 3;
+const FREE_DRUMS = 3;   // patterns of each genre
+const FREE_PROG_GROUPS = new Set(['Pop & rock', 'Blues']);
+export const FREE_SOUNDS = new Set(['pad', 'epiano', 'arp']);
+
+export const STORE = (typeof window !== 'undefined' && window.BASS_STORE) || '';
+export const PLAY = STORE === 'play';
+
+// ---------------------------------------------------------------- what the player owns
+// `bassclass.pro.v1` (a backup carries it; the Play build trusts only what Google Play told it: `src` 'play'):
+// { owned, src: 'play' | 'test', miss: when Play first stopped reporting it (a refund), or null }
+const KEY = 'bassclass.pro.v1';
+// the debug switches (never in a backup: not a "bassclass." key): { on: the panel shown, gates, next: the next
+// simulated purchase's answer, sim: the products the simulated Google Play reports as owned }
+const DEV = 'bassclass-dev.pro';
+const read = (k, d) => { try { return { ...d, ...JSON.parse(localStorage.getItem(k) || 'null') }; } catch { return { ...d }; } };
+const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private window */ } };
+
+export const proRecord = () => read(KEY, { owned: false, src: null, miss: null });
+export const dev = () => (PLAY ? { on: false, gates: false, next: 'ok', sim: [] } : read(DEV, { on: false, gates: false, next: 'ok', sim: [] }));
+export function setDev(patch) {
+  if (PLAY) return;   // (the Play build has no test switches: seven taps must never hand out Pro)
+  write(DEV, { ...dev(), ...patch });
+  changed();
+}
+
+/** The gates are on: the Play build, or the debug switch elsewhere. */
+export const gatesOn = () => PLAY || dev().gates;
+/** Pro is owned (the Play build: as Google Play said; elsewhere: the simulated purchase). */
+export function owned() {
+  const r = proRecord();
+  return !!r.owned && (PLAY ? r.src === 'play' : r.src === 'test');
+}
+/** Everything is open: the gates are off, or Pro is owned. */
+export const isPro = () => !gatesOn() || owned();
+
+export function setOwned(on, { miss = null } = {}) {
+  write(KEY, { owned: !!on, src: PLAY ? 'play' : 'test', miss });
+  changed();
+}
+export function setMiss(at) { write(KEY, { ...proRecord(), miss: at }); }
+
+/** Something changed: the screens draw themselves again. */
+function changed() {
+  try { window.dispatchEvent(new Event('bassclass-pro')); } catch { /* not in a page */ }
+}
+
+// ---------------------------------------------------------------- what is Pro
+const marked = (...xs) => {
+  for (const x of xs) {
+    if (x?.free === true) return 'free';
+    if (x?.pro === true) return 'pro';
+  }
+  return null;
+};
+const levelWhy = (n) => `Level ${n} is part of BassClass Pro`;
+
+/** Why an exercise is closed (a reason to show), or null. Inside a free lesson its steps always play. */
+export function exerciseLock(t, ls = '') {
+  if (isPro() || !t) return null;
+  if (ls) {
+    const L = lessonById.get(String(ls).split('.')[0]);
+    if (L) return lessonLock(L);
+  }
+  const m = marked(t);
+  if (m) return m === 'pro' ? `${t.title} is part of BassClass Pro` : null;
+  return t.level > FREE_LEVELS ? levelWhy(t.level) : null;
+}
+/** Why a lesson (checkpoint, test) is closed, or null. */
+export function lessonLock(L) {
+  if (isPro() || !L) return null;
+  const m = marked(L, L.unit, L.stage);
+  if (m) return m === 'pro' ? `${L.title || 'This lesson'} is part of BassClass Pro` : null;
+  return L.stage?.level > FREE_LEVELS ? `Stage ${L.stage.level} is part of BassClass Pro` : null;
+}
+/** A course stage (or a Library level) beyond the free ones. */
+export const levelLocked = (n) => !isPro() && n > FREE_LEVELS;
+
+const FREE_STYLE = (() => {
+  const free = new Set();
+  for (const g of GENRES) {
+    const list = Object.values(STYLES).filter((s) => s.genre === g.key && s.free !== false && !s.pro);
+    for (const s of list.slice(0, FREE_DRUMS)) free.add(s.key);
+  }
+  for (const s of Object.values(STYLES)) if (s.free === true) free.add(s.key);
+  return free;
+})();
+export function styleLock(key) {
+  if (isPro() || !STYLES[key] || FREE_STYLE.has(key)) return null;
+  return `${STYLES[key].name} is part of BassClass Pro: three patterns of each genre are free`;
+}
+/** The first free pattern of a genre (where a pattern that is now Pro falls back to). */
+export const freeStyleOf = (genre) => Object.values(STYLES).find((s) => s.genre === genre && FREE_STYLE.has(s.key))?.key || 'rock8';
+
+export function progLock(key) {
+  if (isPro()) return null;
+  if (key === MINE) return 'My progression is part of BassClass Pro';
+  const group = HARMONY_PROGS.find(([, keys]) => keys.includes(key))?.[0];
+  return group && !FREE_PROG_GROUPS.has(group) ? `The ${group} progressions are part of BassClass Pro` : null;
+}
+export const freeProg = () => HARMONY_PROGS.find(([g]) => FREE_PROG_GROUPS.has(g))[1][0];
+
+export function soundLock(v) {
+  if (isPro() || FREE_SOUNDS.has(v)) return null;
+  return `The ${{ piano: 'Piano', organ: 'Organ', guitar: 'Guitar' }[v] || v} sound is part of BassClass Pro`;
+}
+export const fillsLock = () => (isPro() ? null : 'Fills are part of BassClass Pro');
+
+/** Why an address in the app is closed (an exercise, a lesson), or null. */
+export function hashLock(hash) {
+  if (isPro()) return null;
+  const [path, query] = String(hash || '').replace(/^#/, '').split('?');
+  const parts = path.split('/').filter(Boolean);
+  if (parts[0] === 'ex') {
+    const t = byId.get(parts[1]);
+    return t ? exerciseLock(t, new URLSearchParams(query || '').get('ls') || '') : null;
+  }
+  if (parts[0] === 'course' && parts[1] && parts[1] !== 'placement') return lessonLock(lessonById.get(parts[1]));
+  return null;
+}
+
+/** The room's stored choices a free player cannot use any more go back to free ones (the gates came on). */
+export function freeRoom(room) {
+  if (isPro()) return null;
+  const patch = {};
+  if (styleLock(room.style)) patch.style = freeStyleOf(STYLES[room.style]?.genre || room.genre);
+  if (room.fills) patch.fills = 0;
+  if (progLock(room.hProg)) patch.hProg = freeProg();
+  if (soundLock(room.hSound)) patch.hSound = 'pad';
+  return Object.keys(patch).length ? patch : null;
+}
+
+/** What Pro opens, counted from the data (for the Pro sheet). */
+export function proContents(EXERCISES, LESSONS) {
+  const ex = EXERCISES.filter((t) => !t.free && (t.pro || t.level > FREE_LEVELS)).length;
+  const les = LESSONS.filter((l) => l.kind === 'lesson' && (l.pro || l.stage?.level > FREE_LEVELS)).length;
+  return { ex, les, styles: Object.keys(STYLES).length };
+}

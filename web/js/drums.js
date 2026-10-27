@@ -2,17 +2,13 @@
 // by Lars Muldjord (CC BY 4.0, credited in Settings and LICENSE.txt: user, 2026-10-27, its kick dry and short
 // where the old one boomed) for the kit, Virtuosity Drums (CC0) for the rim, cross-stick, flam, pedal hat and
 // the percussion, and Swirly Drums (CC0) for the brushes.
-// They load on first use: from this site, or, in the Android app (whose APK leaves them out to stay
-// small), online from the repository at the app's own commit, so an app always gets the kit it was built
-// with. Once loaded they stay in the browser's cache, so the drums also play offline.
+// They load on first use, from the app's own files (user, 2026-10-27: inside the Android app too, about 2 MB, so it
+// needs no connection and nothing from the repository), and stay in the browser's cache.
 import * as A from './audio.js';
-import { COMMIT } from './version.js';
 import { STYLES, stepTime } from './practice/styles.js';
 
 const VERSION = 4;   // bump when the kit's files change: they are fetched (and cached) again
-const IN_APP = location.hostname === 'appassets.androidplatform.net';
-const REPO = 'https://raw.githubusercontent.com/josich/BassClass/';
-const BASES = IN_APP ? [...new Set([`${REPO}${COMMIT || 'main'}/web/audio/drums/`, `${REPO}main/web/audio/drums/`])] : ['audio/drums/'];
+const BASES = ['audio/drums/'];
 const CACHE = `bassclass-drums-v${VERSION}`;
 
 // The balance, as the ear hears it on a phone or at a moderate level (user, 2026-10-23: the hi-hat and the

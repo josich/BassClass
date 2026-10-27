@@ -853,3 +853,35 @@ input[type="range"] { touch-action: pan-y; }
   .tempo-num { font-size: 42px; }
   .metro-main { gap: 7px; }
 }
+
+/* ---- BassClass Pro (pro.js, ui/proSheet.js): the "Pro" chip of what a free player cannot open, the Pro sheet,
+   the debug panel (ui/proDebug.js) and About (ui/about.js) */
+.chip.pro { background: rgba(219, 168, 90, 0.18); color: #e9bd73; border: 1px solid rgba(219, 168, 90, 0.45); padding: 1px 6px; margin-left: 4px; vertical-align: middle; }
+
+.card.locked { border-style: dashed; }
+.picker-card.locked .picker-pick b { display: inline-flex; align-items: center; gap: 4px; }
+.seg button .chip.pro { margin-left: 5px; font-size: 9px; padding: 0 5px; }
+.course-go .chip.pro { margin-left: 6px; }
+.pro-sheet { max-width: 520px; }
+.pro-body { padding: 4px 18px 18px; overflow-y: auto; }
+.pro-why { font-weight: 700; color: #e9bd73; margin: 6px 0 10px; }
+.pro-list { margin: 0 0 10px; padding-left: 4px; list-style: none; display: grid; gap: 7px; font-size: 14px; }
+.pro-msg { color: var(--text); background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font-size: 13px; }
+.pro-actions { gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.pro-buy { min-width: 180px; }
+.pro-owned { font-weight: 700; color: #e9bd73; }
+.dev-panel { border: 1px dashed #e9bd73; margin-bottom: 14px; }
+.dev-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+.dev-label { min-width: 110px; font-weight: 700; font-size: 13px; color: var(--muted); }
+.dev-state { font-size: 11px; white-space: normal; word-break: break-word; color: var(--muted); }
+.dev-log { font-size: 11px; max-height: 160px; overflow: auto; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; margin: 8px 0 0; white-space: pre-wrap; color: var(--muted); }
+.rail .logo-link { display: block; border-radius: 10px; }
+.rail .logo-link:focus-visible { outline: 2px solid var(--accent); }
+.about-top { display: flex; align-items: center; gap: 14px; margin: 4px 0 14px; }
+.about-logo { width: 56px; height: 56px; }
+.about-fold { margin-bottom: 10px; }
+.about-body { padding: 4px 4px 8px; font-size: 14px; line-height: 1.5; max-width: 860px; }
+.about-body p { margin: 6px 0; }
+.about-list { padding-left: 18px; display: grid; gap: 6px; margin: 6px 0; }
+.about-licence { font-size: 11px; white-space: pre-wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; color: var(--muted); max-height: 220px; overflow: auto; }
+.about-row { margin: 18px 0 4px; }

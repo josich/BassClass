@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- the Practice room's drum samples load once from the repository (web/js/drums.js) -->
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- no INTERNET: everything is inside the app (the drums and the piano too, since 2026-10-27) -->
 
     <!-- microphone for the tuner -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />

@@ -13,8 +13,18 @@ import { resetCourse, placed, anyProgress } from '../course/progress.js';
 import { replaceHash, goBack, canGoBack } from './nav.js';
 import { saveBackup, parseBackup, restoreBackup } from '../backup.js';
 import { resetLog } from '../practiceLog.js';
+import { hashLock, exerciseLock, levelLocked, gatesOn } from '../pro.js';
+import { openPro } from './proSheet.js';
+import { proFields, devTaps, devPanel } from './proDebug.js';
 
-export const go = (hash) => { location.hash = hash; };
+/** Goes to an address in the app; one that is Pro (an exercise, a lesson) opens the Pro sheet instead. */
+export const go = (hash) => {
+  const why = hashLock(hash);
+  if (why) { openPro(why); return; }
+  location.hash = hash;
+};
+/** The small "Pro" chip of something a free player cannot open (`why`: its reason, or null). */
+export const proChip = (why) => (why ? h('span', { class: 'chip pro', title: why }, 'Pro') : null);
 export const exHref = (id, params) => {
   const q = params ? new URLSearchParams(params).toString() : '';
   return `#/ex/${id}${q ? `?${q}` : ''}`;
@@ -24,11 +34,13 @@ export const exHref = (id, params) => {
 function card(t, { level = true, topic = true } = {}) {
   const pr = getProgress(t.id) || {};
   const mod = moduleOf(t.module);
-  return h('div', { class: `card${pr.done ? ' done' : ''}`, onClick: () => go(exHref(t.id)) },
+  const lock = exerciseLock(t);
+  return h('div', { class: `card${pr.done ? ' done' : ''}${lock ? ' locked' : ''}`, onClick: () => go(exHref(t.id)) },
     starButton(t.id),
     h('h3', {}, h('span', { class: 'ex-num' }, t.num), t.title),
     // the title says what it is; the description opens on request
     h('div', { class: 'meta' },
+      proChip(lock),
       level ? h('span', { class: `chip lv lv${t.level}` }, `L${t.level}`) : null,
       topic ? h('span', { class: 'chip' }, `${mod?.icon ?? ''} ${mod?.name ?? ''}`) : null,
       t.star ? h('span', { class: 'chip core' }, '★ core') : null,
@@ -139,6 +151,7 @@ function favRow(t, rerender) {
   const row = h('div', { class: 'item fav', 'data-id': t.id, onClick: () => go(exHref(t.id)) },
     grip,
     h('div', { class: 't' }, h('b', {}, h('span', { class: 'ex-num' }, t.num), t.title), h('span', {}, info)),
+    proChip(exerciseLock(t)),
     h('span', { class: `chip lv lv${t.level}` }, `L${t.level}`),
     starButton(t.id, { onChange: () => rerender() }));
   dragToReorder(grip, row);
@@ -200,7 +213,7 @@ function levelSections() {
     if (!list.length) return [];
     const done = list.filter((t) => (getProgress(t.id) || {}).done).length;
     const fold = h('details', { class: 'lv-fold', id: `lv-${L.n}`, open: open.has(L.n) },
-      h('summary', { class: 'section' }, h('span', { class: `chip lv lv${L.n}` }, `Level ${L.n}`), h('h2', {}, L.name), infoBtn(L.desc, `About Level ${L.n}`), h('span', { class: 'muted small' }, `${done}/${list.length} mastered`)),
+      h('summary', { class: 'section' }, h('span', { class: `chip lv lv${L.n}` }, `Level ${L.n}`), h('h2', {}, L.name), proChip(levelLocked(L.n) ? `Level ${L.n} is part of BassClass Pro` : null), infoBtn(L.desc, `About Level ${L.n}`), h('span', { class: 'muted small' }, `${done}/${list.length} mastered`)),
       h('div', { class: 'grid' }, list.map((t) => card(t, { level: false }))));
     // (the toggle event also fires when the page is drawn: only a change is saved)
     fold.addEventListener('toggle', () => { if (libOpen().has(L.n) !== fold.open) setLibOpen(L.n, fold.open); });
@@ -326,9 +339,12 @@ export function settingsScreen(main) {
       toast(err.message || 'This file could not be read', 3000);
     }
   } });
+  const rerender = () => { const y = main.scrollTop; settingsScreen(main); main.scrollTop = y; };
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('h1', {}, 'Settings')),
+    ...[devPanel(rerender)].filter(Boolean),
     h('div', { class: 'form' },
+      ...proFields(field),
       field('Strings', seg('strings', [[4, '4-string'], [5, '5-string (low B)'], [6, '6-string (low B, high C)']]), 'Exercises adapt their fingerings to your instrument.'),
       field('Note names', seg('notation', [['letters', 'C D E'], ['solfege', 'Do Re Mi']])),
       field('Handedness', seg('lefty', [[false, 'Right-handed'], [true, 'Left-handed']]), 'Mirrors the fretboard.'),
@@ -350,9 +366,9 @@ export function settingsScreen(main) {
           settingsScreen(main);
           toast('Settings restored');
         } }, 'Restore defaults')))),
-    // the release number (written by the build) and the commit it was built from
-    h('p', { class: 'muted small version' }, infoBtn(['📴 Works offline once loaded', '🎸 Recorded CC0 bass samples (Karoryfer "darkblack"), a synth as backup', ...(location.hostname === 'appassets.androidplatform.net' ? [] : ['📲 Browser menu → Add to Home screen: full screen, landscape'])], 'About BassClass'), ' ', VERSION ? `BassClass ${VERSION}${COMMIT ? ` · build ${COMMIT}` : ''}` : `BassClass · development version${COMMIT ? ` · build ${COMMIT}` : ''}`),
-    // the drum kit's credit, as its licence asks (CC BY 4.0: who made it, the licence, and that it was changed);
-    // the licence's address as text, not a link (the Android app's WebView would leave the app for it)
-    h('p', { class: 'muted small credits' }, 'Drums: MuldjordKit by Lars Muldjord (DrumGizmo.org; FreePats stereo build), CC BY 4.0 (creativecommons.org/licenses/by/4.0), trimmed, equalised, levelled and encoded for BassClass. Snare: Frankensnare (Karoryfer), CC0. Piano: the Kawai grand of the Versilian Community Sample Library (Versilian Studios), CC0. Percussion and brushes: Virtuosity Drums (Versilian Studios, Karoryfer) and Swirly Drums (Karoryfer), CC0. Bass: Karoryfer "darkblack", CC0.'));
+    // the credits, the licences and the legal texts: About (also the rail's logo)
+    h('div', { class: 'row about-row' }, h('button', { class: 'btn', onClick: () => go('#/about') }, 'ⓘ About BassClass: credits, licences, privacy')),
+    // the release number (written by the build) and the commit it was built from (seven taps: the Pro debug panel,
+    // test builds only)
+    devTaps(h('p', { class: 'muted small version' }, infoBtn(['📴 Works offline once loaded', '🎸 Recorded CC0 bass samples (Karoryfer "darkblack"), a synth as backup', ...(location.hostname === 'appassets.androidplatform.net' ? [] : ['📲 Browser menu → Add to Home screen: full screen, landscape'])], 'About BassClass'), ' ', VERSION ? `BassClass ${VERSION}${COMMIT ? ` · build ${COMMIT}` : ''}` : `BassClass · development version${COMMIT ? ` · build ${COMMIT}` : ''}`), rerender));
 }

@@ -57,11 +57,10 @@ android {
             assets.srcDirs("../../web")
         }
     }
-    // ... except the Practice room's drum and piano samples: the app fetches them online on first use and
-    // keeps them in its cache (web/js/drums.js, piano.js). The rest is Android's default list (it already leaves out
-    // folders starting with "_", such as web/_raw).
+    // (the drums and the piano are in too since 2026-10-27, about 3.5 MB: the app needs no connection and nothing
+    // from the repository.) Android's default list, which leaves out folders starting with "_", such as web/_raw.
     androidResources {
-        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:.*:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~:<dir>drums:<dir>piano"
+        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:.*:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"
     }
 }
 

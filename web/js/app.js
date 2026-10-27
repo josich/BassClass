@@ -14,6 +14,10 @@ import { courseScreen, lessonScreen, placementScreen, stepHref } from './ui/cour
 import { lessonById } from './course/data.js';
 import { sessionPlayed } from './course/progress.js';
 import { nav, replaceHash, goBack, canGoBack } from './ui/nav.js';
+import { hashLock, gatesOn } from './pro.js';
+import { openPro } from './ui/proSheet.js';
+import { syncPro } from './billing.js';
+import { aboutScreen } from './ui/about.js';
 
 const app = document.getElementById('app');
 const NAV = [
@@ -53,7 +57,9 @@ const back = () => (canGoBack() ? goBack() : go('#/'));
 
 function shell(navKey) {
   const rail = h('nav', { class: 'rail' },
-    h('img', { class: 'logo', src: 'icons/icon.svg', alt: '' }),
+    // the logo opens About: the credits, the licences and the legal texts (user, 2026-10-27)
+    h('a', { class: 'logo-link', href: '#/about', title: 'About BassClass: credits, licences, privacy', 'aria-label': 'About BassClass' },
+      h('img', { class: 'logo', src: 'icons/icon.svg', alt: '' })),
     NAV.map(([k, href, label]) => h('a', { href, class: k === navKey ? 'on' : '', html: `${icon(k)}<span>${label}</span>` })));
   const main = h('main', { class: 'main' });
   main.addEventListener('scroll', () => { if (scrollKey) scrollMem.set(scrollKey, main.scrollTop); }, { passive: true });
@@ -62,7 +68,17 @@ function shell(navKey) {
   return main;
 }
 
+let lastHash = '#/';
 function route() {
+  // an exercise or a lesson that is Pro (reached by an old link, Back, or a session made before): the screen
+  // before it stays, and the Pro sheet opens (MONETIZATION-PLAN.md)
+  const why = hashLock(location.hash);
+  if (why) {
+    replaceHash(hashLock(lastHash) ? '#/' : lastHash);
+    openPro(why);
+    return;
+  }
+  lastHash = location.hash || '#/';
   // remember where the screen being left was scrolled (scroll events can lag behind)
   if (scrollKey && curMain?.isConnected) scrollMem.set(scrollKey, curMain.scrollTop);
   const returning = trackDepth();
@@ -141,7 +157,7 @@ function route() {
   if (parts[0] === 'path') { replaceHash('#/library?v=topics'); return; }
   if (parts[0] === 'explorer') { replaceHash('#/practice?to=neck'); return; }
   // the daily warm-up and the course live on Home; topics (#/m/...) belong to the Library
-  const key = { '': 'home', course: 'home', library: 'library', m: 'library', practice: 'practice', tuner: 'tuner', settings: 'settings' }[parts[0] || ''] || 'home';
+  const key = { '': 'home', course: 'home', library: 'library', m: 'library', practice: 'practice', tuner: 'tuner', settings: 'settings', about: 'about' }[parts[0] || ''] || 'home';
   const main = shell(key);
   if (parts[0] === 'course' && parts[1] === 'placement') placementScreen(main);
   else if (parts[0] === 'course' && parts[1]) lessonScreen(main, parts[1]);
@@ -151,6 +167,7 @@ function route() {
   else if (parts[0] === 'practice') active = practiceScreen(main, params);
   else if (parts[0] === 'tuner') active = tunerScreen(main);
   else if (parts[0] === 'settings') active = settingsScreen(main);
+  else if (parts[0] === 'about') aboutScreen(main);
   else homeScreen(main);
   scrollKey = `${depth}|${hash}`;
   const y = returning ? scrollMem.get(scrollKey) : 0;
@@ -161,6 +178,20 @@ function route() {
 
 window.addEventListener('hashchange', route);
 route();
+
+// Pro (pro.js): a link to something that is Pro opens the Pro sheet instead of the screen; Pro bought (or the test
+// switches moved) draws the screen again; the purchase is checked with Google Play at start and on each return
+document.addEventListener('click', (e) => {
+  const a = e.target.closest?.('a[href^="#/"]');
+  const why = a && hashLock(a.getAttribute('href'));
+  if (!why) return;
+  e.preventDefault();
+  e.stopPropagation();
+  openPro(why);
+}, true);
+window.addEventListener('bassclass-pro', () => route());
+setTimeout(() => { if (gatesOn()) syncPro(); }, 2500);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && gatesOn()) syncPro(); });
 // a scroll that starts on a slider does not move it
 guardSliders();
 // a soft tick on every tap of a control (user, 2026-10-23: subtle, not annoying): a real tap only (a

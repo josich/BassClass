@@ -1,15 +1,11 @@
 // The Practice room's piano (user, 2026-10-27): the Kawai grand of the Versilian Community Sample Library
 // (Versilian Studios, CC0), a note every two or three semitones from D3 to A5 (Ogg Opus in web/audio/piano/,
-// made by web/js/dev/pianoprep.js; the app plays the others by shifting the nearest). Like the drums it loads
-// on first use, from this site or, in the Android app (whose APK leaves it out to stay small), online from the
-// repository at the app's own commit, and stays in the browser's cache, so it also plays offline.
+// made by web/js/dev/pianoprep.js; the app plays the others by shifting the nearest). Like the drums it loads on
+// first use, from the app's own files (inside the Android app too: about 1 MB), and stays in the browser's cache.
 import * as A from './audio.js';
-import { COMMIT } from './version.js';
 
 const VERSION = 1;   // bump when the files change: they are fetched (and cached) again
-const IN_APP = location.hostname === 'appassets.androidplatform.net';
-const REPO = 'https://raw.githubusercontent.com/josich/BassClass/';
-const BASES = IN_APP ? [...new Set([`${REPO}${COMMIT || 'main'}/web/audio/piano/`, `${REPO}main/web/audio/piano/`])] : ['audio/piano/'];
+const BASES = ['audio/piano/'];
 const CACHE = `bassclass-piano-v${VERSION}`;
 
 let loading = null;

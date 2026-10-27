@@ -40,9 +40,25 @@ export function openPicker(o) {
     const fav = favs.has(it.key);
     // (in Favourites and Recent a card also names its group)
     const where = open.startsWith('*') ? `${groupName.get(it.group) || ''} · ` : '';
-    return h('div', { class: `picker-card${it.key === o.current ? ' on' : ''}` },
-      h('button', { class: 'picker-pick', type: 'button', onClick: () => { if (fresh()) return; close(); o.onPick(it.key); refocus(); } },
-        h('b', {}, it.name), h('small', {}, `${where}${it.sub || ''}`)),
+    // (an item that is Pro, `lock` its reason: a "Pro" chip, and a tap opens the Pro sheet: `onLocked`)
+    return h('div', { class: `picker-card${it.key === o.current ? ' on' : ''}${it.lock ? ' locked' : ''}` },
+      h('button', { class: 'picker-pick', type: 'button', onClick: () => {
+        if (fresh()) return;
+        if (it.lock) {
+          // (the Pro sheet opens once the picker's own history entry is gone, or Back would close it at once)
+          const why = it.lock;
+          let done = false;
+          const show = () => { if (!done) { done = true; o.onLocked?.(why); } };
+          if (history.state?.picker) { addEventListener('popstate', () => setTimeout(show, 0), { once: true }); setTimeout(show, 400); }
+          close();
+          if (!history.state?.picker) show();
+          return;
+        }
+        close();
+        o.onPick(it.key);
+        refocus();
+      } },
+        h('b', {}, it.name, it.lock ? h('span', { class: 'chip pro' }, 'Pro') : null), h('small', {}, `${where}${it.sub || ''}`)),
       h('button', {
         class: `picker-star${fav ? ' on' : ''}`, type: 'button', html: icon(fav ? 'star' : 'starO'),
         'aria-label': fav ? `Remove ${it.name} from favourites` : `Add ${it.name} to favourites`,

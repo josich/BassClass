@@ -11,6 +11,10 @@ import { makeCtx } from './fretboard.js';
 import { STYLES, levelsOf, regroup, phraseHits } from './practice/styles.js';
 import { PIECES } from './drums.js';
 import * as T from './theory.js';
+import { GENRES } from './practice/styles.js';
+import { HARMONY_PROGS, PROG_KEYS } from './practice/harmony.js';
+import { PAD_SOUNDS } from './audio.js';
+import { FREE_SOUNDS, FREE_LEVELS, isPro, gatesOn, exerciseLock, lessonLock, styleLock, progLock } from './pro.js';
 
 function combos(params, limit = 400, strings = 4) {
   const keys = Object.keys(params);
@@ -71,6 +75,26 @@ function checkDrums(problems) {
   }
 }
 
+/**
+ * Pro (pro.js, MONETIZATION-PLAN.md): the free starter set exists in every genre and every free group, the room's
+ * defaults are free, and with the gates off nothing at all is locked. (The locks themselves are checked with the
+ * gates on in Settings' Pro debug panel.)
+ */
+function checkPro(problems) {
+  for (const g of GENRES) {
+    const list = Object.values(STYLES).filter((s) => s.genre === g.key);
+    if (list.length < 3) problems.push(`pro: genre ${g.key} has fewer than 3 patterns (3 are free)`);
+  }
+  for (const v of FREE_SOUNDS) if (!PAD_SOUNDS[v]) problems.push(`pro: free sound ${v} does not exist`);
+  if (!HARMONY_PROGS.some(([g]) => g === 'Pop & rock') || !HARMONY_PROGS.some(([g]) => g === 'Blues')) problems.push('pro: the free progression groups are missing');
+  if (FREE_LEVELS < 1 || FREE_LEVELS > 6) problems.push(`pro: FREE_LEVELS ${FREE_LEVELS}`);
+  if (!gatesOn()) {
+    if (!isPro()) problems.push('pro: the gates are off but something is closed');
+    const shut = [...EXERCISES.filter((t) => exerciseLock(t)), ...LESSONS.filter((l) => lessonLock(l)), ...Object.keys(STYLES).filter((k) => styleLock(k)), ...PROG_KEYS.filter((k) => progLock(k))];
+    if (shut.length) problems.push(`pro: ${shut.length} items closed with the gates off`);
+  }
+}
+
 function checkCourse(problems, strings) {
   // a changed step must exist (its stored records are dropped once)
   CHANGED_STEPS.forEach((c, i) => {
@@ -117,6 +141,7 @@ export function run({ strings = [4, 5, 6], verbose = false } = {}) {
   let builds = 0, notes = 0;
   checkCourse(problems, strings);
   checkDrums(problems);
+  checkPro(problems);
   // every exercise has its own number (its place in the Library: level, topic, module order)
   for (const t of EXERCISES) if (!(t.num > 0) || byNumber.get(t.num) !== t) problems.push(`${t.id}: missing or duplicate number ${t.num}`);
   for (const st of strings) {

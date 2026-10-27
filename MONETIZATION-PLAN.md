@@ -6,6 +6,18 @@ launch" list (GAME-PLAN.md), adapted to BassClass. It is a proposal: the numbere
 Figures marked "(check)" are the platforms' published terms at the time of writing and must be read again before the
 launch; they change.
 
+## The user's decisions (2026-10-27): they replace the proposal where it differs
+
+1. **Levels 1–3 free on every front** (the Library, the Course's Stages 1–3, the song studies), not 1–2; Pro is Levels
+   4–6. 2. **The room's extras in Pro**, with **3 drum patterns of each genre** free. 3. **€7.99, launch €4.99**, "yes,
+   for now". 4. **Tips**: yes. 5. **The drums and the piano inside the app**: done (no INTERNET permission). 6. **The web
+   version and the GitHub APK are not kept after the launch**; the repository may go private (its consequences:
+   LAUNCH-TODO.md). 7. Developer name, account and contact: later, listed in LAUNCH-TODO.md. 8. **The Pro gates are
+   built now** (pro.js; ready for more Pro content: a `pro: true` or `free: true` flag on any item), off outside the
+   Play build, **with a debug panel** for the gates and the purchase. Credits, licences and the legal texts sit in one
+   screen under the app's logo (About). Signing: given that the key has been public, LAUNCH-TODO.md now recommends
+   Play's own app signing key rather than ours.
+
 ## What we are selling, in one sentence
 
 A bass teacher and practice room anyone can use for free, the whole beginner path included, with one payment, once,

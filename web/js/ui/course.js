@@ -5,7 +5,9 @@ import { h, icon, toast, rng, infoBtn } from './dom.js';
 import { settings, saveSettings } from '../store.js';
 import { EXERCISES, byId } from '../curriculum/index.js';
 import { SUB_NAMES, paramOptions } from './exercise.js';
-import { exHref, go, buildRoutine, routineParams, setRoutine, routineHref } from './screens.js';
+import { exHref, go, buildRoutine, routineParams, setRoutine, routineHref, proChip } from './screens.js';
+import { isPro, lessonLock, exerciseLock, levelLocked, FREE_LEVELS } from '../pro.js';
+import { openPro } from './proSheet.js';
 import { replaceHash, goBack, canGoBack, nav } from './nav.js';
 import { NEXT_LEVEL, COMPLETE } from '../course/data.js';
 import {
@@ -111,7 +113,8 @@ const lessonOf = (it) => (it.ls ? lessonById.get(it.ls.split('.')[0]) : null);
 
 /** Steps of lessons already done or known that `of` accepts, the latest lessons first. */
 function metSteps(of) {
-  return LESSONS.filter(practised).reverse()
+  // (a free player's session never offers what is Pro: pro.js)
+  return LESSONS.filter((l) => practised(l) && !lessonLock(l)).reverse()
     .flatMap((l) => l.steps.map((s, i) => ({ l, s, i, t: byId.get(s.ex) })))
     .filter((x) => !x.s.music && of(x.t));
 }
@@ -126,7 +129,7 @@ function pickFor(of, n, { level, rand, slot, skip, withGoal = false }) {
     const x = pool[Math.floor(rand() * pool.length)];
     out.push(stepItem(x.l, x.i, slot));
   }
-  const lib = EXERCISES.filter((t) => of(t) && t.level <= level && t.level >= Math.max(1, level - 1));
+  const lib = EXERCISES.filter((t) => of(t) && t.level <= level && t.level >= Math.max(1, level - 1) && !exerciseLock(t));
   while (out.length < n) {
     const pool = lib.filter((t) => !used(t.id));
     if (!pool.length) break;
@@ -161,8 +164,12 @@ function buildSession(minutes, cur, history) {
   // (the warm-ups and the focus come from the session's own seed, so they stay the same whatever
   // its length)
   const rand = rng(cur.seed + minutes * 101);
-  const level = cur.level;
-  const cont = continueLesson();
+  // a free player's session keeps to the free levels: Pro's lessons and exercises are never offered there
+  // (MONETIZATION-PLAN.md: never a wall in the middle of practising)
+  const level = isPro() ? cur.level : Math.min(cur.level, FREE_LEVELS);
+  let cont = continueLesson();
+  const proNext = cont && lessonLock(cont);
+  if (proNext) cont = null;
   const recent = new Set(history.slice(0, 2).flatMap((s) => s.ids));
   const items = [];
   const has = (id) => items.some((x) => x.id === id);
@@ -175,7 +182,7 @@ function buildSession(minutes, cur, history) {
   // the focus topic: one exercise from 30 minutes, two from 45
   const focusN = fresh ? 0 : n >= 8 ? 2 : n >= 4 ? 1 : 0;
   // reviews that are due: up to a quarter of the session while there is new material, half once not
-  for (const l of dueLessons().slice(0, cont ? Math.max(1, Math.floor(n / 4)) : Math.ceil(n / 2))) items.push(stepItem(l, reviewStep(l), 'Review', { rv: 1 }));
+  for (const l of dueLessons().filter((x) => !lessonLock(x)).slice(0, cont ? Math.max(1, Math.floor(n / 4)) : Math.ceil(n / 2))) items.push(stepItem(l, reviewStep(l), 'Review', { rv: 1 }));
   if (cont) {
     // new material: one lesson (or checkpoint) per 15 minutes, so each gets its time
     let lessons = 0;
@@ -194,7 +201,7 @@ function buildSession(minutes, cur, history) {
   // still room: early reviews of lessons met before, then the Library at the player's level (Levels
   // 5–6 once the course is through)
   if (count() < n && cont) {
-    const fresh = LESSONS.filter((l) => practised(l) && !l.optional && !items.some((x) => lessonOf(x) === l))
+    const fresh = LESSONS.filter((l) => practised(l) && !l.optional && !lessonLock(l) && !items.some((x) => lessonOf(x) === l))
       .sort((a, b) => (nextReview(a) || Infinity) - (nextReview(b) || Infinity) || rand() - 0.5);
     for (const l of fresh) {
       if (count() >= n) break;
@@ -203,7 +210,7 @@ function buildSession(minutes, cur, history) {
   }
   // after the course the song studies of Levels 5–6 come back too, one in four fill-ins: the payoff
   if (!cont && !fresh) {
-    const songs = EXERCISES.filter((t) => t.module === 'music' && t.level >= 5 && !recent.has(t.id) && !has(t.id));
+    const songs = EXERCISES.filter((t) => t.module === 'music' && t.level >= 5 && !recent.has(t.id) && !has(t.id) && !exerciseLock(t));
     for (let k = 0; k < Math.max(1, Math.floor((n - count()) / 4)) && songs.length && count() < n; k++) {
       const t = songs.splice(Math.floor(rand() * songs.length), 1)[0];
       items.push({ id: t.id, params: { part: t.params.part.options.some((o) => o[0] === 'all') ? 'all' : '0' }, slot: `Library · L${t.level}` });
@@ -211,13 +218,15 @@ function buildSession(minutes, cur, history) {
   }
   // (a routine has one exercise of each kind: as many as the room needs)
   for (let k = 0; count() < n && !fresh && k < 6; k++) {
-    for (const it of buildRoutine(cont ? level : NEXT_LEVEL, cur.seed + minutes + k * 7919)) {
+    for (const it of buildRoutine(cont || proNext ? level : NEXT_LEVEL, cur.seed + minutes + k * 7919)) {
       if (count() >= n) break;
-      if (!has(it.id) && !recent.has(it.id)) items.push({ id: it.id, params: it.params, slot: `Library · L${byId.get(it.id).level}` });
+      if (!has(it.id) && !recent.has(it.id) && !exerciseLock(byId.get(it.id))) items.push({ id: it.id, params: it.params, slot: `Library · L${byId.get(it.id).level}` });
     }
   }
-  return items;
+  return items.filter((it) => !itemLock(it));
 }
+/** Why a session item is closed to a free player (pro.js), or null. */
+const itemLock = (it) => (it.ls ? lessonLock(lessonOf(it)) : exerciseLock(byId.get(it.id)));
 
 /** Today's session: planned once for each length and kept until it is marked as practised. */
 function todaysSession(minutes) {
@@ -231,8 +240,10 @@ function todaysSession(minutes) {
   if (cur !== store.cur) setSession(cur);
   // (an item whose exercise or lesson step no longer exists is left out; a list with nothing left is
   // planned again)
-  const live = (it) => byId.has(it.id) && (!it.ls || lessonOf(it)?.steps[Number(it.ls.split('.')[1])]?.ex === it.id);
-  if (!cur.lists[minutes]?.some(live)) { cur.lists[minutes] = buildSession(minutes, cur, store.history); setSession(cur); }
+  const live = (it) => byId.has(it.id) && (!it.ls || lessonOf(it)?.steps[Number(it.ls.split('.')[1])]?.ex === it.id) && !itemLock(it);
+  // (Pro bought, or the gates switched: the plans are made again for what the player can open now)
+  if ((cur.pro ?? isPro()) !== isPro()) { cur.lists = {}; cur.pro = isPro(); setSession(cur); }
+  if (!cur.lists[minutes]?.some(live)) { cur.lists[minutes] = buildSession(minutes, cur, store.history); cur.pro = isPro(); setSession(cur); }
   const list = cur.lists[minutes].filter(live);
   const warm = [...list.filter((x) => x.warm), ...cur.extra.filter(live)];
   return { cur, warm, main: list.filter((x) => !x.warm) };
@@ -263,10 +274,10 @@ export function courseBlock() {
   const cont = continueLesson();
   // one row: the title, where the course goes on, the map in the corner
   return h('section', { class: 'block course-block' },
-    h('div', { class: 'block-head course-row' }, h('h2', {}, '🎓 Course'), infoBtn(COURSE_INFO, 'About the course'),
+    h('div', { class: 'block-head course-row' }, h('h2', {}, '🎓 Course'), infoBtn(isPro() ? COURSE_INFO : [...COURSE_INFO.slice(0, -1), `🔓 Stages 1–${FREE_LEVELS} free, ${FREE_LEVELS + 1}–6 with Pro · Map: every lesson`], 'About the course'),
       cont
         ? h('button', { class: 'btn primary course-go', onClick: () => go(lessonHref(cont)) },
-          h('b', {}, anyProgress() || placed() ? '▶ Continue' : '▶ Start'), h('span', {}, lessonName(cont)))
+          h('b', {}, anyProgress() || placed() ? '▶ Continue' : '▶ Start'), h('span', {}, lessonName(cont)), proChip(lessonLock(cont)))
         : h('div', { class: 'course-done grow' }, '✓ Course complete'),
       h('button', { class: 'btn map-btn', title: 'Course map: every lesson', onClick: () => go('#/course') }, h('span', { html: icon('path') }), 'Map')));
 }
@@ -365,6 +376,7 @@ export function courseScreen(main) {
       h('span', { class: 'num' }, l.num),
       h('span', { class: 'tt' }, l.kind === 'lesson' ? l.title : l.kind === 'check' ? 'Checkpoint' : l.title),
       l.optional ? h('span', { class: 'chip' }, 'optional') : null,
+      proChip(lessonLock(l)),
       st === 'known' ? h('span', { class: 'chip' }, 'known') : null,
       isDue(l) ? h('span', { class: 'chip due' }, 'review') : null);
   };
@@ -380,7 +392,7 @@ export function courseScreen(main) {
       const done = list.filter((l) => status(l) === 'done').length;
       const known = list.filter((l) => status(l) === 'known').length;
       const fold = h('details', { class: 'lv-fold map-fold', id: `stage-${si + 1}`, open: open.has(si + 1) },
-        h('summary', { class: 'section stage-head' }, h('span', { class: `chip lv lv${stage.level}` }, `Stage ${si + 1}`), h('h2', {}, stage.title), infoBtn(listLines(stage.desc), `About Stage ${si + 1}`), h('span', { class: 'muted small' }, `${done}/${list.length} lessons${known ? ` (${known} known)` : ''}`)),
+        h('summary', { class: 'section stage-head' }, h('span', { class: `chip lv lv${stage.level}` }, `Stage ${si + 1}`), h('h2', {}, stage.title), proChip(levelLocked(stage.level) ? `Stage ${stage.level} is part of BassClass Pro` : null), infoBtn(listLines(stage.desc), `About Stage ${si + 1}`), h('span', { class: 'muted small' }, `${done}/${list.length} lessons${known ? ` (${known} known)` : ''}`)),
         h('div', { class: 'grid unit-grid' },
           UNITS.filter((u) => u.stage === stage).map((u) => h('div', { class: 'unit-card' },
             h('h3', {}, h('span', { class: 'ex-num' }, u.n), u.title, infoBtn(u.goal, `About unit ${u.n}`)),
@@ -415,6 +427,9 @@ export function courseScreen(main) {
 export function lessonScreen(main, id) {
   const l = lessonById.get(id);
   if (!l) { replaceHash('#/course'); return; }
+  // (a Pro lesson reached by an old link or Back: the map, and the Pro sheet)
+  const why = lessonLock(l);
+  if (why) { replaceHash('#/course'); openPro(why); return; }
   setLast(l.id);
   const rerender = () => { const y = main.scrollTop; lessonScreen(main, id); main.scrollTop = y; };
   const idx = LESSONS.indexOf(l);
