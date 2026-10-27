@@ -16,6 +16,12 @@ MONETIZATION-PLAN.md. Tick items off here as they are done; the user's decisions
 - **Credits, licences and legal texts**: one screen under the app's logo (About, `#/about`): done 2026-10-27.
 - **The Pro gates**: built 2026-10-27 (pro.js), off outside the Play build, with a debug panel (Settings: seven taps on
   the version line, test builds only).
+- **Signing**: Google Play's own app signing key, not ours (user, 2026-10-27: "use the Play signing key, not ours"). Our
+  `bassclass.p12` stays for the GitHub test builds only; the Play bundle is uploaded with a new upload key kept out of
+  git (a GitHub secret). Friends with the GitHub APK move to Play by Backup → uninstall → install from Play → load the
+  backup.
+- **Nobody gets the app outside Google Play after the launch** (user's concern, 2026-10-27: "random people can download
+  the app for free from GitHub without passing by the Play Store"): see "The repository and the free copies" below.
 
 ## Still the user's
 
@@ -28,7 +34,7 @@ MONETIZATION-PLAN.md. Tick items off here as they are done; the user's decisions
 - [ ] **The products** in the Play Console: `bassclass_pro` (one-time), `bassclass_tip_2` and `bassclass_tip_4`
   (consumable); licence testers; promo codes for friends and teachers.
 - [ ] **Closed test**: 12 testers for 14 days in a row before production (check, personal accounts).
-- [ ] **The repository**: private after the launch? See "If the repository goes private" below.
+- [ ] **The repository goes private at the launch** (the user switches it, or tells Claude to): see below.
 - [ ] Read the legal texts in About (privacy policy, terms of the purchase) before they go public; a lawyer's look is
   worth it once money is involved.
 
@@ -52,17 +58,33 @@ MONETIZATION-PLAN.md. Tick items off here as they are done; the user's decisions
 - [ ] Stop the GitHub APK releases and the web version at the launch (the workflow), and point anything that linked
   to them to the Play listing.
 
-## Signing (decide before the first Play upload)
+## Signing (decided: Google Play's key)
 
 The signing key `android/app/bassclass.p12` and its password are in the repository's history, which has been public:
-anyone could sign an APK that installs over BassClass. Making the repository private later does not un-publish them
-(clones and forks keep them). So, recommended: **let Google Play make its own app signing key** (Play App Signing)
-and upload with a **new upload key** kept out of git (a GitHub secret). The cost: a phone with the GitHub APK cannot
-update into the Play version; its owner saves a backup (Settings → Backup), uninstalls, installs from Play and loads
-the backup, and keeps everything. (MONETIZATION-PLAN.md's first idea, giving Play our own key, would avoid that step
-but would sign the Play app with a key the whole world has had.)
+anyone could sign an APK that installs over BassClass. So **Google Play makes its own app signing key** (Play App
+Signing) and we upload with a **new upload key** kept out of git (a GitHub secret). A phone with the GitHub APK cannot
+update into the Play version: its owner saves a backup (Settings → Backup), uninstalls, installs from Play and loads the
+backup, and keeps everything.
 
-## If the repository goes private
+## The repository and the free copies (the user's concern)
+
+Today the repository is **public**: anyone on the internet can see every file, download the APK (the releases) and use
+the web version (josich.github.io/BassClass), all with everything open (the gates are off outside the Play build). At
+the launch, so that the app only comes from Google Play:
+
+1. **Make the repository private** (GitHub → the repository → Settings → General → Danger Zone → Change visibility →
+   Private). From then on only its owner (and people invited) can see the code, the releases and the files.
+2. **Stop the public builds**: the GitHub APK releases and the web version (both stop being reachable anyway once
+   private; the workflow then builds the Play bundle on request only).
+3. **The old releases**: once private, the 100+ APKs published so far are no longer downloadable from GitHub. Copies
+   people already downloaded keep working on their phones; that cannot be undone, and it is accepted ("generous by
+   rule"): they have no Pro gates, but they also never get updates.
+4. **The Play app itself**: an APK copied off a phone that has it from Play still has the gates on; Pro needs a
+   purchase on the player's own Google account.
+5. **Before the launch** the repository stays public, so friends can keep testing with the GitHub APK; the Play
+   closed test (12 testers, 14 days) then takes over.
+
+### What changes once it is private
 
 - **GitHub Pages stops** on a free account (Pages from a private repository needs a paid plan): the web version goes
   (decided anyway), and anything else hosted there must move, the privacy policy first (see above).
