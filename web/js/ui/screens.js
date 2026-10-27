@@ -16,6 +16,7 @@ import { resetLog } from '../practiceLog.js';
 import { hashLock, exerciseLock, levelLocked, gatesOn } from '../pro.js';
 import { openPro } from './proSheet.js';
 import { proFields, devTaps, devPanel } from './proDebug.js';
+import { sendFeedback, CONTACT } from '../feedback.js';
 
 /** Goes to an address in the app; one that is Pro (an exercise, a lesson) opens the Pro sheet instead. */
 export const go = (hash) => {
@@ -366,6 +367,9 @@ export function settingsScreen(main) {
           settingsScreen(main);
           toast('Settings restored');
         } }, 'Restore defaults'))),
+      // a message to us, from the player's own email app (user, 2026-10-27)
+      field('Feedback', h('div', { class: 'row' }, h('button', { class: 'btn', onClick: sendFeedback }, '✉ Send feedback')),
+        ['✉ Your email app opens with a message to us: write, then press Send', '🐞 It names the app\'s version and your phone, to find a problem faster', `📮 ${CONTACT}`]),
       // Pro and Support after the bass's own settings: the offer is one tap away on every Pro item (QA round 19)
       ...proFields(field)),
     // the credits, the licences and the legal texts: About (also the rail's logo)

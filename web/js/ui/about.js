@@ -9,10 +9,10 @@ import { canGoBack, goBack } from './nav.js';
 import { go } from './screens.js';
 import { FREE_LEVELS } from '../pro.js';
 import { FREE_LINE } from './proSheet.js';
+import { CONTACT } from '../feedback.js';
 
-/** The developer's name and contact address, once chosen (LAUNCH-TODO.md): shown here and in the privacy policy. */
+/** The developer's name, once chosen (LAUNCH-TODO.md); the contact address is Settings' Feedback one (feedback.js). */
 const DEVELOPER = '';
-const CONTACT = '';
 const UPDATED = '27 October 2026';
 
 const section = (title, open, ...kids) => h('details', { class: 'lv-fold about-fold', open },
@@ -81,6 +81,7 @@ export function aboutScreen(main) {
       h('ul', { class: 'about-list' },
         li(h('b', {}, 'Your progress stays on your device. '), 'Settings, progress, the course, sessions, favourites and the practice log are stored on your phone (or in your browser), and BassClass never sends them anywhere. Android\'s own backup, when it is on in your phone\'s settings, may copy the app\'s data to your Google account and bring it back on a new phone; otherwise uninstalling the app (or clearing the browser\'s data) deletes them.'),
         li(h('b', {}, 'Backups are yours. '), 'A backup is a file saved where you choose; BassClass never sends it anywhere.'),
+        li(h('b', {}, 'Feedback '), '(Settings) opens your own email app with a message to us, naming the app\'s version and your phone\'s model; nothing is sent unless you press Send there. We use what you write only to answer you and to improve BassClass.'),
         li(h('b', {}, 'The microphone '), 'is used only by the tuner, only while it is open, and only on your device: the sound is analysed to find the pitch and is never recorded, stored or sent.'),
         li(h('b', {}, 'Purchases '), 'are made through Google Play. BassClass receives only whether a purchase was made; Google\'s own privacy policy covers your payment.'),
         li(h('b', {}, 'Network: '), 'the Android app works without an internet connection; it talks only to Google Play, for purchases. The web version loads the app from its site, GitHub Pages, which, like any web server, may log visitors\' IP addresses.'),

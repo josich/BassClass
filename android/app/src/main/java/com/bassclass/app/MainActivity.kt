@@ -124,6 +124,28 @@ class MainActivity : Activity() {
                 }
             }
         }
+
+        /**
+         * Settings → Feedback (web/js/feedback.js): the phone's e-mail apps, with the address, subject and message filled
+         * in; a phone without one answers with a 'bassclass-mail' event ("none").
+         */
+        @JavascriptInterface
+        fun sendMail(to: String, subject: String, body: String) {
+            runOnUiThread { openMail(to, subject, body) }
+        }
+    }
+
+    private fun openMail(to: String, subject: String, body: String) {
+        // (the address, subject and body in the mailto: URI, which e-mail apps read; subject and body as extras too)
+        val uri = Uri.parse("mailto:" + Uri.encode(to, "@") + "?subject=" + Uri.encode(subject) + "&body=" + Uri.encode(body))
+        val intent = Intent(Intent.ACTION_SENDTO, uri)
+            .putExtra(Intent.EXTRA_SUBJECT, subject)
+            .putExtra(Intent.EXTRA_TEXT, body)
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            web.evaluateJavascript("window.dispatchEvent(new CustomEvent('bassclass-mail',{detail:'none'}))", null)
+        }
     }
 
     private fun saved(result: String) {
@@ -149,6 +171,19 @@ class MainActivity : Activity() {
             webViewClient = object : WebViewClient() {
                 override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
                     loader.shouldInterceptRequest(request.url)
+
+                // a mailto: link (an older page, or a link in a text) goes to the e-mail apps, not to an error page
+                override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                    val url = request.url
+                    if (url.scheme != "mailto") return false
+                    // (a mailto: URI is opaque: its address, subject and body are read by hand)
+                    val ssp = url.encodedSchemeSpecificPart ?: ""
+                    val q = ssp.substringAfter('?', "").split('&').mapNotNull { p ->
+                        p.split('=', limit = 2).takeIf { it.size == 2 }?.let { it[0].lowercase() to Uri.decode(it[1]) }
+                    }.toMap()
+                    openMail(Uri.decode(ssp.substringBefore('?')), q["subject"] ?: "", q["body"] ?: "")
+                    return true
+                }
             }
             // the tuner asks for the microphone: forward it to Android's permission dialog
             webChromeClient = object : WebChromeClient() {
