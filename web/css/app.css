@@ -875,7 +875,8 @@ input[type="range"] { touch-action: pan-y; }
 .dev-label { min-width: 110px; font-weight: 700; font-size: 13px; color: var(--muted); }
 .dev-state { font-size: 11px; white-space: normal; word-break: break-word; color: var(--muted); }
 .dev-log { font-size: 11px; max-height: 160px; overflow: auto; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; margin: 8px 0 0; white-space: pre-wrap; color: var(--muted); }
-.rail .logo-link { display: block; border-radius: 10px; }
+/* (the logo is a link to About: none of the rail buttons' width, padding or gap, so it sits where the plain logo did) */
+.rail a.logo-link { display: flex; justify-content: center; width: auto; padding: 0; gap: 0; border-radius: 10px; background: none; }
 .rail .logo-link:focus-visible { outline: 2px solid var(--accent); }
 .about-top { display: flex; align-items: center; gap: 14px; margin: 4px 0 14px; }
 .about-logo { width: 56px; height: 56px; }
