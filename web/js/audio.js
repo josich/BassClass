@@ -30,6 +30,16 @@ const DRUM_DRIVE = 4, DRUM_TRIM = 1.2;
 // delays bring everything to the drums' 24 ms, so the click, the chords and the bass land with the hits.
 const ALIGN = { click: 0.018, pad: 0.012, bass: 0.012 };
 const PHONE_BOOST = 15; // dB lifted around 850 Hz on the phone speaker
+// The bass's limiter (user, 2026-10-27: "the bass sounds distorted on the phone speakers, less in headphones";
+// measured offline at 100%): its own make-up gain (+2.3 dB, Web Audio spec) is taken back, so it no longer
+// drives every peak into the soft clip (2.7% of a low phrase's samples were in the clip, 0.03% now), and it
+// lets go slower (0.25 s, not 0.06), so it no longer rides inside each low note's waveform (two low notes'
+// intermodulation on the natural path 4 dB lower). The natural path is 1.4 dB softer for it.
+const BASS_LIMIT = { threshold: -2.5, attack: 0.001, release: 0.25, takeBack: true };
+// the phone-speaker profile cuts below 350 Hz (200 before): a phone speaker cannot play what lies under it, and
+// it was 80% of the energy, moving the cone hard for nothing (the speaker's own distortion); now 5 dB less,
+// and with that headroom the bass sounds as loud as before the limiter change, 0.4 dB louder (A-weighted)
+const PHONE_HP = 350;
 
 // The Android app tells us when headphones or an external speaker are connected (see MainActivity.kt).
 try { if (window.BassClassNative?.audioRoute) opts.route = window.BassClassNative.audioRoute(); } catch { /* not in the app */ }
@@ -77,21 +87,22 @@ export function audioCtx() {
   if (!ac) {
     const AC = window.AudioContext || window.webkitAudioContext;
     ac = new AC({ latencyHint: 'interactive' });
-    // Output: the bass is driven into a fast limiter and a gentle soft clip, so phone speakers get
-    // a loud, dense signal without distortion. Measured offline: RMS -8.6 dB at 100% and -7.4 dB at
-    // 200%, and the limiter output never reaches the clip's saturated range (|x| > 1).
+    // Output: the bass goes into a fast limiter (BASS_LIMIT, its make-up gain taken back) and a gentle soft
+    // clip that only a note's first instant can reach, so it stays loud and dense without distortion.
     const mix = ac.createGain();
     mix.gain.value = 1.6;
     const limiter = ac.createDynamicsCompressor();
-    limiter.threshold.value = -4;
+    limiter.threshold.value = BASS_LIMIT.threshold;
     limiter.knee.value = 0;
     limiter.ratio.value = 20;
-    limiter.attack.value = 0.001;
-    limiter.release.value = 0.06;
+    limiter.attack.value = BASS_LIMIT.attack;
+    limiter.release.value = BASS_LIMIT.release;
+    const limiterTrim = ac.createGain();
+    limiterTrim.gain.value = BASS_LIMIT.takeBack ? 1 / makeupGain(BASS_LIMIT.threshold, 20) : 1;
     const clip = ac.createWaveShaper();
     clip.curve = softClipCurve();
     clip.oversample = '2x';
-    mix.connect(limiter).connect(clip).connect(ac.destination);
+    mix.connect(limiter).connect(limiterTrim).connect(clip).connect(ac.destination);
 
     // bass tone stack: a touch of low end and a gentle top roll-off, like a clean amp,
     // then gentle compression; the volume setting comes after it so it really changes the level
@@ -124,11 +135,11 @@ export function audioCtx() {
     fullPath = ac.createGain();
     fullPath.gain.value = phone ? 0 : 1;
     top.connect(fullPath).connect(glue);
-    // phone speaker: cut below ~200 Hz (inaudible there, it only eats headroom), lift the string's
+    // phone speaker: cut below PHONE_HP (inaudible there, it only eats headroom), lift the string's
     // own overtones around 850 Hz, and trim the treble so the finger noise does not turn harsh
     phonePath = ac.createGain();
     phonePath.gain.value = phone ? 1 : 0;
-    top.connect(filter('highpass', 200)).connect(filter('highpass', 200)).connect(filter('peaking', 850, 0.6, PHONE_BOOST))
+    top.connect(filter('highpass', PHONE_HP)).connect(filter('highpass', PHONE_HP)).connect(filter('peaking', 850, 0.6, PHONE_BOOST))
       .connect(filter('highshelf', 3000, 0.7, -5)).connect(phonePath).connect(glue);
 
     // the accompaniment (click, pad, drums) meets in its own limiter, after the bass's, so together at their
