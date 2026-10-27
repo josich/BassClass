@@ -26,7 +26,9 @@ export function openPro(reason = '') {
     h('div', { class: 'row pro-actions' }, h('button', { class: 'btn primary', type: 'button', onClick: () => close() }, 'Let\'s play')));
 
   const offer = (msg = '') => {
-    const buyBtn = h('button', { class: 'btn primary pro-buy', type: 'button', disabled: busy || !canBuy() }, busy ? 'One moment…' : `Get Pro · ${price}`);
+    const buyBtn = h('button', { class: 'btn pro-cta pro-buy', type: 'button', disabled: busy || !canBuy() },
+      h('span', { class: 'pro-cta-top' }, busy ? 'One moment…' : '⭐ Get BassClass Pro'),
+      h('span', { class: 'pro-cta-sub' }, `${price} · one payment, yours for good`));
     const restore = h('button', { class: 'btn', type: 'button', disabled: busy || !canBuy() }, 'Restore purchase');
     buyBtn.addEventListener('click', async () => {
       busy = true; offer();

@@ -3,7 +3,7 @@
 // payment gates"). The panel opens with seven taps on the version line, in every build but the Play one (where test
 // switches would hand out Pro); it is kept apart from the player's data (pro.js `dev`), so a backup never carries it.
 import { h, toast } from './dom.js';
-import { PLAY, PRO_ID, TIPS, gatesOn, isPro, owned, proRecord, dev, setDev, setOwned } from '../pro.js';
+import { PLAY, PRO_ID, TIPS, PRICE, gatesOn, isPro, owned, proRecord, dev, setDev, setOwned } from '../pro.js';
 import { syncPro, billingLog, pretendDayPassed, canBuy, prices } from '../billing.js';
 import { openPro, tip } from './proSheet.js';
 
@@ -15,17 +15,38 @@ export function proFields(field) {
     const on = await syncPro({ force: true });
     toast(on && owned() ? 'Pro restored: thank you!' : 'No purchase of Pro was found on this Google account', 3000);
   };
+  // the offer: gold, with its full price (Google Play's, in the player's currency, once it answers; user, 2026-10-27:
+  // "add the full price and make the button appealing")
+  const cta = proButton(() => openPro());
+  if (!mine && canBuy()) prices().then((p) => { if (p[PRO_ID]) cta.setPrice(p[PRO_ID]); }).catch(() => {});
   const out = [field('BassClass Pro', mine
     ? h('div', { class: 'row' }, h('span', { class: 'pro-owned' }, '⭐ Pro is yours. Thank you!'))
-    : h('div', { class: 'row' }, h('button', { class: 'btn primary', onClick: () => openPro() }, '⭐ Get Pro'), h('button', { class: 'btn', onClick: restore }, 'Restore purchase')),
+    : h('div', { class: 'row pro-offer' }, cta, h('button', { class: 'btn', onClick: restore }, 'Restore purchase')),
   ['🎓 Levels 1–3, the tuner and the metronome are free', '⭐ Pro opens Levels 4–6, every drum pattern and progression, and the extra sounds', '💳 One payment, yours for good: no subscription, no ads', '📱 A new phone: Restore purchase (the same Google account)'])];
-  if (canBuy()) {
-    const tipRow = h('div', { class: 'row' }, ...TIPS.map(([id, label]) => h('button', { class: 'btn', 'data-tip': id, onClick: () => tip(id) }, `💛 Tip ${label}`)));
-    // (the tips' prices in the player's currency)
-    prices().then((p) => tipRow.querySelectorAll('[data-tip]').forEach((b) => { if (p[b.dataset.tip]) b.textContent = `💛 Tip ${p[b.dataset.tip]}`; })).catch(() => {});
-    out.push(field('Support BassClass', tipRow, ['💛 A tip helps keep BassClass growing', '🔓 It unlocks nothing: Pro is the same for everyone']));
-  }
+  // Support BassClass: a rating on Google Play (user, 2026-10-27), and the tips where buying works
+  const tipRow = h('div', { class: 'row' },
+    h('button', { class: 'btn', onClick: rateApp }, '⭐ Rate BassClass on Google Play'),
+    ...(canBuy() ? TIPS.map(([id, label]) => h('button', { class: 'btn', 'data-tip': id, onClick: () => tip(id) }, `💛 Tip ${label}`)) : []));
+  // (the tips' prices in the player's currency)
+  if (canBuy()) prices().then((p) => tipRow.querySelectorAll('[data-tip]').forEach((b) => { if (p[b.dataset.tip]) b.textContent = `💛 Tip ${p[b.dataset.tip]}`; })).catch(() => {});
+  out.push(field('Support BassClass', tipRow, ['⭐ A rating and a few words on Google Play help other bass players find BassClass', '💛 A tip helps keep it growing', '🔓 Neither unlocks anything: Pro is the same for everyone']));
   return out;
+}
+
+/** The gold "Get BassClass Pro" button with its price (Settings and the Pro sheet); `setPrice` shows Play's. */
+export function proButton(onClick, price = PRICE) {
+  const sub = h('span', { class: 'pro-cta-sub' }, `${price} · one payment, yours for good`);
+  const b = h('button', { class: 'btn pro-cta', type: 'button', onClick }, h('span', { class: 'pro-cta-top' }, '⭐ Get BassClass Pro'), sub);
+  b.setPrice = (p) => { sub.textContent = `${p} · one payment, yours for good`; };
+  return b;
+}
+
+/** BassClass's page on Google Play, to rate it: the Play Store app on Android (the app's bridge), else the web page. */
+export function rateApp() {
+  try {
+    if (window.BassClassNative?.openStore) { window.BassClassNative.openStore(); return; }
+  } catch { /* the bridge failed: the web page instead */ }
+  window.open('https://play.google.com/store/apps/details?id=com.bassclass.app', '_blank', 'noopener');
 }
 
 /** Seven taps on the version line show or hide the debug panel (never in the Play build). */

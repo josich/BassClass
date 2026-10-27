@@ -48,7 +48,7 @@ MONETIZATION-PLAN.md. Tick items off here as they are done; the user's decisions
   tip (the protocol is written at the top of `web/js/billing.js`). The BILLING permission comes with the library.
 - [ ] **Test real purchases** in the internal testing track with licence testers: buy, cancel, pending, refund (Pro
   goes after the second check a day later), restore on a second phone.
-- [ ] "Rate BassClass on Google Play" in Settings (Play build only).
+- [x] "Rate BassClass on Google Play" in Settings → Support BassClass (2026-10-27; it opens the listing, which exists once published).
 - [ ] **The privacy policy at a public address** (Play asks for a URL): the same text as About's, on a public page
   (e.g. the `josich.github.io` repository, as Polyorbit's).
 - [ ] **Store listing texts**: name (30), short description (80), full description (4000). Drafts by us.

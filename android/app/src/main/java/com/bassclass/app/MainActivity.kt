@@ -104,6 +104,26 @@ class MainActivity : Activity() {
                 }
             }
         }
+
+        /**
+         * Settings → Support BassClass → Rate (web/js/ui/proDebug.js): BassClass's page in the Play Store app, or on the
+         * web when the phone has no Play Store.
+         */
+        @JavascriptInterface
+        fun openStore() {
+            runOnUiThread {
+                val id = packageName
+                try {
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$id")).setPackage("com.android.vending"))
+                } catch (e: Exception) {
+                    try {
+                        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$id")))
+                    } catch (e2: Exception) {
+                        // (no store and no browser: nothing to open)
+                    }
+                }
+            }
+        }
     }
 
     private fun saved(result: String) {
