@@ -22,8 +22,9 @@ const CLICK_TOP = 10 ** (CLICK_PEAK / 20) / (0.9 * 1.5);
 // the output's last limiter, for the click and the accompaniment together, under the soft clip's knee (an
 // instant attack: its overshoot on a click landing with a drum hit still stays under the knee)
 const TOP_THRESHOLD = -2.6;
-// the drums' drive into their own limiter and the level after it (tuned by measurement, see drumChain)
-const DRUM_DRIVE = 4, DRUM_TRIM = 1.0;
+// the drums' drive into their own limiter and the level after it (tuned by measurement, see drumChain; the trim
+// +1.6 dB with kit v4, whose quieter cymbals and percussion left the patterns' median 1.7 dB under v3's)
+const DRUM_DRIVE = 4, DRUM_TRIM = 1.2;
 // Chrome's DynamicsCompressor delays what passes it by about 6 ms (its look-ahead): the drums pass four
 // (their glue and limiter, the accompaniment's, the last one), the pad two, the bass two, the click one. These
 // delays bring everything to the drums' 24 ms, so the click, the chords and the bass land with the hits.

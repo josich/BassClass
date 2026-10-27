@@ -3,12 +3,16 @@
 // round robins → the mic files of one hit, "repo:Samples/…", staged as "repo_Samples_…"), and in
 // web/_raw/kits/muldjord/ (MULDJORD below).
 //   - the kit (user, 2026-10-27: "the kick feels like a goliath drum", MuldjordKit chosen by ear from clips):
-//     MuldjordKit by Lars Muldjord (DrumGizmo.org), its FreePats stereo build (CC BY 4.0): kick, snare,
-//     toms, hi-hats, ride, bell and crash; the pieces it has not (rim, cross-stick, flam, pedal hat) stay
+//     MuldjordKit by Lars Muldjord (DrumGizmo.org), its FreePats stereo build (CC BY 4.0): kick, toms,
+//     hi-hats, ride, bell and crash; the pieces it has not (rim, cross-stick, flam, pedal hat) stay
 //     Virtuosity Drums' (Versilian Studios + Karoryfer, CC0), its kick mic, snare mic and overheads summed;
+//   - the snare (user, 2026-10-27, chosen in the Drum lab): Frankensnare's 14×6.5 maple (Karoryfer, CC0), its
+//     top, bottom and overhead mics, staged in web/_raw/kits/frankensnare/ (LAB below);
 //   - percussion: Virtuosity's close mic and overheads, stereo;
 //   - brushes ("b…" pieces): Karoryfer's Swirly Drums, one mic, mono.
 // Needs tools/serve.py (localhost write endpoint). Run:  (await import('./js/dev/drumprep.js')).run()
+import { labLayers, bake, loud170 } from './drumlab.js';
+
 const SR = 48000;
 const DIR = '/_raw/drums2/';
 
@@ -19,11 +23,22 @@ const MAX = {
   bongoh: 0.7, bongol: 0.7, tamb: 0.8, guiro: 0.5, guirol: 0.9, cabasa: 0.5, agogoh: 0.8, agogol: 0.8, tri: 1.6, trim: 0.4,
   timb: 0.9, bkick: 0.8, bsnare: 0.9, bhhc: 0.6, bhhp: 0.6, bride: 2.5,
 };
+// The Drum lab's settings (user, 2026-10-27, tuned by ear in /js/dev/drumlab.html: "lets try the current
+// settings"): a piece with `src` takes its hits from that candidate kit (drumlab.js), and each is shaped as the
+// lab plays it (Room: the overheads against the close mics, dB; Body and Tone: low and high shelves, dB;
+// Length: the ring cut, % of natural). The snare is Frankensnare's 14×6.5 maple (Karoryfer, CC0); the kick
+// MuldjordKit's, shorter and darker. Each one's change in loudness is returned (`levelShift`), for drums.js
+// LEVEL, so the app's balance hears it as the lab did; the lab's volumes go to LEVEL too.
+const LAB = {
+  kick: { room: -6, tone: -5, body: -8, len: 24 },
+  snare: { src: 'frank14x65', room: -9, tone: 6, body: 1.5, len: 50 },
+};
+
 // MuldjordKit's pieces: a folder of stereo FLAC hits each; the hits sorted by peak, `layers` of them taken
 // soft to hard at even steps, two round robins each (`max`: seconds kept, as MAX)
 const MUL = '/_raw/kits/muldjord/MuldjordKit SFZ+FLAC-20201018/samples/';
 const MULDJORD = {
-  kick: { folder: 'KdrumL', layers: 4 }, snare: { folder: 'Snare1', layers: 4 }, tomh: { folder: 'Tom1', layers: 2 },
+  kick: { folder: 'KdrumL', layers: 4 }, tomh: { folder: 'Tom1', layers: 2 },
   toml: { folder: 'Tom4', layers: 2 }, hhc: { folder: 'HihatClosed', layers: 4 }, hho: { folder: 'HihatOpen', layers: 2 },
   // (a half-open hat: the open hat choked early)
   hhh: { folder: 'HihatOpen', layers: 1, max: 0.45 }, ride: { folder: 'RideL', layers: 3 }, bell: { folder: 'RideLBell', layers: 1 },
@@ -50,7 +65,7 @@ async function muldjord(name, { folder, layers, max }) {
 
 // the brush stir is a long sweep: a two-beat swish cut from it (start and length in seconds)
 const SEG = { bstir: [[0.6, 1.8], [3.2, 1.8]] };
-const GROUP = (p) => (MULDJORD[p] ? 'muldjord' : p.startsWith('b') && p !== 'bell' && p !== 'bongoh' && p !== 'bongol' ? 'brush'
+const GROUP = (p) => (LAB[p]?.src ? 'lab-' + p : MULDJORD[p] ? 'muldjord' : p.startsWith('b') && p !== 'bell' && p !== 'bongoh' && p !== 'bongol' ? 'brush'
   : ['shakd', 'shaku', 'claves', 'cowbell', 'conga', 'congam', 'tumba', 'bongoh', 'bongol', 'tamb', 'guiro', 'guirol', 'cabasa', 'agogoh', 'agogol', 'tri', 'trim', 'timb'].includes(p) ? 'perc' : 'kit');
 
 const staged = (f) => DIR + f.replace(':', '_').replace(/\//g, '_');
@@ -195,10 +210,29 @@ export async function run() {
   // every hit once (summed, trimmed); then one gain per group, so each family keeps its recorded balance
   const done = {};
   const groupPeak = {};
+  const levelShift = {};
   for (const [name, layers] of Object.entries(spec)) {
     done[name] = [];
-    if (MULDJORD[name]) {
-      done[name] = await muldjord(name, MULDJORD[name]);
+    if (LAB[name] || MULDJORD[name]) {
+      // a lab piece: its candidate kit's hits, or MuldjordKit's, shaped as the lab plays them
+      const shifts = [];
+      if (LAB[name]?.src) {
+        for (const row of await labLayers(LAB[name].src, name)) {
+          const out = [];
+          for (const hit of row) { const y = await bake(hit, LAB[name], MAX[name] ?? 1); shifts.push(loud170(y) - hit.loud); out.push(y); }
+          done[name].push(out);
+        }
+      } else {
+        done[name] = await muldjord(name, MULDJORD[name]);
+        if (LAB[name]) {
+          for (const row of done[name]) for (let r = 0; r < row.length; r++) {
+            const y = await bake({ chs: row[r] }, LAB[name], MAX[name] ?? 1);
+            shifts.push(loud170(y) - loud170(row[r]));
+            row[r] = y;
+          }
+        }
+      }
+      if (shifts.length) levelShift[name] = +(shifts.reduce((a, b) => a + b, 0) / shifts.length).toFixed(1);
       for (const row of done[name]) for (const y of row) groupPeak[GROUP(name)] = Math.max(groupPeak[GROUP(name)] || 0, peakOf(y));
       continue;
     }
@@ -214,10 +248,10 @@ export async function run() {
     }
   }
   const manifest = {
-    name: 'MuldjordKit (Lars Muldjord, DrumGizmo.org; FreePats stereo build), Virtuosity Drums (Versilian Studios + Karoryfer) and Swirly Drums brushes (Karoryfer)',
-    license: 'CC-BY-4.0 (MuldjordKit) and CC0-1.0 (Virtuosity Drums, Swirly Drums)',
-    source: ['https://freepats.zenvoid.org/Percussion/acoustic-drum-kit.html', 'https://drumgizmo.org/wiki/doku.php?id=kits:muldjordkit', 'https://github.com/sfzinstruments/virtuosity_drums', 'https://github.com/sfzinstruments/karoryfer.swirly-drums'],
-    v: 3,
+    name: 'MuldjordKit (Lars Muldjord, DrumGizmo.org; FreePats stereo build), Frankensnare (Karoryfer: the snare), Virtuosity Drums (Versilian Studios + Karoryfer) and Swirly Drums brushes (Karoryfer)',
+    license: 'CC-BY-4.0 (MuldjordKit) and CC0-1.0 (Frankensnare, Virtuosity Drums, Swirly Drums)',
+    source: ['https://freepats.zenvoid.org/Percussion/acoustic-drum-kit.html', 'https://drumgizmo.org/wiki/doku.php?id=kits:muldjordkit', 'https://github.com/sfzinstruments/karoryfer.frankensnare', 'https://github.com/sfzinstruments/virtuosity_drums', 'https://github.com/sfzinstruments/karoryfer.swirly-drums'],
+    v: 4,
     pieces: {},
   };
   let bytes = 0, seconds = 0;
@@ -240,12 +274,18 @@ export async function run() {
   }
   await put('kit.json', JSON.stringify(manifest, null, 1), 'application/json');
   await put('LICENSE.txt', [
-    'Drum kit (kick, snare, toms, hi-hats, ride and crash): MuldjordKit by Lars Muldjord',
+    'Drum kit (kick, toms, hi-hats, ride and crash): MuldjordKit by Lars Muldjord',
     '(www.muldjord.com, DrumGizmo.org), in the stereo build assembled by the FreePats project',
     '(https://freepats.zenvoid.org/Percussion/acoustic-drum-kit.html), licensed under the Creative Commons',
     'Attribution 4.0 International License: https://creativecommons.org/licenses/by/4.0/',
     'Changes: a selection of its hits, trimmed, faded, levelled and encoded as Opus for BassClass by',
-    'web/js/dev/drumprep.js; the half-open hi-hat is its open hi-hat cut short.',
+    'web/js/dev/drumprep.js; the half-open hi-hat is its open hi-hat cut short; the kick shortened and',
+    'equalised.',
+    '',
+    'Snare: the 14x6.5 maple snare of Frankensnare by Karoryfer Samples, released under CC0 1.0 Universal',
+    '(public domain): https://creativecommons.org/publicdomain/zero/1.0/',
+    'Source: https://github.com/sfzinstruments/karoryfer.frankensnare (top, bottom and overhead mics mixed,',
+    'equalised, shortened and encoded as Opus).',
     '',
     'Rim shot, cross-stick, flam, pedal hi-hat and percussion: Virtuosity Drums by Versilian Studios and',
     'Karoryfer Samples; brushes: Swirly Drums by Karoryfer Samples; both released under CC0 1.0 Universal',
@@ -254,5 +294,5 @@ export async function run() {
     'https://github.com/sfzinstruments/karoryfer.swirly-drums (summed, trimmed and encoded as Opus).',
     '',
   ].join('\n'), 'text/plain');
-  return { files: Object.values(manifest.pieces).flat(2).length, kb: Math.round(bytes / 1024), seconds: +seconds.toFixed(1) };
+  return { files: Object.values(manifest.pieces).flat(2).length, kb: Math.round(bytes / 1024), seconds: +seconds.toFixed(1), levelShift };
 }

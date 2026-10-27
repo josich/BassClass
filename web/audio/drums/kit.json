@@ -1,13 +1,14 @@
 {
- "name": "MuldjordKit (Lars Muldjord, DrumGizmo.org; FreePats stereo build), Virtuosity Drums (Versilian Studios + Karoryfer) and Swirly Drums brushes (Karoryfer)",
- "license": "CC-BY-4.0 (MuldjordKit) and CC0-1.0 (Virtuosity Drums, Swirly Drums)",
+ "name": "MuldjordKit (Lars Muldjord, DrumGizmo.org; FreePats stereo build), Frankensnare (Karoryfer: the snare), Virtuosity Drums (Versilian Studios + Karoryfer) and Swirly Drums brushes (Karoryfer)",
+ "license": "CC-BY-4.0 (MuldjordKit) and CC0-1.0 (Frankensnare, Virtuosity Drums, Swirly Drums)",
  "source": [
   "https://freepats.zenvoid.org/Percussion/acoustic-drum-kit.html",
   "https://drumgizmo.org/wiki/doku.php?id=kits:muldjordkit",
+  "https://github.com/sfzinstruments/karoryfer.frankensnare",
   "https://github.com/sfzinstruments/virtuosity_drums",
   "https://github.com/sfzinstruments/karoryfer.swirly-drums"
  ],
- "v": 3,
+ "v": 4,
  "pieces": {
   "kick": [
    [

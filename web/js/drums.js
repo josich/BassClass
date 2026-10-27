@@ -9,7 +9,7 @@ import * as A from './audio.js';
 import { COMMIT } from './version.js';
 import { STYLES, stepTime } from './practice/styles.js';
 
-const VERSION = 3;   // bump when the kit's files change: they are fetched (and cached) again
+const VERSION = 4;   // bump when the kit's files change: they are fetched (and cached) again
 const IN_APP = location.hostname === 'appassets.androidplatform.net';
 const REPO = 'https://raw.githubusercontent.com/josich/BassClass/';
 const BASES = IN_APP ? [...new Set([`${REPO}${COMMIT || 'main'}/web/audio/drums/`, `${REPO}main/web/audio/drums/`])] : ['audio/drums/'];
@@ -24,11 +24,16 @@ const CACHE = `bassclass-drums-v${VERSION}`;
 // (ride, its bell, the brush ride) and the guiro's scrapes are 3 dB under that (user, 2026-10-23: "the ride
 // can be a bit quieter", "the scratcher in general a bit quieter"). The brushes' swish sits well under their
 // taps, a hush behind them (user, 2026-10-23: it "sounds like metal scratching, much lower").
+// The kit's pieces as the user set them by ear in the Drum lab (2026-10-27, web/js/dev/drumlab.html; the
+// levels before it plus the lab's volumes and each shaped piece's own change, drumprep.js `levelShift`): the
+// snare 10 dB down (Frankensnare, brighter: +1.1), its rim shot, cross-stick and flam with it; the kick
+// shorter and darker (-2.7); the hi-hats and the ride 7.5 dB down, the crash 4, the toms 12; the percussion 8.
 const LEVEL = {
-  kick: -13.5, snare: 0, rim: 0, xstick: -3, flam: 0, tomh: -7, toml: -8, crash: -2,
-  hhc: -12, hhh: -10, hho: -7, hhp: -14, ride: -14, bell: -13,
-  shakd: -12, shaku: -14, cabasa: -13, tamb: -10, guiro: -19, guirol: -17, claves: -4, cowbell: -8, agogoh: -7, agogol: -8,
-  conga: -8, congam: -10, tumba: -8, bongoh: -8, bongol: -8, timb: -6, tri: -12, trim: -14,
+  kick: -16.2, snare: -8.9, rim: -8.9, xstick: -11.9, flam: -8.9, tomh: -19, toml: -20, crash: -6,
+  hhc: -19.5, hhh: -17.5, hho: -14.5, hhp: -21.5, ride: -21.5, bell: -20.5,
+  // (the percussion 8 dB down with the kit, keeping its balance against the backbeat and the hats)
+  shakd: -20, shaku: -22, cabasa: -21, tamb: -18, guiro: -27, guirol: -25, claves: -12, cowbell: -16, agogoh: -15, agogol: -16,
+  conga: -16, congam: -18, tumba: -16, bongoh: -16, bongol: -16, timb: -14, tri: -20, trim: -22,
   bkick: -6.7, bsnare: -4.6, bstir: -34.4, bhhc: -8.4, bhhp: -13.1, bride: -12.8,
 };
 // the brushes keep their recorded dynamics: their soft strokes are light taps, nearly as one, and only the slap
@@ -38,7 +43,7 @@ const NATURAL = new Set(['bkick', 'bsnare', 'bstir', 'bhhc', 'bhhp', 'bride']);
 // each recorded layer's own loudness (A-weighted dB over a hit's first 170 ms, the mean of its round robins),
 // soft to hard: measured from the kit's files by web/js/dev/drumlevels.js (measure again when the kit changes)
 const LAYER_DB = {
-  kick: [-44.4, -42.2, -40.0, -38.1], snare: [-42.8, -40.4, -35.8, -32.0], rim: [-34.2, -28.6], xstick: [-52.2, -41.9, -38.2, -37.7],
+  kick: [-47.6, -44.9, -42.5, -40.4], snare: [-39.6, -34.7, -31.3, -27.9], rim: [-34.2, -28.6], xstick: [-52.2, -41.9, -38.2, -37.7],
   flam: [-41.7, -35.3], hhc: [-57.0, -50.2, -42.8, -37.4], hhh: [-30.3], hho: [-33.3, -30.3], hhp: [-55.4], ride: [-37.3, -34.8, -32.9],
   bell: [-26.4], crash: [-34.2, -24.9], tomh: [-36.2, -32.0], toml: [-37.2, -33.8], shakd: [-35.5], shaku: [-44.3], claves: [-45.1],
   cowbell: [-54.7, -26.8], conga: [-54.1, -41.7, -38.5], congam: [-52.0], tumba: [-52.5, -41.8], bongoh: [-50.8, -36.8], bongol: [-48.4],
@@ -142,7 +147,7 @@ function loudness(s) {
 // Through the drum chain the strokes' model is not the whole story: the limiter takes more from a sparse,
 // peaky pattern, and the model hears only a hit's first 170 ms, not a ride's wash or the brushes' long swish
 // (QA round 15: brushes swing sat 18 dB over the median). Each pattern more than 1 dB off the median
-// loudness through the chain gets a correction, measured by web/js/dev/drumlevels.js chain(): 120 of the 124
+// loudness through the chain gets a correction, measured by web/js/dev/drumlevels.js chain(): 121 of the 124
 // then sit within 1 dB of it (A-weighted, at 100%), the brushes under it. Measure again when patterns or the
 // kit change.
 // The two brushes patterns are set by their taps instead (`BY_TAPS`; the swish, now low, no longer their
@@ -150,15 +155,15 @@ function loudness(s) {
 // (brushes are soft); chain() leaves them as they are.
 export const BY_TAPS = { brushswing: -12, brushballad: -9 };
 const CHAIN_DB = {
-  // (MuldjordKit, 2026-10-27: every pattern measured again through the louder chain, against the median of all 124)
-  rockride: -7, punk: -3, rockfloor: -7.5, rocktoms: 4, rockballad: 5.5, six8rock: 4, poppunk: -5, dbeat: -6,
-  metaldk: 5, skank: -5.5, breakdown: -6.5, blast: -8.5, doom: -6.5, djent: -3.5, dance: -8, disco: -7.5,
-  popballad: 7, synthpop: 4.5, poprock: -5, stomp: 3.5, baggy: -3.5, funkdisco: -5.5, soulballad: 4, trap: -4.5,
-  rnbballad: 4, phillysoul: -7.5, techno: -7, lofi: 3.5, chicagoshuffle: -7, slowblues: 4.5, jumpblues: -6.5,
-  hambone: 3.5, minorblues: -7, swing: -13.5, upswing: -14.5, twofeel: -12.5, jazzwaltz: -12.5, bebop: -13.5,
-  jazzfive: -14, jazzshuffle: -7, bossa: 4.5, samba: -6, baiao: -9, chacha: -6, rumba: 8.5, afro68: -8, habanera: 7,
-  songo: -5.5, partidoalto: -7, afrobeat: -5.5, highlife: -2.5, onedrop: 5, rockers: 5.5, steppers: 7.5, soca: -7.5,
-  bluegrass: -11.5, folk68: 3.5, jig: 3.5, folkrock: -4, countryrock: -6, ...BY_TAPS,
+  // (kit v4, 2026-10-27: every pattern measured again with the Drum lab's balance, against the median of all 124)
+  rockride: -3.5, punk: -4.5, rockfloor: -2.5, rockballad: 5, six8rock: 4, poppunk: -3.5, dbeat: -3.5, skank: -5.5,
+  breakdown: -4.5, blast: -8, doom: -3, dance: -3, disco: -2.5, popballad: 8.5, synthpop: 3.5, poprock: -2,
+  stomp: 2.5, baggy: -2, soulballad: 4, trap: -2, rnbballad: 6.5, phillysoul: -2.5, lofi: 2.5, chicagoshuffle: -3,
+  slowblues: 5, jumpblues: -3.5, halfshuffle: 2.5, minorblues: -1.5, swing: -7.5, upswing: -8.5, twofeel: -7,
+  jazzwaltz: -7, bebop: -8, jazzfive: -8.5, jazzshuffle: -4, bossa: 6, samba: -2.5, baiao: -2.5, chacha: -4,
+  rumba: 9, afro68: -4, habanera: 6.5, songo: -2, partidoalto: -2.5, afrobeat: -2.5, onedrop: 6.5, rockers: 6.5,
+  steppers: 8, rocksteady: 3.5, soca: -4, train: -3.5, twostep: 3, countryshuffle: 3, bluegrass: -10, folk68: 4,
+  jig: 3.5, countryrock: -3, ...BY_TAPS,
 };
 
 /** A pattern's gain for even loudness between the patterns (`chain`: with its correction for the drum chain). */

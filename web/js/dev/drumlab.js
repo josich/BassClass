@@ -214,6 +214,59 @@ const LOADERS = {
   frank14x65: (p) => (p === 'snare' ? frank('14p_basic') : null),
   virtuosity: (p) => virtuosity(p),
 };
+/** A candidate kit's layers of hits for `piece` (null when it has none). */
+export const labLayers = (src, piece) => LOADERS[src]?.(piece) ?? null;
+
+/** A sound's loudness as the lab levels it: A-weighted, its first 170 ms. */
+export function loud170(chs) {
+  const W = 8192, b = new AudioBuffer({ length: W, sampleRate: SR, numberOfChannels: chs.length });
+  chs.forEach((c, i) => b.getChannelData(i).set(c.subarray(0, W)));
+  return aLoudness(b);
+}
+
+/**
+ * A hit as the lab plays it, rendered offline at its recorded level: its mics (a lab hit) or a sound already
+ * mixed (`{ chs }`), with Room, Body, Tone and Length as in `o` (a group's settings); at most `max` seconds.
+ * Returns [L, R], its end faded.
+ */
+export async function bake(hit, o, max = 2) {
+  const len = o.len / 100, hold = 0.03 + len * 0.6, tau = 0.02 + len * 0.18;
+  const full = hit.mics ? Math.max(...hit.mics.map((m) => m.buf.length / m.buf.sampleRate)) - hit.offset : hit.chs[0].length / SR;
+  const h = Math.min(len < 1 ? hold : Infinity, hit.max ? hit.max - 0.03 : Infinity);
+  const secs = Math.min(max, full, h === Infinity ? Infinity : h + (hit.max && h === hit.max - 0.03 ? 0.1 : tau * 7));
+  const ctx = new OfflineAudioContext(2, Math.ceil(secs * SR), SR);
+  const close = ctx.createGain(), oh = ctx.createGain();
+  oh.gain.value = o.room <= -30 ? 0 : dB(o.room);
+  const body = ctx.createBiquadFilter(); body.type = 'lowshelf'; body.frequency.value = 150; body.gain.value = o.body;
+  const tone = ctx.createBiquadFilter(); tone.type = 'highshelf'; tone.frequency.value = 3500; tone.gain.value = o.tone;
+  const env = ctx.createGain();
+  env.gain.setValueAtTime(1, 0);
+  if (h !== Infinity) { env.gain.setValueAtTime(1, h); env.gain.setTargetAtTime(0, h, hit.max && h === hit.max - 0.03 ? 0.015 : tau); }
+  close.connect(body); oh.connect(body);
+  body.connect(tone).connect(env).connect(ctx.destination);
+  if (hit.mics) {
+    for (const m of hit.mics) {
+      const s = ctx.createBufferSource(); s.buffer = m.buf;
+      const w = ctx.createGain(); w.gain.value = m.w;
+      let node = s.connect(w);
+      if (m.pan && m.buf.numberOfChannels === 1) { const p = ctx.createStereoPanner(); p.pan.value = m.pan; node = node.connect(p); }
+      node.connect(m.role === 'oh' ? oh : close);
+      s.start(0, hit.offset);
+    }
+  } else {
+    const b = ctx.createBuffer(hit.chs.length, hit.chs[0].length, SR);
+    hit.chs.forEach((c, i) => b.getChannelData(i).set(c));
+    const s = ctx.createBufferSource(); s.buffer = b;
+    s.connect(close);
+    s.start(0);
+  }
+  const out = await ctx.startRendering();
+  const res = [out.getChannelData(0).slice(), out.getChannelData(1).slice()];
+  const f = Math.min(res[0].length, Math.round(SR * 0.005));
+  for (const y of res) for (let i = 0; i < f; i++) y[y.length - f + i] *= 1 - i / f;
+  return res;
+}
+
 // source → piece → layers of hits
 const BANK = {};
 /** What loaded: source → piece → its layers' sizes and loudness (dB), soft to hard. */
