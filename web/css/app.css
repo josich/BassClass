@@ -902,3 +902,6 @@ input[type="range"] { touch-action: pan-y; }
 .btn.pro-cta:disabled::after { animation: none; }
 @media (prefers-reduced-motion: reduce) { .btn.pro-cta::after { animation: none; display: none; } }
 .pro-offer { align-items: center; gap: 10px; flex-wrap: wrap; }
+/* Settings' Pro ⓘ: everything Pro opens, in full */
+.info-pop .pro-detail-head { display: block; margin-top: 6px; color: #e9bd73; }
+.info-pop .pro-detail-sub { display: block; padding-left: 14px; color: var(--muted); font-size: 12px; }

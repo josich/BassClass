@@ -2,8 +2,12 @@
 // the test switch), and the debug panel for the gates and the purchase (user, 2026-10-27: "create a way to debug the
 // payment gates"). The panel opens with seven taps on the version line, in every build but the Play one (where test
 // switches would hand out Pro); it is kept apart from the player's data (pro.js `dev`), so a backup never carries it.
-import { h, toast } from './dom.js';
-import { PLAY, PRO_ID, TIPS, PRICE, gatesOn, isPro, owned, proRecord, dev, setDev, setOwned } from '../pro.js';
+import { h, toast, icon, bubbleOnTap } from './dom.js';
+import { PLAY, PRO_ID, TIPS, PRICE, FREE_LEVELS, gatesOn, isPro, owned, proRecord, dev, setDev, setOwned, proRoomItems } from '../pro.js';
+import { STAGES, LESSONS, UNITS } from '../course/data.js';
+import { LEVELS, EXERCISES, moduleOf } from '../curriculum/index.js';
+import { STYLES, GENRES } from '../practice/styles.js';
+import { progName } from '../practice/harmony.js';
 import { syncPro, billingLog, pretendDayPassed, canBuy, prices } from '../billing.js';
 import { openPro, tip } from './proSheet.js';
 
@@ -19,17 +23,67 @@ export function proFields(field) {
   // "add the full price and make the button appealing")
   const cta = proButton(() => openPro());
   if (!mine && canBuy()) prices().then((p) => { if (p[PRO_ID]) cta.setPrice(p[PRO_ID]); }).catch(() => {});
-  const out = [field('BassClass Pro', mine
+  const proField = field('BassClass Pro', mine
     ? h('div', { class: 'row' }, h('span', { class: 'pro-owned' }, '⭐ Pro is yours. Thank you!'))
-    : h('div', { class: 'row pro-offer' }, cta, h('button', { class: 'btn', onClick: restore }, 'Restore purchase')),
-  ['🎓 Levels 1–3, the tuner and the metronome are free', '⭐ Pro opens Levels 4–6, every drum pattern and progression, and the extra sounds', '💳 One payment, yours for good: no subscription, no ads', '📱 A new phone: Restore purchase (the same Google account)'])];
+    : h('div', { class: 'row pro-offer' }, cta, h('button', { class: 'btn', onClick: restore }, 'Restore purchase')));
+  // its ⓘ: everything Pro opens, in full (user, 2026-10-27: "detailed, expanded, to show how much content")
+  proField.querySelector('.field-head')?.append(bubbleOnTap(h('button', { class: 'info-btn', type: 'button', title: 'What BassClass Pro opens', 'aria-label': 'What BassClass Pro opens', 'aria-expanded': 'false', html: icon('info') }), proDetails, { width: 500 }));
+  const out = [proField];
   // Support BassClass: a rating on Google Play (user, 2026-10-27), and the tips where buying works
   const tipRow = h('div', { class: 'row' },
     h('button', { class: 'btn', onClick: rateApp }, '⭐ Rate BassClass on Google Play'),
     ...(canBuy() ? TIPS.map(([id, label]) => h('button', { class: 'btn', 'data-tip': id, onClick: () => tip(id) }, `💛 Tip ${label}`)) : []));
   // (the tips' prices in the player's currency)
   if (canBuy()) prices().then((p) => tipRow.querySelectorAll('[data-tip]').forEach((b) => { if (p[b.dataset.tip]) b.textContent = `💛 Tip ${p[b.dataset.tip]}`; })).catch(() => {});
-  out.push(field('Support BassClass', tipRow, ['⭐ A rating and a few words on Google Play help other bass players find BassClass', '💛 A tip helps keep it growing', '🔓 Neither unlocks anything: Pro is the same for everyone']));
+  out.push(field('Support BassClass', tipRow, ['⭐ A rating and a few words on Google Play help other bass players find BassClass', '☕ A tip helps: buy me a coffee', '🔓 Neither unlocks anything: Pro is the same for everyone']));
+  return out;
+}
+
+/**
+ * Everything Pro opens, in full, counted and named from the data (so new content shows on its own): the Course's
+ * stages and their units, the Library's levels and their topics, the song studies, the drum patterns by genre and the
+ * fills, the progressions by name and My progression, the sounds; then what stays free.
+ */
+function proDetails() {
+  const sub = (text) => h('span', { class: 'pro-detail-sub' }, text);
+  const head = (text) => h('b', { class: 'pro-detail-head' }, text);
+  const out = [head('⭐ BassClass Pro opens all of this, for good:')];
+  // the Course
+  const stages = STAGES.filter((s) => s.level > FREE_LEVELS);
+  const lessonsOf = (s) => LESSONS.filter((l) => l.stage === s && l.kind === 'lesson');
+  const units = UNITS.filter((u) => stages.includes(u.stage));
+  out.push(head(`🎓 Course Stages ${FREE_LEVELS + 1}–6: ${stages.reduce((a, s) => a + lessonsOf(s).length, 0)} lessons in ${units.length} units, with their checkpoints, stage tests and reviews`));
+  for (const s of stages) {
+    out.push(`Stage ${s.level} · ${s.title}: ${lessonsOf(s).length} lessons`);
+    for (const u of units.filter((x) => x.stage === s)) out.push(sub(`${u.n}. ${u.title}`));
+  }
+  // the Library
+  const pro = EXERCISES.filter((t) => t.level > FREE_LEVELS);
+  out.push(head(`📚 Library Levels ${FREE_LEVELS + 1}–6: ${pro.length} more exercises, each in every key with its own variations`));
+  for (const L of LEVELS.filter((x) => x.n > FREE_LEVELS)) {
+    const list = pro.filter((t) => t.level === L.n);
+    const byTopic = new Map();
+    for (const t of list) byTopic.set(t.module, (byTopic.get(t.module) || 0) + 1);
+    out.push(`Level ${L.n} · ${L.name}: ${list.length} exercises`);
+    out.push(sub([...byTopic].map(([m, n]) => `${moduleOf(m)?.name || m} ${n}`).join(' · ')));
+  }
+  const songs = pro.filter((t) => t.module === 'music').length;
+  if (songs) out.push(head(`🎵 ${songs} more song-style studies, with their backing`));
+  // the Practice room
+  const room = proRoomItems();
+  out.push(head(`🥁 ${room.styles.length} more drum patterns (all ${Object.keys(STYLES).length}), and fills every 4 or 8 bars`));
+  for (const g of GENRES) {
+    const n = room.styles.filter((k) => STYLES[k].genre === g.key);
+    if (n.length) out.push(sub(`${g.icon} ${g.name}: ${n.length} more · ${n.slice(0, 4).map((k) => STYLES[k].name).join(', ')}${n.length > 4 ? '…' : ''}`));
+  }
+  const progs = room.progGroups.flatMap(([, keys]) => keys);
+  out.push(head(`🎹 ${progs.length} more progressions, and My progression (your own, up to 16 chords)`));
+  for (const [g, keys] of room.progGroups) out.push(sub(`${g}: ${keys.map(progName).join(', ')}`));
+  out.push(head('🎛 3 more sounds for the harmony'));
+  out.push(sub('Piano: a recorded Kawai grand'), sub('Organ: tonewheels through a rotating speaker'), sub('Guitar: rock and metal power chords, chugging in time'));
+  out.push(head('✨ And everything we add next: new levels, lessons, studies, patterns and sounds'));
+  out.push(head(`🆓 Always free: Levels 1–${FREE_LEVELS}, the tuner, the metronome, the practice log and backup`));
+  out.push('💳 One payment, yours for good: no subscription, no ads. A new phone: Restore purchase.');
   return out;
 }
 

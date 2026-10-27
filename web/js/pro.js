@@ -153,6 +153,14 @@ export function freeRoom(room) {
   return Object.keys(patch).length ? patch : null;
 }
 
+/** What Pro opens in the room, whoever owns it (Settings' Pro details): its drum patterns and progression groups. */
+export function proRoomItems() {
+  return {
+    styles: Object.keys(STYLES).filter((k) => !FREE_STYLE.has(k)),
+    progGroups: HARMONY_PROGS.filter(([g]) => g !== 'Mine' && !FREE_PROG_GROUPS.has(g)),
+  };
+}
+
 /** What Pro opens, counted from the data (for the Pro sheet). */
 export function proContents(EXERCISES, LESSONS) {
   const ex = EXERCISES.filter((t) => !t.free && (t.pro || t.level > FREE_LEVELS)).length;
