@@ -10,7 +10,7 @@ let opened = 0;   // pickers open now
 addEventListener('popstate', () => { if (history.state?.picker && !opened) history.back(); });
 
 /**
- * Opens a picker. `o`: { title, groups: [{ key, name }], items: [{ key, name, sub, group }], current,
+ * Opens a picker. `o`: { title, groups: [{ key, name }], items: [{ key, name, sub, group, lock, fresh }], current,
  * open (the group shown first; else the current item's), favs, recent (item keys), onPick(key),
  * onFav(key, on), onGroup(key) (a group opened), host (where it goes; document.body by default) }.
  * Returns close(how): 'route' closes it without going back in the history (the screen is leaving).
@@ -59,7 +59,7 @@ export function openPicker(o) {
         refocus();
       } },
         // (the Pro chip on the small line, so a long name keeps its room: QA round 19)
-        h('b', {}, it.name), h('small', {}, it.lock ? h('span', { class: 'chip pro' }, 'Pro') : null, `${where}${it.sub || ''}`)),
+        h('b', {}, it.name), h('small', {}, it.fresh ? h('span', { class: 'chip new' }, 'New') : null, it.lock ? h('span', { class: 'chip pro' }, 'Pro') : null, `${where}${it.sub || ''}`)),
       h('button', {
         class: `picker-star${fav ? ' on' : ''}`, type: 'button', html: icon(fav ? 'star' : 'starO'),
         'aria-label': fav ? `Remove ${it.name} from favourites` : `Add ${it.name} to favourites`,
@@ -79,7 +79,8 @@ export function openPicker(o) {
       ...o.groups,
     ];
     chips.replaceChildren(sideScroll(h('div', { class: 'picker-chip-row' }, list.map((g) => h('button', {
-      class: g.key === open ? 'on' : '', type: 'button',
+      // (a group holding new cards carries a dot)
+      class: `${g.key === open ? 'on' : ''}${o.items.some((it) => it.fresh && it.group === g.key) ? ' has-new' : ''}`, type: 'button',
       onClick: () => {
         open = g.key;
         if (!g.key.startsWith('*')) o.onGroup?.(g.key);

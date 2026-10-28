@@ -12,6 +12,7 @@ import { progName } from '../practice/harmony.js';
 import { syncPro, restorePro, billingLog, pretendDayPassed, canBuy, prices } from '../billing.js';
 import { openPro, tip, FREE_LINE } from './proSheet.js';
 import { openRate, askPlay, rateState, resetRate, RATE_AT } from './rate.js';
+import { resetNews } from '../news.js';
 
 /** The Pro card and Support BassClass (the tips), for Settings; nothing while the gates are off. */
 export function proFields(field) {
@@ -160,6 +161,9 @@ export function devPanel(rerender) {
       } }, 'Google Play\'s card') : null,
       h('button', { class: 'btn small', type: 'button', onClick: () => { resetRate(); toast('The rate reminder will ask again at its marks'); rerender(); } }, 'Reset'),
       h('code', { class: 'dev-state' }, (() => { const r = rateState(); return `${Math.floor(r.minutes / 60)}h${String(r.minutes % 60).padStart(2, '0')} played · asks at ${RATE_AT.map((m) => `${m / 60} h`).join(' and ')} · asked ${r.asked} · rated ${r.rated ? 'yes' : 'no'}`; })()))),
+    // the "New" chips (news.js): the latest additions count as new again, to see them
+    line('New chips', h('div', { class: 'row' },
+      h('button', { class: 'btn small', type: 'button', onClick: () => { resetNews(); toast('The latest additions show "New" again'); rerender(); } }, 'Show them again'))),
     line('State', h('code', { class: 'dev-state' }, `gates ${gatesOn() ? 'on' : 'off'} · everything open: ${isPro() ? 'yes' : 'no'} · owned: ${owned() ? 'yes' : 'no'} · record ${JSON.stringify(r)} · Play reports: ${JSON.stringify(d.sim)}`)),
     h('pre', { class: 'dev-log' }, billingLog().join('\n') || 'No billing events yet.'));
 }

@@ -19,6 +19,21 @@ import { openPro } from './ui/proSheet.js';
 import { maybeAskRating } from './ui/rate.js';
 import { syncPro } from './billing.js';
 import { aboutScreen } from './ui/about.js';
+import { EXERCISES } from './curriculum/index.js';
+import { LESSONS } from './course/data.js';
+import { STYLES } from './practice/styles.js';
+import { PROG_KEYS, MINE } from './practice/harmony.js';
+import { PAD_SOUNDS } from './audio.js';
+import { initNews, markUsed } from './news.js';
+
+// "New" chips: what this start knows, against the last one's (news.js)
+initNews([
+  ...EXERCISES.map((t) => `ex:${t.id}`),
+  ...LESSONS.filter((l) => l.kind === 'lesson').map((l) => `lesson:${l.id}`),
+  ...Object.keys(STYLES).map((k) => `style:${k}`),
+  ...PROG_KEYS.filter((k) => k !== MINE).map((k) => `prog:${k}`),
+  ...Object.keys(PAD_SOUNDS).map((k) => `sound:${k}`),
+]);
 
 const app = document.getElementById('app');
 const NAV = [
@@ -145,6 +160,7 @@ function route() {
       };
     }
     try {
+      markUsed(`ex:${tpl.id}`);
       active = renderExercise(app, tpl, { params, routine, lesson, onBack: back });
     } catch (err) {
       console.error(err);

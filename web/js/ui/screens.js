@@ -15,6 +15,7 @@ import { saveBackup, parseBackup, restoreBackup } from '../backup.js';
 import { resetLog } from '../practiceLog.js';
 import { hashLock, exerciseLock, levelLocked, gatesOn } from '../pro.js';
 import { openPro } from './proSheet.js';
+import { isNew, newCount } from '../news.js';
 import { proFields, devTaps, devPanel } from './proDebug.js';
 import { sendFeedback, CONTACT } from '../feedback.js';
 
@@ -27,6 +28,8 @@ export const go = (hash) => {
 };
 /** The small "Pro" chip of something a free player cannot open (`why`: its reason, or null). */
 export const proChip = (why) => (why ? h('span', { class: 'chip pro', title: why }, 'Pro') : null);
+/** "New": added by an update and not used yet (news.js); `n`, a count for a level or a stage ("3 new"). */
+export const newChip = (on, n = 0) => (on ? h('span', { class: 'chip new', title: 'New since the last update' }, n > 1 ? `${n} new` : 'New') : null);
 export const exHref = (id, params) => {
   const q = params ? new URLSearchParams(params).toString() : '';
   return `#/ex/${id}${q ? `?${q}` : ''}`;
@@ -42,6 +45,7 @@ function card(t, { level = true, topic = true } = {}) {
     h('h3', {}, h('span', { class: 'ex-num' }, t.num), t.title),
     // the title says what it is; the description opens on request
     h('div', { class: 'meta' },
+      newChip(isNew(`ex:${t.id}`)),
       proChip(lock),
       level ? h('span', { class: `chip lv lv${t.level}` }, `L${t.level}`) : null,
       topic ? h('span', { class: 'chip' }, `${mod?.icon ?? ''} ${mod?.name ?? ''}`) : null,
@@ -215,7 +219,7 @@ function levelSections() {
     if (!list.length) return [];
     const done = list.filter((t) => (getProgress(t.id) || {}).done).length;
     const fold = h('details', { class: 'lv-fold', id: `lv-${L.n}`, open: open.has(L.n) },
-      h('summary', { class: 'section' }, h('span', { class: `chip lv lv${L.n}` }, `Level ${L.n}`), h('h2', {}, L.name), proChip(levelLocked(L.n) ? `Level ${L.n} is part of BassClass Pro` : null), infoBtn(L.desc, `About Level ${L.n}`), h('span', { class: 'muted small' }, `${done}/${list.length} mastered`)),
+      h('summary', { class: 'section' }, h('span', { class: `chip lv lv${L.n}` }, `Level ${L.n}`), h('h2', {}, L.name), proChip(levelLocked(L.n) ? `Level ${L.n} is part of BassClass Pro` : null), newChip(newCount(list.map((t) => `ex:${t.id}`)) > 0, newCount(list.map((t) => `ex:${t.id}`))), infoBtn(L.desc, `About Level ${L.n}`), h('span', { class: 'muted small' }, `${done}/${list.length} mastered`)),
       h('div', { class: 'grid' }, list.map((t) => card(t, { level: false }))));
     // (the toggle event also fires when the page is drawn: only a change is saved)
     fold.addEventListener('toggle', () => { if (libOpen().has(L.n) !== fold.open) setLibOpen(L.n, fold.open); });

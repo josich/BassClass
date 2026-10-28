@@ -5,7 +5,8 @@ import { h, icon, toast, rng, infoBtn } from './dom.js';
 import { settings, saveSettings } from '../store.js';
 import { EXERCISES, byId } from '../curriculum/index.js';
 import { SUB_NAMES, paramOptions } from './exercise.js';
-import { exHref, go, buildRoutine, routineParams, setRoutine, routineHref, proChip } from './screens.js';
+import { exHref, go, buildRoutine, routineParams, setRoutine, routineHref, proChip, newChip } from './screens.js';
+import { isNew, newCount, markUsed } from '../news.js';
 import { isPro, lessonLock, exerciseLock, levelLocked, FREE_LEVELS } from '../pro.js';
 import { openPro } from './proSheet.js';
 import { maybeAskRating } from './rate.js';
@@ -389,6 +390,7 @@ export function courseScreen(main) {
       h('span', { class: 'num' }, l.num),
       h('span', { class: 'tt' }, l.kind === 'lesson' ? l.title : l.kind === 'check' ? 'Checkpoint' : l.title),
       l.optional ? h('span', { class: 'chip' }, 'optional') : null,
+      newChip(isNew(`lesson:${l.id}`)),
       proChip(lessonLock(l)),
       st === 'known' ? h('span', { class: 'chip' }, 'known') : null,
       isDue(l) ? h('span', { class: 'chip due' }, 'review') : null);
@@ -405,7 +407,7 @@ export function courseScreen(main) {
       const done = list.filter((l) => status(l) === 'done').length;
       const known = list.filter((l) => status(l) === 'known').length;
       const fold = h('details', { class: 'lv-fold map-fold', id: `stage-${si + 1}`, open: open.has(si + 1) },
-        h('summary', { class: 'section stage-head' }, h('span', { class: `chip lv lv${stage.level}` }, `Stage ${si + 1}`), h('h2', {}, stage.title), proChip(levelLocked(stage.level) ? `Stage ${stage.level} is part of BassClass Pro` : null), infoBtn(listLines(stage.desc), `About Stage ${si + 1}`), h('span', { class: 'muted small' }, `${done}/${list.length} lessons${known ? ` (${known} known)` : ''}`)),
+        h('summary', { class: 'section stage-head' }, h('span', { class: `chip lv lv${stage.level}` }, `Stage ${si + 1}`), h('h2', {}, stage.title), proChip(levelLocked(stage.level) ? `Stage ${stage.level} is part of BassClass Pro` : null), newChip(newCount(list.map((l) => `lesson:${l.id}`)) > 0, newCount(list.map((l) => `lesson:${l.id}`))), infoBtn(listLines(stage.desc), `About Stage ${si + 1}`), h('span', { class: 'muted small' }, `${done}/${list.length} lessons${known ? ` (${known} known)` : ''}`)),
         h('div', { class: 'grid unit-grid' },
           UNITS.filter((u) => u.stage === stage).map((u) => h('div', { class: 'unit-card' },
             h('h3', {}, u.title, infoBtn(u.goal, `About ${u.title}`)),
@@ -444,6 +446,7 @@ export function lessonScreen(main, id) {
   const why = lessonLock(l);
   if (why) { replaceHash('#/course'); openPro(why); return; }
   setLast(l.id);
+  markUsed(`lesson:${l.id}`);
   const rerender = () => { const y = main.scrollTop; lessonScreen(main, id); main.scrollTop = y; };
   const idx = LESSONS.indexOf(l);
   const prev = LESSONS[idx - 1], nextL = LESSONS[idx + 1];

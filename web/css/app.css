@@ -942,3 +942,9 @@ input[type="range"] { touch-action: pan-y; }
 .heart svg { width: 17px; height: 17px; }
 .tip-btn { display: inline-flex; align-items: center; gap: 6px; }
 .toast-heart .heart svg { width: 15px; height: 15px; }
+
+/* "New" (news.js): added by an update and not used yet; the app's teal, beside the gold Pro */
+.chip.new { background: var(--accent); color: var(--accent-ink); font-weight: 800; padding: 1px 6px; margin-left: 4px; vertical-align: middle; letter-spacing: 0.02em; }
+.card .meta .chip.new, .picker-card small .chip.new { margin-left: 0; margin-right: 4px; }
+.picker-chip-row button.has-new { position: relative; }
+.picker-chip-row button.has-new::after { content: ''; position: absolute; top: 4px; right: 5px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }

@@ -12,7 +12,8 @@ import { loadKit, kitReady } from '../drums.js';
 import { loadPiano, pianoReady } from '../piano.js';
 import { styleLock, progLock, soundLock, fillsLock, freeRoom } from '../pro.js';
 import { openPro } from './proSheet.js';
-import { proChip } from './screens.js';
+import { proChip, newChip } from './screens.js';
+import { isNew, markUsed } from '../news.js';
 import { neckPanel } from './neck.js';
 import { openPicker } from './picker.js';
 import { HARMONY_PROGS, progName, progression, keyName, isMinor, MINE, DEGREES, QUALITIES, LENGTHS, usualQuality, roman, mineFrom, scaleFor, MINE_START, mineBars } from '../practice/harmony.js';
@@ -470,7 +471,7 @@ export function practiceScreen(main, params = {}) {
       title: 'Drum patterns', host: main,
       groups: GENRES.map((g) => ({ key: g.key, name: `${g.icon} ${g.name}` })),
       items: Object.values(STYLES).map((s) => ({
-        key: s.key, name: s.name, group: s.genre, sub: styleSub(s), lock: styleLock(s.key),
+        key: s.key, name: s.name, group: s.genre, sub: styleSub(s), lock: styleLock(s.key), fresh: isNew(`style:${s.key}`),
       })),
       current: room.style, open: room.genre,
       favs: room.drumFavs, recent: room.drumRecent,
@@ -486,6 +487,7 @@ export function practiceScreen(main, params = {}) {
   /** A pattern chosen: the drums on, with its metre, its usual subdivision and tempo. */
   const pickStyle = (key) => {
     const s = STYLES[key];
+    markUsed(`style:${key}`);
     // (another odd-metre pattern brings its own grouping: the player's accents in that metre give way to it;
     // the pattern already chosen keeps them: QA round 18)
     const accents = { ...room.accents };
@@ -629,12 +631,12 @@ export function practiceScreen(main, params = {}) {
     closePicker = openPicker({
       title: 'Progressions', host: main,
       groups: HARMONY_PROGS.map(([g]) => ({ key: g, name: g })),
-      items: HARMONY_PROGS.flatMap(([g, keys]) => keys.map((k) => ({ key: k, name: progName(k), group: g, sub: progSub(k).split(' · ').filter((w) => w !== g && w !== 'Yours').join(' · '), lock: progLock(k) }))),
+      items: HARMONY_PROGS.flatMap(([g, keys]) => keys.map((k) => ({ key: k, name: progName(k), group: g, sub: progSub(k).split(' · ').filter((w) => w !== g && w !== 'Yours').join(' · '), lock: progLock(k), fresh: isNew(`prog:${k}`) }))),
       current: room.hProg,
       favs: room.progFavs, recent: room.progRecent,
       onLocked: (why, k) => openPro(why, { then: () => { set({ progRecent: recentWith(room.progRecent, k) }); mineAt = null; setHarmony({ hProg: k }); }, cancel: openProgs }),
       onFav: (k, on) => set({ progFavs: favsWith(room.progFavs, k, on) }),
-      onPick: (k) => { set({ progRecent: recentWith(room.progRecent, k) }); mineAt = null; setHarmony({ hProg: k }); },
+      onPick: (k) => { markUsed(`prog:${k}`); set({ progRecent: recentWith(room.progRecent, k) }); mineAt = null; setHarmony({ hProg: k }); },
     });
   };
   /** A preset copied into My progression, to change it. */
@@ -739,8 +741,8 @@ export function practiceScreen(main, params = {}) {
       mode === 'off' ? null : h('div', { class: 'room-field' }, h('label', {}, 'Sound'),
         h('div', { class: 'seg' }, [['pad', 'Pad'], ['epiano', 'E-piano'], ['piano', 'Piano'], ['organ', 'Organ'], ['guitar', 'Guitar'], ['arp', 'Arpeggio']].map(([v, l]) => h('button', {
           class: room.hSound === v ? 'on' : soundLock(v) ? 'locked' : '', type: 'button',
-          onClick: () => { if (soundLock(v)) { openPro(soundLock(v), { then: () => { setHarmony({ hSound: v }); ensurePiano(); } }); return; } if (room.hSound !== v) { setHarmony({ hSound: v }); ensurePiano(); } },
-        }, l, proChip(soundLock(v))))), pianoState),
+          onClick: () => { if (soundLock(v)) { openPro(soundLock(v), { then: () => { markUsed(`sound:${v}`); setHarmony({ hSound: v }); ensurePiano(); } }); return; } markUsed(`sound:${v}`); if (room.hSound !== v) { setHarmony({ hSound: v }); ensurePiano(); } else redraw(); },
+        }, l, newChip(isNew(`sound:${v}`)), proChip(soundLock(v))))), pianoState),
       mode === 'off' ? null : h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal),
     ].filter(Boolean));
     showChord();
