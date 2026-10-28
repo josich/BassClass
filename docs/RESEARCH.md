@@ -1,28 +1,24 @@
 # Research behind the curriculum
 
-This is a summary of the sources used to design the BassClass exercise library. Exercises are described in our own words. No method-book content is reproduced.
+How the BassClass exercise library was designed. Every exercise, lesson, lick, groove and line is written for
+BassClass, in our own words and notes; no method-book, course or recording content is reproduced. Books, exam syllabi
+and players are named in the app only as related reading and listening (an exercise's "Related" line).
 
-## Your two warm-up videos (Scott's Bass Lessons)
+## Warm-ups in one hand position
 
-1. **"The Circle of 5ths + ZONES = The SECRET to Fretboard MASTERY"** (Scott Devine, March 2023)
-   - The neck is split into zones: frets 1–5, 5–9 and 8–12.
-   - Play a major triad (R-3-5) on every key in cycle-of-4ths order (C F B♭ E♭ A♭ D♭ G♭ B E A D G) without leaving the zone and without open strings. The zone forces you to use different fingerings.
-   - Spend 2–4 weeks per zone, then do minor, augmented and diminished.
-2. **"The '3 Rule Fretboard Formula' to Master the Bass"** (Scott Devine & Ian, July 2023)
-   - Every triad has three fingerings, defined by the finger on the root:
-     - **Finger 2:** 3rd and 5th on the next string.
-     - **Finger 1:** 3rd on the same string, 4 frets up (pivot).
-     - **Finger 4:** the shape crosses three strings back toward the nut.
-   - Exercises: the cycle of 4ths in each zone, then one triad chained through every shape up the neck.
+A common way to learn the neck is to stay inside one zone of four or five frets (frets 1–5, 5–9, 8–12) and play every
+key there, around the cycle of 4ths, without open strings: the zone forces different fingerings. Every triad also has
+three fingerings, named by the finger on the root (2: the 3rd and 5th on the next string; 1: the 3rd on the same
+string, a pivot; 4: the shape crosses back toward the nut).
 
 **In the app:**
-- "Triads around the cycle in one zone" reproduces SBL's zone tables for all 12 keys and zones 1–3.
-- "The 3 triad fingerings" and "One triad, every shape up the neck" cover the second video.
+- "Triads around the cycle in one zone" builds the cycle in each zone for all 12 keys.
+- "The 3 triad fingerings" and "One triad, every shape up the neck" take the three fingerings.
 - The zone idea is extended to root notes, 7th arpeggios and scales ("All 12 keys in one position").
 
 ## How schools and exam boards order the material
 
-| Level | Typical content (merged from RSL, Trinity, LCM, Berklee, MI, Spanish conservatories) |
+| Level | Typical content (as graded exams and conservatory programmes order it) |
 |---|---|
 | 1 Foundations | Open strings, alternate plucking, notes on E/A, 1-octave major/minor/pentatonic in E, A, G, major & minor triads, whole to 8th notes |
 | 2 Elementary | Blues scale, dominant 7th, slides, hammer-ons, 16ths begin, shuffle, keys up to 3 sharps/flats |
@@ -41,30 +37,22 @@ This is a summary of the sources used to design the BassClass exercise library. 
 6. **Every drill should become music.** Grooves, progressions and walking lines apply each concept.
 7. **Fingering systems coexist.** One finger per fret is the default. Simandl 1-2-4, linear (one-string) and three-notes-per-string are all included.
 
-## Sources consulted
+## Related reading
 
-**Online schools**
-- **TalkingBass** (Mark J. Smith): Beginner course, Scale Essentials, Chord Tone Essentials, Simple Steps to Walking Bass, Slap Bass Essentials, Technique Builder, Cyborg Bassist, Pentatonic Playbook.
-- **StudyBass** (Andy Ellis): Fundamentals One–Three.
-- **Scott's Bass Lessons**: Players Path, Fretboard Accelerator, Slap Accelerator, the two videos above.
-- **BassBuzz**: Beginner to Badass.
-- **Ariane Cap**: *Music Theory for the Bass Player*.
-- **Tony Grey Bass Academy.**
+**Exam syllabi** (public): the RSL Rockschool, Trinity Rock & Pop and RGT@LCM bass grades; conservatory entrance tests.
 
-**Exam boards and academies**
-- RSL Rockschool Bass syllabus (2018), Trinity Rock & Pop Bass, RGT@LCM bass grades.
-- Berklee: PULSE scales & arpeggios; Online Bass 101, Rock Bass and Jazz Bass; ILBS-244 and ILBS-251.
-- Musicians Institute catalog.
-- Spanish conservatory access tests (Manresa) and the Taller de Músics entrance test.
+**Books**
+- Josquin des Prés, *Bass Fitness* (permutations); Jon Liebman, *Bass Aerobics*.
+- Gary Willis, *Fingerboard Harmony for Bass* (key centres, linear playing).
+- Ed Friedland, *Building Walking Bass Lines* and the *Hal Leonard Bass Method*; Chuck Sher, *The Improviser's Bass
+  Method*; Rufus Reid, *The Evolving Bassist*.
+- Franz Simandl, *New Method for the Double Bass* (1-2-4 fingering).
+- Mark Levine, *The Jazz Theory Book*; Alan Kingstone, *The Barry Harris Approach to Improvised Lines and Harmony*
+  (the 6th-diminished scale); Gary Campbell, *Triad Pairs for Jazz*; Nicolas Slonimsky, *Thesaurus of Scales and
+  Melodic Patterns* (interval cycles).
 
-**Methods and players**
-- Josquin des Prés *Bass Fitness* (permutations); Jon Liebman *Bass Aerobics*.
-- Gary Willis *Fingerboard Harmony for Bass* (key centres, linear playing).
-- Ed Friedland *Building Walking Bass Lines*; Chuck Sher *The Improviser's Bass Method*; Rufus Reid *The Evolving Bassist*.
-- Franz Simandl (1-2-4 fingering); Carol Kaye.
-- Barry Harris (6th-diminished scale, diminished → dominants).
-- Charlie Banacos (side-stepping, chord-on-chord); Janek Gwizdala (doubled-note arpeggios, dim7 → minor, Giant Steps practice).
-- Victor Wooten (dynamics, disappearing drummer, double thumb); Gary Campbell (*Triad Pairs for Jazz*); Nicolas Slonimsky (interval cycles).
+**Players** named as styles: Jaco Pastorius, Victor Wooten (dynamics, double thumb), Rocco Prestia, James Jamerson, Ray
+Brown, Paul Chambers, John Coltrane.
 
 ## Extensions of a simple concept (the "triad ladder")
 
@@ -75,7 +63,7 @@ Taking one simple idea as far as it goes, here is how the app develops the triad
 2. Hear the 3rd.
 3. All qualities, including sus.
 4. Four types from one root.
-5. Cycle of 4ths in a zone (SBL).
+5. Cycle of 4ths in a zone.
 6. The 3 fingerings.
 7. One triad, every shape up the neck.
 

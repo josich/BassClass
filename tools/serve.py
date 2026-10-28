@@ -54,6 +54,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             out = os.path.join(ROOT, *self.path[len('/__write/'):].split('/'))
         elif re.fullmatch(r'/__write/icons/(?:icon-(?:192|512|maskable-512)|apple-touch-icon)\.png', self.path):
             out = os.path.join(ROOT, *self.path[len('/__write/'):].split('/'))
+        elif self.path == '/__write/legal/bassclass/privacy.html':
+            # the public privacy page (web/js/dev/legal.html, from web/js/legal.js): copied to the public site
+            out = os.path.join(ROOT, '..', 'legal', 'bassclass', 'privacy.html')
         elif re.fullmatch(r'/__write/android/mipmap-(?:mdpi|hdpi|xhdpi|xxhdpi|xxxhdpi)/ic_launcher(?:_foreground|_background|_monochrome)?\.png', self.path):
             out = os.path.join(ROOT, '..', 'android', 'app', 'src', 'main', 'res', *self.path[len('/__write/android/'):].split('/'))
         else:

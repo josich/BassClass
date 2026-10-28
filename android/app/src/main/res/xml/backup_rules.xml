@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android's own backup, Android 11 and older: the app's data (the progress lives in the WebView's Local Storage)
+     without the WebView's caches (the sounds' copies in Cache Storage, the GPU cache), so it stays far under the
+     25 MB Android allows. Android 12 and newer: data_extraction_rules.xml. -->
+<full-backup-content>
+    <exclude domain="root" path="app_webview/Default/Service Worker/" />
+    <exclude domain="root" path="app_webview/Service Worker/" />
+    <exclude domain="root" path="app_webview/Default/GPUCache/" />
+    <exclude domain="root" path="app_webview/GPUCache/" />
+</full-backup-content>

@@ -3,7 +3,7 @@
 // payment gates"). The panel opens with seven taps on the version line, in every build but the Play one (where test
 // switches would hand out Pro); it is kept apart from the player's data (pro.js `dev`), so a backup never carries it.
 import { h, toast, icon, heart, bubbleOnTap } from './dom.js';
-import { PLAY, PRO_ID, TIPS, PRICE, FREE_LEVELS, FREE_SOUNDS, PRO_SOUND_NOTES, gatesOn, isPro, owned, proRecord, dev, setDev, setOwned, proRoomItems } from '../pro.js';
+import { PLAY, PRO_ID, TIPS, PRICE, placeholder, proSub, FREE_LEVELS, FREE_SOUNDS, PRO_SOUND_NOTES, gatesOn, isPro, owned, proRecord, dev, setDev, setOwned, proRoomItems } from '../pro.js';
 import { PAD_SOUNDS } from '../audio.js';
 import { STAGES, LESSONS, UNITS } from '../course/data.js';
 import { LEVELS, EXERCISES, moduleOf } from '../curriculum/index.js';
@@ -39,7 +39,7 @@ export function proFields(field) {
   // Support BassClass: a rating on Google Play (user, 2026-10-27), and the tips where buying works
   const tipRow = h('div', { class: 'row' },
     h('button', { class: 'btn', onClick: rateApp }, '⭐ Rate BassClass on Google Play'),
-    ...(canBuy() ? TIPS.map(([id, label]) => h('button', { class: 'btn tip-btn', 'data-tip': id, onClick: () => tip(id) }, heart(), h('span', { class: 'tip-label' }, `Tip ${label}`))) : []));
+    ...(canBuy() ? TIPS.map(([id, label]) => h('button', { class: 'btn tip-btn', 'data-tip': id, onClick: () => tip(id) }, heart(), h('span', { class: 'tip-label' }, `Tip ${placeholder(label) || '…'}`))) : []));
   // (the tips' prices in the player's currency)
   if (canBuy()) prices().then((p) => tipRow.querySelectorAll('[data-tip]').forEach((b) => { if (p[b.dataset.tip]) b.querySelector('.tip-label').textContent = `Tip ${p[b.dataset.tip]}`; })).catch(() => {});
   out.push(field('Support BassClass', tipRow, ['⭐ A rating and a few words on Google Play help other bass players find BassClass', '☕ A tip helps: buy me a coffee', '🔓 Neither unlocks anything: they just say thank you']));
@@ -93,17 +93,18 @@ function proDetails() {
   const sounds = Object.keys(PAD_SOUNDS).filter((k) => !FREE_SOUNDS.has(k));
   out.push(head(`🎛 ${sounds.length} more sounds for the harmony`));
   out.push(...sounds.map((k) => sub(PRO_SOUND_NOTES[k] || k)));
-  out.push(head('✨ And everything we add next: new levels, lessons, studies, patterns and sounds'));
+  // ("to these parts": the terms' scope, legal.js)
+  out.push(head('✨ And the new content we add to them next: lessons, studies, patterns and sounds'));
   out.push(head(`🆓 Always free: ${FREE_LINE}, the practice log and backup`));
   out.push('💳 One payment, yours for good: no subscription, no ads. A new phone: Restore purchase.');
   return out;
 }
 
 /** The gold "Get BassClass Pro" button with its price (Settings and the Pro sheet); `setPrice` shows Play's. */
-export function proButton(onClick, price = PRICE) {
-  const sub = h('span', { class: 'pro-cta-sub' }, `${price} · one payment, yours for good`);
+export function proButton(onClick, price = placeholder(PRICE)) {
+  const sub = h('span', { class: 'pro-cta-sub' }, proSub(price));
   const b = h('button', { class: 'btn pro-cta', type: 'button', onClick }, h('span', { class: 'pro-cta-top' }, '⭐ Get BassClass Pro'), sub);
-  b.setPrice = (p) => { sub.textContent = `${p} · one payment, yours for good`; };
+  b.setPrice = (p) => { sub.textContent = proSub(p); };
   return b;
 }
 

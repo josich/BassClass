@@ -55,7 +55,7 @@ const triads = ex({
   summary: 'A triad plays (broken, then together): name its quality before the answer appears.',
   about: 'Each round plays a triad on a random root, first broken (R-3-5-3) and then all together, with the notes hidden. Name it before the answer appears, right after the chord. Major sounds bright and stable, minor darker, diminished tense and narrow, augmented open and unresolved. Start with major and minor only.',
   tips: ['Sing the 3rd: a major 3rd is two whole steps above the root, a minor 3rd a step and a half.', 'Diminished = two minor 3rds stacked; augmented = two major 3rds.', 'A new random set comes every time you open the exercise or change an option.'],
-  source: 'RSL, LCM and ABRSM aural tests (chord quality); Berklee ear training',
+  source: 'Aural tests in graded exams (chord quality); ear-training practice',
   params: { set: sel('Chords', [['mm', 'Major and minor'], ['all', 'Major, minor, diminished, augmented']]) },
   bpm: 72, sub: 1, label: 'degree',
   build(p, ctx, S) {
@@ -72,7 +72,7 @@ const sevenths = ex({
   summary: 'The five main 7th chords, broken and then together: name the quality.',
   about: 'Seventh chords add a fourth colour on top of the triad. Major 7 is soft and dreamy, dominant 7 wants to move, minor 7 is mellow, half-diminished is dark and searching, diminished 7 is tense and symmetrical. Each round plays one on a random root, notes hidden, and shows the answer right after the chord. The chords are voiced the way bassists play them: root, 5th, 7th and the 3rd on top (R-5-7-10), in one hand position.',
   tips: ['First decide the triad (major or minor or diminished), then the 7th (major 7th, a half step under the octave, or minor 7th, a whole step under it).', 'Dominant 7 = major triad + minor 7th: the "unfinished" sound.'],
-  source: 'RSL and LCM aural tests; Berklee ear training; jazz ear-training practice',
+  source: 'Aural tests in graded exams; jazz ear-training practice',
   params: { set: sel('Chords', [['basic', 'maj7, 7, m7'], ['five', 'maj7, 7, m7, m7♭5, °7'], ['all', '…plus m(maj7), 6 and m6']], 'five') },
   bpm: 72, sub: 1, label: 'degree',
   build(p, ctx, S) {
@@ -93,7 +93,7 @@ const progressions = ex({
   summary: 'A progression plays (root, then the chord): name it in Roman numerals before the answer.',
   about: 'Hearing progressions is hearing the bass: each chord plays as its root, then the chord above it, with the notes hidden. Follow the root movement (up a 4th, down a step…) and the quality of each chord, and name the progression in Roman numerals before the answer appears. Every round picks a new progression and a new key.',
   tips: ['Sing the roots back first: the bass line is the progression.', 'Listen for the V chord: it pulls back to I.', 'In minor keys, ♭VI and ♭VII are major chords a whole step apart.'],
-  source: 'Berklee ear training (harmonic dictation); RSL and LCM aural tests (cadences)',
+  source: 'Harmonic dictation; aural tests in graded exams (cadences)',
   params: { set: sel('Progressions', [['pop', 'Pop and rock (I IV V vi ♭VII)'], ['jazz', 'Jazz (ii–V–I, turnarounds)'], ['minor', 'Minor keys']]) },
   bpm: 80, sub: 1, label: 'degree',
   build(p, ctx, S) {

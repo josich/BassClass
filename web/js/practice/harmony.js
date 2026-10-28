@@ -57,7 +57,7 @@ const holds = (mode, type) => {
  * - a major triad (6th, sus2) other than the key's own I and IV (minor: ♭III, ♭VI) acts as the dominant it
  *   is (A before Dm: Phrygian dominant, as A7); 9ths and 13ths take their 7th's scale, ° Locrian;
  * - a plain dominant that does not resolve down a 5th, off the key's I, IV, V (minor: IV, V, ♭VII), and not a
- *   one-chord vamp: Lydian ♭7 (Berklee: the tritone sub, the backdoor ♭VII7, the minor blues' ♭VI7);
+ *   one-chord vamp: Lydian ♭7 (chord-scale theory: the tritone sub, the backdoor ♭VII7, the minor blues' ♭VI7);
  * - the scale holds every tone the chord names (Em9: Dorian, A9: Mixolydian, 7♯9: half-whole), else the
  *   next of its family that does (of the chord it acts as: A6 before Dm, Mixolydian);
  * - a modal tonic takes its mode (`all`, the progression's chords, tells it): i before a major IV Dorian,

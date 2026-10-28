@@ -853,7 +853,7 @@ const MODE_FOR = {
 };
 const MINOR_TYPES = ['min7', 'min6', 'mMaj7', 'm7b5', 'min'];
 const FAMILY = { maj7: 'maj', maj6: 'maj', maj: 'maj', min7: 'min', min: 'min', dom7: 'dom', m7b5: 'hdim' };
-/** Chord-scale theory (Berklee): a diatonic chord takes the mode of its degree in the key. */
+/** Chord-scale theory: a diatonic chord takes the mode of its degree in the key. */
 const BY_DEGREE = {
   major: { '0:maj': 'ionian', '2:min': 'dorian', '4:min': 'phrygian', '5:maj': 'lydian', '7:dom': 'mixolydian', '9:min': 'aeolian', '11:hdim': 'locrian' },
   minor: { '0:min': 'aeolian', '2:hdim': 'locrian', '3:maj': 'ionian', '5:min': 'dorian', '7:min': 'phrygian', '8:maj': 'lydian', '10:dom': 'mixolydian' },

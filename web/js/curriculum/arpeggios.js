@@ -20,7 +20,7 @@ const qualities = ex({
   summary: 'maj7 → 7 → m7 → m7♭5 → °7: lower one note at a time.',
   about: 'Seventh chords add a 4th note to the triad. From one root, each chord lowers a single note of the previous one: maj7 (R 3 5 7) → dominant 7 (♭7) → minor 7 (♭3) → half-diminished (♭5) → diminished 7 (♭♭7). Hearing and seeing that progression is the best way to learn them all.',
   tips: ['Name each chord as it starts.', 'Notice which dot moves one fret each time.'],
-  source: 'LCM Grade 3 (all five types); Berklee PULSE; TalkingBass Chord Tone Essentials',
+  source: 'Graded exams (RSL, LCM): the five 7th-chord types; chord-tone practice',
   params: { key: keyP(['1', '3', '5', '7']), root: rootStrP('A') },
   bpm: 70, sub: 4, label: 'degree',
   build(p, ctx, S) {
@@ -44,9 +44,9 @@ const study = ex({
   id: 'arp-7th', module: M, level: 2,
   title: '7th arpeggio study',
   summary: 'Any 7th or 6th chord, any key or all 12, 1–2 octaves, many patterns.',
-  about: 'Drill one chord type at a time: maj7 (R-3-5-7), dominant 7 (R-3-5-♭7), minor 7 (R-♭3-5-♭7), half-diminished (R-♭3-♭5-♭7), diminished 7 (R-♭3-♭5-♭♭7) and more. The "doubled notes" pattern plays every chord tone twice, a warm-up made popular by Janek Gwizdala, which gives the ear time to lock each sound.',
+  about: 'Drill one chord type at a time: maj7 (R-3-5-7), dominant 7 (R-3-5-♭7), minor 7 (R-♭3-5-♭7), half-diminished (R-♭3-♭5-♭7), diminished 7 (R-♭3-♭5-♭♭7) and more. The "doubled notes" pattern plays every chord tone twice, a classic warm-up that gives the ear time to lock each sound.',
   tips: ['Maj7 with root on finger 2: 3rd (1) and 5th (4) on the next string, 7th one string up with finger 3.', 'Use "All 12 · cycle of 4ths" when one key is solid.'],
-  source: 'RSL Grades 3–6, LCM Grades 2–6, Berklee PULSE, Janek Gwizdala (doubled-note arpeggios)',
+  source: 'Graded exams (RSL, LCM): arpeggio requirements; doubled-note arpeggio practice',
   params: { quality: sel('Chord', QUALITY_7THS), key: keyP(['1', '3', '5', '7']), shape: shapeP(['updown', 'up', 'down', 'downup', 'doubled', 'broken'], 'updown'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]), root: rootStrP('A') },
   bpm: 72, sub: 4, label: 'degree',
   build(p, ctx, S) {
@@ -70,7 +70,7 @@ const diatonic7 = ex({
   summary: 'The harmonised scale in 7th chords: the vocabulary of jazz, soul and pop.',
   about: 'Stack four notes in thirds on each degree of the scale. In major you get Imaj7, iim7, iiim7, IVmaj7, V7, vim7 and viiø7. Every jazz standard and most soul and pop songs use these chords. Learn them in one key first, then in inversions and in every key.',
   tips: ['"Up one, down the next" turns the chords into one line and sounds musical.', 'Inversions: start each chord from its 3rd, 5th or 7th.'],
-  source: 'Berklee PULSE & "Chord Studies for Electric Bass"; MI; LCM; StudyBass',
+  source: 'Rich Appleman "Chord Studies for Electric Bass"; graded exams (LCM)',
   params: {
     key: keyP(['1', '3', '5', '7']), scale: sel('Scale', SCALE_TYPE_OPTS(SCALES7)), order: degSeqP,
     pattern: orderP7(['up', 'alt', 'down', 'updown'], 'up'),
@@ -96,7 +96,7 @@ const zoneCycle7 = ex({
   summary: 'All 12 maj7, 7 or m7 arpeggios inside a 5-fret zone.',
   about: 'The zone warm-up with 4-note chords. Stay inside the zone and play the arpeggio of every key around the cycle. You will need every fingering, and you will start to see each key\'s chord wherever your hand is.',
   tips: ['Try each quality on a different day: maj7, 7, m7, m7♭5.', 'Say the chord name out loud first.'],
-  source: 'SBL Zones extended to 7th chords; Gary Willis ("don\'t move")',
+  source: 'Position playing: every chord within one hand position',
   params: { quality: sel('Chord', QUALITY_7THS.slice(0, 5)), zone: zoneP, order: orderP, pattern: orderP7(['up', 'alt', 'updown'], 'up') },
   bpm: 76, sub: 4, label: 'degree',
   build(p, ctx, S) {
@@ -133,7 +133,7 @@ const inversions = ex({
   summary: 'R-3-5-7, 3-5-7-8, 5-7-8-10, 7-8-10-12: four inversions up the neck and back.',
   about: 'Each inversion starts on the next chord tone. Climb through root position and the three inversions, then come back down. It builds your view of a chord across a two-octave range, which you need for voice leading and chordal playing.',
   tips: ['Keep the degree labels on: know where the root is at all times.', 'Choose a quality per day; maj7 and m7 are the most used.'],
-  source: 'LCM Grade 8; Spanish conservatory years 4–5',
+  source: 'Advanced graded exams (LCM); conservatory programmes',
   params: { quality: sel('Chord', QUALITY_7THS.slice(0, 5)), key: keyP(['1', '3', '5', '7']) },
   bpm: 72, sub: 4, label: 'degree',
   build(p, ctx, S) {
@@ -160,7 +160,7 @@ const iiVI = ex({
   summary: 'Dm7 – G7 – Cmaj7 (and the minor iiø–V–i) voice-led through every key.',
   about: 'The ii–V–I is the most important progression in jazz and very common in pop and soul. Arpeggiate each chord, starting each new chord from the tone nearest the previous note, and go through all 12 keys. The minor version uses iiø7 – V7 – i(maj7).',
   tips: ['Listen for the guide tones (3rds and 7ths): they move by step.', 'Then try it with "Root position only" and hear the difference.'],
-  source: 'Berklee Online Jazz Bass L5; Berklee Press; Gwizdala / Banacos-style continuous lines',
+  source: 'Jazz arpeggio practice: continuous lines through the changes',
   params: { type: sel('Type', [['major', 'Major ii–V–I'], ['minor', 'Minor iiø–V–i']]), key: keyP(['1', '3', '5', '7'], { def: 'cycle4' }), pattern: orderP7(['up', 'alt', 'down'], 'alt'), voicing: sel('Voicing', [['nearest', 'Nearest chord tone'], ['root', 'Root position']]), register: regP },
   bpm: 84, sub: 2, label: 'degree',
   build(p, ctx, S) {
@@ -181,7 +181,7 @@ const voiceLed = ex({
   summary: 'One continuous line through real changes: each chord starts on the nearest chord tone.',
   about: 'This is how great jazz bassists and soloists connect chords. Every chord is arpeggiated, but instead of jumping back to each root, the line continues from the closest chord tone. You get smooth, melodic lines that outline the harmony perfectly, through the cycle, standards progressions, blues and rhythm changes.',
   tips: ['Keep 8th notes even and let the line breathe at phrase ends.', 'Switch the register to work the upper neck.'],
-  source: 'Charlie Banacos & Janek Gwizdala (continuous arpeggio lines); Berklee Online Jazz Bass',
+  source: 'Continuous arpeggio lines through the changes (jazz practice)',
   params: { prog: progP(PROGS7), key: keyP(['1', '3', '5', '7']), pattern: orderP7(['alt', 'up', 'down', 'updown'], 'alt'), register: regP },
   bpm: 88, sub: 2, label: 'degree',
   build(p, ctx, S) {
@@ -218,7 +218,7 @@ const guideTones = ex({
   summary: 'Only the 3rd and 7th of every chord, voice-led: the skeleton of the harmony.',
   about: 'The 3rd and 7th define a chord\'s quality. In a ii–V–I the 7th of one chord falls a half step to the 3rd of the next, and the 3rd stays to become the 7th. Playing only these "guide tones" teaches you how harmony moves and gives you a powerful melodic line for solos and chord melody.',
   tips: ['Sing the line: it moves by half steps and common tones.', 'Then add the root on beat 1 of each bar.'],
-  source: 'Berklee Online Jazz Bass L3; jazz harmony pedagogy (guide-tone lines)',
+  source: 'Jazz harmony: guide-tone lines',
   params: { prog: progP(['ii-V-I', 'cycle-dom7', 'autumn', 'jazz-blues', 'I-vi-ii-V', 'minor-ii-V-i']), key: keyP(['1', '3', '5', '7']), start: sel('Start on', [['3', 'the 3rd'], ['7', 'the 7th']]) },
   bpm: 80, sub: 1, label: 'degree',
   build(p, ctx, S) {
@@ -257,7 +257,7 @@ const dimDominants = ex({
   summary: 'Lower any note of a dim7 a half step and you get a dominant 7th: four for the price of one.',
   about: 'A diminished 7th chord is symmetric (all minor 3rds). Lower any one of its four notes by a half step and it becomes a dominant 7th chord. From Bdim7 (B D F A♭): lower B and you get B♭7, lower D gives D♭7, lower F gives E7 and lower A♭ gives G7. The exercise plays the dim7, then each derived dominant, so you see four related dominants a minor 3rd apart: the key to bebop harmony and tritone substitution.',
   tips: ['The four dominants are a minor 3rd apart (G7, B♭7, D♭7, E7).', 'Their roots are the notes you lowered, one fret down.'],
-  source: 'Barry Harris workshops (diminished concept); "The Barry Harris Approach to Improvised Lines and Harmony"',
+  source: 'Barry Harris\'s diminished concept; Alan Kingstone "The Barry Harris Approach to Improvised Lines and Harmony"',
   params: { key: keyP(['1', 'b3', 'b5', 'bb7'], { cycles: false, def: '11' }) },
   bpm: 72, sub: 4, label: 'degree',
   build(p, ctx, S) {
@@ -291,7 +291,7 @@ const dimToMinor = ex({
   summary: 'C♯°7 up, Dm down: the leading-tone diminished chord resolving, in every key.',
   about: 'A diminished 7th built on the leading tone is a dominant 7♭9 without its root (C♯°7 = A7♭9). Play it ascending and resolve to the minor triad descending. Through the cycle this gives a classic, dramatic bebop phrase.',
   tips: ['Each diminished note resolves by half step or common tone.', 'Hear A7♭9 → Dm even though the A is never played.'],
-  source: 'Janek Gwizdala (dim7 → minor arpeggio drill); bebop vocabulary',
+  source: 'Bebop vocabulary: a diminished 7th resolving to its minor chord',
   params: { key: keyP(['1', 'b3', '5'], { def: 'cycle4', suffix: 'm' }) },
   bpm: 80, sub: 4, label: 'degree',
   build(p, ctx, S) {
@@ -322,7 +322,7 @@ const extended = ex({
   summary: 'Keep stacking 3rds past the 7th, through the harmonised scale.',
   about: 'Above the 7th the stack continues: 9, 11, 13. Through the harmonised scale this gives maj9, m9, m11, dominant 13 and other colours. These arpeggios reach well beyond the octave (a 13th almost two octaves) and are a great reach and shifting workout, and they reveal the tensions behind jazz and neo-soul chords.',
   tips: ['The 9 is the 2nd an octave up, the 11 is the 4th, the 13 is the 6th.', 'Watch out for the "avoid note" 11 on major chords: hear the clash.'],
-  source: 'RSL Grade 7 (9ths), LCM Grade 8 (11ths/13ths); TalkingBass Chord Tone Essentials',
+  source: 'Advanced graded exams (RSL, LCM): extended arpeggios',
   params: { key: keyP(T.SCALES.ionian.iv), ext: sel('Up to', [['9', '9ths'], ['11', '11ths'], ['13', '13ths']]), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'dorian', 'melodicMinor'])), order: sel('Chords', [['up', 'I → I'], ['fourths', 'In 4ths']]) },
   bpm: 72, sub: 4, label: 'degree',
   build(p, ctx, S) {
@@ -360,7 +360,7 @@ const upper = ex({
   summary: 'Start each chord on its 3rd: Em7 over Cmaj7 gives Cmaj9. Instant sophistication.',
   about: 'Playing the arpeggio that starts on the 3rd of a chord (3-5-7-9) gives you its upper structure: over Cmaj7 you play Em7 and hear Cmaj9. Through the harmonised scale this is a quick way to sound modern, and it trains you to think of chords as layers.',
   tips: ['Compare: play R-3-5-7, then 3-5-7-9 on the same chord.', 'Works great over a pedal note (open string).'],
-  source: 'Jazz superimposition (Mark Levine, Berklee); Gwizdala',
+  source: 'Jazz superimposition; Mark Levine "The Jazz Theory Book"',
   params: { key: keyP(T.SCALES.ionian.iv), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'dorian'])), pattern: orderP7(['up', 'alt'], 'alt') },
   bpm: 76, sub: 4, label: 'degree',
   build(p, ctx, S) {
@@ -407,7 +407,7 @@ const approach7 = ex({
   summary: 'Every chord tone targeted chromatically, through ii–V–I in all keys.',
   about: 'The bebop way to outline changes: each chord tone is approached from a half step below, from above, or "enclosed" (above, below, target). Every chord tone lands on a beat, and the approach notes lead into the next one: 8th notes with a single approach note, triplets with an enclosure. This is the core of jazz walking lines and solos.',
   tips: ['Accent the targets, play approach notes lighter.', 'The enclosure (above-below-target) fills the beat as a triplet: target, above, below, then the next target on the beat.', 'Approach notes are labelled →.'],
-  source: 'Berklee level exams (approach notes); TalkingBass Chord Tone Essentials; David Baker',
+  source: 'Approach notes in jazz pedagogy; David Baker "How to Play Bebop"',
   params: { key: keyP(['1', '3', '5', '7'], { def: 'cycle4' }), approach: sel('Approach', [['below', 'Half step below'], ['above', 'Half step above'], ['enclosure', 'Enclosure']]), prog: progP(['ii-V-I', 'minor-ii-V-i', 'I-vi-ii-V']) },
   bpm: 84, sub: 2, label: 'degree',
   build(p, ctx, S) {
@@ -438,7 +438,7 @@ const altered = ex({
   summary: '7♯5, 7♭5, 7♭9, 7♯9 arpeggios, each resolving to Imaj7.',
   about: 'Altered dominant chords add tension before resolving to the tonic. Each arpeggio is played and then resolved to the I chord a 5th below, so you hear the tension and the release. These colours appear in the advanced grades of graded exams such as RSL and LCM.',
   tips: ['Find the altered note and where it resolves (e.g. ♯5 → 3 of I).', 'Go through all 12 keys with the cycle option.'],
-  source: 'RSL Grade 8; LCM Grades 7–8; jazz harmony',
+  source: 'Advanced graded exams (RSL, LCM); jazz harmony',
   params: { alt: sel('Dominant', [['dom7s5', '7♯5'], ['dom7b5', '7♭5'], ['dom7b9', '7♭9'], ['dom7s9', '7♯9']]), key: keyP(['1', '3', '5', '7']) },
   bpm: 72, sub: 4, label: 'degree',
   build(p, ctx, S) {
@@ -472,7 +472,7 @@ const broken = ex({
   summary: 'The chord climbs through its inversions in small cells: 1-3-5-3, 3-5-8-5… (triads), 1-3-5-3, 3-5-7-5… (7ths).',
   about: 'A broken chord plays the chord tones in small cells instead of straight up and down: 1-3-5-3, then the same cell from the next chord tone (3-5-8-5 on a triad, 3-5-7-5 on a 7th chord), and so on up to the top note, then back down to the root. It is a classic arpeggio study and teaches you to start a chord from any of its notes. Choose any triad or 7th: major, minor, diminished, augmented, major 7, dominant 7, minor 7, half-diminished, diminished 7, minor-major 7, augmented major 7 and augmented 7.',
   tips: ['Say the degree of the first note of each cell: R, 3, 5, 7…', 'Keep the cells even: the turn back (the 4th note) is the one that tends to rush.'],
-  source: 'Classical broken-chord studies (ABRSM piano grades); RSL and LCM arpeggio requirements',
+  source: 'Classical broken-chord studies; arpeggio requirements in graded exams',
   params: { quality: sel('Chord', BROKEN_CHORDS), key: keyP(['1', '3', '5']), shape: shapeP(['broken', 'broken535', 'broken4'], 'broken'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]), root: rootStrP('A') },
   bpm: 66, sub: 4, label: 'degree',
   build(p, ctx, S) {

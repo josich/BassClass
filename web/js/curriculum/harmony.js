@@ -14,7 +14,7 @@ const buildChord = ex({
   summary: 'Play the scale, then pick notes 1-3-5 (triad) and 1-3-5-7 (7th chord).',
   about: 'Chords come from scales. Play the major scale, then take every other note: 1, 3, 5 is the triad; add 7 for the 7th chord. Seeing the chord inside the scale shape is the key to understanding everything that follows.',
   tips: ['"Skip a note, play a note": 1 (2) 3 (4) 5 (6) 7.', 'Do it in the minor scale too: 1-♭3-5-♭7.'],
-  source: 'StudyBass, TalkingBass Groove Trainer, Ariane Cap',
+  source: 'Common bass-line practice',
   params: { key: keyP(T.SCALES.ionian.iv), scale: sel('Scale', [['ionian', 'Major'], ['aeolian', 'Natural minor']]), root: rootStrP('A') },
   bpm: 66, sub: 2, label: 'degree',
   build(p, ctx, S) {
@@ -39,7 +39,7 @@ const thirdQuality = ex({
   summary: 'Root and 3rd on every degree: major, minor, minor, major, major, minor, diminished.',
   about: 'Why is ii minor and IV major? Play the root and the diatonic 3rd above each degree. A major 3rd (4 frets) makes a major chord, a minor 3rd (3 frets) a minor one. You will hear and see the pattern M m m M M m m (diminished), the DNA of every major key.',
   tips: ['Say "major" or "minor" before each chord.', 'Then switch the scale to minor and hear the pattern change.'],
-  source: 'TalkingBass Chordal Mastery (thirds through a scale); StudyBass Fundamentals 3',
+  source: 'Diatonic 3rds through a scale',
   params: { key: keyP(T.SCALES.ionian.iv), scale: sel('Scale', [['ionian', 'Major'], ['aeolian', 'Natural minor'], ['harmonicMinor', 'Harmonic minor']]) },
   bpm: 72, sub: 2, label: 'degree',
   build(p, ctx, S) {
@@ -70,7 +70,7 @@ const progRoots = ex({
   summary: 'I–IV–V, I–V–vi–IV, ii–V–I, 12-bar blues, Andalusian… play the roots and learn the sound.',
   about: 'Most songs use a handful of progressions. Play only the roots, in whole notes, halves, quarters or 8ths, and learn to recognise each progression by ear and by shape. The Roman numerals tell you the function: I is home, V is tension, IV is the "going away" chord.',
   tips: ['Name the numeral of each chord as you play it.', 'Transpose to all 12 keys; the shapes stay the same.'],
-  source: 'StudyBass, BassBuzz (Nashville numbers), RSL harmonic recall',
+  source: 'Nashville numbers; harmonic recall in graded exams',
   params: { prog: progP(ALL_PROGS, 'I-V-vi-IV'), key: keyP(T.SCALES.ionian.iv), rhythm: sel('Rhythm', [['4', 'Whole notes'], ['2', 'Half notes'], ['1', 'Quarter notes'], ['0.5', '8th notes']], '1') },
   bpm: 84, sub: 1, label: 'note',
   build(p, ctx, S) {
@@ -106,7 +106,7 @@ const chordTonesProg = ex({
   summary: 'Outline every chord of real progressions: R-5, R-3-5-3, R-3-5-7…',
   about: 'Chord tones are the backbone of bass lines: every academy builds lines as chord tones first, then scale tones, then chromatic notes. Pick a progression and an outline pattern and play it through, in one key or all 12. The chord symbol appears above the fretboard: say its numeral (I, IV, V…) as you play it.',
   tips: ['Choose the octave of each root that keeps the hand in one area.', 'This is RSL\'s "transpose a riff" skill: same pattern, new chord.'],
-  source: 'StudyBass (chord tones are primary); RSL Group C; Ed Friedland',
+  source: 'Chord tones first: common bass-line practice; graded exams',
   params: { prog: progP(ALL_PROGS, 'I-vi-IV-V'), key: keyP(T.SCALES.ionian.iv), pattern: sel('Pattern', Object.entries(PATTERNS).map(([k, v]) => [k, v.name]), 'r353') },
   bpm: 88, sub: 1, label: 'degree',
   build(p, ctx, S) {
@@ -131,7 +131,7 @@ const doubleStops = ex({
   summary: 'Two notes at once: power chords, octaves, 3rds, 10ths and shells.',
   about: 'Bass players add harmony with double stops: root + 5th (rock), root + octave (unison riffs), root + 3rd or 10th (sweet, chordal), root + 7th (jazz shells). Each chord of the progression is struck twice as a double stop with the right 3rd or 7th for its quality.',
   tips: ['Pluck both strings together with two fingers, or thumb + finger.', 'Mute every other string with the fretting hand.', 'Close 3rds blur in the low register: they are played an octave up here, and 10ths sound even clearer.'],
-  source: 'Trinity Grades 5–7 (power chords, 10ths); TalkingBass/BassBuzz double stops; RSL',
+  source: 'Power chords, 10ths and double stops; graded exams',
   params: { type: sel('Interval', Object.entries(DS).map(([k, v]) => [k, v.name]), 'tenth'), prog: progP(['I-V-vi-IV', 'I-vi-IV-V', 'I-IV-V-I', 'ii-V-I', 'I-vi-ii-V', 'i-bVII-bVI-V']), key: keyP(T.SCALES.ionian.iv) },
   bpm: 76, sub: 1, label: 'degree',
   build(p, ctx, S) {
@@ -175,7 +175,7 @@ const shells = ex({
   summary: 'Root, 7th and 3rd (as a 10th): full jazz chords with three fingers.',
   about: 'A shell voicing keeps only the essential notes: root, 7th and 3rd. On bass the root goes on the E string, the 7th two strings up (on the D string) and the 3rd, as a 10th, on the G string. These voicings let you comp chords, play chord melody and understand guide tones. Each chord is played as an arpeggio, then strummed together.',
   tips: ['maj7: 7th = two strings up, one fret up. Dom7/m7: same fret.', 'The 3rd sits one fret up (major) or on the same fret (minor) as the root, on the G string.'],
-  source: 'RSL Grades 6–8 (chord shapes); MI 151E; Berklee Online Bass 101 L10',
+  source: 'Chord shapes in advanced graded exams',
   params: { prog: progP(['ii-V-I', 'I-vi-ii-V', 'autumn', 'jazz-blues', 'minor-ii-V-i']), key: keyP(['1', '3', '5', '7']) },
   bpm: 70, sub: 1, label: 'degree',
   build(p, ctx, S) {
@@ -210,7 +210,7 @@ const minorHarmony = ex({
   summary: 'i–iv–V–i, the Andalusian cadence, minor ii–V–i: where harmonic minor\'s V7 comes from.',
   about: 'In a minor key the V chord is usually made major (V7) by raising the 7th: that is harmonic minor. Play the chord tones of the most common minor progressions and hear the leading tone pull back to the root. The Andalusian cadence (i–♭VII–♭VI–V) is the sound of flamenco and countless rock songs.',
   tips: ['Find the raised 7th (the 3rd of V7) and feel it resolve up to the root.', 'Compare with the natural-minor v (minor).'],
-  source: 'StudyBass Fundamentals 3 (minor diatonic harmony); TalkingBass Ultimate Music Theory',
+  source: 'Minor-key diatonic harmony',
   params: { prog: progP(['i-iv-V-i', 'i-bVII-bVI-V', 'minor-ii-V-i', 'i-bVI-bIII-bVII', 'minor-blues', 'i-iv-v-min']), key: keyP(T.SCALES.aeolian.iv, { def: '9' }), pattern: sel('Pattern', [['r357', 'R-3-5-7'], ['r353', 'R-3-5-3'], ['r3575', 'R-3-5-7-8-7-5-3 (8ths)']]) },
   bpm: 84, sub: 1, label: 'degree',
   build(p, ctx, S) {
@@ -228,7 +228,7 @@ const colour = ex({
   summary: 'The "spice" chords: VI7, III7, ♭VI, ♭VII, iv, ♭II7, each outlined in context.',
   about: 'Real songs leave the key for a moment. A secondary dominant (VI7, III7) points strongly to the next chord; a borrowed chord (♭VI, ♭VII, iv) takes a colour from the parallel minor; a tritone substitution (♭II7) replaces V7 with a chord a tritone away that shares its guide tones. Outline each progression and listen for the chord that is "not in the key".',
   tips: ['Spot the non-diatonic note in each colour chord (e.g. the C♯ in A7 in the key of C).', 'Tritone sub: compare G7 and D♭7. They share B and F.'],
-  source: 'StudyBass Fundamentals 3 (secondary dominants, borrowed chords); TalkingBass Ultimate Music Theory Vol. 2',
+  source: 'Secondary dominants and borrowed chords (harmony textbooks)',
   params: { prog: progP(['I-VI7-ii-V', 'I-III7-vi', 'I-bVI-bVII-I', 'I-iv-I', 'ii-bII7-I']), key: keyP(T.SCALES.ionian.iv), pattern: sel('Pattern', [['r357', 'R-3-5-7'], ['r3575', 'R-3-5-7-8-7-5-3 (8ths)']]) },
   bpm: 84, sub: 1, label: 'degree',
   build(p, ctx, S) {
@@ -246,7 +246,7 @@ const blues = ex({
   summary: 'I7–IV7–V7 over the 12-bar form, outlined R-3-5-♭7.',
   about: 'The 12-bar blues is the most played form in popular music. All three chords are dominant 7ths. Outline each with its chord tones and learn the form by heart: 4 bars of I, 2 of IV, 2 of I, then V, IV, I, V (the turnaround).',
   tips: ['Count the bars out loud the first few times.', 'Try the quick change (IV in bar 2) and all 12 keys.'],
-  source: 'StudyBass Fundamentals 2 (12-bar blues); RSL; BassBuzz',
+  source: 'The 12-bar blues; graded exams',
   params: { prog: progP(['blues', 'blues-quick', 'minor-blues', 'jazz-blues']), key: keyP(['1', '3', '5', 'b7'], { def: '9' }), pattern: sel('Pattern', [['r357', 'R-3-5-♭7'], ['r585', 'R-5-8-5'], ['r3575', 'R-3-5-7-8-7-5-3 (8ths)']]) },
   bpm: 92, sub: 1, label: 'degree',
   build(p, ctx, S) {
@@ -264,7 +264,7 @@ const chordal10ths = ex({
   summary: 'Three-note chords across four strings: accompany yourself like a pianist.',
   about: 'Solo and chordal bassists (Jaco, Victor Wooten, Steve Lawson) voice chords across the strings: root on E or A, 5th or 7th in the middle, 3rd as a 10th on top. The exercise strums each voicing, then arpeggiates it, through jazz and pop progressions.',
   tips: ['Use thumb for the root, index and middle for the upper notes (p-i-m).', 'Aim for even volume: let the 10th sing a little louder.'],
-  source: 'Jaco Pastorius / Victor Wooten chordal approach; RSL Grade 8; MI',
+  source: 'Chordal bass as played by Jaco Pastorius and Victor Wooten; advanced graded exams',
   params: { voicing: sel('Voicing', [['5', 'R-5-10'], ['7', 'R-7-10']]), prog: progP(['I-vi-IV-V', 'I-V-vi-IV', 'ii-V-I', 'I-vi-ii-V', 'autumn']), key: keyP(['1', '3', '5', '7']) },
   bpm: 70, sub: 1, label: 'degree',
   build(p, ctx, S) {
@@ -310,7 +310,7 @@ const formulas = ex({
   summary: 'Triads, sus, 6, add9, 6/9, the 7th chords, 9ths, 11ths and 13ths built on one root from their formulas.',
   about: 'Every chord symbol is a formula: degrees of the major scale counted from the root, some of them lowered. Major is 1 3 5, minor 1 ♭3 5, sus4 1 4 5; a 6th chord adds the 6, add9 the 9 (no 7th), 6/9 both; the 7th chords add a 7 or ♭7 (and the °7 a ♭♭7); 9ths, 11ths and 13ths keep stacking 3rds above the 7th. Here each chord of a family is played up its formula and back down on one root, so you see what changes from chord to chord and hear what each extra note brings.\n\nThe notes keep their textbook spelling: the 3rd of a chord is always a 3rd (C°7 is C E♭ G♭ B♭♭, its B♭♭ sounding as A). In practice an 11th chord often leaves out its 3rd, and a 13th its 11th: the formula shows everything the name allows.',
   tips: ['Say each chord\'s formula before you play it.', 'Watch which dot moves from one chord to the next: often only one.', 'Turn the Backing to Chords to hear each colour under the arpeggio.'],
-  source: 'Chord construction as taught in graded exams (RSL, Trinity, LCM) and jazz theory; TalkingBass Chord Tone Essentials',
+  source: 'Chord construction as taught in graded exams (RSL, Trinity, LCM) and jazz theory',
   params: {
     family: sel('Chords', Object.entries(FORMULAS).map(([k, v]) => [k, v.name])),
     key: keyP(['1', '3', '5']),

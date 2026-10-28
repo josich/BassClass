@@ -1,4 +1,5 @@
 // App bootstrap: navigation rail + hash router.
+import { watchErrors, logError } from './errors.js';
 import { h, icon, toast, guardSliders } from './ui/dom.js';
 import { byId, byNumber } from './curriculum/index.js';
 import { renderExercise } from './ui/exercise.js';
@@ -25,6 +26,9 @@ import { STYLES } from './practice/styles.js';
 import { PROG_KEYS, MINE } from './practice/harmony.js';
 import { PAD_SOUNDS } from './audio.js';
 import { initNews, markUsed } from './news.js';
+
+// the last error messages, for the Feedback e-mail (errors.js)
+watchErrors();
 
 // "New" chips: what this start knows, against the last one's (news.js)
 initNews([
@@ -164,6 +168,7 @@ function route() {
       active = renderExercise(app, tpl, { params, routine, lesson, onBack: back });
     } catch (err) {
       console.error(err);
+      logError(err);
       document.body.classList.remove('in-ex');
       toast('Sorry, this exercise could not be opened');
       replaceHash('#/');

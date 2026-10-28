@@ -8,6 +8,14 @@ android/.idea/
 *.apk
 *.aab
 
+# the Google Play upload key never comes near the repository (LAUNCH-TODO.md); bassclass.p12, the public test key,
+# is committed on purpose
+*.jks
+*.keystore
+upload*.p12
+*upload-key*
+*.pepk
+
 # OS / editors
 .DS_Store
 Thumbs.db

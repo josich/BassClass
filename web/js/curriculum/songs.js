@@ -124,7 +124,8 @@ function song(def) {
     title: `${name} style`,
     // (the exercise header shows the song's name alone: it is narrow on a phone)
     short: name,
-    source: `Original line in the style of “${name}” (${artist}, ${year}): its ${adapted ? `feel and technique (${adapted})` : 'key, feel and technique'}, at a practice tempo, not its notes.`,
+    // (not a transcription, and no suggestion of a connection: launch legal review, 2026-10-28)
+    source: `Original line in the style of “${name}” (${artist}, ${year}): its ${adapted ? `feel and technique (${adapted})` : 'key, feel and technique'}, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners.`,
     label: 'degree',
     params: { part: partP },
     song: { name, artist, year },
@@ -160,7 +161,7 @@ const stomp = song({
   about: 'Some of the biggest riffs are just a few notes, played heavy and slow so a whole stadium can sing them. This one walks the E minor pentatonic in half and quarter notes, moves to C and D, then drives the same chords in 8ths. Every note is full length; the drama comes from the weight, not the speed.',
   tips: ['Let each long note ring until the next one: no gaps.', 'Drive section: same volume on every 8th, like a drummer on the floor tom.'],
   parts: [
-    { name: 'Riff', chords: 'Em:8 C:4 D:4', notes: 'E1:q E1:q G1:q A1:q | B1:h A1:q G1:q | C2:h B1:q G1:q | D2:h A1:q B1:q' },
+    { name: 'Riff', chords: 'Em:8 C:4 D:4', notes: 'E1:h B1:q A1:q | G1:h A1:q B1:q | C2:h B1:q G1:q | D2:h A1:q B1:q' },
     { name: 'Drive', chords: 'Em:4 C:4 D:4 Em:4', notes: `${e8('E1', 6)} G1 A1 | ${e8('C2', 6)} B1 A1 | ${e8('D2', 6)} C2 B1 | E1 E1 G1 B1 D2:q B1:q` },
   ],
   form: [0, 0, 1, 0],
@@ -213,7 +214,7 @@ const dust = song({
   about: 'Funk-rock riffs live on silence: short notes, exact rests, and a pair of 16ths that kicks the groove forward. This riff answers itself between Em and Am, turns on B7, and the breakdown leaves whole beats empty for the drums. Mute every rest with both hands so the holes stay clean.',
   tips: ['Stop each note on the rest: lift the fretting finger and touch the string with the plucking finger.', 'The two 16ths are quick and even: "1 e &".'],
   parts: [
-    { name: 'Riff', chords: 'Em:8 Am:4 B7:4', notes: 'E1 r E1 E1:s E1:s r B1 A1 G1 | E1 r r:q B1:s A1:s G1 F#1 G1 | A1 r A1 A1:s A1:s r E2 D2 C2 | B1 r D#2 B1 A1 F#1 G1 F#1' },
+    { name: 'Riff', chords: 'Em:8 Am:4 B7:4', notes: 'E1:s E1:s r E1 r B1 A1 G1 E1 | E1 r r:q B1:s A1:s G1 F#1 G1 | A1:s A1:s r A1 r E2 D2 C2 A1 | B1 r D#2 B1 A1 F#1 G1 F#1' },
     { name: 'Breakdown', chords: 'Em:8', notes: 'E1:q r:q E1:q r D2 | E1:q r:q E1 G1 A1 B1' },
   ],
   form: [0, 0, 1, 0],

@@ -235,7 +235,7 @@ tip must not wait for that throttle.
   `rm -rf web/js/dev web/js/selftest.js` before `bundlePlayRelease`. The GitHub APK keeps them for testing.
 
 ### S8. The store-listing texts and the metadata policy (ours + owner, S)
-- Keep artists, song titles, other teachers and brands **out of the listing**: Scott's Bass Lessons, Gwizdala, the
+- Keep artists, song titles, other teachers and brands **out of the listing**: online bass schools, other teachers, the
   famous songs behind the style studies. Play's metadata and intellectual-property rules treat third-party names in
   descriptions as keyword stuffing or impersonation.
 - In-app, About already says they are named for reference only ✓.

@@ -2,8 +2,9 @@
 // always at the end of an event, not in the middle of something running; 5 stars and a short text"): once the
 // practice log holds 10 hours of playing, and again at 20, a card asks for a rating on Google Play, shown only when
 // the player has just finished something (left an exercise or the Practice room, or ticked ✓ Practised), never
-// while anything plays or another sheet is open. Every star, and the button, open the Play Store page alike (no
-// filtering of the stars, as Google asks). Rated, it never asks again; "Not now" waits for the next mark. Only
+// while anything plays or another sheet is open. The five stars are a picture, not a choice (launch legal review,
+// 2026-10-28: stars that look like an input but all do the same); its one button opens the Play Store page (no
+// filtering of ratings, as Google asks). Rated, it never asks again; "Not now" waits for the next mark. Only
 // where there is a Play listing to rate (the Play build, or the gates switched on for testing: Settings' debug
 // panel shows it at once, and resets it).
 // In the Android app the mark opens Google Play's own rating card instead (in-app review, user 2026-10-28: "add
@@ -76,8 +77,7 @@ export function openRate({ test = false } = {}) {
   const answer = (rated) => { if (!test) markAsked(rated); };
   const rate = () => { answer(true); close(); rateApp(); };
   const later = () => { answer(false); close(); };
-  const stars = h('div', { class: 'rate-stars', role: 'group', 'aria-label': 'Rate BassClass on Google Play' },
-    [1, 2, 3, 4, 5].map((n) => h('button', { class: 'rate-star', type: 'button', 'aria-label': `${n} star${n > 1 ? 's' : ''}: rate on Google Play`, onClick: rate }, '★')));
+  const stars = h('div', { class: 'rate-stars', 'aria-hidden': 'true' }, [1, 2, 3, 4, 5].map(() => h('span', { class: 'rate-star' }, '★')));
   const closeBtn = h('button', { class: 'icon-btn picker-close', type: 'button', 'aria-label': 'Not now', html: icon('close'), onClick: later });
   const panel = h('div', { class: 'picker rate-card', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Rate BassClass', tabindex: '-1' },
     h('div', { class: 'picker-head' }, h('div', { class: 'grow' }), closeBtn),

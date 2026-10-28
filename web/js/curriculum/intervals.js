@@ -13,7 +13,7 @@ const shapes = ex({
   summary: 'See and hear one interval: root, interval, root, interval, in any key.',
   about: 'Because all strings are tuned in 4ths, every interval has the same shape anywhere on the neck. A perfect 5th is always one string up and two frets up; a major 3rd is one string up and one fret back. Learn each shape, sing it, then play it in all keys.',
   tips: ['Sing the interval before playing it: ear and hands together.', 'Famous reference songs help: a perfect 4th starts "Here Comes the Bride".'],
-  source: 'MI 011, Chuck Sher "The Improviser\'s Bass Method", Ariane Cap',
+  source: 'Chuck Sher "The Improviser\'s Bass Method"',
   params: { iv: ivP('5'), key: keyP(['1'], { def: '0' }), dir: sel('Direction', [['up', 'Ascending'], ['down', 'Descending'], ['both', 'Up then down']]) },
   bpm: 66, sub: 1, label: 'degree',
   build(p, ctx, S) {
@@ -41,7 +41,7 @@ const allFromRoot = ex({
   summary: 'R-♭2, R-2, R-♭3 … R-8: the whole interval family in one position.',
   about: 'Play the root, then each interval above it in turn, from the minor 2nd up to the octave. You will see the 12 shapes around one hand position (the index reaches back a fret for some) and hear the character of each: tense (♭2, 7), open (4, 5), sweet (3, 6), dark (♭3, ♭6).',
   tips: ['Name each interval aloud as you play it.', 'Then switch the dot labels to note names to see the actual notes.'],
-  source: 'Standard interval training (MI, Berklee, StudyBass)',
+  source: 'Standard interval training',
   params: { key: keyP(['1'], { def: '0', cycles: false }), root: rootStrP('E') },
   bpm: 72, sub: 2, label: 'degree',
   build(p, ctx, S) {
@@ -69,7 +69,7 @@ const diatonic = ex({
   summary: 'The scale in 3rds, 4ths, 5ths, 6ths and 7ths: classic melodic sequences.',
   about: 'Move through the scale in pairs of notes a fixed number of scale steps apart: 1-3, 2-4, 3-5… (3rds), or 1-4, 2-5… (4ths), and so on. The alternating versions flip the direction of every second pair (1-3, 4-2, 3-5, 6-4), which is more melodic and great for fills. These sequences are a standard part of conservatory scale work.',
   tips: ['Name the interval quality as you go: in major the 3rds run M m m M M m m.', 'In 6ths you will skip strings. Mute carefully.'],
-  source: 'Chuck Sher; Spanish conservatory access tests; Berklee levels; TalkingBass Creative Bassist',
+  source: 'Chuck Sher "The Improviser\'s Bass Method"; conservatory entrance tests',
   params: { pattern: sel('Interval', Object.entries(DIA)), key: keyP(T.SCALES.ionian.iv), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'harmonicMinor', 'melodicMinor', 'dorian', 'mixolydian'])), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]), root: rootStrP('A') },
   bpm: 72, sub: 2, label: 'degree',
   build(p, ctx, S) {
@@ -125,7 +125,7 @@ const tenths = ex({
   summary: 'Root on the E string, 10th on the G string, up the scale: big, piano-like harmony.',
   about: 'A 10th is a 3rd plus an octave. Play the scale on the E string and add the diatonic 10th on the G string: one fret higher for a major 10th, the same fret for a minor 10th. Played broken or as double stops, this is the sound of Jaco Pastorius\' ballads and Motown-era chordal bass.',
   tips: ['Pluck the E string with the thumb and the G string with a finger.', 'Mute the A and D strings with the fretting hand.'],
-  source: 'LCM Grade 7; Berklee Online Bass 101 L4; Jaco Pastorius',
+  source: 'Advanced graded exams (LCM); 10ths as played by Jaco Pastorius',
   params: { key: keyP(T.SCALES.ionian.iv, { cycles: false }), mode: sel('Style', [['broken', 'Broken (R then 10th)'], ['stop', 'Double stops']]), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'mixolydian', 'dorian'])) },
   bpm: 66, sub: 2, label: 'degree',
   build(p, ctx, S) {
@@ -169,7 +169,7 @@ const octavesScale = ex({
   summary: 'Every scale note with its octave at once: two strings, two frets.',
   about: 'Play each note of the scale together with its octave as a double stop. It is a strong, unison-like sound used in rock riffs and solo bass, and it drills the octave shape until it is automatic. Pluck the two strings together with two fingers (or thumb and finger).',
   tips: ['Mute the string in between with the index finger.', 'Both notes must sound at the same volume.'],
-  source: 'LCM Grades 6/8 (scales in octaves)',
+  source: 'Scales in octaves in advanced graded exams',
   params: { key: keyP(T.SCALES.ionian.iv, { cycles: false }), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'minorPent', 'majorPent', 'blues'])), root: rootStrLowP() },
   bpm: 66, sub: 1, label: 'degree',
   build(p, ctx, S) {
@@ -205,7 +205,7 @@ const cycles = ex({
   summary: 'Chains of the same interval: 4ths, minor 3rds, major 3rds, whole tones… across the neck.',
   about: 'Stack the same interval again and again: 4ths give C F B♭ E♭…, minor 3rds give the diminished cycle C E♭ G♭ A, major 3rds give the augmented C E G♯. These symmetrical chains appear throughout modern jazz (Coltrane, Brecker) and are perfect for hand-to-ear coordination. The line climbs up to two octaves and comes back.',
   tips: ['Find the repeating hand shape; the cycles are geometric on the bass.', 'Groups of 3 or 4 notes in 16ths sound very modern.'],
-  source: 'Nicolas Slonimsky "Thesaurus of Scales and Melodic Patterns"; Coltrane/Brecker practice',
+  source: 'Nicolas Slonimsky "Thesaurus of Scales and Melodic Patterns"; interval cycles in the language of John Coltrane and Michael Brecker',
   params: { iv: sel('Interval', Object.entries(CYC).map(([k, v]) => [k, v[1]])), key: keyP(['1'], { cycles: false }) },
   bpm: 72, sub: 4, label: 'note',
   build(p, ctx, S) {
@@ -240,7 +240,7 @@ const earQuiz = ex({
   summary: 'Random intervals from a root. Sing and find the second note before it appears.',
   about: 'The root plays, then the interval note. In Quiz mode the next note\'s name shows in the corner and its dot only appears when it sounds. Try to sing it, name the interval and play it before it appears. A new random set is generated every time you open the exercise or change a setting.',
   tips: ['Sing or name the second note before it sounds, then check yourself with the dots.', 'Start with only 3rds, 4ths and 5ths in mind, then add the rest.'],
-  source: 'RSL ear tests; Charlie Banacos-style ear training',
+  source: 'Aural tests in graded exams; interval ear training',
   params: { key: keyP(['1'], { cycles: false }), set: sel('Intervals', [['basic', '3rds, 4ths, 5ths, octave'], ['all', 'All within an octave']]) },
   bpm: 60, sub: 1, label: 'degree', reveal: 'quiz',
   build(p, ctx, S) {

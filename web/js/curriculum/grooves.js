@@ -80,7 +80,7 @@ const roots = grooveEx('gr-roots', 1, ['rock8', 'pop8', 'rootFifth', 'r585'], 'r
   summary: 'The first job of a bass player: lock the roots with the drums.',
   about: 'Most bass lines start with the root of each chord. Play driving 8ths (rock), the country two-beat (root and the 5th below), or the R-5-8-5 pattern through real progressions. Focus on time, tone and note length: this is what makes a band sound good.',
   tips: ['Play every note the same length and volume.', 'Lock with an imaginary kick drum: beats 1 and 3.'],
-  source: 'StudyBass common patterns; Hal Leonard; Ed Friedland; RSL Group C', bpm: 100,
+  source: 'Hal Leonard Bass Method (Ed Friedland); graded exams', bpm: 100,
 });
 
 const blues = grooveEx('gr-blues', 2, ['boogie', 'shuffle', 'boogieSwing', 'r5b7', 'slowBlues'], 'boogie', {
@@ -88,7 +88,7 @@ const blues = grooveEx('gr-blues', 2, ['boogie', 'shuffle', 'boogieSwing', 'r5b7
   summary: 'R-3-5-6-♭7-6-5-3 and R-R-5-5-6-6-5-5 over the 12-bar blues.',
   about: 'Two of the most played bass lines in history. The boogie-woogie walks up and down the dominant 7th chord with the 6th, the shuffle rocks between root, 5th and 6th with a swing feel. Learn them over the 12-bar form in every key and you can join any blues jam.',
   tips: ['Swing the 8ths: long-short.', 'Same shape for I, IV and V: just move it.'],
-  source: 'StudyBass (boogie-woogie, 12-bar ladder); RSL Grade 2; Berklee Online Rock Bass L4', bpm: 96,
+  source: 'Boogie-woogie and the 12-bar blues; first graded exams', bpm: 96,
 });
 
 const octaveDisco = grooveEx('gr-octaves', 2, ['octaves', 'r5b7', 'riff'], 'octaves', {
@@ -96,7 +96,7 @@ const octaveDisco = grooveEx('gr-octaves', 2, ['octaves', 'r5b7', 'riff'], 'octa
   summary: 'Disco octaves, R-5-♭7-8 and a minor pentatonic riff moved to each chord.',
   about: 'Octave lines drive disco and dance music; R-5-♭7-8 is the classic rock and blues shape; and transposing a riff to each new root (RSL\'s "riff transposer") is how most rock bass lines are built. Keep the muting clean when you jump strings.',
   tips: ['Mute the strings between the root and the octave with your fretting fingers.', 'Accent the octaves lightly for a disco feel.'],
-  source: 'RSL Group C (riff transposer); BassBuzz; StudyBass (octaves, R-5-♭7-8)', bpm: 104,
+  source: 'Riffs, octaves and R-5-♭7-8 shapes; graded exams', bpm: 104,
 });
 
 const approach = grooveEx('gr-approach', 3, ['approach', 'fifthApproach', 'motown', 'pop8'], 'motown', {
@@ -104,7 +104,7 @@ const approach = grooveEx('gr-approach', 3, ['approach', 'fifthApproach', 'motow
   summary: 'Lead into each new chord: chromatic or 5th approach on the last beat.',
   about: 'The note before a chord change is the most important "passing" note. Approach the next root from a half step below or above (chromatic) or from its 5th (dominant approach). This is the sound of James Jamerson\'s Motown lines and the bridge to walking bass.',
   tips: ['The approach note is short and leads; the target lands on 1.', 'Listen: the approach makes you hear the change before it happens.'],
-  source: 'StudyBass (chromatic & 5th approach, note-choice pyramid); TalkingBass approach notes', bpm: 96,
+  source: 'Chromatic and 5th approach notes', bpm: 96,
 });
 
 const world = grooveEx('gr-world', 3, ['reggae', 'bossa', 'tumbao'], 'bossa', {
@@ -112,7 +112,7 @@ const world = grooveEx('gr-world', 3, ['reggae', 'bossa', 'tumbao'], 'bossa', {
   summary: 'One-drop reggae, bossa R-5 and the anticipated tumbao: feels beyond 4/4 rock.',
   about: 'Reggae leaves beat 1 empty and sits deep in the groove. Bossa nova uses root and 5th in a dotted, swaying rhythm. The Afro-Cuban tumbao anticipates the next chord on beat 4 and skips beat 1. All three teach you how much feel comes from where you do NOT play.',
   tips: ['Tumbao: the last note of each bar is the NEXT chord\'s root.', 'Reggae: play short and fat; use the neck pickup and a palm mute.'],
-  source: 'Chuck Sher (Latin appendix); MI Latin courses; Berklee audition; Trinity improvising', bpm: 92,
+  source: 'Chuck Sher "The Improviser\'s Bass Method" (Latin styles); graded exams', bpm: 92,
 });
 
 const funk = grooveEx('gr-funk', 3, ['funk16', 'funkOct', 'fill'], 'funk16', {
@@ -120,7 +120,7 @@ const funk = grooveEx('gr-funk', 3, ['funk16', 'funkOct', 'fill'], 'funk16', {
   summary: 'Syncopated 16th grooves with dead notes, and a groove that ends with a fill.',
   about: 'Funk is a 16th-note conversation between real notes and ghost notes (x). Keep both hands moving in 16ths and choose which notes sound. The "fill" groove plays three bars and then a minor-pentatonic fill in the fourth, the way real bass parts are built.',
   tips: ['Ghost notes: fretting hand touches but does not press.', 'Big accent on beat 1; keep it light elsewhere.'],
-  source: 'Rocco Prestia / Jaco-style 16ths; TalkingBass Groove Trainer Vol. 2; LCM fills', bpm: 92,
+  source: 'Funk 16ths in the style of Rocco Prestia and Jaco Pastorius', bpm: 92,
 });
 
 const genres = grooveEx('gr-genres', 3, ['countryTwo', 'samba', 'secondLine', 'afrobeat'], 'countryTwo', {
@@ -128,7 +128,7 @@ const genres = grooveEx('gr-genres', 3, ['countryTwo', 'samba', 'secondLine', 'a
   summary: 'Four more feels: the country two-beat, samba, the New Orleans second line and afrobeat.',
   about: 'Every style has its own bass feel. Country plays root and 5th as half notes on beats 1 and 3 (beats 2 and 4 belong to the snare), with a chromatic pickup into the next chord every other bar. Samba is a two-feel in which the 16th before each beat already plays the next note (R . . 5 | 5 . . R). The New Orleans second line bounces between the root, 3rd, 5th and 6th over a street-parade beat. Afrobeat (Fela Kuti\'s band) repeats a syncopated one-bar figure over a minor vamp.',
   tips: ['Country: keep beats 2 and 4 empty for the snare.', 'Samba: the short 16th is light; the long note carries the beat.', 'Second line: swing it a little and dig into beat 1.'],
-  source: 'Ed Friedland "Bass Grooves" and "Building Walking Bass Lines" (styles appendix); Chuck Sher; Berklee styles courses', bpm: 96,
+  source: 'Ed Friedland "Bass Grooves"; Chuck Sher "The Improviser\'s Bass Method"', bpm: 96,
 });
 
 const soul = grooveEx('gr-soul', 4, ['neoSoul', 'soulBallad', 'motown'], 'neoSoul', {
@@ -136,7 +136,7 @@ const soul = grooveEx('gr-soul', 4, ['neoSoul', 'soulBallad', 'motown'], 'neoSou
   summary: 'Laid-back neo-soul with ghost notes, and the long-note soul ballad with passing tones.',
   about: 'Soul bass is about space and feel. The neo-soul line (D\'Angelo, Pino Palladino) sits behind the beat with ghost notes and leans on the chord\'s 7th. The soul ballad holds the root for two beats, then walks through the 3rd and a chromatic approach into the next chord. Play them with the metronome on 2 and 4 in your head.',
   tips: ['Neo-soul: play slightly late, but always land the root on 1.', 'Ballad: let the long notes ring for their full length.'],
-  source: 'Pino Palladino and James Jamerson-style lines; Ed Friedland "R&B Bass Masters"; Berklee', bpm: 76,
+  source: 'Soul lines in the style of James Jamerson and Pino Palladino; Ed Friedland "R&B Bass Masters"', bpm: 76,
 });
 
 const pick = grooveEx('gr-pick', 2, ['pickDown', 'pickAlt', 'gallop'], 'pickDown', {
@@ -144,7 +144,7 @@ const pick = grooveEx('gr-pick', 2, ['pickDown', 'pickAlt', 'gallop'], 'pickDown
   summary: 'Π = down-stroke, V = up-stroke: punk 8ths, alternate picking and the metal gallop.',
   about: 'Many rock, punk and metal bassists play with a pick for a sharp, even attack. Down-strokes only (Π) give the driving punk sound and need a relaxed wrist; alternate picking (Π V) is faster and smoother; the gallop (8th + two 16ths) is the classic metal rhythm. Mute with the side of the picking hand (palm mute) for a tighter sound.',
   tips: ['Hold the pick between the thumb and the side of the index finger; move from the wrist, not the elbow.', 'Palm mute: rest the edge of the hand lightly on the strings near the bridge.', 'Gallop: Π on the 8th, then Π V on the two 16ths.'],
-  source: 'Pick technique from rock and metal bass teaching (Hal Leonard Bass Method; TalkingBass "Playing Bass with a Pick")', bpm: 100,
+  source: 'Pick technique from rock and metal bass playing', bpm: 100,
 });
 
 const funkChanges = grooveEx('gr-funk-changes', 5, ['funk16', 'funkOct'], 'funkOct', {
@@ -152,7 +152,7 @@ const funkChanges = grooveEx('gr-funk-changes', 5, ['funk16', 'funkOct'], 'funkO
   summary: 'Keep the ghost-note engine running while the chords move, then take it around the cycle.',
   about: 'Holding a 16th-note funk feel over one chord is one skill; keeping it while the harmony moves is another. The same syncopated, ghost-note pattern is applied to every chord of a progression (default: the 12-bar blues), so your hands must find each new root without breaking the groove. Then try "All 12" keys.',
   tips: ['Look ahead one bar: find the next root while you groove on this one.', 'Keep the ghost notes quiet and the downbeats fat.'],
-  source: 'Tower of Power / Rocco Prestia-style 16ths; TalkingBass Groove Trainer Vol. 2; RSL Grades 7–8', bpm: 88,
+  source: 'Funk 16ths in the style of Rocco Prestia; advanced graded exams', bpm: 88,
 });
 funkChanges.params.prog.default = 'blues';
 
@@ -168,7 +168,7 @@ const oddGroove = ex({
   summary: 'Feel the groups, not the count: 3+2, 2+2+3, 4+3, 3+3.',
   about: 'Odd metres (5/4, 7/8, 7/4) are everywhere in prog, fusion, Balkan and film music, and 6/8 is the compound metre of ballads and Afro-Cuban grooves. Each groove places its strongest notes on the start of the beat groups. Loop it until it feels natural rather than counted. In 7/8 and 6/8 the click marks every 8th note.',
   tips: ['Say the groups: "1-2-3 1-2" for 5/4.', 'Record yourself; the last group is where most players rush.'],
-  source: 'Trinity Grades 5–8; RSL Grade 8; MI 069E; Berklee Online Rock Bass L10',
+  source: 'Odd-metre grooves in advanced graded exams',
   params: { meter: sel('Metre', Object.entries(ODD).map(([k, v]) => [k, v.name])), key: keyP(['1', 'b3', '5'], { def: '4', cycles: false }) },
   bpm: 110, sub: 1, label: 'degree',
   build(p, ctx, S) {
@@ -216,7 +216,7 @@ const twoFeel = walkEx('wk-two-feel', 3, 'twofeel', 'ii-V-I', {
   summary: 'The first step to walking: two notes per bar, root on beat 1.',
   about: 'Before walking four to the bar, jazz bassists often play in "two": half notes on beats 1 and 3, usually root and 5th, sometimes a chromatic approach to the next chord. It gives the tune space and teaches you the form and the root movement.',
   tips: ['Let each note ring its full two beats.', 'Learn the form: say the chord names as you play.'],
-  source: 'Ed Friedland "Building Walking Bass Lines"; TalkingBass Simple Steps to Walking Bass M1; Berklee', bpm: 96,
+  source: 'Ed Friedland "Building Walking Bass Lines"', bpm: 96,
 });
 
 const chordToneWalk = walkEx('wk-chord-tones', 3, 'ct', 'I-vi-ii-V', {
@@ -224,7 +224,7 @@ const chordToneWalk = walkEx('wk-chord-tones', 3, 'ct', 'I-vi-ii-V', {
   summary: 'Four quarter notes per chord: R-3-5-3, R-3-5-8, R-5-8-5.',
   about: 'Your first walking lines use only chord tones: the root on beat 1, then 3rd, 5th and octave. It already sounds like jazz, and it trains you to see each chord shape in time. The patterns rotate so the line does not repeat mechanically.',
   tips: ['Root on beat 1 of every bar, no exceptions (for now).', 'Keep quarter notes long and even ("legato").'],
-  source: 'Ed Friedland; Rufus Reid; TalkingBass Simple Steps to Walking Bass M2', bpm: 104,
+  source: 'Ed Friedland "Building Walking Bass Lines"; Rufus Reid "The Evolving Bassist"', bpm: 104,
 });
 
 const approachWalk = walkEx('wk-approach', 4, 'ctA', 'jazz-blues', {
@@ -232,7 +232,7 @@ const approachWalk = walkEx('wk-approach', 4, 'ctA', 'jazz-blues', {
   summary: 'Beat 4 is a half step from the next root: the sound of jazz bass.',
   about: 'Play chord tones on beats 1–3 and on beat 4 approach the next chord\'s root from a half step below (or above). The approach note creates the forward motion that makes walking bass swing.',
   tips: ['Target first: know the next root before you choose the approach.', 'Mix approach from below and from above.'],
-  source: 'Ed Friedland; Berklee Online Jazz Bass L3 (R-5-R-half step); TalkingBass M1', bpm: 108,
+  source: 'Ed Friedland "Building Walking Bass Lines" (root, 5th and approach)', bpm: 108,
 });
 
 const scalarWalk = walkEx('wk-scalar', 4, 'scalar', 'autumn', {
@@ -240,7 +240,7 @@ const scalarWalk = walkEx('wk-scalar', 4, 'scalar', 'autumn', {
   summary: 'R-2-3-5, R-2-3-approach, 8-7-6-5: stepwise lines between chord tones.',
   about: 'Scale steps connect chord tones smoothly. Lines like R-2-3-5 or descending 8-7-6-5 are the melodic side of walking, and they balance the jumps of arpeggio lines.',
   tips: ['Use the scale of each chord (Dorian on m7, Mixolydian on 7). A 7 that resolves to a minor chord takes ♭9 and ♭13 instead (Phrygian dominant), and the line follows that.', 'Land a chord tone on beat 1; let the scale steps lead into the next chord.'],
-  source: 'Ed Friedland; Chuck Sher "The Improviser\'s Bass Method"', bpm: 108,
+  source: 'Ed Friedland "Building Walking Bass Lines"; Chuck Sher "The Improviser\'s Bass Method"', bpm: 108,
 });
 
 const mixedWalk = walkEx('wk-mixed', 4, 'mixed', 'jazz-blues', {
@@ -248,7 +248,7 @@ const mixedWalk = walkEx('wk-mixed', 4, 'mixed', 'jazz-blues', {
   summary: 'Chord tones, scale steps, chromatic and dominant approaches combined.',
   about: 'Real walking bass mixes all the devices: arpeggios, scale runs, chromatic approaches and dominant (5th) approaches, chosen bar by bar. These lines rotate between them over standard progressions like the jazz blues and the ii–V–I.',
   tips: ['Follow the contour: lines that go up should come back down.', 'Then improvise your own line with the Neck in the Practice room as a map.'],
-  source: 'Ed Friedland; Rufus Reid; Berklee Online Jazz Bass L6–11', bpm: 116, star: true,
+  source: 'Ed Friedland "Building Walking Bass Lines"; Rufus Reid "The Evolving Bassist"', bpm: 116, star: true,
 });
 
 const enclosureWalk = walkEx('wk-enclosures', 5, 'enclosure', 'ii-V-I', {
@@ -256,7 +256,7 @@ const enclosureWalk = walkEx('wk-enclosures', 5, 'enclosure', 'ii-V-I', {
   summary: 'Beats 3–4 surround the next root: half step above, half step below, target.',
   about: 'An enclosure frames the target from both sides before landing on it. In walking bass the last two beats of a bar (above, below) lead into the next root on beat 1. It is a signature bebop sound.',
   tips: ['Hear the target before you play the enclosure.', 'Try scale-step above + chromatic below too.'],
-  source: 'TalkingBass M1 (enclosures); bebop vocabulary; Ed Friedland', bpm: 112,
+  source: 'Enclosures from bebop vocabulary; Ed Friedland "Building Walking Bass Lines"', bpm: 112,
 });
 
 const twoPerBar = walkEx('wk-two-per-bar', 5, 'mixed', 'rhythm-A', {
@@ -264,7 +264,7 @@ const twoPerBar = walkEx('wk-two-per-bar', 5, 'mixed', 'rhythm-A', {
   summary: 'Rhythm changes and ii–V cycles: root + approach on every chord.',
   about: 'When chords change every two beats there is only room for the root and an approach note. Rhythm changes and the ii–V cycle through all 12 keys are the standard tests of this skill.',
   tips: ['Simplify: root on the chord, approach on the next beat.', 'Start slow: the changes come fast.'],
-  source: 'TalkingBass Simple Steps M2 (two chords per bar); Berklee Online Jazz Bass', bpm: 112,
+  source: 'Walking with two chords per bar (jazz practice)', bpm: 112,
 });
 
 const minorWalk = walkEx('wk-minor', 5, 'mixed', 'minor-ii-V-i', {
@@ -272,7 +272,7 @@ const minorWalk = walkEx('wk-minor', 5, 'mixed', 'minor-ii-V-i', {
   summary: 'Walking in minor keys: the half-diminished ii, the V7♭9 and the minor blues.',
   about: 'Minor keys bring the half-diminished ii chord and a V7♭9 that pulls hard to the minor tonic. Walk through the minor ii–V–i and the minor blues using the same devices, adapted to the darker chord tones.',
   tips: ['On m7♭5 the 5th is flat: watch the dots.', 'The 3rd of V7 is the leading tone of the key.'],
-  source: 'TalkingBass M3 (minor ii–V–i backing); Berklee', bpm: 108,
+  source: 'Walking over the minor ii–V–i (jazz practice)', bpm: 108,
 });
 
 const tripletWalk = walkEx('wk-triplet-skips', 5, 'mixed', 'jazz-blues', {
@@ -280,7 +280,7 @@ const tripletWalk = walkEx('wk-triplet-skips', 5, 'mixed', 'jazz-blues', {
   summary: 'A swung triplet "skip" on beat 3 of every other bar: the pro walking sound.',
   about: 'Great walking bassists decorate the quarter-note line with triplet skips: a note played on the beat and ghosted on the last triplet. It adds bounce and swing without breaking the line.',
   tips: ['The skip is a ghost: barely audible.', 'Use it sparingly in real playing; here it is drilled every other bar.'],
-  source: 'TalkingBass M2 (triplets); Ray Brown / Paul Chambers vocabulary', bpm: 120, triplets: true,
+  source: 'Triplet skips in the walking vocabulary of Ray Brown and Paul Chambers', bpm: 120, triplets: true,
 });
 
 const giantWalk = walkEx('wk-giant-steps', 6, 'mixed', 'jazz-blues', {
@@ -288,7 +288,7 @@ const giantWalk = walkEx('wk-giant-steps', 6, 'mixed', 'jazz-blues', {
   summary: 'Giant Steps: key centres a major 3rd apart, two chords per bar.',
   about: 'Walking through "Giant Steps" is a classic mastery test: fast root movement between three key centres. Keep the roots on the beats and use approach notes for every move.',
   tips: ['Know the three tonics: B, G, E♭.', 'Practise at 120, then climb with the speed trainer.'],
-  source: 'Taller de Músics/Berklee jazz requirements; John Coltrane "Giant Steps"', bpm: 120,
+  source: 'John Coltrane\'s "Giant Steps" changes; jazz-school requirements', bpm: 120,
 });
 giantWalk.params.prog = progP(['giant-steps'], 'giant-steps');
 minorWalk.params.prog = progP(['minor-ii-V-i', 'minor-blues', 'i-iv-V-i'], 'minor-ii-V-i');
@@ -329,7 +329,7 @@ const slapBasics = slapEx('sl-thumb-pop', 3, ['thumb', 'octPop'], 'thumb', 'vamp
   summary: 'T = thumb strikes the string; P = finger pops the octave.',
   about: 'Slap bass has two basic motions: the thumb (T) bounces off the low string like a drumstick, and the index or middle finger "pops" (P) a higher string by pulling it away from the fretboard so it snaps back. Start with the thumb alone, then thumb–pop octaves, the backbone of funk and disco slap.',
   tips: ['Rotate the forearm (like turning a door handle). Do not swing from the elbow.', 'Strike the string over the end of the fretboard.'],
-  source: 'TalkingBass Slap Bass Essentials; Berklee ILBS-251; MI 021; Trinity Grade 5', bpm: 84,
+  source: 'Slap technique; graded exams', bpm: 84,
 });
 
 const slapGrooves = slapEx('sl-grooves', 4, ['tmp', 'hammer', 'triad'], 'tmp', 'vamp-min', {
@@ -337,7 +337,7 @@ const slapGrooves = slapEx('sl-grooves', 4, ['tmp', 'hammer', 'triad'], 'tmp', '
   summary: '16th-note slap patterns with left-hand mutes (x), hammer-ons (H) and pull-offs (PO).',
   about: 'Real slap lines fill the 16th grid with thumb ghosts (x), hammered notes (H), pops (P) and pull-offs (PO). These patterns combine all of them over a funk vamp. Loop slowly and keep the 16ths perfectly even.',
   tips: ['The "x" is a thumb on a muted string: percussive, no pitch.', 'Hammer from the thumb note to the next note with no pluck.'],
-  source: 'TalkingBass Slap Bass Essentials (60 grooves); Berklee Online Slap; RSL Grades 6–8', bpm: 80,
+  source: 'Slap grooves; advanced graded exams', bpm: 80,
 });
 
 const slapAdvanced = slapEx('sl-advanced', 5, ['ghostFunk', 'popFill'], 'ghostFunk', 'vamp-min', {
@@ -345,7 +345,7 @@ const slapAdvanced = slapEx('sl-advanced', 5, ['ghostFunk', 'popFill'], 'ghostFu
   summary: 'Busier 16th slap lines: thumb ghosts, hammer-ons, pops, pull-offs and a pentatonic fill.',
   about: 'The step between slap grooves and double thumbing: denser 16th patterns where the thumb ghosts (x) keep the grid, the hammer-on (H) and pull-off (PO) make notes without plucking, and pops (P) accent the off-beats. The second pattern ends each bar with a fill down the minor pentatonic, the kind of lick that ends a funk phrase.',
   tips: ['Keep the thumb bouncing on every ghost: it is your hi-hat.', 'Pull-off (PO): pluck the note by pulling the fretting finger off sideways.', 'Loop one bar slowly before adding the progression.'],
-  source: 'TalkingBass Slap Bass Essentials; Louis Johnson and Marcus Miller-style slap vocabulary; Berklee Online Slap', bpm: 76,
+  source: 'Slap vocabulary in the style of Louis Johnson and Marcus Miller', bpm: 76,
 });
 
 const doubleThumb = slapEx('sl-double-thumb', 6, ['double'], 'double', 'vamp-min', {
@@ -353,7 +353,7 @@ const doubleThumb = slapEx('sl-double-thumb', 6, ['double'], 'double', 'vamp-min
   summary: 'Thumb down (TΠ) and up (TV) like a pick: Victor Wooten\'s signature technique.',
   about: 'Double thumbing uses the thumb in both directions: a downstroke that rests on the next string, then an upstroke with the thumbnail side. Combined with pops it allows continuous 16th-note slap lines at high speed.',
   tips: ['Start painfully slow, thumb only: down–up on one string.', 'Keep the wrist loose; the thumb moves like a pick.'],
-  source: 'Victor Wooten; TalkingBass Slap (double thumb); SBL Slap Accelerator', bpm: 60,
+  source: 'Double thumbing, as played by Victor Wooten', bpm: 60,
 });
 
 export default [roots, pick, octaveDisco, blues, approach, world, genres, funk, soul, funkChanges, oddGroove, twoFeel, chordToneWalk, approachWalk, scalarWalk, mixedWalk, enclosureWalk, twoPerBar, minorWalk, tripletWalk, giantWalk, slapBasics, slapGrooves, slapAdvanced, doubleThumb];

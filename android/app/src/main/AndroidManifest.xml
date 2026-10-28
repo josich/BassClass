@@ -1,20 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- no INTERNET: everything is inside the app (the drums and the piano too, since 2026-10-27) -->
+    <!-- no INTERNET: everything is inside the app (the drums and the piano too, since 2026-10-27). Google Play's
+         billing and review libraries would add INTERNET and ACCESS_NETWORK_STATE for Google's own diagnostics; they
+         reach Google Play through the Play Store app, so both are removed, and no advertising ID: the privacy policy
+         and the Data safety form say the app has no network access (launch review, 2026-10-28; CI checks the bundle) -->
+    <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
 
     <!-- microphone for the tuner -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
+    <!-- Android's own backup keeps the progress, not the WebView's caches (res/xml/*backup*_rules.xml) -->
     <application
         android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
-        android:theme="@style/Theme.BassClass">
+        android:theme="@style/Theme.BassClass"
+        tools:targetApi="33">
+
+        <!-- the WebView shows only the app's own files: no usage statistics for Google, no Safe Browsing look-ups -->
+        <meta-data android:name="android.webkit.WebView.MetricsOptOut" android:value="true" />
+        <meta-data android:name="android.webkit.WebView.EnableSafeBrowsing" android:value="false" />
 
         <activity
             android:name=".MainActivity"

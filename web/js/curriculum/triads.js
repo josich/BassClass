@@ -141,7 +141,7 @@ const triadQualities = ex({
   tips: ['Major with root on finger 2: 3rd one string up and one fret back (finger 1), 5th one string up and two frets forward (finger 4).',
     'Minor with root on finger 1: ♭3 three frets up on the same string (finger 4), 5th one string up two frets forward (finger 3).',
     'Use "All 12 · cycle of 4ths" once a shape is comfortable: the classic way to drill a shape in every key.'],
-  source: 'RSL Grade 1–3, LCM, StudyBass Fundamentals, TalkingBass Chord Tone Essentials',
+  source: 'Triads in the first graded exams (RSL, LCM)',
   params: { quality: sel('Triad', QUALITY_TRIADS), key: keyP(), root: rootStrP('A'), shape: arpShapeP(['updown', 'octave', 'up', 'turn', 'r535', 'down']) },
   bpm: 70, sub: 2, label: 'degree',
   build(p, ctx, S) {
@@ -163,7 +163,7 @@ const fourTypes = ex({
   summary: 'Major → minor → diminished → augmented on the same root: hear each colour change.',
   about: 'Keep the root fixed and change only the 3rd and 5th. Major to minor lowers the 3rd; minor to diminished lowers the 5th; augmented raises the 5th of the major triad. Each one is played twice, so you feel the shape before moving on.',
   tips: ['Sing the 3rd before you play it.', 'Notice which finger moves when the quality changes: major → minor and minor → diminished move one note each; diminished → augmented moves both the 3rd and the 5th.'],
-  source: 'TalkingBass free lesson "The four triad types"; RSL/LCM grades 3–5',
+  source: 'The four triad types; graded exams (RSL, LCM)',
   // one root for all four chords, named to keep their spelling simplest
   params: { key: keyP(['1', '3', 'b3', '5', 'b5', '#5']), root: rootStrP('A') },
   bpm: 70, sub: 3, label: 'degree',
@@ -196,7 +196,7 @@ const majVsMin = ex({
   summary: 'Alternate C and Cm. Only one note changes.',
   about: 'The 3rd is the note that makes a chord sound happy (major) or sad (minor). Play the major triad, then lower only the 3rd, by one fret in sound (a half step), for the minor. In the shapes the 3rd moves to a new place (the minor shape is fingered from finger 1), but it is the only note that changes. Listen for the colour change.',
   tips: ['Watch the blue dot: it is the only one that moves.', 'Try it with your eyes closed after a few rounds.'],
-  source: 'Common to all methods (StudyBass, BassBuzz, Hal Leonard)',
+  source: 'Common to all methods (Hal Leonard Bass Method, Ed Friedland)',
   // one root for both chords, named so neither needs a double flat (F♯ and F♯m, not G♭m)
   params: { key: keyP(['1', '3', 'b3', '5']), root: rootStrP('A') },
   bpm: 66, sub: 1, label: 'degree',
@@ -219,7 +219,7 @@ const majVsMin = ex({
   },
 });
 
-// ---------------------------------------------------------------- zones (SBL warm-ups)
+// ---------------------------------------------------------------- zones (position warm-ups)
 
 const zoneCycle = ex({
   id: 'tri-zone-cycle', module: M, level: 2, star: true,
@@ -228,7 +228,7 @@ const zoneCycle = ex({
   about: 'This is the "Circle of 5ths + Zones" warm-up. The neck is split into zones (frets 1–5, 5–9, 8–12). Play the triad of every key around the cycle of 4ths (C F B♭ E♭ A♭ D♭ G♭ B E A D G) and never leave the zone. A minor or diminished chord whose cycle name would need a double flat takes its simpler name (F♯m, not G♭m; D♯°, not E♭°). To stay inside the zone you have to use different fingerings, so you learn where every chord lives in that area of the neck. Spend a couple of weeks on Zone 1 before moving to Zone 2, then Zone 3.',
   tips: ['No open strings: every shape must be movable.', 'Say the chord name before you play it, then find the root inside the zone first.',
     'Then switch to minor, diminished and augmented in the same zone.', 'Gary Willis\' advice: the notes are already under your fingers, so do not move the hand.'],
-  source: 'Scott Devine (Scott\'s Bass Lessons), "The Circle of 5ths + ZONES" and "3 Rule Fretboard Formula"',
+  source: 'The cycle of 5ths within one hand position',
   params: { quality: sel('Triad', QUALITY_TRIADS.slice(0, 5)), zone: zoneP, order: orderP, pattern: triadOrderP(['turn', 'up', 'down', 'alt', 'updown', 'r535'], 'turn') },
   bpm: 80, sub: 1, label: 'degree',
   build(p, ctx, S) {
@@ -274,7 +274,7 @@ const threeForms = ex({
   summary: 'Every triad can be fingered three ways. Learn all three and the neck connects.',
   about: 'A triad shape is defined by which finger plays the root. With the root under finger 2, the 3rd and 5th are on the next string. With the root under finger 1, the 3rd is on the same string and the 5th is on the next string. With the root under finger 4, the shape crosses three strings going back toward the nut. Those are the major forms; in minor the root falls under fingers 3, 1 and 4. Knowing all three means there are no "dead areas" on the neck: wherever your hand is, one of the shapes fits.',
   tips: ['Name each form by the finger on the root: "two", "one", "four" in major.', 'The finger-1 form needs a small stretch or pivot for the 3rd.', 'Repeat with minor triads: the root falls under fingers 3, 1 and 4, and each shape still sits in one hand position.'],
-  source: 'SBL "3 Rule Fretboard Formula"; TalkingBass "3 fingerings per arpeggio"; LCM multi-position arpeggios',
+  source: 'Three fingerings for each arpeggio; arpeggios in several positions in graded exams',
   params: { key: keyP(['1', '3', '5'], { cycles: false }), quality: sel('Triad', QUALITY_TRIADS.slice(0, 4)), pattern: triadOrderP(['turn', 'up', 'updown'], 'turn') },
   bpm: 70, sub: 1, label: 'finger',
   build(p, ctx, S) {
@@ -345,7 +345,7 @@ const scaleForms = ex({
   summary: 'The same major or minor scale three times from the same root: with the root under finger 1, 2 and 4.',
   about: 'Like The 3 triad fingerings (in the Triads topic), every scale has three fingerings, named after the finger that plays the root. The root stays on the same fret and the hand moves around it. In major, the root under finger 2 is the one-position shape (2-4, 1-2-4, 1-3-4); the root under finger 1 reaches one fret further with the little finger on two strings (1-3-4, 1-3-4, 2-3); the root under finger 4 crosses four strings with one little-finger stretch (4, 1-3-4, 1-3-4, 1). In natural minor the root under finger 1 (1-3-4, 1-3-4, 1-3) and under finger 4 (4, 1-2-4, 1-2-4, 1) fit in one position, and the root under finger 2 slides the little finger up one fret (2-4-4, 1-3-4, 1-3). With only one string above the root (the D string of a 4-string) a form has to shift along the top string. Learn all three and you can start a scale wherever your hand already is.',
   tips: ['Name the form before you play it: "one", "two", "four".', 'Play the shift with the finger that is moving, sliding lightly, and keep the same fingering on the way down.', 'Pair it with The 3 triad fingerings: the same idea with three notes instead of seven.'],
-  source: 'One-finger-per-fret scale fingerings by starting finger (StudyBass scale patterns; Hal Leonard Bass Method; Berklee position playing)',
+  source: 'One-finger-per-fret scale fingerings by starting finger; Hal Leonard Bass Method (Ed Friedland)',
   params: {
     type: sel('Scale', [['ionian', 'Major'], ['aeolian', 'Natural minor']]), key: keyP(T.SCALES.ionian.iv),
     form: sel('Root finger', [['all', 'All three (1, 2, 4)'], ['1', 'Finger 1'], ['2', 'Finger 2'], ['4', 'Finger 4']]),
@@ -402,7 +402,7 @@ const neckChain = ex({
   summary: 'Chain every fingering of one triad from the nut to fret 15 and back.',
   about: 'Take one chord and play every compact shape of it, moving up the neck. You will alternate between the three fingerings and between octaves. When you can do this in any key, you can find any chord anywhere.',
   tips: ['Look ahead: find the next shape while you play the current one.', 'Try it with eyes closed on the way back down.'],
-  source: 'SBL "3 Rule Fretboard Formula" (Exercise 4); TalkingBass whole-neck coverage',
+  source: 'Triads across the whole neck',
   params: { key: keyP(['1', '3', '5'], { cycles: false }), quality: sel('Triad', QUALITY_TRIADS.slice(0, 4)), dir: sel('Direction', [['updown', 'Up the neck & back'], ['up', 'Up the neck']]), pattern: triadOrderP(['up', 'turn'], 'up') },
   bpm: 72, sub: 3, label: 'degree',
   build(p, ctx, S) {
@@ -429,7 +429,7 @@ const inversions = ex({
   summary: 'R-3-5, 3-5-R, 5-R-3: same chord, different bottom note.',
   about: 'An inversion starts a chord on a note other than the root. 1st inversion starts on the 3rd (3-5-R), 2nd inversion starts on the 5th (5-R-3). "Climbing" stacks the inversions up the neck. "In position" keeps all three around the root, the way you use them in real bass lines to move smoothly between chords.',
   tips: ['Keep the degree labels on: always know which note is the root.', 'In position: the 2nd inversion borrows the 5th from below the root.'],
-  source: 'LCM Grade 6, Spanish conservatory access tests, TalkingBass Chord Tone Essentials',
+  source: 'Graded exams (LCM); conservatory entrance tests',
   params: { key: keyP(), quality: sel('Triad', QUALITY_TRIADS.slice(0, 4)), mode: sel('Layout', [['climb', 'Climbing the neck'], ['position', 'In one position']]), root: rootStrP('E') },
   bpm: 70, sub: 3, label: 'degree',
   build(p, ctx, S) {
@@ -480,7 +480,7 @@ const twoOctave = ex({
   summary: 'R-3-5-8-10-12-15 and back, with one clean shift.',
   about: 'Spread a triad over two octaves. Play the first octave in position, shift at the octave and repeat the shape higher. Plan where the shift happens, and use the same shift on the way down.',
   tips: ['Shift on a slide of the finger that just played. Do not jump.', 'Start the root on the E string so there is room above.'],
-  source: 'RSL Grade 5–7, LCM Grade 6, TalkingBass two-octave arpeggios',
+  source: 'Two-octave arpeggios in graded exams (RSL, LCM)',
   params: { key: keyP(), quality: sel('Triad', QUALITY_TRIADS.slice(0, 4)), root: rootStrP('E') },
   bpm: 72, sub: 3, label: 'degree',
   build(p, ctx, S) {
@@ -494,7 +494,7 @@ const stringSets = ex({
   summary: 'One note per string: root, 1st and 2nd inversion on E-A-D and A-D-G.',
   about: 'Here each note of the triad sits on its own string, across three adjacent strings. On each string set you play root position, 1st inversion and 2nd inversion, moving up the neck. These one-note-per-string shapes are the ones chordal bassists and soloists use.',
   tips: ['Use one finger per note, so each shape could ring as a chord.', 'On a 5-string you also get the B-E-A set.'],
-  source: 'Common chord-study practice (Berklee Chord Studies for Electric Bass, MI)',
+  source: 'Common chord-study practice (Rich Appleman "Chord Studies for Electric Bass")',
   params: { key: keyP(['1', '3', '5'], { cycles: false }), quality: sel('Triad', QUALITY_TRIADS.slice(0, 4)) },
   bpm: 70, sub: 3, label: 'degree',
   build(p, ctx, S) {
@@ -535,7 +535,7 @@ const diatonic = ex({
   about: 'Stack a 3rd and a 5th on every degree of a scale, using only notes from that scale. In major you get I (major), ii (minor), iii (minor), IV (major), V (major), vi (minor) and vii° (diminished). Play them through the key and hear how each chord sounds inside it. Change the scale to harmonise natural minor, harmonic minor, melodic minor or any mode.',
   tips: ['Say the Roman numeral of each chord as you play it.', 'The "up one, down the next" pattern turns the chords into one line. Try it.',
     'Then turn on 1st or 2nd inversion: same chords, new shapes.'],
-  source: 'Berklee PULSE, Berklee Online Bass 101, StudyBass Fundamentals 3, Ariane Cap Music Theory for the Bass Player',
+  source: 'Diatonic harmony (harmony textbooks)',
   params: {
     key: keyP(['1', '3', '5']), scale: sel('Scale', SCALE_TYPE_OPTS(SCALES_DIATONIC)), order: degSeqP,
     pattern: triadOrderP(['up', 'turn', 'alt', 'down', 'updown', 'r535'], 'up'),
@@ -611,7 +611,7 @@ const voiceLedCycle = ex({
   summary: 'Each chord starts on the nearest chord tone. Musical inversions, no jumping.',
   about: 'Instead of always starting on the root, start each new triad on the chord tone closest to where you are. This automatically picks the right inversion. It is how bass players, pianists and arrangers connect chords, and the cycle of 4ths becomes one continuous melodic line.',
   tips: ['Use "Up one, down the next" for a wave-like line.', 'Use "Root only" to compare with the old way: hear how much the hand jumps.'],
-  source: 'Berklee Online Bass 101 (L8); Gwizdala / Banacos-style continuous lines',
+  source: 'Continuous lines through the changes (jazz practice)',
   params: {
     order: sel('Key order', [['cycle4', 'Cycle of 4ths'], ['cycle5', 'Cycle of 5ths'], ['chromatic', 'Chromatic'], ['m3', 'Minor 3rds'], ['M3', 'Major 3rds'], ['wholetone', 'Whole tones']]),
     quality: sel('Triad', QUALITY_TRIADS.slice(0, 4)), pattern: triadOrderP(['alt', 'up', 'down', 'turn'], 'alt'),
@@ -638,7 +638,7 @@ const progressions = ex({
   summary: 'Pop, rock, jazz and minor progressions, each played as voice-led triads.',
   about: 'Put triads to work. Each chord of the progression is outlined with its triad, picking the inversion closest to the previous chord. Every song you will play is built from progressions like these.',
   tips: ['Name each chord\'s function (I, IV, V…) as you play it.', 'Then play only the roots, and hear how much smoother the voice-led version is.'],
-  source: 'StudyBass Fundamentals 3, BassBuzz, Berklee Online Bass 101',
+  source: 'Triads through chord progressions',
   params: { prog: progP(PROG_KEYS_TRIAD), key: keyP(['1', '3', '5']), pattern: triadOrderP(['turn', 'up', 'alt', 'r535', 'down'], 'turn'), voicing: sel('Voicing', [['nearest', 'Nearest inversion'], ['root', 'Root position']]), register: registerP },
   bpm: 84, sub: 1, label: 'degree',
   build(p, ctx, S) {
@@ -657,7 +657,7 @@ const allInversionsCycle = ex({
   summary: 'Climb three inversions of one key, then descend through the next. All 12 keys, no stopping.',
   about: 'This is a stamina and fluency drill. Play root position, 1st and 2nd inversion climbing in one key, then descend through the inversions of the next key in the cycle, starting from the nearest note. Your eyes and ears have to stay one chord ahead.',
   tips: ['Start at 60 BPM in triplets; the speed trainer adds 4 BPM per loop.', 'Keep the degree labels on until the shapes are automatic, then switch to "none".'],
-  source: 'Synthesis of the LCM and Spanish conservatory all-inversions requirements and continuous-line practice (Banacos, Gwizdala)',
+  source: 'All inversions, as asked in graded exams and conservatory programmes; continuous-line practice',
   params: { quality: sel('Triad', QUALITY_TRIADS.slice(0, 4)), order: orderP },
   bpm: 60, sub: 3, label: 'degree',
   build(p, ctx, S) {
@@ -686,7 +686,7 @@ const approachTriads = ex({
   summary: 'Target every chord tone from a half step away: the bebop way to outline chords.',
   about: 'Precede every chord tone with a chromatic neighbour. The approach notes create tension and the chord tones resolve it. This is how bebop players and walking bassists make lines sound "inside" while using all 12 notes.\n\nEvery chord tone lands on a beat, and the approach notes fill the rest of the beat, leading into the next one: 8th notes with a single approach note, triplets with an enclosure or a double approach. Each chord fills one bar of 3/4 (three chord tones, three beats). Approach notes are labelled →; when the usual side would repeat the note you just played, the approach comes from the other side.',
   tips: ['Accent the chord tones, ghost the approach notes.', 'Try the enclosure: it frames each target from both sides.'],
-  source: 'TalkingBass Chord Tone Essentials (approach notes & enclosures); Berklee level exams; jazz pedagogy',
+  source: 'Approach notes and enclosures (jazz pedagogy)',
   params: { key: keyP(['1', '3', '5']), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'harmonicMinor'])), approach: sel('Approach', Object.entries(APPROACH).filter(([k]) => k !== 'scale').map(([k, v]) => [k, v.name])), order: sel('Chords', [['up', 'I → I'], ['updown', 'Up & back']]) },
   bpm: 80, sub: 2, label: 'degree',
   build(p, ctx, S) {
@@ -738,7 +738,7 @@ const permutations = ex({
   summary: '1-3-5, 1-5-3, 3-1-5, 3-5-1, 5-1-3, 5-3-1 through the harmonised scale.',
   about: 'Three notes can be played in six orders. Each order is a different melodic shape and a different fingering challenge. Running them through the diatonic chords breaks the habit of always going up from the root, and gives you a stock of melodic cells for fills and solos.',
   tips: ['"Rotate" uses a new permutation on every chord: hard and very musical.', 'Group the 3-note cells in 16ths to get a built-in rhythmic displacement.'],
-  source: 'Common mastery practice (Bass Fitness / Nitti permutation approach applied to triads)',
+  source: 'Common mastery practice (finger permutations applied to triads)',
   params: { key: keyP(['1', '3', '5']), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'harmonicMinor', 'melodicMinor'])), perm: sel('Order', [...Object.entries(PERMS).map(([k, v]) => [k, v]), ['rotate', 'Rotate through all 6']]), order: degSeqP },
   bpm: 72, sub: 3, label: 'degree',
   build(p, ctx, S) {
@@ -765,7 +765,7 @@ const rudiments = ex({
   about: 'Drummers build their vocabulary from rudiments. Here every rudiment is mapped onto a chord: an "R" stroke plays the next chord tone going up (3rd, 5th, octave…) and an "L" stroke plays the root as a pedal. The result is a set of melodic, rhythmic patterns that outline each chord of the key. They are great for warm-ups and turn straight into grooves and fills.',
   tips: ['Accent the first note of each sticking group.', 'Odd-length rudiments (five-stroke, paradiddle-diddle) shift across the beat in 16ths. Count out loud.',
     'Try the right hand "rake" on the pedal notes to save motion.'],
-  source: 'Drum rudiments (PAS) adapted to bass. Doubled-notes idea after Janek Gwizdala\'s arpeggio warm-ups',
+  source: 'The standard drum rudiments, adapted to bass',
   params: { key: keyP(['1', '3', '5']), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'harmonicMinor', 'mixolydian', 'dorian'])), rudiment: sel('Rudiment', Object.entries(RUDIMENTS).map(([k, v]) => [k, v.name]), 'paradiddle'), order: sel('Chords', [['up', 'I → I'], ['updown', 'Up & back'], ['fourths', 'In 4ths']]) },
   bpm: 70, sub: 4, label: 'degree',
   build(p, ctx, S) {
@@ -863,7 +863,7 @@ const upperStructures = ex({
   summary: 'Play a triad from a different root over the bass note: instant Lydian, 13♯11 or altered colours.',
   about: 'Pianists and arrangers get rich chords by putting a simple triad on top of a bass note. D major over Cmaj7 gives Cmaj7♯11 (the Lydian sound); the same D triad over C7 gives C13♯11: the lower chord decides. A major over C7 gives 13♭9. The badge shows the lower chord (the Backing plays it) and the strip names the upper triad; you play the root and then the triad, so you hear and see the whole colour. Use it for soloing, chordal bass and to understand the tensions in jazz charts.',
   tips: ['Let the low root ring while you play the triad above (thumb mute off).', 'Name the tensions: D/C = 9, ♯11, 13.'],
-  source: 'Charlie Banacos (chord-on-chord), Mark Levine "The Jazz Theory Book", Berklee harmony',
+  source: 'Upper-structure triads (chord on chord); Mark Levine "The Jazz Theory Book"',
   params: { key: keyP(['1', '3', '5', '7'], { cycles: true }), us: sel('Structure', Object.entries(US).map(([k, v]) => [k, v.name])) },
   bpm: 66, sub: 2, label: 'degree',
   build(p, ctx, S) {
@@ -932,7 +932,7 @@ const coltrane = ex({
   summary: 'B → G → E♭ and back: the symmetric key centres of Giant Steps.',
   about: 'Dividing the octave into three major 3rds gives three keys that are equally far apart (B, G, E♭). Coltrane built "Giant Steps" on them. Play their triads voice-led, ascending and descending, until the movement feels natural. Then try the same with minor triads.',
   tips: ['Each move is a major 3rd down. Hear the bright, "floating" modulation.', 'Speed trainer: start slow, target 160 bpm in triplets.'],
-  source: 'John Coltrane "Giant Steps" harmonic axis; Gwizdala Giant Steps practice',
+  source: 'John Coltrane\'s "Giant Steps" harmonic axis',
   params: { key: keyP(['1', '3', '5'], { cycles: false, def: '11' }), quality: sel('Triad', QUALITY_TRIADS.slice(0, 2)), dir: sel('Motion', [['down', 'Down in major 3rds'], ['up', 'Up in major 3rds']]) },
   bpm: 72, sub: 3, label: 'degree',
   build(p, ctx, S) {

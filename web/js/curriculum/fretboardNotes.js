@@ -14,7 +14,7 @@ const openStrings = ex({
   summary: 'Name and play the open strings: E-A-D-G (B and C on 5/6-string basses).',
   about: 'The first exercise for the plucking hand. Play each open string four times, from the lowest (thickest) to the highest and back, saying its name. Use alternate plucking (index, middle) and let the other strings stay silent.',
   tips: ['Mnemonic for E-A-D-G: "Eat All Day, Good!"', 'Rest your thumb on the pickup or the E string and keep the plucking hand relaxed.'],
-  source: 'Hal Leonard Bass Method, RSL Debut, BassBuzz, StudyBass',
+  source: 'Hal Leonard Bass Method (Ed Friedland); first graded exams',
   params: { reps: sel('Notes per string', [['4', '4'], ['2', '2'], ['1', '1 (string crossing)']]) },
   bpm: 60, sub: 1, label: 'note',
   build(p, ctx, S) {
@@ -35,7 +35,7 @@ const naturals = ex({
   summary: 'E F G A B C D E: the musical alphabet along a string, fret 0 to 12.',
   about: 'Natural notes are the white keys of the piano: A B C D E F G. Between most of them there are two frets (a whole step), except B–C and E–F, which sit next to each other (a half step). Walk up one string to the 12th fret (the octave, marked with two dots) and back, naming every note.',
   tips: ['Notice the two half steps: B→C and E→F.', 'The 12th fret repeats the open string one octave higher.', 'Do every string, then try "Quiz" mode.'],
-  source: 'TalkingBass Beginner Course, StudyBass, LCM Grade 1',
+  source: 'Beginner fretboard practice; first graded exams',
   params: { string: stringP('E'), range: sel('Range', [['0', 'Frets 0–12'], ['12', 'Frets 12–24 (upper octave)']]) },
   bpm: 60, sub: 1, label: 'note',
   build(p, ctx, S) {
@@ -57,7 +57,7 @@ const chromaticString = ex({
   summary: 'Sharps going up, flats coming down: every fret has a name.',
   about: 'A sharp (♯) raises a note one fret, a flat (♭) lowers it one fret, so the fret between F and G is both F♯ and G♭. Going up the string we name the in-between notes as sharps; coming down, as flats. That way the name always follows the direction you move.',
   tips: ['Say every name aloud: "F, F sharp, G…".', 'C♯ = D♭, D♯ = E♭, F♯ = G♭, G♯ = A♭, A♯ = B♭.'],
-  source: 'StudyBass (chromatic naming), BassBuzz',
+  source: 'Chromatic note naming: sharps and flats',
   params: { string: stringP('A') },
   bpm: 66, sub: 1, label: 'note',
   build(p, ctx, S) {
@@ -77,7 +77,7 @@ const landmarks = ex({
   summary: 'Memorise the notes under the fret markers. Every other note is ±1 fret away.',
   about: 'The dots on the neck are your map. Learn the notes at frets 3, 5, 7, 9 and 12 on every string. E string: G A B C♯ E. A string: C D E F♯ A. D string: F G A B D. G string: B♭ C D E G. Once these are automatic, any other note is just one fret away from a landmark.',
   tips: ['Fret 5 is always the next string\'s open note (that\'s how you tune).', 'Fret 7 gives the open note of the next lower string, one octave up (A string fret 7 = E, D string fret 7 = A).'],
-  source: 'TalkingBass "Notes on the Neck"; position-marker landmarks (frets 3, 5, 7, 9, 12)',
+  source: 'Position-marker landmarks (frets 3, 5, 7, 9, 12)',
   params: { order: sel('Order', [['string', 'String by string'], ['fret', 'Fret by fret (across strings)']]) },
   bpm: 60, sub: 1, label: 'note',
   build(p, ctx, S) {
@@ -100,7 +100,7 @@ const octaves = ex({
   summary: 'Two strings up, two frets up: the same note, one octave higher.',
   about: 'The octave is the most useful shape on the bass. From any note, go two strings up and two frets up and you have the same note an octave higher. This doubles what you know: learn the E and A strings and you automatically know D and G. Here you walk the natural notes of a string, each followed by its octave.',
   tips: ['Use finger 1 for the low note and finger 3 or 4 for the octave.', 'Mute the string in between with the side of your index finger.'],
-  source: 'Hal Leonard Bass Method 2, TalkingBass, BassBuzz',
+  source: 'Hal Leonard Bass Method, Book 2 (Ed Friedland)',
   params: { pair: sel('Strings', [['-1', 'B → A', { minStrings: 5 }], ['0', 'E → D'], ['1', 'A → G'], ['2', 'D → C', { minStrings: 6 }]], '0') },
   bpm: 66, sub: 2, label: 'note',
   build(p, ctx, S) {
@@ -122,7 +122,7 @@ const unison = ex({
   summary: 'Fret 5 on one string = open (or fret 0) on the next: one note, many places.',
   about: 'The same pitch exists in several places. Go up one string and back five frets and you land on exactly the same note. Knowing unisons lets you choose where to play a line (low frets are punchy, high frets are warm) and is the key to playing in position.',
   tips: ['Listen: both notes should sound identical in pitch, but different in tone.', 'Use your tuner: fret 5 against the next open string.'],
-  source: 'Standard fretboard pedagogy (StudyBass, Berklee "Mastering the Fingerboard")',
+  source: 'Standard fretboard practice',
   params: { string: stringP('E') },
   bpm: 66, sub: 2, label: 'note',
   build(p, ctx, S) {
@@ -144,7 +144,7 @@ const findNote = ex({
   summary: 'Every place a note lives, from the nut to the 12th fret and beyond.',
   about: 'Pick a note and play every occurrence of it on the neck, string by string. Then change note. With "all 12" you sweep the whole chromatic world in cycle-of-4ths order: C, F, B♭, E♭… After a few weeks you will see every note as a pattern of octave and unison shapes.',
   tips: ['Say the note name each time.', 'Look for the octave shape (2 strings, 2 frets) between occurrences.'],
-  source: 'Berklee ILBS-244 "Mastering the Fingerboard"; Gary Willis Fingerboard Harmony; SBL Fretboard Accelerator',
+  source: 'Gary Willis "Fingerboard Harmony for Bass"',
   params: { key: keyP(['1'], { def: '0' }), range: sel('Range', [['12', 'Frets 0–12'], ['17', 'Frets 0–17'], ['24', 'Whole neck']]) },
   bpm: 66, sub: 1, label: 'note',
   build(p, ctx, S) {
@@ -167,7 +167,7 @@ const noteSweep = ex({
   summary: 'One note on every string, up and back, then the next note in the cycle.',
   about: 'Choose a note and find it on each string, staying in the same area of the neck. Play it from the lowest string to the highest and back, saying its name. Then move to the next note in the cycle of 4ths. This builds the vertical view of the neck that sight-readers and improvisers rely on.',
   tips: ['Stay within a few frets: use unisons and octaves, do not jump to the other end of the neck.', 'Start at 60 BPM with one note per beat.'],
-  source: 'Cycle-of-4ths note-finding drills (StudyBass and others)',
+  source: 'Cycle-of-4ths note-finding drills',
   params: { key: keyP(['1'], { def: 'cycle4' }) },
   bpm: 60, sub: 1, label: 'note',
   build(p, ctx, S) {
@@ -195,7 +195,7 @@ const cycleZone = ex({
   summary: 'C F B♭ E♭ A♭ D♭ G♭ B E A D G without leaving a 5-fret zone.',
   about: 'Before playing chords around the cycle, find the roots. Play each root once per bar without leaving the zone. Because the strings are tuned in 4ths, moving a 4th is often the same fret on the next string. Spot that pattern and you will see why the cycle of 4ths is the bass player\'s best friend.',
   tips: ['One root per bar at 60 BPM, then two per bar, then one per beat.', 'Say the name before you play it.'],
-  source: 'Ed Friedland "Building Walking Bass Lines" (cycle roots); SBL Zones',
+  source: 'Ed Friedland "Building Walking Bass Lines" (cycle roots)',
   params: { zone: zoneP, order: orderP },
   bpm: 60, sub: 0.25, label: 'note',
   build(p, ctx, S) {
@@ -219,7 +219,7 @@ const positionNotes = ex({
   summary: 'Every note inside one 4-fret position, string by string (11 of the 12: the 12th is one fret away).',
   about: 'Reading and improvising happen "in position": the hand stays still and every note within reach must be known instantly. Play every fret of the position on each string, sharps up and flats down, and name them.',
   tips: ['Once you can do it slowly, try Quiz mode on the same position.', 'One finger per fret: index on the first fret of the zone.'],
-  source: 'MI reading courses (low → middle → upper position); Berklee',
+  source: 'Position reading: low, middle and upper positions',
   params: { zone: sel('Position', [['1', 'Frets 1–4'], ['5', 'Frets 5–8'], ['7', 'Frets 7–10'], ['9', 'Frets 9–12'], ['12', 'Frets 12–15']]) },
   bpm: 66, sub: 2, label: 'note',
   build(p, ctx, S) {
@@ -243,7 +243,7 @@ const allOctaves = ex({
   summary: 'Climb the same note from the lowest to the highest octave, through every location.',
   about: 'Play the chosen note in every octave from lowest to highest, using every location where that pitch can be played (unisons), before moving up. You will see how octave and unison shapes link the whole neck.',
   tips: ['Listen for identical pitch at unisons; the tone colour changes.', 'Do this with a different note each day.'],
-  source: 'Willis "Fingerboard Harmony for Bass"; Berklee fingerboard mastery',
+  source: 'Gary Willis "Fingerboard Harmony for Bass"',
   params: { key: keyP(['1'], { cycles: false }) },
   bpm: 66, sub: 1, label: 'note',
   build(p, ctx, S) {
@@ -266,7 +266,7 @@ const quiz = ex({
   summary: 'The next note\'s name appears. Find it before the beat. A new set every time.',
   about: 'Test yourself. The name of the next note is shown in the top-right corner. Find and play it before the beat; the dot appears when the beat arrives so you can check yourself. Change a setting or reopen the exercise to get a fresh random set.',
   tips: ['Start at 50 BPM, half notes. Speed up only when you hit 90% of them.', 'Narrow the range first (frets 0–5), then widen it.'],
-  source: 'TalkingBass test sheets; StudyBass note drills',
+  source: 'Note-finding drills',
   params: {
     range: sel('Frets', [['5', '0–5'], ['7', '0–7'], ['12', '0–12'], ['17', '0–17']]),
     strings: sel('Strings', [['EA', 'E & A only'], ['all', 'All strings']]),
@@ -300,7 +300,7 @@ const keyBox = ex({
   summary: 'Play all the notes of a key that fall inside one 5-fret box, low to high.',
   about: 'Gary Willis\' fingerboard approach: stop thinking of scales as patterns that start on the root. Instead, see all the notes of the key that lie under your hand in a given position, wherever they start. Play every key in one position by going around the cycle, and the neck turns into a map of keys.',
   tips: ['Begin on the lowest available note, not on the root.', 'Keep the hand still: one finger per fret plus small stretches.'],
-  source: 'Gary Willis "Fingerboard Harmony for Bass" (key centres); RSL/LCM scales in multiple positions',
+  source: 'Gary Willis "Fingerboard Harmony for Bass" (key centres); scales in several positions in graded exams',
   params: { key: keyP(T.SCALES.ionian.iv, { def: '0' }), zone: sel('Position', [['1', 'Frets 1–5'], ['3', 'Frets 3–7'], ['5', 'Frets 5–9'], ['7', 'Frets 7–11'], ['9', 'Frets 9–13'], ['12', 'Frets 12–16']]) },
   bpm: 72, sub: 2, label: 'degree',
   build(p, ctx, S) {

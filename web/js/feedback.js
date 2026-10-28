@@ -6,9 +6,11 @@
 import { VERSION, COMMIT } from './version.js';
 import { settings } from './store.js';
 import { toast } from './ui/dom.js';
+import { recentErrors } from './errors.js';
+import { CONTACT } from './legal.js';
 
-/** The address players write to (the same as Polyorbit's), shown in About and its privacy policy too. */
-export const CONTACT = 'polyorbit.app@gmail.com';
+/** The address players write to (legal.js: the same as Polyorbit's), shown in About and its privacy policy too. */
+export { CONTACT };
 
 /** The phone or computer, as far as the browser tells: "Android 14 · Pixel 7", "Windows", "iPhone". */
 function device() {
@@ -30,6 +32,8 @@ export function sendFeedback() {
     version,
     `${app} · ${device()} · screen ${screen.width}×${screen.height}`,
     `${settings.strings}-string bass · ${new Date().toLocaleDateString('en-GB')}`,
+    // (the app's last error messages, if any: the player sees them here before sending, errors.js)
+    ...(recentErrors().length ? ['Recent errors:', ...recentErrors()] : []),
   ].join('\r\n');
   try {
     if (window.BassClassNative?.sendMail) { window.BassClassNative.sendMail(CONTACT, subject, body); return; }

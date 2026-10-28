@@ -12,6 +12,7 @@ import { openPro } from './proSheet.js';
 import { maybeAskRating } from './rate.js';
 import { replaceHash, goBack, canGoBack, nav } from './nav.js';
 import { NEXT_LEVEL, COMPLETE } from '../course/data.js';
+import { PLACEMENT } from '../course/placement.js';
 import {
   STAGES, LESSONS, UNITS, lessonById, SESSION_LENGTHS,
   stepPassed, stepClean, stepCovered, setClean, canTicked, setCan, isComplete, isDue, nextReview, dueLessons,
@@ -537,47 +538,6 @@ export function lessonScreen(main, id) {
 }
 
 // ---------------------------------------------------------------- placement check
-const PLACEMENT = [
-  ['I pluck with alternating fingers and fret with one finger per fret.', ['u-hands']],
-  ['I keep steady time with a metronome and can count 8ths, triplets and 16ths.', ['u-time']],
-  ['I know the notes on the E and A strings, sharps and flats, and the octave shape.', ['u-notes']],
-  ['I play root, 5th and octave lines through a song.', ['u-lines']],
-  ['I play major, minor and pentatonic scales and major and minor triads in any key.', ['u-scales', 'u-chords']],
-  ['I read bass-clef notes in first position.', ['u-reading']],
-  ['I rake, mute cleanly and shift up the neck without a gap.', ['u-hands2']],
-  ['I play off-beats, swing, dotted rhythms and syncopation.', ['u-feel']],
-  ['I find any note anywhere up to fret 12 and play every interval.', ['u-neck', 'u-intervals']],
-  ['I know the four triad types, the five 7th chords and the chords of a major key.', ['u-triads2', 'u-sevenths']],
-  ['I play the 12-bar blues with boogie and shuffle lines, octave grooves and riffs.', ['u-blues', 'u-grooves']],
-  ['I read melodies with sharps, flats and a key signature.', ['u-reading2']],
-  ['I play hammer-ons, pull-offs, clean shifts and string skips.', ['u-legato']],
-  ['I play 16th-note funk with ghost notes, moving accents and triplet feels.', ['u-funk']],
-  ['I know every note in any position and read in 5th and 7th position.', ['u-positions']],
-  ['I play two-octave scales, the three scale fingerings, sequences and every key in one position.', ['u-scales3', 'u-sequences']],
-  ['I know the seven modes of the major scale and the note that colours each one.', ['u-modes']],
-  ['I play the triads and 7th chords of any key, in three fingerings and in inversions.', ['u-triads3', 'u-sevenths3']],
-  ['I play chord-tone lines, approach notes, double stops, world grooves and a basic walking line.', ['u-moving', 'u-jazz-first']],
-  ['I stretch one finger per fret low on the neck, play 16ths for minutes and play natural harmonics.', ['u-stamina']],
-  ['I play groupings over 4/4, displaced figures and in 5/4, 7/8 and 7/4, and keep time with a sparse click.', ['u-time4']],
-  ['I know the 7 major and 5 pentatonic positions in any key and read in every key.', ['u-keys']],
-  ['I play harmonic and melodic minor, their chords and minor-key progressions.', ['u-minor']],
-  ['I know each mode on its own, choose the right scale for each chord and hear common progressions.', ['u-modes4']],
-  ['I play the chords of a key in inversions and in 4ths, voice-lead triads and 7ths, and play guide tones.', ['u-triads4', 'u-voicelead', 'u-sevenths4']],
-  ['I play diatonic 10ths and scales in octaves.', ['u-tenths']],
-  ['I walk complete lines through a jazz blues and play soul and odd-metre grooves.', ['u-walking4', 'u-grooves4']],
-  ['I play finger permutations across the strings, p-i-m arpeggios, polyrhythms such as 3:2 and 5:4, and sweep arpeggios.', ['u-hands5']],
-  ['I use interval cycles, the diminished and whole-tone scales, side-stepping and world scales.', ['u-outside']],
-  ['I play bebop scales, the 6th-diminished scale and chromatic approaches and enclosures.', ['u-bebop']],
-  ['I know the modes of melodic and harmonic minor and superimpose pentatonics and melodic minor over chords.', ['u-modes5', 'u-superimpose']],
-  ['I play triad permutations and pairs, quartal stacks, upper structures and extended or altered arpeggios.', ['u-triads5', 'u-colours', 'u-arps5']],
-  ['I outline secondary dominants, borrowed chords and tritone subs, and keep funk grooves through changes.', ['u-harmony5']],
-  ['I walk with enclosures, two chords per bar and in minor keys.', ['u-walking5']],
-  ['I play jazz licks in all keys and build solos from bass-line devices and motifs.', ['u-licks', 'u-solo']],
-  ['I play scales, triads and 7th chords through all 12 keys without stopping, in odd groupings and inversions.', ['u-all-keys', 'u-chords-all-keys']],
-  ['I know Messiaen\'s modes, the modes of harmonic major and the altered chord-scales.', ['u-modern']],
-  ['I arpeggiate and walk Giant Steps and rhythm changes at tempo.', ['u-coltrane']],
-  ['I play chordal bass across the strings and bebop and modern jazz vocabulary in every key.', ['u-chordal', 'u-masters']],
-];
 
 export function placementScreen(main) {
   const known = knownUnits();

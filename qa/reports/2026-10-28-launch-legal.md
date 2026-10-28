@@ -467,7 +467,7 @@ Method, and specific grades ("LCM Grade 3 (all five types)", "RSL Grade 8", "Tri
   suggests a connection. Ideas and methods are free to use; the label is the problem.
 - Specific grades conflict with the project's own rule (CLAUDE.md: never claim a specific grade requires something),
   and syllabi change yearly, so they go stale.
-- Janek Gwizdala is named in five arpeggio `source` lines, although CLAUDE.md decided the pentatonic studies do not
+- A YouTube teacher is named in five arpeggio `source` lines, although CLAUDE.md decided the pentatonic studies do not
   name him because his book is a commercial product. Pick one rule.
 
 Fix (us, text): rename the heading to **"Related"** (or "Also covered in"); keep classic books as bibliography

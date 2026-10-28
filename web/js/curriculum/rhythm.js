@@ -27,7 +27,7 @@ const pulse = ex({
   summary: 'Quarter notes with the click on every beat, then only on 2 & 4, then only on beat 1.',
   about: 'Groove starts with a rock-solid pulse. Play quarter notes against the metronome until your note "buries" the click. Then move the click to beats 2 and 4 (the backbeat, where the snare plays), then to beat 1 only, then once every two bars. You become the clock.',
   tips: ['If you can hear the click clearly, you are not exactly with it.', 'Tap your foot on every beat.'],
-  source: 'StudyBass (pulse & metronome); Carol Kaye / Berklee Online Bass 101 L5; Victor Wooten',
+  source: 'Pulse and metronome practice',
   params: { note: noteP, click: sel('Click', [['all', 'Every beat'], ['24', 'Beats 2 & 4'], ['1', 'Beat 1 only'], ['2bars', 'Once every 2 bars']]) },
   bpm: 72, sub: 1, label: 'note',
   build(p, ctx, S) {
@@ -48,7 +48,7 @@ const pyramid = ex({
   summary: '1, 2, 3, 4… notes per beat and back down: hear every subdivision.',
   about: 'Each bar divides the beat further: quarters (1), 8ths (2), triplets (3), 16ths (4), then quintuplets and sextuplets for advanced players, then back down. Count out loud: "1, 1-&, 1-trip-let, 1-e-&-a". Moving smoothly between subdivisions is the basis of every rhythm.',
   tips: ['Keep the beat (the first note of each group) exactly on the click.', 'Accented first note: feel where the beat is.'],
-  source: 'StudyBass subdivisions; SBL; Berklee Online Bass 101 L5',
+  source: 'Subdivision practice',
   params: { note: noteP, max: sel('Up to', [['4', '16ths (4)'], ['6', 'Sextuplets (6)'], ['8', '32nds (8)']]) },
   bpm: 60, sub: 1, label: 'note',
   build(p, ctx, S) {
@@ -72,7 +72,7 @@ const restsEx = ex({
   summary: 'Silence is rhythm too: play some beats, rest on others.',
   about: 'Bass lines live in the space between notes. Each 2-bar pattern combines played beats and rests (stop the note with your hands on the rest). Muting precisely on the rest is as important as playing on the beat.',
   tips: ['On a rest, stop the string with both hands: lift the fretting finger, touch with the plucking finger.', 'Count all four beats aloud, including the silent ones.'],
-  source: 'SBL Beginner Journey; BassBuzz; Hal Leonard Bass Method',
+  source: 'Hal Leonard Bass Method (Ed Friedland)',
   params: { note: noteP },
   bpm: 72, sub: 1, label: 'note',
   build(p, ctx, S) {
@@ -92,7 +92,7 @@ const offbeats = ex({
   summary: 'Rest on the beat, play exactly between the clicks.',
   about: 'The "&" is halfway between beats. Playing only off-beats is the heart of reggae, ska and many dance grooves, and it trains a strong internal subdivision. The patterns alternate on-beat bars and off-beat bars, then mix them.',
   tips: ['Feel the 8th notes in your body; tap the beat with your foot.', 'Say "1 & 2 & 3 & 4 &" and play only on "&".'],
-  source: 'Trinity Grades 1–4 (syncopation); StudyBass',
+  source: 'Syncopation in the first graded exams',
   params: { note: noteP },
   bpm: 76, sub: 2, label: 'note',
   build(p, ctx, S) {
@@ -114,7 +114,7 @@ const grid16 = ex({
   summary: 'Every combination of "1 e & a" within a beat.',
   about: 'A beat of 16ths has four spots: 1, e, &, a. There are 15 ways to use them. Most funk, R&B and hip-hop rhythms are made from these cells. Each cell is repeated for a full bar so you can lock it in.',
   tips: ['Keep your plucking hand moving in 16ths even on silent spots ("ghost" the motion).', 'Count every spot aloud: "1 e & a 2 e & a".'],
-  source: 'MI Online (16th-note grid); RSL Grade 6; TalkingBass Groove Trainer Vol. 2',
+  source: 'The 16th-note grid; graded exams',
   params: { note: noteP },
   bpm: 66, sub: 4, label: 'note',
   build(p, ctx, S) {
@@ -146,7 +146,7 @@ const dotted = ex({
   summary: 'Dotted quarter + 8th, dotted 8th + 16th: the long-short feels.',
   about: 'A dot adds half the value to a note. The dotted-quarter + 8th (the "Charleston" figure) is everywhere in pop, Latin and jazz, and the dotted 8th + 16th gives a skipping, galloping feel. Hear them against the steady click.',
   tips: ['Subdivide: a dotted quarter is three 8ths long.', 'The short note leads into the next beat; feel its pull.'],
-  source: 'TalkingBass Groove Trainer; SBL Players Path L4; Hal Leonard',
+  source: 'Groove and rhythm practice; Hal Leonard Bass Method (Ed Friedland)',
   params: { note: noteP },
   bpm: 72, sub: 2, label: 'note',
   build(p, ctx, S) {
@@ -170,7 +170,7 @@ const syncopation = ex({
   summary: 'Accents between the beats and notes that arrive early, across the bar line.',
   about: 'Syncopation moves the emphasis off the strong beats. An anticipation plays the next bar\'s first note half a beat (or a 16th) early and holds it over the bar line. Bass players use this all the time to push a groove forward.',
   tips: ['Count the beat you are NOT playing on.', 'An anticipated note is held: don\'t replay it on beat 1.'],
-  source: 'BassBuzz (syncopation); TalkingBass anticipation; Trinity Grades 1–4',
+  source: 'Syncopation and anticipation; first graded exams',
   params: { note: noteP },
   bpm: 76, sub: 2, label: 'note',
   build(p, ctx, S) {
@@ -193,7 +193,7 @@ const triplets = ex({
   summary: 'Three notes in one beat, then three notes across two beats.',
   about: 'Eighth-note triplets put three even notes in one beat. Quarter-note triplets stretch three notes across two beats, a lazy, floating feel used in hip-hop, gospel and jazz. Alternate them with straight 8ths to feel the difference.',
   tips: ['For quarter-note triplets, think "triplets, but play every other one".', 'Keep the foot on the beat; the triplets float above it.'],
-  source: 'TalkingBass Groove Trainer Vol. 2; BassBuzz; RSL Grade 4',
+  source: 'Groove and rhythm practice; graded exams',
   params: { note: noteP },
   bpm: 66, sub: 3, label: 'note',
   build(p, ctx, S) {
@@ -213,7 +213,7 @@ const shuffle = ex({
   summary: 'Long-short 8ths: the first and third notes of a triplet.',
   about: 'In swing and shuffle, 8th notes are not even: the first is long (two triplets) and the second short (one triplet). Switch between straight and swung bars to learn to control both feels at will.',
   tips: ['Say "doo-ba doo-ba" (long-short).', 'Shuffle = the swing feel played hard and even, like a blues.'],
-  source: 'StudyBass (shuffle & swing); RSL Grade 2; Berklee Online Rock Bass L4',
+  source: 'Shuffle and swing feels; first graded exams',
   params: { note: noteP },
   bpm: 84, sub: 2, label: 'note',
   build(p, ctx, S) {
@@ -233,7 +233,7 @@ const groupings = ex({
   summary: 'Phrase 16ths in groups of 3, 5 or 7 against the beat: rhythmic tension.',
   about: 'Playing a 3-note shape (R-5-8) in continuous 16ths makes the shape start on a different 16th each time: "3 over 4". It takes 3 bars to come back to beat 1. Groups of 5 and 7 take 5 and 7 bars. Fusion players and drummers use this to build tension without leaving the time.',
   tips: ['Accent the start of each group and keep counting 1 e & a.', 'Try it on scales and arpeggios once the rhythm is solid.'],
-  source: 'Taller de Músics entrance (3 against 4); Gary Willis; fusion practice',
+  source: 'Three against four in jazz-school entrance tests; fusion practice',
   params: { group: sel('Group of', [['3', '3 (R-5-8)'], ['5', '5 (R-5-8-5-R)'], ['7', '7 (R-3-5-8-5-3-R)']]) },
   bpm: 66, sub: 4, label: 'degree',
   build(p, ctx, S) {
@@ -261,7 +261,7 @@ const displacement = ex({
   summary: 'The same 3-note figure, shifted one 16th later every bar.',
   about: 'Take a short figure and start it one 16th later in each bar. The notes stay the same, but each placement grooves completely differently. This is a classic way to get variations out of one idea, and it sharpens your sense of where every 16th is.',
   tips: ['Count "1 e & a" out loud; the figure moves, your counting does not.', 'Then try displacing by an 8th.'],
-  source: 'Common rhythmic-development technique (Berklee, drum pedagogy)',
+  source: 'Common rhythmic-development technique (drum pedagogy)',
   params: { note: noteP, step: sel('Shift by', [['0.25', 'a 16th'], ['0.5', 'an 8th']]) },
   bpm: 70, sub: 4, label: 'note',
   build(p, ctx, S) {
@@ -287,7 +287,7 @@ const poly = ex({
   summary: 'Even notes across a different number of beats.',
   about: 'A polyrhythm spreads N even notes over M beats. 3:2 is three notes across two beats (the "hemiola"), 4:3 is four over three, 5:4 is five notes per bar of four and 7:4 is seven. The click keeps the beat while you play the other layer. This is advanced time feel, heard in Afro-Cuban, prog and modern jazz.',
   tips: ['Clap the click and say the polyrhythm before playing it.', 'Find the common subdivision: 3:2 lives on a 6-grid.'],
-  source: 'Polyrhythm pedagogy (Berklee, Afro-Cuban rhythm studies)',
+  source: 'Polyrhythm pedagogy (Afro-Cuban rhythm studies)',
   params: { note: noteP, ratio: sel('Ratio', [['3:2', '3 over 2 beats'], ['3:4', '3 over 4 beats'], ['4:3', '4 over 3 beats'], ['5:4', '5 over 4 beats'], ['7:4', '7 over 4 beats']]) },
   bpm: 60, sub: 1, label: 'note',
   build(p, ctx, S) {
@@ -306,7 +306,7 @@ const oddMeter = ex({
   summary: 'Count in 3+2, 2+2+3 and 4+3 and lock the accents.',
   about: 'Odd metres group beats unevenly. 5/4 is usually felt as 3+2, 7/8 as 2+2+3 (or 3+2+2), and 7/4 as 4+3. The accented notes mark the groups. In 7/8 the metronome clicks every 8th note, so set a fast tempo. Learn to feel the "limp" of each metre until it sounds natural.',
   tips: ['Count the groups out loud: "1-2-3-1-2" for 5/4.', 'Think of "Take Five" (5/4) or "Money" (7/4).'],
-  source: 'Trinity Grades 5–8; RSL Grade 8; MI; Berklee Online Rock Bass L10',
+  source: 'Odd metres in advanced graded exams',
   params: { note: noteP, meter: sel('Metre', [['5', '5/4 (3+2)'], ['78', '7/8 (2+2+3)'], ['78b', '7/8 (3+2+2)'], ['74', '7/4 (4+3)']]) },
   bpm: 100, sub: 1, label: 'note',
   build(p, ctx, S) {
@@ -331,7 +331,7 @@ const sparse = ex({
   summary: 'The click plays one bar, then goes silent for one or more bars. Land back on it.',
   about: 'Real time-keeping means playing steadily with no reference. Here the metronome clicks only on beat 1 every few bars. Keep playing 8ths through the silence and check whether you land exactly on the next click. When you can do it at "every 4 bars", your time is solid.',
   tips: ['Record yourself: are you rushing in the gaps?', 'Victor Wooten\'s "disappearing drummer" game works the same way.'],
-  source: 'Victor Wooten Groove Workshop ("disappearing drummer"); Berklee Online Bass 101 L5',
+  source: 'Keeping time through gaps in the click',
   params: { note: noteP, every: sel('Click', [['2', 'Beat 1, every 2 bars'], ['4', 'Beat 1, every 4 bars']]) },
   bpm: 80, sub: 2, label: 'note',
   build(p, ctx, S) {

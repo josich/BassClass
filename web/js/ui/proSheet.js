@@ -6,7 +6,7 @@
 import { h, icon, toast, heart } from './dom.js';
 import { EXERCISES } from '../curriculum/index.js';
 import { LESSONS } from '../course/data.js';
-import { PRO_ID, PRICE, FREE_LEVELS, FREE_TASTE, owned, proContents, PLAY } from '../pro.js';
+import { PRO_ID, PRICE, placeholder, proSub, FREE_LEVELS, FREE_TASTE, owned, proContents, PLAY } from '../pro.js';
 import { buy, prices, restorePro, canBuy } from '../billing.js';
 
 let openNow = null;
@@ -33,7 +33,7 @@ export function openPro(reason = '', { then, cancel } = {}) {
   const panel = h('div', { class: 'picker pro-sheet', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'BassClass Pro', tabindex: '-1' },
     h('div', { class: 'picker-head' }, h('h2', {}, '⭐ BassClass Pro'), h('div', { class: 'grow' }), closeBtn), body, foot);
   const backdrop = h('div', { class: 'picker-backdrop pro-backdrop' }, panel);
-  let price = PRICE;
+  let price = placeholder(PRICE);
   let busy = false;
   let bought = false;
 
@@ -41,14 +41,14 @@ export function openPro(reason = '', { then, cancel } = {}) {
     bought = true;
     body.replaceChildren(
       h('p', { class: 'pro-why' }, '🎉 Thank you!'),
-      h('p', {}, 'BassClass Pro is yours, for good: every level, every pattern and progression, every sound, and everything we add.'));
+      h('p', {}, 'BassClass Pro is yours, for good: every level, every pattern and progression, every sound, and the new content we add to them.'));
     foot.replaceChildren(h('div', { class: 'row pro-actions' }, h('button', { class: 'btn primary', type: 'button', onClick: () => close(undefined, then) }, 'Let\'s play')));
   };
 
   const offer = (msg = '') => {
     const buyBtn = h('button', { class: 'btn pro-cta pro-buy', type: 'button', disabled: busy || !canBuy() },
       h('span', { class: 'pro-cta-top' }, busy ? 'One moment…' : '⭐ Get BassClass Pro'),
-      h('span', { class: 'pro-cta-sub' }, `${price} · one payment, yours for good`));
+      h('span', { class: 'pro-cta-sub' }, proSub(price)));
     const restore = h('button', { class: 'btn', type: 'button', disabled: busy || !canBuy() }, 'Restore purchase');
     buyBtn.addEventListener('click', async () => {
       if (busy) return;
@@ -80,7 +80,7 @@ export function openPro(reason = '', { then, cancel } = {}) {
         h('li', {}, `🥁 All ${c.styles} drum patterns, and fills`),
         h('li', {}, '🎹 Every progression (soul, jazz, minor, vamps…)'),
         h('li', {}, '🎸 The Piano, Organ and Guitar sounds'),
-        h('li', {}, '✨ Everything we add next')),
+        h('li', {}, '✨ The new content we add to them')),
       h('p', { class: 'muted small' }, `Free for good: ${FREE_LINE}. One payment, yours for good: no subscription, no ads.`),
       msg ? h('p', { class: 'pro-msg' }, msg) : null,
       canBuy() ? null : h('p', { class: 'pro-msg' }, PLAY ? 'Google Play is not available on this phone.' : 'Buying works in the app from Google Play.'),
@@ -104,11 +104,15 @@ export function openPro(reason = '', { then, cancel } = {}) {
     backdrop.remove();
     document.removeEventListener('keydown', onKey, true);
     removeEventListener('popstate', onPop);
+    removeEventListener('bassclass-pro', onPro);
     const back = !how && !!history.state?.picker;
     if (back) history.back();
     afterBack(back, after);
   }
   openNow = () => close();
+  // (Pro arrived while the sheet is open, unasked: a pending purchase completed, or a slow one after all)
+  const onPro = () => { if (!closed && !bought && owned()) thanks(); };
+  addEventListener('bassclass-pro', onPro);
   document.body.append(backdrop);
   if (owned()) thanks(); else offer();
   panel.focus({ preventScroll: true });

@@ -670,7 +670,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         <h4>Colours</h4>
         <div class="legend">${legend.map(([k, n, c]) => `<span><i style="background:${c}${k === 'root' ? ';border-radius:3px' : ''}"></i>${n}</span>`).join('')}</div>
         <p class="muted small" style="margin-top:8px">A dot labelled → is an approach note: a passing note that leads into the next chord tone.</p>
-        ${tpl.source ? `<h4>Based on</h4><p class="muted small">${esc(tpl.source)}</p>` : ''}
+        ${tpl.source ? `<h4>Related</h4><p class="muted small">${esc(tpl.source)}</p>` : ''}
         <h4>Your progress</h4>
         <p class="muted">${pr.plays ? `${pr.plays} loops played · best ${pr.bestBpm || '–'} BPM` : 'Not played yet.'}${pr.done ? ' · <b style="color:var(--good)">mastered</b>' : ` · 🎯 to master it: ${esc(masteryGoal(tpl.id))}, then ✓ Mastered`}</p>
       </div>`;

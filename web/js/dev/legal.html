@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BassClass: the public privacy page (dev)</title>
+  <style>body { font: 14px/1.5 system-ui, sans-serif; margin: 24px; } button { font: inherit; padding: 6px 14px; } iframe { width: 100%; height: 70vh; border: 1px solid #ccc; margin-top: 12px; }</style>
+</head>
+<body>
+  <!-- Dev only (localhost): makes legal/bassclass/privacy.html, the page Google Play links to, from the same text as
+       About (web/js/legal.js). Run it after any change to the legal texts, then copy the page to the public site
+       (LAUNCH-TODO.md). -->
+  <p>The public privacy page, made from <code>web/js/legal.js</code>. <button id="save">Save legal/bassclass/privacy.html</button> <span id="msg"></span></p>
+  <iframe id="view" title="Preview"></iframe>
+  <script type="module">
+    import { privacyPolicy, purchaseTerms, SAFETY, CONTACT, DEVELOPER, UPDATED } from '../legal.js';
+    import { FREE_LEVELS } from '../pro.js';
+    import { FREE_LINE } from '../ui/proSheet.js';
+
+    const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const html = (list) => list.map(([kind, x]) => (kind === 'h' ? `<h3>${esc(x)}</h3>`
+      : kind === 'ul' ? `<ul>${x.map((it) => `<li>${Array.isArray(it) ? `<b>${esc(it[0])}</b>${esc(it[1])}` : esc(it)}</li>`).join('')}</ul>`
+        : `<p>${esc(x)}</p>`)).join('\n');
+
+    const page = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BassClass: privacy policy</title>
+<meta name="description" content="The privacy policy and the terms of the purchase of BassClass, the bass guitar app by ${esc(DEVELOPER)}.">
+<style>
+:root { --bg: #12142a; --panel: #1b1e3a; --text: #e8eaf6; --muted: #a9aecf; --accent: #46c9a2; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 28px; margin: 0 0 4px; }
+h2 { font-size: 21px; margin: 40px 0 8px; color: var(--accent); }
+h3 { font-size: 16px; margin: 22px 0 4px; }
+p, li { color: var(--text); }
+ul { padding-left: 20px; }
+li { margin: 6px 0; }
+.muted { color: var(--muted); }
+a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+<h1>BassClass</h1>
+<p class="muted">The bass guitar app by ${esc(DEVELOPER)} · <a href="mailto:${esc(CONTACT)}">${esc(CONTACT)}</a></p>
+<h2 id="privacy">Privacy policy</h2>
+${html(privacyPolicy('page'))}
+<h2 id="terms">Terms of the purchase</h2>
+${html(purchaseTerms({ free: FREE_LINE, from: FREE_LEVELS + 1 }))}
+<h2 id="safety">Good to know</h2>
+<p>${esc(SAFETY)}</p>
+<p class="muted">Last updated: ${esc(UPDATED)}.</p>
+</main>
+</body>
+</html>
+`;
+    document.getElementById('view').srcdoc = page;
+    document.getElementById('save').addEventListener('click', async () => {
+      const r = await fetch('/__write/legal/bassclass/privacy.html', { method: 'PUT', body: page });
+      document.getElementById('msg').textContent = r.ok ? `saved (${page.length} characters)` : `failed: ${r.status}`;
+    });
+    window.legalPage = page;
+  </script>
+</body>
+</html>

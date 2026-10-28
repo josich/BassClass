@@ -104,10 +104,10 @@ app, is €4.99 (launch €2.99); BassClass sits above it. Google keeps 15 % (ch
 BassClass's Android app is our own WebView wrapper (Kotlin, `MainActivity.kt`), not Capacitor, so Play Billing goes in
 natively, the way the backup's `BassClassNative.saveFile` already talks to the page:
 
-- **Kotlin**: Google Play Billing Library (the current major version, check), a `BillingClient` in `MainActivity`; the
-  bridge gives the page `BassClassNative.buy(id)`, `owned()` and `prices(ids)`, answering with `bassclass-billing`
-  events (as `bassclass-saved`). A purchase is **acknowledged** at once (Play refunds an unacknowledged purchase after
-  three days, check); a tip is **consumed** so it can be bought again.
+- **Kotlin** (built 2026-10-28): Google Play Billing Library 9.1.0 in the `play` flavour's `StoreBridge.kt`; the
+  bridge gives the page `BassClassNative.billingBuy`, `billingOwned` and `billingPrices` (the protocol is at the top of
+  `web/js/billing.js`), answering with `bassclass-billing` events. A purchase is **acknowledged** at once (Play refunds
+  an unacknowledged purchase after three days); a tip is **consumed** so it can be bought again.
 - **Products** (created by the user in the Play Console): `bassclass_pro` (one-time, non-consumable), `bassclass_tip_2`
   and `bassclass_tip_4` (consumable).
 - **The page**: one `isPro()` read everywhere (`web/js/pro.js`), a Pro flag stored with the rest (`bassclass.pro.v1`,
@@ -126,9 +126,10 @@ natively, the way the backup's `BassClassNative.saveFile` already talks to the p
   repository for its sounds, and makes no network call at all: the INTERNET permission can go, and the Data safety form
   is "no data collected, no network".
 - **`github`**: the APK friends install today, as now. After the launch: see decision 6.
-- **The same signing key**: when joining Play App Signing, give Play our own key (`android/app/bassclass.p12`) as the
-  app signing key, so a phone with the GitHub APK updates to the Play version without uninstalling (an uninstall wipes
-  the progress). versionCode keeps rising across both.
+- **Signing** (decided 2026-10-27, replacing an earlier idea of giving Play our key): Google Play's own app signing
+  key, and a new upload key kept out of git (LAUNCH-TODO.md). `bassclass.p12` has been public, so it signs the GitHub
+  test builds only; a phone with the GitHub APK moves to the Play version through Backup → uninstall → install → load
+  the backup. versionCode keeps rising across both.
 
 ## Before the Play Store launch: the checklist
 

@@ -27,7 +27,7 @@ const altPluck = ex({
   summary: 'i-m-i-m on every open string: even volume, even timing.',
   about: 'Pluck with the index (i) and middle (m) fingers alternately, never twice with the same finger. Pull the string across (towards the next string), don\'t lift it away. Even volume and timing between the two fingers is the first goal of every bass player.',
   tips: ['Rest stroke: after plucking, the finger comes to rest on the next string.', 'Then start with the middle finger. Both orders must feel equal.', 'Keep your plucking-hand thumb anchored: pickup or the E string.'],
-  source: 'Hal Leonard Bass Method, MI 011, BassBuzz (moveable anchor)',
+  source: 'Hal Leonard Bass Method (Ed Friedland); the moveable thumb anchor',
   params: { start: sel('Start with', [['i', 'Index (i)'], ['m', 'Middle (m)']]), reps: sel('Notes per string', [['8', '8'], ['4', '4']]) },
   bpm: 70, sub: 2, label: 'none',
   build(p, ctx, S) {
@@ -47,7 +47,7 @@ const raking = ex({
   summary: 'Cross strings efficiently: alternate going up, rake with the same finger coming down.',
   about: 'When you move to a lower-pitched string, "rake": let the same finger fall onto it instead of reaching with the other finger. Moving up, keep alternating. This economy of motion is what makes fast arpeggios possible. The i/m tags above the dots show which finger plucks.',
   tips: ['Accent nothing: all notes the same volume.', 'Slow is smooth, smooth is fast. Use the speed trainer.'],
-  source: 'Gary Willis-style raking; MI Online; Bass Aerobics',
+  source: 'Raking across the strings; Jon Liebman "Bass Aerobics"',
   params: { fret: sel('Fret', [['0', 'Open strings'], ['5', 'Fret 5'], ['7', 'Fret 7']]), pattern: sel('Pattern', [['wave', 'E-A-D-G-D-A'], ['skip', 'Skips: E-D-A-G'], ['arp', 'E-A-D-A-D-G-D-A']]) },
   bpm: 70, sub: 2, label: 'none',
   build(p, ctx, S) {
@@ -74,7 +74,7 @@ const c1234 = ex({
   summary: 'One finger per fret on every string: the universal warm-up.',
   about: 'Place one finger per fret (index on the first fret of the position, pinky on the fourth). Play 1-2-3-4 on each string going up, then 4-3-2-1 coming back down. Keep fingers close to the frets and leave each finger down until you need it.',
   tips: ['Press just behind the fret with the minimum pressure that stops the buzz.', 'Fingers hover, they do not fly away from the strings.'],
-  source: 'Bass Fitness (Josquin des Prés); Berklee Online Bass 101 L1; universal',
+  source: 'Josquin des Prés "Bass Fitness"; a universal warm-up',
   // fret 5: frets are closer than at fret 1, so the one-finger-per-fret stretch is comfortable to start
   params: { pos: posP('5', 'Position') },
   bpm: 70, sub: 2, label: 'finger',
@@ -94,7 +94,7 @@ const climb = ex({
   summary: 'Up the strings, shift one fret, back down the strings, shift… to the top and back.',
   about: 'The classic chromatic warm-up. Play 1-2-3-4 across all strings, shift up one fret, play 4-3-2-1 back across the strings, shift again, and continue up the neck before coming back down. The frets get closer as you climb, so your stretch changes all the time.',
   tips: ['The shift is part of the exercise: keep it in time.', 'Alternate i-m strictly, or rake when you move to a lower string (see String crossing & raking).', 'Starting high and moving towards the nut is a great stretch exercise.'],
-  source: 'Universal (Bass Fitness, Bass Aerobics, SBL)',
+  source: 'Universal (Josquin des Prés "Bass Fitness", Jon Liebman "Bass Aerobics")',
   params: { top: sel('Climb to', [['5', 'Fret 5'], ['9', 'Fret 9'], ['12', 'Fret 12']]), dir: sel('Direction', [['up', 'Up then down'], ['down', 'Start high (stretch)']]) },
   bpm: 80, sub: 2, label: 'finger',
   build(p, ctx, S) {
@@ -126,7 +126,7 @@ const perms = ex({
   summary: '1234, 1243, 1324 … 4321: every finger order for complete independence.',
   about: 'There are 24 ways to order four fingers. Each one trains a different finger combination, especially the weak 3-4 pair. Choose one permutation and play it on every string up and down, or chain all 24. This is the most famous independence drill for bass.',
   tips: ['Do 2–3 permutations a day rather than all 24 at once.', 'Keep unused fingers hovering close to the string.', 'Combine with a string-crossing variation: one note per string.'],
-  source: 'Josquin des Prés "Bass Fitness"; Adam Nitti (24 permutations); TalkingBass finger permutations',
+  source: 'Josquin des Prés "Bass Fitness" (finger permutations)',
   params: { perm: sel('Permutation', [...PERMS.map((x) => [x, x.split('').join('-')]), ['all', 'All 24 in a row']]), pos: posP('5', 'Position') },
   bpm: 70, sub: 2, label: 'finger',
   build(p, ctx, S) {
@@ -156,7 +156,7 @@ const spider = ex({
   summary: 'Two fingers on one string, two on the next: crawl across the neck like a spider.',
   about: 'The spider alternates between two strings so that every finger has to land while another lifts. Play the pattern on each pair of strings going up, then back down, then shift one fret and repeat. It builds independence and accurate string crossing for the fretting hand.',
   tips: ['Only one finger down at a time: lift each finger as the next lands.', 'Watch the dots: they cross strings on every note.'],
-  source: 'Classic guitar/bass "spider" (Bass Fitness, SBL)',
+  source: 'The classic "spider" exercise (Josquin des Prés "Bass Fitness")',
   params: { pattern: sel('Pattern', Object.entries(SPIDERS).map(([k, v]) => [k, v.name])), pos: posP('1', 'Start fret') },
   bpm: 70, sub: 2, label: 'finger',
   build(p, ctx, S) {
@@ -179,7 +179,7 @@ const diagonal = ex({
   summary: 'E1 A2 D3 G4, then G1 D2 A3 E4: one finger per string in a diagonal.',
   about: 'Each finger plays on a different string, moving diagonally across the neck and back in the opposite direction, which draws an X. Shift one fret after each X. It trains string crossing for the fretting hand and is a great coordination exercise for both hands.',
   tips: ['Let each note ring only for its duration: lift the previous finger.', 'Raking helps when the line moves to a lower string.'],
-  source: 'Common technique drill (Bass Fitness)',
+  source: 'Common technique drill (Josquin des Prés "Bass Fitness")',
   params: { pos: posP('1', 'Start fret') },
   bpm: 70, sub: 2, label: 'finger',
   build(p, ctx, S) {
@@ -204,7 +204,7 @@ const fingerPairs = ex({
   summary: 'Isolate two fingers at a time across all strings.',
   about: 'Work two fingers at a time: alternate them four times on each string, cross to the next string, then shift one fret and come back. Spend extra time on 3-4, the weakest pair.',
   tips: ['Keep the other fingers relaxed but close to the strings.', 'Use the hammer-on version (Trills) once this is even.'],
-  source: 'TalkingBass "Ultimate finger exercise"',
+  source: 'Common finger-independence drill',
   params: { pair: sel('Pair', PAIRS.map((x) => [x, `${x[0]}-${x[1]}`])), pos: posP('5', 'Position') },
   bpm: 70, sub: 4, label: 'finger',
   build(p, ctx, S) {
@@ -226,7 +226,7 @@ const trills = ex({
   summary: 'Pluck once, then hammer (H) and pull off (PO): left-hand strength and evenness.',
   about: 'Pluck the lower note, hammer the upper finger onto the string, then pull it off sideways to sound the lower note again. Only the first note of each group is plucked. Hammer-ons and pull-offs should be as loud and even as plucked notes.',
   tips: ['Hammer from close: precision beats force.', 'Pull off slightly downwards (towards the floor) to "pluck" with the fretting finger.'],
-  source: 'Trinity Grade 3/7 (trills); MI; Bass Fitness',
+  source: 'Trills in graded exams; Josquin des Prés "Bass Fitness"',
   params: { pair: sel('Fingers', PAIRS.map((x) => [x, `${x[0]}-${x[1]}`])), pos: posP('5', 'Position') },
   bpm: 66, sub: 4, label: 'finger',
   build(p, ctx, S) {
@@ -267,7 +267,7 @@ const stringSkip = ex({
   summary: '1-2-3-4 jumping over a string: E→D, A→G and back.',
   about: 'Skipping a string is common in real lines (octaves, 10ths, wide arpeggios) and hard for both hands. The plucking hand must find the right string without looking, and the muting has to stay clean. Choose block mode (four notes per string) or zig-zag (every note changes string).',
   tips: ['Mute the skipped string with the fretting-hand fingers.', 'Zig-zag mode is much harder. Halve the tempo.'],
-  source: 'Bass Fitness; Trinity Grade 7 (string-skipping); common',
+  source: 'Josquin des Prés "Bass Fitness"; string skipping in graded exams',
   params: { style: sel('Style', [['block', 'Blocks (4 per string)'], ['zig', 'Zig-zag (alternate strings)']]), pos: posP('5', 'Position') },
   bpm: 66, sub: 2, label: 'finger',
   build(p, ctx, S) {
@@ -296,7 +296,7 @@ const shifting = ex({
   summary: 'Groups of four notes, then shift: index lands where the pinky was (or further).',
   about: 'Clean shifts are what separate smooth bass lines from choppy ones. Play 1-2-3-4, then shift the hand so the index lands on the next fret of the group, and keep going up the string and back. The shift distance sets the difficulty: 1 fret is a crawl, 4 frets is a real jump.',
   tips: ['Shift on the last note: slide the whole hand, thumb included, keeping light contact.', 'Look at the target fret before you move.'],
-  source: 'Willis linear approach; MI shifting drills; Simandl guide-finger shifts',
+  source: 'Shifting drills; Franz Simandl\'s guide-finger shifts',
   params: { string: oneStringP('A'), shift: sel('Shift', [['1', '1 fret'], ['2', '2 frets'], ['3', '3 frets (index → pinky\'s fret)'], ['4', '4 frets (new position)']], '3') },
   bpm: 72, sub: 4, label: 'finger',
   build(p, ctx, S) {
@@ -317,7 +317,7 @@ const octaveRun = ex({
   summary: 'Root–octave 8ths moving chromatically up the neck: string skipping and muting.',
   about: 'Root on the E string (finger 1), octave two strings up and two frets higher (finger 3 or 4). Alternate them in 8ths and move up one fret every two beats. Mute the string in between with the underside of the index finger. This is the engine of disco and funk bass.',
   tips: ['Pluck the octave with the middle finger, the root with the index (or rake).', 'The A and D strings in between must stay silent.'],
-  source: 'Disco/funk octave technique; BassBuzz; StudyBass',
+  source: 'Disco and funk octave technique',
   params: { pair: sel('Strings', [['B', 'B → A', { minStrings: 5 }], ['E', 'E → D'], ['A', 'A → G'], ['D', 'D → C', { minStrings: 6 }]], 'E') },
   bpm: 96, sub: 2, label: 'note',
   build(p, ctx, S) {
@@ -341,7 +341,7 @@ const simandl = ex({
   summary: 'The double-bass system: three fingers cover three frets in low positions.',
   about: 'In low positions the frets are wide, so the double-bass method (Franz Simandl) uses fingers 1, 2 and 4, with 3 and 4 working together, across a 3-fret span. Many players (Carol Kaye, upright doublers) use it in the first positions and one finger per fret higher up. Learn both and choose per passage.',
   tips: ['The ring finger supports the pinky; press with both.', 'Compare with "Chromatic 1-2-3-4" at fret 1: which is less tiring for you?'],
-  source: 'Franz Simandl "New Method for the Double Bass"; Rufus Reid "The Evolving Bassist"; Carol Kaye',
+  source: 'Franz Simandl "New Method for the Double Bass"; Rufus Reid "The Evolving Bassist"',
   params: { pos: sel('Start position', [['1', 'Half position (fret 1)'], ['2', 'First position (fret 2)'], ['3', 'Second position (fret 3)']]) },
   bpm: 66, sub: 2, label: 'finger',
   build(p, ctx, S) {
@@ -362,7 +362,7 @@ const stretch = ex({
   summary: 'Start high, then move down one fret at a time while the stretch grows.',
   about: 'Starting at fret 9, play 1-2-3-4 across all strings and move down one fret per pass. As you approach the nut the frets get wider and the stretch grows. Stop as soon as you feel tension. Over weeks you will reach the first position comfortably.',
   tips: ['Pivot from the thumb behind the neck; keep the wrist straight.', 'Warm up first. Never force a stretch.'],
-  source: 'Classic stretch routine (Patitucci/Wooten workshops; Bass Fitness)',
+  source: 'Classic stretch routine (Josquin des Prés "Bass Fitness")',
   params: { from: sel('Start at', [['9', 'Fret 9'], ['7', 'Fret 7'], ['12', 'Fret 12']]), to: sel('Down to', [['1', 'Fret 1'], ['3', 'Fret 3'], ['5', 'Fret 5']]) },
   bpm: 66, sub: 2, label: 'finger',
   build(p, ctx, S) {
@@ -383,7 +383,7 @@ const dynamics = ex({
   summary: 'The same phrase at six volumes: control comes from the plucking hand.',
   about: 'Volume is part of technique. Play the same four-note group at each dynamic level from very soft (pp) to very loud (ff) and back. Keep the tone and timing identical; only the attack changes. The app plays the reference volume of each level.',
   tips: ['Soft notes still need a firm fretting hand, or they will buzz.', 'Loud does not mean faster: listen for rushing.'],
-  source: 'Victor Wooten (dynamics as a musical element); Trinity Grades 1–2',
+  source: 'Dynamics as a musical element; first graded exams',
   params: { pos: posP('5', 'Position') },
   bpm: 72, sub: 2, label: 'finger',
   build(p, ctx, S) {
@@ -408,7 +408,7 @@ const accents = ex({
   summary: '16th notes with an accent every N notes: the accent wanders across the beat.',
   about: 'Play steady 16ths on the chromatic 1-2-3-4 pattern and accent every 3rd (or 5th, or 7th) note. The accent falls on a different part of the beat each time, which builds plucking-hand control and the rhythmic independence used in funk and fusion.',
   tips: ['Accent = louder, not longer.', 'Count "1 e & a" out loud while the accents drift.'],
-  source: 'Common rhythmic-control drill; Taller de Músics entrance (3 against 4)',
+  source: 'Common rhythmic-control drill; three against four in jazz-school entrance tests',
   params: { group: sel('Accent every', [['3', '3 notes'], ['5', '5 notes'], ['7', '7 notes'], ['332', '3+3+2']]), pos: posP('5', 'Position') },
   bpm: 66, sub: 4, label: 'finger',
   build(p, ctx, S) {
@@ -458,7 +458,7 @@ const harmonics = ex({
   summary: 'Touch the string lightly at its node: 12, 7 and 5 over the wire, the lower ones just before or after it.',
   about: 'A natural harmonic sounds when you touch the string lightly at a node, without pressing it down, and pluck near the bridge. The 12th fret gives the octave, the 7th the octave and a 5th, the 5th two octaves: these three nodes are right over the fret wire. Lower down they are not: the 4th-fret harmonic (two octaves and a major 3rd) is just before the 4th wire, the 3rd-fret one (two octaves and a 5th) just after the 3rd wire, and near the 2nd fret sit a ♭7 (at 2.7, a little flat against the tempered note) and three octaves (at 2.3). The 9th-fret node, just before the wire, sounds like the 4th-fret one.\n\nThe neck draws each harmonic as a triangle where you touch it, and the tab writes the in-between ones as 3.9, 3.2 and 2.7. Every note is spelled from its open string: on the E string the major 3rd is G♯ (never A♭) and the ♭7 is D.',
   tips: ['Touch at the triangle, not in the middle of the fret.', 'Pluck close to the bridge for a clearer harmonic, and lift the touching finger as soon as it sounds.', 'Dot labels set to degrees show each harmonic\'s interval from its open string.'],
-  source: 'RSL Grade 7, Trinity Grade 8, Berklee Online Bass 101 L9; the harmonic series of a string',
+  source: 'The harmonic series of a string; harmonics in advanced graded exams',
   params: {
     set: sel('Harmonics', [['main', 'The main four: 12, 7, 5, 4'], ['all', 'All up to the 12th: 12, 9, 7, 5, 4, 3.2, 2.7, 2.3']]),
     order: sel('Order', [['fret', 'Fret by fret'], ['string', 'String by string']]),
@@ -519,7 +519,7 @@ const ghost16 = ex({
   summary: 'Real notes and muted "x" notes in a continuous 16th stream.',
   about: 'Ghost notes are muted, percussive notes: the fretting hand touches the string without pressing it down. Keeping a constant 16th-note motion and choosing which notes sound is the secret of Rocco Prestia, Jaco and modern funk. The x dots are ghost notes.',
   tips: ['Both hands keep moving all the time; only the fretting pressure changes.', 'Accents on beats 2 and 4 make it groove.'],
-  source: 'RSL Grade 4, Trinity Grade 5; Rocco Prestia-style 16ths',
+  source: 'Funk 16ths in the style of Rocco Prestia; graded exams',
   params: { pattern: sel('Pattern', [['a', 'Note on every beat'], ['b', 'Notes on 1 and the "a"'], ['c', 'Octave funk']]) },
   bpm: 80, sub: 4, label: 'note',
   build(p, ctx, S) {
@@ -547,7 +547,7 @@ const endurance = ex({
   summary: 'Continuous root 16ths over I–IV–V: stamina for the plucking hand.',
   about: 'Rock, metal and dance music often need minutes of continuous 16th notes. Play the root of each chord in 16ths and keep the volume and spacing even. Switch on the speed trainer and push the tempo a little each day.',
   tips: ['Breathe and relax the shoulder: tension kills endurance.', 'Alternate strictly; at high tempos try three fingers (ring-middle-index, a-m-i).'],
-  source: 'Trinity Grade 7; Jon Liebman "Bass Aerobics"; MI',
+  source: 'Jon Liebman "Bass Aerobics"; advanced graded exams',
   params: { key: keyP(['1', '3', '5'], { def: '4' }), prog: progP(['I-IV-V-I', 'I-V-vi-IV', 'i-iv-v-min']) },
   bpm: 90, sub: 4, label: 'note',
   build(p, ctx, S) {
@@ -608,7 +608,7 @@ const permStrings = ex({
   summary: 'Each finger of the permutation lands on the next string: independence + string crossing.',
   about: 'A harder take on the 24 permutations: the four fingers stay in their frets (one finger per fret), but every note moves to the next string. Permutation 1-3-2-4 becomes E (finger 1), A (finger 3), D (finger 2), G (finger 4). Both hands must cross strings on every note, so this is one of the most demanding coordination drills there is.',
   tips: ['Rake on the way back down (G → E).', 'Choose the hardest permutations for you and repeat them, not all 24.'],
-  source: 'Extension of Bass Fitness permutations (Josquin des Prés); Adam Nitti string-crossing permutations',
+  source: 'The finger permutations of Josquin des Prés "Bass Fitness", taken across the strings',
   params: { perm: sel('Permutation', [...PERMS.map((x) => [x, x.split('').join('-')]), ['all', 'All 24 in a row']], '1324'), pos: posP('5', 'Position') },
   bpm: 60, sub: 2, label: 'finger',
   build(p, ctx, S) {
@@ -643,7 +643,7 @@ const muting = ex({
   summary: 'Play short notes and real rests: nothing may ring through the silence.',
   about: 'Clean bass playing is as much about the notes you stop as the ones you play. Each note here is followed by a rest that must be silent. Open strings are stopped by the plucking-hand thumb or fingers (the "floating thumb" rests on the strings below the one you play) and fretted notes by lifting the fretting finger just off the fret while it still touches the string. Listen for any ringing string, especially after string skips.',
   tips: ['Floating thumb: let the plucking thumb lie on the lower strings and move with your hand.', 'Fretted notes: relax the finger, do not lift it off the string.', 'Record yourself: ringing strings are easier to hear afterwards.'],
-  source: 'Floating-thumb muting (Todd Johnson, Gary Willis); common technique teaching',
+  source: 'Floating-thumb muting: common technique teaching',
   params: { pattern: sel('Pattern', Object.entries(MUTE_PATTERNS).map(([k, v]) => [k, v.name])), length: sel('Note length', [['half', 'Half a beat, half a beat of rest'], ['quarter', 'A quarter beat, then rest']]) },
   bpm: 72, sub: 1, label: 'note',
   build(p, ctx, S) {
@@ -729,7 +729,7 @@ const sweep = ex({
   summary: 'One note per string in one motion: down-strokes (Π) through the strings going up, up-strokes (V) coming down, or rakes with the fingers.',
   about: 'An arpeggio with one note per string can be played in a single motion. With a pick, the pick falls through the strings going up in pitch, all down-strokes (Π Π Π Π), and comes back through them going down, all up-strokes (V V V): a sweep. With the fingers the same economy is raking: alternate i and m going up the strings, and let one finger fall through them coming down. Each shape is one hand position per chord, and each note must stop as the next one sounds, or the arpeggio blurs into a strummed chord. Four-string shapes run in sextuplets (one sweep up and down per beat); the five-string shape, from the low B, in 16ths.',
   tips: ['Lift (or roll) each fretting finger as soon as its note has sounded: a sweep is a line, not a chord.', 'Slow and even first: the turn at the top gets the same time as every other note.'],
-  source: 'Sweep picking from rock and fusion guitar (Frank Gambale, Yngwie Malmsteen), adapted to the bass; finger raking after Gary Willis',
+  source: 'Sweep picking from rock and fusion guitar (Frank Gambale, Yngwie Malmsteen), adapted to the bass; finger raking',
   params: {
     shape: sel('Shape', Object.entries(SWEEPS).map(([k, v]) => [k, v.name, ...(v.minStrings ? [{ minStrings: v.minStrings }] : [])])),
     hand: sel('Right hand', [['pick', 'Pick (Π up the strings, V down)'], ['fingers', 'Fingers (alternate up, rake down)']]),

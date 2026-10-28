@@ -19,9 +19,16 @@ import { STYLES, GENRES } from './practice/styles.js';
 import { HARMONY_PROGS } from './practice/harmony.js';
 
 export const PRO_ID = 'bassclass_pro';
+// (the tips' labels and PRICE are the test builds' figures: the Play build shows only Google Play's own prices)
 export const TIPS = [['bassclass_tip_2', '€2'], ['bassclass_tip_4', '€4']];
-/** The price shown until Google Play gives the player's own (in their currency). */
 export const PRICE = '€7.99';
+/**
+ * A price to show before Google Play gives its own: the test builds' figure; nothing in the Play build (launch legal
+ * review, 2026-10-28: a written price is wrong during the launch price and in every other currency).
+ */
+export const placeholder = (price) => (PLAY ? '' : price);
+/** The line under "Get BassClass Pro": the price, once there is one to show. */
+export const proSub = (price) => `${price ? `${price} · ` : ''}one payment, yours for good`;
 export const FREE_LEVELS = 3;
 export const FREE_DRUMS = 3;   // patterns of each genre
 // lessons of each Pro stage free to try (user, 2026-10-28: "this way it can be checked a bit"; representative ones,

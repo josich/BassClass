@@ -2,6 +2,7 @@ package com.bassclass.app
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -15,11 +16,13 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.webkit.JavascriptInterface
 import android.webkit.PermissionRequest
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -28,6 +31,8 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.window.OnBackInvokedDispatcher
 import androidx.webkit.WebViewAssetLoader
+import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewFeature
 import com.google.android.play.core.review.ReviewManagerFactory
 
 /**
@@ -38,6 +43,8 @@ import com.google.android.play.core.review.ReviewManagerFactory
 class MainActivity : Activity() {
 
     private lateinit var web: WebView
+    private var webGone = false                                   // the page's renderer crashed: the activity starts again
+    private var bridge: NativeBridge? = null
     private var pendingMic: PermissionRequest? = null
     private var pendingSave: String? = null                       // a backup waiting for its "Save to" place
     private var pendingFiles: ValueCallback<Array<Uri>>? = null   // a file input waiting for the picker
@@ -81,8 +88,16 @@ class MainActivity : Activity() {
         web.evaluateJavascript("window.dispatchEvent(new CustomEvent('bassclass-route',{detail:'${audioRoute()}'}))", null)
     }
 
-    /** Read by the web app at start-up (web/js/audio.js): window.BassClassNative.audioRoute(). */
-    private inner class NativeBridge {
+    /** Runs a line of JavaScript in the page (on the main thread). */
+    private fun runJs(js: String) {
+        runOnUiThread { if (::web.isInitialized && !webGone) web.evaluateJavascript(js, null) }
+    }
+
+    /**
+     * Read by the web app at start-up (web/js/audio.js): window.BassClassNative.audioRoute(). Its store methods come
+     * from the build's StoreBridge: Google Play Billing in the Play build (src/play), none in the GitHub build.
+     */
+    private inner class NativeBridge : StoreBridge(this@MainActivity, { js -> this@MainActivity.runJs(js) }) {
         @JavascriptInterface
         fun audioRoute(): String = this@MainActivity.audioRoute()
 
@@ -191,17 +206,38 @@ class MainActivity : Activity() {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.mediaPlaybackRequiresUserGesture = false
+            // the page is the app's own files, served from the assets: no files or content providers of the phone
+            settings.allowFileAccess = false
+            settings.allowContentAccess = false
+            // Android's largest font sizes (up to 200%) squeeze the exercise screen: the text grows up to 130% at most
+            settings.textZoom = settings.textZoom.coerceAtMost(130)
             setBackgroundColor(0xFF12142A.toInt())
+            // the Play build: the page knows it before any of its scripts runs (web/js/pro.js: the Pro gates on, no
+            // debug panel); MimeFixingHandler also writes it into index.html, for WebViews without this feature
+            if (BuildConfig.STORE.isNotEmpty() && WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+                WebViewCompat.addDocumentStartJavaScript(this, "window.BASS_STORE='${BuildConfig.STORE}';", setOf(ORIGIN))
+            }
             // the sound profile follows the output: phone speaker or headphones/external speaker
-            addJavascriptInterface(NativeBridge(), "BassClassNative")
+            val b = NativeBridge()
+            bridge = b
+            addJavascriptInterface(b, "BassClassNative")
             webViewClient = object : WebViewClient() {
                 override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
                     loader.shouldInterceptRequest(request.url)
 
-                // a mailto: link (an older page, or a link in a text) goes to the e-mail apps, not to an error page
+                // a mailto: link (an older page, or a link in a text) goes to the e-mail apps, not to an error page;
+                // any other address than the app's own opens outside the app, so no other page ever sees the bridge
                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                     val url = request.url
-                    if (url.scheme != "mailto") return false
+                    if (url.scheme != "mailto") {
+                        if (url.host == HOST) return false
+                        try {
+                            startActivity(Intent(Intent.ACTION_VIEW, url))
+                        } catch (e: Exception) {
+                            // (nothing on the phone opens it)
+                        }
+                        return true
+                    }
                     // (a mailto: URI is opaque: its address, subject and body are read by hand)
                     val ssp = url.encodedSchemeSpecificPart ?: ""
                     val q = ssp.substringAfter('?', "").split('&').mapNotNull { p ->
@@ -210,12 +246,24 @@ class MainActivity : Activity() {
                     openMail(Uri.decode(ssp.substringBefore('?')), q["subject"] ?: "", q["body"] ?: "")
                     return true
                 }
+
+                // the page's renderer crashed or was stopped to free memory: the app starts its page again instead of
+                // closing (launch review, 2026-10-28)
+                @TargetApi(Build.VERSION_CODES.O)
+                override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+                    webGone = true
+                    (view.parent as? ViewGroup)?.removeView(view)
+                    view.destroy()
+                    recreate()
+                    return true
+                }
             }
             // the tuner asks for the microphone: forward it to Android's permission dialog
             webChromeClient = object : WebChromeClient() {
                 override fun onPermissionRequest(request: PermissionRequest) {
                     runOnUiThread {
-                        if (!request.resources.contains(PermissionRequest.RESOURCE_AUDIO_CAPTURE)) {
+                        // (only the app's own pages get the microphone)
+                        if (request.origin?.host != HOST || !request.resources.contains(PermissionRequest.RESOURCE_AUDIO_CAPTURE)) {
                             request.deny()
                         } else if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
                             request.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
@@ -250,8 +298,8 @@ class MainActivity : Activity() {
             onBackInvokedDispatcher.registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT) { goBack() }
         }
 
-        if (savedInstanceState != null) web.restoreState(savedInstanceState)
-        else web.loadUrl("https://appassets.androidplatform.net/assets/index.html")
+        // (a page kept by Android comes back as it was; after a renderer crash there is none: a fresh start)
+        if (savedInstanceState == null || web.restoreState(savedInstanceState) == null) web.loadUrl("$ORIGIN/assets/index.html")
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -295,7 +343,7 @@ class MainActivity : Activity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        web.saveState(outState)
+        if (!webGone) web.saveState(outState)
     }
 
     /** Back goes through the web app's history; at its start the app goes to the background, as Android does. */
@@ -315,6 +363,7 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        bridge?.storeDestroy()
         mainHandler.removeCallbacksAndMessages(null)
         audio.unregisterAudioDeviceCallback(routeCallback)
         super.onDestroy()
@@ -323,6 +372,8 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         web.onResume()
+        // (Google Play asks for this on every return: purchases acknowledged, a pending one found)
+        bridge?.storeResume()
     }
 
     private fun hideSystemBars() {
@@ -343,6 +394,9 @@ class MainActivity : Activity() {
     }
 
     private companion object {
+        /** The app's own pages: its assets, served on this virtual https address. */
+        const val HOST = "appassets.androidplatform.net"
+        const val ORIGIN = "https://$HOST"
         const val REQ_MIC = 7
         const val REQ_SAVE = 8
         const val REQ_FILE = 9
@@ -366,10 +420,18 @@ class MainActivity : Activity() {
         )
     }
 
-    /** Module scripts require a JavaScript MIME type; don't rely on the platform's guess. */
+    /**
+     * Module scripts require a JavaScript MIME type; don't rely on the platform's guess. In the Play build, index.html
+     * also says so before its scripts (window.BASS_STORE), for WebViews that cannot add a script at document start.
+     */
     private class MimeFixingHandler(private val inner: WebViewAssetLoader.PathHandler) : WebViewAssetLoader.PathHandler {
         override fun handle(path: String): WebResourceResponse? {
             val res = inner.handle(path) ?: return null
+            if (path == "index.html" && BuildConfig.STORE.isNotEmpty()) {
+                val html = res.data.use { it.readBytes().toString(Charsets.UTF_8) }
+                val page = html.replaceFirst("<script type=\"module\"", "<script>window.BASS_STORE='${BuildConfig.STORE}';</script>\n  <script type=\"module\"")
+                return WebResourceResponse("text/html", "utf-8", page.byteInputStream(Charsets.UTF_8))
+            }
             when (path.substringAfterLast('.', "").lowercase()) {
                 "js", "mjs" -> res.mimeType = "text/javascript"
                 "css" -> res.mimeType = "text/css"

@@ -3,7 +3,8 @@
 // the guided course opens an exercise with options it has.
 // Run in the browser console:  (await import('./js/selftest.js')).run()
 import { EXERCISES, byNumber, byId, defaultParams } from './curriculum/index.js';
-import { LESSONS, STAGES, lessonById } from './course/data.js';
+import { LESSONS, STAGES, UNITS, lessonById } from './course/data.js';
+import { PLACEMENT } from './course/placement.js';
 import { CHANGED_STEPS } from './course/progress.js';
 import { CYCLE_OPTS } from './curriculum/common.js';
 import { NO_BACKING } from './harmony.js';
@@ -114,6 +115,20 @@ function checkPro(problems) {
  * Numbers kept for good (user, 2026-10-28): every exercise has one in curriculum/numbers.js, unique, its level's
  * hundreds (305 = Level 3), never a retired one; every lesson one in course/numbers.js, unique in its stage.
  */
+/**
+ * My level (course/placement.js): every unit has a statement, so a player who answers "yes" to everything has nothing
+ * left to do (launch review, 2026-10-28); every statement names units that exist, all in one stage.
+ */
+function checkPlacement(problems) {
+  const said = new Set(PLACEMENT.flatMap(([, units]) => units));
+  for (const u of UNITS) if (!said.has(u.id)) problems.push(`placement: unit ${u.id} (${u.title}) has no My level statement`);
+  for (const [text, units] of PLACEMENT) {
+    const found = units.map((id) => UNITS.find((u) => u.id === id));
+    if (found.some((u) => !u)) problems.push(`placement: "${text.slice(0, 40)}…" names a unit that does not exist`);
+    else if (new Set(found.map((u) => u.stage)).size > 1) problems.push(`placement: "${text.slice(0, 40)}…" spans two stages`);
+  }
+}
+
 function checkNumbers(problems) {
   const seen = new Map();
   for (const t of EXERCISES) {
@@ -188,6 +203,7 @@ export function run({ strings = [4, 5, 6], verbose = false } = {}) {
   checkDrums(problems);
   checkPro(problems);
   checkNumbers(problems);
+  checkPlacement(problems);
   for (const st of strings) {
     const S = { strings: st, notation: 'letters', maxFret: 20 };
     const ctx = makeCtx(S);
@@ -237,7 +253,7 @@ export async function catalogue() {
   ];
   for (const L of C.LEVELS) {
     const list = C.EXERCISES.filter((e) => e.level === L.n).sort((a, b) => a.num - b.num);
-    lines.push(`### Level ${L.n}: ${L.name}`, '', `_${L.desc}_`, '', '| # | Exercise | Module | What it trains | Based on |', '|---|---|---|---|---|');
+    lines.push(`### Level ${L.n}: ${L.name}`, '', `_${L.desc}_`, '', '| # | Exercise | Module | What it trains | Related |', '|---|---|---|---|---|');
     for (const e of list) lines.push(`| ${e.num} | ${e.star ? '★ ' : ''}${cell(e.title)} | ${C.moduleOf(e.module).name} | ${cell(e.summary)} | ${cell(e.source)} |`);
     lines.push('');
   }
