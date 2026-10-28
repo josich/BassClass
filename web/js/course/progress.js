@@ -44,6 +44,8 @@ export const CHANGED_STEPS = [
   { rev: 5, steps: ['u-scales-check.2', 's1-test.6', 's2-test.6', 's2-test.7', 'u-time4-check.5', 's6-test.8'] },
   // QA round 13: Billie Jean's C♯m7 bar, Longview in E, Classical Thump's A7 and B7 pops
   { rev: 6, steps: ['u-triads3-check.3', 's3-test.7', 's6-test.8'] },
+  // launch review, e2519d5 (v1.0.142): Seven Nation Army's and Another One Bites the Dust's openings rewritten
+  { rev: 7, at: 1793204207000, steps: ['u-scales-check.2', 'u-feel-check.3'] },
 ];
 const REV = CHANGED_STEPS.length;
 // a step whose notes changed after the player finished its lesson asks to be played again, but the
