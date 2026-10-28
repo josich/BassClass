@@ -1,0 +1,85 @@
+// The rate reminder (user, 2026-10-28: "a couple of times separated by hours of use: after 10 h, then after 20 h,
+// always at the end of an event, not in the middle of something running; 5 stars and a short text"): once the
+// practice log holds 10 hours of playing, and again at 20, a card asks for a rating on Google Play, shown only when
+// the player has just finished something (left an exercise or the Practice room, or ticked ✓ Practised), never
+// while anything plays or another sheet is open. Every star, and the button, open the Play Store page alike (no
+// filtering of the stars, as Google asks). Rated, it never asks again; "Not now" waits for the next mark. Only
+// where there is a Play listing to rate (the Play build, or the gates switched on for testing: Settings' debug
+// panel shows it at once, and resets it).
+import { h, icon } from './dom.js';
+import { gatesOn } from '../pro.js';
+import { totalMinutes } from '../practiceLog.js';
+import { rateApp } from './proDebug.js';
+
+const KEY = 'bassclass.rate.v1';
+/** The marks, in minutes of playing: 10 hours, then 20. */
+export const RATE_AT = [600, 1200];
+
+function read() {
+  let v;
+  try { v = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { v = null; }
+  const ok = v && typeof v === 'object' && !Array.isArray(v);
+  return { rated: ok && v.rated === true, asked: ok && Number.isInteger(v.asked) ? Math.max(0, Math.min(RATE_AT.length, v.asked)) : 0 };
+}
+function write(r) { try { localStorage.setItem(KEY, JSON.stringify(r)); } catch { /* storage unavailable */ } }
+/** The reminder's state, for the debug panel. */
+export const rateState = () => ({ ...read(), minutes: Math.round(totalMinutes()) });
+export const resetRate = () => write({ rated: false, asked: 0 });
+
+let openNow = null;
+/** Something else is on screen: a sheet, a picker, a bubble, or the player is busy. */
+const busy = () => !!openNow || !!document.querySelector('.picker-backdrop, .info-pop') || document.hidden;
+
+/** At the end of something: asks when a mark has been passed and not asked yet. */
+export function maybeAskRating() {
+  if (!gatesOn()) return;
+  const r = read();
+  if (r.rated || r.asked >= RATE_AT.length || totalMinutes() < RATE_AT[r.asked] || busy()) return;
+  openRate();
+}
+
+/** The card itself (`test`: from the debug panel, the answer not stored). */
+export function openRate({ test = false } = {}) {
+  if (openNow) return;
+  const answer = (rated) => {
+    if (test) return;
+    const r = read();
+    // (passed both marks at once, as after a backup: one card, and the next mark waits)
+    const asked = Math.max(r.asked + 1, RATE_AT.filter((m) => totalMinutes() >= m).length);
+    write({ rated: r.rated || rated, asked: Math.min(RATE_AT.length, asked) });
+  };
+  const rate = () => { answer(true); close(); rateApp(); };
+  const later = () => { answer(false); close(); };
+  const stars = h('div', { class: 'rate-stars', role: 'group', 'aria-label': 'Rate BassClass on Google Play' },
+    [1, 2, 3, 4, 5].map((n) => h('button', { class: 'rate-star', type: 'button', 'aria-label': `${n} star${n > 1 ? 's' : ''}: rate on Google Play`, onClick: rate }, '★')));
+  const closeBtn = h('button', { class: 'icon-btn picker-close', type: 'button', 'aria-label': 'Not now', html: icon('close'), onClick: later });
+  const panel = h('div', { class: 'picker rate-card', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Rate BassClass', tabindex: '-1' },
+    h('div', { class: 'picker-head' }, h('div', { class: 'grow' }), closeBtn),
+    stars,
+    h('h2', {}, 'Help us by rating BassClass'),
+    h('p', { class: 'muted' }, 'A few stars and words on Google Play help other bass players find the app. Thank you!'),
+    h('div', { class: 'row rate-actions' },
+      h('button', { class: 'btn pro-cta', type: 'button', onClick: rate }, '⭐ Rate on Google Play'),
+      h('button', { class: 'btn', type: 'button', onClick: later }, 'Not now')));
+  const backdrop = h('div', { class: 'picker-backdrop rate-backdrop' }, panel);
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) later(); });
+  // Back (Android's, or the browser's) answers "not now" and stays on the screen, as the other sheets do
+  history.pushState({ ...(history.state || {}), picker: true }, '');
+  const onPop = () => { answer(false); close('back'); };
+  addEventListener('popstate', onPop);
+  const onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); later(); } };
+  document.addEventListener('keydown', onKey, true);
+  let closed = false;
+  function close(how) {
+    if (closed) return;
+    closed = true;
+    openNow = null;
+    backdrop.remove();
+    document.removeEventListener('keydown', onKey, true);
+    removeEventListener('popstate', onPop);
+    if (!how && history.state?.picker) history.back();
+  }
+  openNow = close;
+  document.body.append(backdrop);
+  panel.focus({ preventScroll: true });
+}

@@ -8,6 +8,7 @@ import { SUB_NAMES, paramOptions } from './exercise.js';
 import { exHref, go, buildRoutine, routineParams, setRoutine, routineHref, proChip } from './screens.js';
 import { isPro, lessonLock, exerciseLock, levelLocked, FREE_LEVELS } from '../pro.js';
 import { openPro } from './proSheet.js';
+import { maybeAskRating } from './rate.js';
 import { replaceHash, goBack, canGoBack, nav } from './nav.js';
 import { NEXT_LEVEL, COMPLETE } from '../course/data.js';
 import {
@@ -340,6 +341,8 @@ export function sessionBlock({ onLength } = {}) {
           sessionPractised(all.map((x) => x.id));
           toast('Practised ✓ The next session is ready.', 2500);
           render();
+          // (a session done: a moment the rate reminder may ask, after the toast)
+          setTimeout(maybeAskRating, 2600);
         } }, '✓ Practised')));
   };
   // (a stored plan that cannot be shown is planned again instead of leaving Home empty)

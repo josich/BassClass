@@ -16,6 +16,7 @@ import { sessionPlayed } from './course/progress.js';
 import { nav, replaceHash, goBack, canGoBack } from './ui/nav.js';
 import { hashLock, gatesOn } from './pro.js';
 import { openPro } from './ui/proSheet.js';
+import { maybeAskRating } from './ui/rate.js';
 import { syncPro } from './billing.js';
 import { aboutScreen } from './ui/about.js';
 
@@ -82,7 +83,11 @@ function route() {
     if (location.hash !== to) { addEventListener('hashchange', () => setTimeout(open, 0), { once: true }); replaceHash(to); } else open();
     return;
   }
+  const left = lastHash;
   lastHash = location.hash || '#/';
+  // the end of something played (an exercise or the Practice room left for another screen): the moment the rate
+  // reminder may ask, once the new screen is drawn (ui/rate.js)
+  if (/^#\/(ex|practice)\b/.test(left) && !/^#\/(ex|practice)\b/.test(lastHash)) setTimeout(maybeAskRating, 900);
   // remember where the screen being left was scrolled (scroll events can lag behind)
   if (scrollKey && curMain?.isConnected) scrollMem.set(scrollKey, curMain.scrollTop);
   const returning = trackDepth();

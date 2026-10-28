@@ -11,6 +11,7 @@ import { STYLES, GENRES } from '../practice/styles.js';
 import { progName } from '../practice/harmony.js';
 import { syncPro, restorePro, billingLog, pretendDayPassed, canBuy, prices } from '../billing.js';
 import { openPro, tip, FREE_LINE } from './proSheet.js';
+import { openRate, rateState, resetRate, RATE_AT } from './rate.js';
 
 /** The Pro card and Support BassClass (the tips), for Settings; nothing while the gates are off. */
 export function proFields(field) {
@@ -149,6 +150,11 @@ export function devPanel(rerender) {
       h('button', { class: 'btn small', type: 'button', onClick: () => { setOwned(false); setDev({ sim: [...new Set([...dev().sim, PRO_ID])] }); toast('A new phone: Pro forgotten here, Google Play still has it. Try Restore purchase'); rerender(); } }, 'New phone'),
       h('button', { class: 'btn small', type: 'button', onClick: () => { pretendDayPassed(); rerender(); } }, 'A day passes'),
       h('button', { class: 'btn small', type: 'button', onClick: () => { setOwned(false); setDev({ sim: [], next: 'ok' }); rerender(); } }, 'Reset'))),
+    // the rate reminder (ui/rate.js): asks at 10 and 20 hours played, at the end of something
+    line('Rate reminder', h('div', { class: 'row' },
+      h('button', { class: 'btn small', type: 'button', onClick: () => openRate({ test: true }) }, 'Show it now'),
+      h('button', { class: 'btn small', type: 'button', onClick: () => { resetRate(); toast('The rate reminder will ask again at its marks'); rerender(); } }, 'Reset'),
+      h('code', { class: 'dev-state' }, (() => { const r = rateState(); return `${Math.floor(r.minutes / 60)}h${String(r.minutes % 60).padStart(2, '0')} played · asks at ${RATE_AT.map((m) => `${m / 60} h`).join(' and ')} · asked ${r.asked} · rated ${r.rated ? 'yes' : 'no'}`; })()))),
     line('State', h('code', { class: 'dev-state' }, `gates ${gatesOn() ? 'on' : 'off'} · everything open: ${isPro() ? 'yes' : 'no'} · owned: ${owned() ? 'yes' : 'no'} · record ${JSON.stringify(r)} · Play reports: ${JSON.stringify(d.sim)}`)),
     h('pre', { class: 'dev-log' }, billingLog().join('\n') || 'No billing events yet.'));
 }

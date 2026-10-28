@@ -49,6 +49,10 @@ MONETIZATION-PLAN.md. Tick items off here as they are done; the user's decisions
 - [ ] **Test real purchases** in the internal testing track with licence testers: buy, cancel, pending, refund (Pro
   goes after the second check a day later), restore on a second phone.
 - [x] "Rate BassClass on Google Play" in Settings → Support BassClass (2026-10-27; it opens the listing, which exists once published).
+- [x] The rate reminder (2026-10-28, `web/js/ui/rate.js`): a card with 5 stars at 10 and 20 hours played, at the end of
+  something; it opens the listing too.
+- [ ] Maybe: Google Play's in-app review card (the rating inside the app, without leaving it) for the reminder: it needs
+  Google's Play Review library in the Android app (a new dependency: ask before adding it).
 - [ ] **The privacy policy at a public address** (Play asks for a URL): the same text as About's, on a public page
   (e.g. the `josich.github.io` repository, as Polyorbit's).
 - [ ] **Store listing texts**: name (30), short description (80), full description (4000). Drafts by us.

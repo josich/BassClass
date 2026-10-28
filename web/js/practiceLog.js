@@ -107,6 +107,12 @@ export function lastDays(n = 7) {
   });
 }
 
+/** All the minutes played that the log keeps (its last 400 days): the rate reminder's hours of use. */
+export function totalMinutes() {
+  credit();
+  return Object.values(log).reduce((a, s) => a + s, 0) / 60;
+}
+
 /** Days in a row with 30 seconds or more of practice, up to today (a today not played yet keeps yesterday's run). */
 export function streak() {
   credit();
