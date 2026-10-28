@@ -20,6 +20,8 @@ export function h(tag, attrs = {}, ...children) {
 export const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 const P = {
+  // (the tips' heart, in the app's red through `.heart`: user, 2026-10-28, in place of the yellow 💛 emoji)
+  heart: '<path d="M12 20.6s-7.6-4.7-7.6-10.4A4.2 4.2 0 0 1 12 7.5a4.2 4.2 0 0 1 7.6 2.7c0 5.7-7.6 10.4-7.6 10.4z" fill="currentColor"/>',
   play: '<path d="M8 5v14l11-7z" fill="currentColor"/>',
   pause: '<path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/>',
   prev: '<path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -64,6 +66,8 @@ const P = {
 };
 
 export const icon = (name) => `<svg viewBox="0 0 24 24" aria-hidden="true">${P[name] || ''}</svg>`;
+/** The heart, in the app's red (the tips). */
+export const heart = () => h('span', { class: 'heart', html: icon('heart') });
 
 let toastTimer = null;
 /**
@@ -73,7 +77,8 @@ let toastTimer = null;
 export function toast(msg, ms = 1800) {
   let el = document.querySelector('.toast');
   if (!el) { el = h('div', { class: 'toast', role: 'status' }); document.body.append(el); }
-  el.textContent = msg;
+  // (a line of text, or a node: a heart drawn in the app's red)
+  if (msg instanceof Node) el.replaceChildren(msg); else el.textContent = msg;
   el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), ms);

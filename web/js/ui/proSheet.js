@@ -3,7 +3,7 @@
 // sheet's foot on small phones, QA round 19), a thank-you once owned. Escape, ✕, a tap outside or Back close it (its
 // own history entry, as the picker's). `then`: what the tap was for, done after a purchase ("Let's play"); `cancel`:
 // done when it closes without one (a picker opens again where it was).
-import { h, icon, toast } from './dom.js';
+import { h, icon, toast, heart } from './dom.js';
 import { EXERCISES } from '../curriculum/index.js';
 import { LESSONS } from '../course/data.js';
 import { PRO_ID, PRICE, FREE_LEVELS, owned, proContents, PLAY } from '../pro.js';
@@ -124,7 +124,7 @@ export async function tip(id) {
   tipping = true;
   try {
     const r = await buy(id, true);
-    if (r === 'ok') toast('Thank you for the tip! 💛', 2500);
+    if (r === 'ok') toast(h('span', { class: 'toast-heart' }, 'Thank you for the tip! ', heart()), 2500);
     else if (r === 'pending') toast('Your tip is pending with Google Play', 2500);
     else if (r === 'error') toast('Google Play could not complete it. Try again.', 2500);
   } finally {

@@ -936,3 +936,9 @@ input[type="range"] { touch-action: pan-y; }
 .rate-star { background: none; border: 0; padding: 2px 4px; font-size: 34px; line-height: 1; color: #f2c14e; cursor: pointer; transition: transform 0.12s; text-shadow: 0 2px 10px rgba(242, 193, 78, 0.35); }
 .rate-star:hover, .rate-star:focus-visible { transform: scale(1.15); }
 .rate-actions { justify-content: center; gap: 10px; }
+
+/* the tips' heart: the app's red (user, 2026-10-28) */
+.heart { display: inline-grid; place-items: center; color: var(--danger); vertical-align: -3px; }
+.heart svg { width: 17px; height: 17px; }
+.tip-btn { display: inline-flex; align-items: center; gap: 6px; }
+.toast-heart .heart svg { width: 15px; height: 15px; }
