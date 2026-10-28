@@ -216,8 +216,9 @@ export const dueLessons = () => LESSONS.filter(isDue).sort((a, b) => nextReview(
 
 // ---------------------------------------------------------------- placement & status
 // (known: the placement said so, or the stage's Library level is 80% mastered; user, 2026-10-26)
+// (a stage placed as known stays known when a unit is added to it later: `added` after the placement)
 export const isKnown = (lesson) => levelPassed(STAGES.indexOf(lesson.stage) + 1)
-  || (lesson.unit ? !!state.known[lesson.unit.id] : lesson.stage.units.every((u) => state.known[u.id]));
+  || (lesson.unit ? !!state.known[lesson.unit.id] : lesson.stage.units.every((u) => state.known[u.id] || (u.added && state.placed > 0 && state.placed < u.added)));
 export const knownUnits = () => ({ ...state.known });
 export function setKnown(ids) {
   state.known = Object.fromEntries(ids.map((id) => [id, true]));
@@ -254,7 +255,15 @@ export function continueLesson() {
 // A lesson added to a unit after the player passed its checkpoint (`added`: when it shipped) is new
 // material, not a gap: it does not lower the level, and Continue does not go back for it (the map
 // shows it as new). A lesson the unit always had stays in the course order.
+// A whole unit added later (`added` on the unit: its lessons and its checkpoint) is new material in the same
+// way for a player who had already gone past it: a later lesson done before it shipped, or known (user,
+// 2026-10-28: the Pentatonic colours units).
 function addedLater(l) {
+  if (l.unit?.added && (l.kind === 'lesson' || l.kind === 'check')) {
+    const at = l.unit.added;
+    const i = LESSONS.indexOf(l);
+    return LESSONS.some((x, j) => j > i && (status(x) === 'known' || (status(x) === 'done' && state.lessons[x.id]?.done < at)));
+  }
   if (l.kind !== 'lesson' || !l.unit || !l.added) return false;
   const check = LESSONS.find((x) => x.kind === 'check' && x.unit === l.unit);
   const rec = check && state.lessons[check.id];

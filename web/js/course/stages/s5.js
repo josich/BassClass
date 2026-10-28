@@ -810,17 +810,35 @@ export default {
             'Uneven ghosts. They are the grid.',
           ],
         },
+        {
+          id: 'pent-double-stops', title: 'Pentatonic double stops', added: 1793180000000,
+          idea: 'Two notes of the box at once: 4ths for fills and solos.',
+          concept: [
+            'Played two notes at a time, the minor pentatonic becomes a source of chords for fills and solos. Take every other note of the box and play the pairs together: they are 4ths (root and 4th, 4th and ♭7, 5th and root, ♭7 and ♭3) with one major 3rd (♭3 and 5th) among them.',
+            'A 4th sits on neighbouring strings at the same fret, so one finger can barre it; the 3rd is a fret apart. Pluck both strings together with two fingers, or with the thumb and a finger, and keep every other string quiet.',
+          ],
+          steps: [
+            { ex: 'sc-pent-double-stops', p: { pattern: 'fourths', rhythm: '1' }, from: 60, goal: 84, do: 'The 4ths only, in quarter notes. Barre each one with one finger.' },
+            { ex: 'sc-pent-double-stops', p: { pattern: 'skip', rhythm: '0.5' }, from: 56, goal: 80, do: 'Every other note of the box in 8ths: the 4ths and the one 3rd.' },
+          ],
+          mistakes: [
+            'One note louder than the other. Both strings speak together.',
+            'Letting other strings ring. Mute them with the fretting hand.',
+          ],
+        },
       ],
       check: {
         can: [
           'I can build a solo from bass-line devices.',
           'I can develop one motif through the changes.',
           'I can imply a cadence over a vamp and resolve it.',
+          'I can play the minor pentatonic in double stops, mostly 4ths.',
         ],
         steps: [
           { ex: 'lk-motif', p: { lick: '0', feel: 'swing' }, from: 96, goal: 124, backing: 'chords' },
           { ex: 'lk-implied', p: { lick: '1', feel: 'swing' }, from: 92, goal: 120, backing: 'chords' },
           { ex: 'lk-bass-solo', p: { lick: '0', feel: 'swing' }, from: 100, goal: 124, backing: 'chords' },
+          { ex: 'sc-pent-double-stops', p: { pattern: 'skip', rhythm: '0.5' }, from: 66, goal: 88 },
         ],
       },
     },

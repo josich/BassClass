@@ -10,6 +10,8 @@ import { NO_BACKING } from './harmony.js';
 import { makeCtx } from './fretboard.js';
 import { STYLES, levelsOf, regroup, phraseHits } from './practice/styles.js';
 import { PIECES } from './drums.js';
+import { checkLicks, default as LICK_TEMPLATES } from './curriculum/licks.js';
+import { PENTATONIC_LICKS } from './curriculum/pentatonics.js';
 import * as T from './theory.js';
 import { GENRES } from './practice/styles.js';
 import { HARMONY_PROGS, PROG_KEYS } from './practice/harmony.js';
@@ -146,6 +148,8 @@ export function run({ strings = [4, 5, 6], verbose = false } = {}) {
   const problems = [];
   let builds = 0, notes = 0;
   checkCourse(problems, strings);
+  // every written phrase (licks, pentatonic studies) fills its chords exactly
+  problems.push(...checkLicks([...LICK_TEMPLATES, ...PENTATONIC_LICKS]));
   checkDrums(problems);
   checkPro(problems);
   // every exercise has its own number (its place in the Library: level, topic, module order)

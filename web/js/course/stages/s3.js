@@ -295,6 +295,58 @@ export default {
       },
     },
     {
+      // (added 2026-10-28, user: pentatonic studies inspired by modern bass teaching, every line original)
+      id: 'u-pent3', title: 'Pentatonic colours', added: 1793180000000,
+      goal: 'One minor pentatonic box in three places over one chord, and grooves where the key\'s box fits every chord.',
+      lessons: [
+        {
+          id: 'pent-three-boxes', title: 'One box, three places',
+          idea: 'Over a minor chord the box fits on its root, a whole step up and on its 5th.',
+          concept: [
+            'The minor pentatonic on the root of a minor chord is the safe choice, and on its own it can sound like one box going up and down. The same shape fits two more places over the same chord. A whole step up it brings the 6th (the app names it 13): the Dorian sound of funk and soul. On the 5th it brings the 9th: bright and singing.',
+            'No new shape to learn: the fingering stays the same and only the hand moves. Cycle the box through the three places first, then groove in the home box and borrow one colour note at a time.',
+          ],
+          steps: [
+            { ex: 'sc-pent-three-boxes', p: { lick: '0' }, from: 60, goal: 84, backing: 'chords', do: 'The box on the root, a whole step up, on the 5th, then home. Same fingering: only the hand moves.' },
+            { ex: 'sc-pent-three-boxes', p: { lick: '1' }, from: 64, goal: 88, backing: 'chords', do: 'Home box, plus the 6th (13) from the box a whole step up. Make that note sing.' },
+            { ex: 'sc-pent-three-boxes', p: { lick: '2' }, from: 64, goal: 88, backing: 'chords', do: 'Home box, plus the 9th from the box on the 5th.' },
+            { ex: 'sc-pent-three-boxes', p: { lick: '3' }, from: 64, goal: 88, backing: 'chords', music: true, do: 'Both colours in one groove. Then pick one colour note and build your own line around it.' },
+          ],
+          mistakes: [
+            'Changing the fingering in each place. The shape is the same: move the hand, not the fingers.',
+            'Using the colour notes all the time. One or two per phrase is plenty; the home box carries the groove.',
+          ],
+        },
+        {
+          id: 'pent-minor-grooves', title: 'One pentatonic, three chords',
+          idea: 'Over i – ♭VII – ♭VI the key\'s minor pentatonic fits every chord.',
+          concept: [
+            'In i – ♭VII – ♭VI (Em7 – D – Cmaj7 in E minor) the roots fall a step at a time, and the minor pentatonic of the key fits all three chords: over the ♭VII its notes become the 9th, 11th, 5th and 13th, over the ♭VI the 3rd, 5th, 7th and 9th. So the line stays in one familiar box while the harmony moves under it.',
+            'Each groove puts the roots on beat 1 and ends the phrase with a fill that leads back to the top. When a groove is easy, keep the chords and the form and make your own line: play too much first, then take notes away until only the best are left.',
+          ],
+          steps: [
+            { ex: 'sc-pent-minor-grooves', p: { lick: '0' }, from: 66, goal: 92, backing: 'chords', do: 'Falling roots, and a fill to close the phrase. Keep the rests empty.' },
+            { ex: 'sc-pent-minor-grooves', p: { lick: '1' }, from: 60, goal: 84, backing: 'chords', do: '16ths from the box: octaves and the notes between them.' },
+            { ex: 'sc-pent-minor-grooves', p: { lick: '2' }, from: 66, goal: 92, backing: 'chords', music: true, do: 'Half-time, with space. Then play your own line over the same chords.' },
+          ],
+          mistakes: [
+            'Losing the root on beat 1 when the chord changes. The fill may wander; the downbeats tell the band where it is.',
+            'Filling every gap. The space is part of the groove.',
+          ],
+        },
+      ],
+      check: {
+        can: [
+          'I can move one minor pentatonic box to the root, a whole step up and the 5th of a minor chord.',
+          'I can groove over i – ♭VII – ♭VI from the key\'s pentatonic and close the phrase with a fill.',
+        ],
+        steps: [
+          { ex: 'sc-pent-three-boxes', p: { lick: '3' }, from: 72, goal: 96, backing: 'chords' },
+          { ex: 'sc-pent-minor-grooves', p: { lick: '0' }, from: 76, goal: 100, backing: 'chords' },
+        ],
+      },
+    },
+    {
       id: 'u-sequences', title: 'Linear scales and sequences',
       goal: 'Scales along one string, three notes per string, sequences and intervals through the key.',
       lessons: [

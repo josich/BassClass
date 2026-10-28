@@ -4,6 +4,7 @@ import technique from './technique.js';
 import rhythm from './rhythm.js';
 import intervals from './intervals.js';
 import scales from './scales.js';
+import pentatonics from './pentatonics.js';
 import modes from './modes.js';
 import triads from './triads.js';
 import arpeggios from './arpeggios.js';
@@ -42,7 +43,7 @@ export const MODULES = [
   { id: 'music', name: 'Make Music', icon: '🎵', desc: 'Original lines in the style of famous songs, from the first riff to a whole bass solo.' },
 ];
 
-const ALL = [...fretboard, ...reading, ...technique, ...rhythm, ...intervals, ...ear, ...scales, ...modes, ...triads, ...arpeggios, ...harmony, ...grooves, ...licks, ...songs];
+const ALL = [...fretboard, ...reading, ...technique, ...rhythm, ...intervals, ...ear, ...scales, ...pentatonics, ...modes, ...triads, ...arpeggios, ...harmony, ...grooves, ...licks, ...songs];
 {
   const seen = new Set();
   for (const t of ALL) {

@@ -231,6 +231,79 @@ export default {
       },
     },
     {
+      // (added 2026-10-28, user: pentatonic studies inspired by modern bass teaching, every line original)
+      id: 'u-pent4', title: 'Pentatonic colours on any chord', added: 1793180000000,
+      goal: 'One pentatonic over many chords, minor pentatonics on a major chord, and the groove-and-fill phrase.',
+      lessons: [
+        {
+          id: 'pent-one-phrase', title: 'One phrase, many chords',
+          idea: 'Keep the phrase; let the chord change its colour.',
+          concept: [
+            'Keep one short C minor pentatonic phrase and let the chord move under it. Over Cm7 it is at home; over A♭maj7 its notes become the 3rd, 5th, 13th, 7th and 9th; over F7sus4 and B♭7sus4 they sound open; over D♭maj7 the G is the Lydian ♯11. One shape, many colours.',
+            'Play first and think later: loop each version, listen to how every chord changes the feeling of the same notes, then read the labels to see why. Then improvise from the same box over the same chords.',
+          ],
+          steps: [
+            { ex: 'sc-pent-one-phrase', p: { lick: '0' }, from: 70, goal: 96, backing: 'chords', do: 'The same phrase over Cm7, then A♭maj7. Listen to the colour change.' },
+            { ex: 'sc-pent-one-phrase', p: { lick: '1' }, from: 70, goal: 96, backing: 'chords', do: 'Four colours: Cm7, A♭maj7, F7sus4, D♭maj7. Watch the G become the ♯11.' },
+            { ex: 'sc-pent-one-phrase', p: { lick: '2' }, from: 70, goal: 96, backing: 'chords', do: 'A new phrase over B♭7sus4, E♭maj7, Fm7 and Cm7.' },
+            { ex: 'sc-pent-one-phrase', p: { lick: '3' }, from: 70, goal: 96, backing: 'chords', music: true, do: 'The whole tour. Then play phrases of your own from the box over the same chords.' },
+          ],
+          mistakes: [
+            'Changing the phrase when the chord changes. Let the chord do the work.',
+            'Practising without the chords. Turn the backing on: the colour is in the chord under the notes.',
+          ],
+        },
+        {
+          id: 'pent-major-chord', title: 'Minor pentatonics on a major chord',
+          idea: 'On the 3rd, the 6th and the 7th of a major chord, the minor box adds colour.',
+          concept: [
+            'Over a major chord three minor pentatonics add colour without leaving it. Over C, the one on the 3rd (E minor) is bright and lifting; the one on the 6th (A minor, the relative minor) is open and sweet; the one on the 7th (B minor) brings the F♯, a ♯11: the floating Lydian sound, still major.',
+            'Keep the groove plain (root, 5th and octave) and put the colour in the fill at the end of the phrase. The plainer the groove, the more the fill stands out.',
+          ],
+          steps: [
+            { ex: 'sc-pent-major-chord', p: { lick: '0' }, from: 70, goal: 96, backing: 'chords', do: 'Three bars of roots and 5ths, then a fill from the minor pentatonic on the 3rd.' },
+            { ex: 'sc-pent-major-chord', p: { lick: '1' }, from: 70, goal: 96, backing: 'chords', do: 'The fill from the minor pentatonic on the 6th: the scale in time, landing home.' },
+            { ex: 'sc-pent-major-chord', p: { lick: '2' }, from: 70, goal: 96, backing: 'chords', do: 'The fill from the minor pentatonic on the 7th: the Lydian ♯4.' },
+            { ex: 'sc-pent-major-chord', p: { lick: '3' }, from: 70, goal: 96, backing: 'chords', music: true, do: 'All three in turn, a groove between each.' },
+          ],
+          mistakes: [
+            'Colour in every bar. A fill at the end of the phrase is enough.',
+            'Not landing back on the root: the colour only works when the groove comes home.',
+          ],
+        },
+        {
+          id: 'pent-groove-fill', title: 'Groove bar, fill bar',
+          idea: 'A bar that holds the band down, a bar that answers it up the neck.',
+          concept: [
+            'A classic bass phrase is two bars long: a groove low on the neck, then a fill up high that answers it. Here the groove stays on Cm7 and the chord under the fill changes from phrase to phrase (Cm7, D♭maj7, B♭7sus4, A♭maj7), while the fill stays in the C minor pentatonic.',
+            'The move between registers is part of the exercise: shift during the last beat of the groove, land the fill in time and be back on the low root for beat 1.',
+          ],
+          steps: [
+            { ex: 'sc-pent-groove-fill', p: { lick: '0' }, from: 66, goal: 92, backing: 'chords', do: 'Groove, then the fill over the same chord. Shift on the last beat of the groove.' },
+            { ex: 'sc-pent-groove-fill', p: { lick: '1' }, from: 66, goal: 92, backing: 'chords', do: 'The fill over D♭maj7: Lydian colours from the same box.' },
+            { ex: 'sc-pent-groove-fill', p: { lick: '2' }, from: 66, goal: 92, backing: 'chords', do: 'The fill over B♭7sus4.' },
+            { ex: 'sc-pent-groove-fill', p: { lick: '4' }, from: 66, goal: 92, backing: 'chords', music: true, do: 'All four in a row. Then keep the groove and make up each fill.' },
+          ],
+          mistakes: [
+            'Arriving late on beat 1 after the fill. The groove starts exactly on time.',
+            'Shifting on the first note of the fill. Move during the last beat of the groove.',
+          ],
+        },
+      ],
+      check: {
+        can: [
+          'I can keep one pentatonic phrase while the chords change and hear each new colour.',
+          'I can colour a major chord with the minor pentatonics on its 3rd, 6th and 7th.',
+          'I can play a groove bar and a fill bar up the neck without losing beat 1.',
+        ],
+        steps: [
+          { ex: 'sc-pent-one-phrase', p: { lick: '3' }, from: 80, goal: 104, backing: 'chords' },
+          { ex: 'sc-pent-major-chord', p: { lick: '3' }, from: 80, goal: 104, backing: 'chords' },
+          { ex: 'sc-pent-groove-fill', p: { lick: '4' }, from: 76, goal: 100, backing: 'chords' },
+        ],
+      },
+    },
+    {
       id: 'u-minor', title: 'Minor scales and minor harmony',
       goal: 'Harmonic and melodic minor, the chords they make, and minor-key progressions.',
       lessons: [

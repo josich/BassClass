@@ -42,6 +42,7 @@ const KEY_PCS = {
   major: [0, 2, 4, 5, 7, 9, 11],
   minor: [0, 2, 3, 5, 7, 8, 9, 10, 11], // natural, harmonic and melodic minor together
   blues: [0, 2, 3, 4, 5, 7, 9, 10],     // Mixolydian + the blue ♭3
+  lydian: [0, 2, 4, 6, 7, 9, 11],       // a minor pentatonic on the 7th of a major chord brings its ♯4 (pentatonics.js)
 };
 // names of non-chord tones by semitones above the chord root (jazz usage: ♭9, ♯9, ♯11, ♭13…)
 const SEMI_NAME = ['R', '♭9', '9', '♯9', '3', '11', '♯11', '5', '♭13', '13', '♭7', '7'];
@@ -177,14 +178,18 @@ const canSwing = (lick) => lick.feel !== 'straight' && parseLick(lick.notes).not
 
 const feelP = sel('Feel', [['swing', 'Swing 8ths'], ['straight', 'Straight 8ths']]);
 
-function lickTemplate(def) {
-  const { licks, minor = false, keys = minor ? 'minor' : 'major', blue = false, ...meta } = def;
-  const key = keyP(minor ? T.SCALES.aeolian.iv : T.SCALES.ionian.iv, { suffix: minor ? 'm' : '' });
+/**
+ * An exercise of written phrases (`licks`, each over its own chords). Other modules use it too (pentatonics.js):
+ * `module` (licks by default) and `defKey` (the key it opens in, C by default).
+ */
+export function lickTemplate(def) {
+  const { licks, minor = false, keys = minor ? 'minor' : 'major', blue = false, defKey = '0', ...meta } = def;
+  const key = keyP(minor ? T.SCALES.aeolian.iv : T.SCALES.ionian.iv, { suffix: minor ? 'm' : '', def: defKey });
   // the key chips name minor keys (C♯m, not D♭) when the chosen lick is over a minor chord
   if (licks.some((l) => l.minor != null)) key.minorWhen = (p) => !!(licks[Number(p.lick)] || licks[0]).minor;
   return ex({
     ...meta,
-    module: M,
+    module: meta.module || M,
     label: 'degree',
     params: {
       lick: sel('Lick', licks.map((l, i) => [String(i), l.name])),
