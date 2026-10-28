@@ -40,6 +40,8 @@ MONETIZATION-PLAN.md. Tick items off here as they are done; the user's decisions
 
 ## Still ours (code and texts)
 
+- [ ] **Freeze the numbers** (user, 2026-10-28): just before the launch, renumber the exercises (`web/js/curriculum/numbers.js`, level + two digits) and the lessons (`web/js/course/numbers.js`, stage + number) once, in course order, so the first public numbers are tidy; after the launch never change a number again (new content takes the next free one, removed numbers are retired).
+
 - [ ] **The Play build**: a `play` flavour that builds an App Bundle (`bundleRelease`) beside the GitHub APK, writes
   `window.BASS_STORE = "play"` first in the page (the gates on, the debug panel gone), and is signed for Play (see
   "Signing" below).

@@ -12,6 +12,8 @@ import { STYLES, levelsOf, regroup, phraseHits } from './practice/styles.js';
 import { PIECES } from './drums.js';
 import { checkLicks, default as LICK_TEMPLATES } from './curriculum/licks.js';
 import { PENTATONIC_LICKS } from './curriculum/pentatonics.js';
+import { NUMBERS, RETIRED } from './curriculum/numbers.js';
+import { LESSON_NUMBERS, RETIRED_LESSONS } from './course/numbers.js';
 import * as T from './theory.js';
 import { GENRES } from './practice/styles.js';
 import { HARMONY_PROGS, PROG_KEYS } from './practice/harmony.js';
@@ -103,6 +105,34 @@ function checkPro(problems) {
   }
 }
 
+/**
+ * Numbers kept for good (user, 2026-10-28): every exercise has one in curriculum/numbers.js, unique, its level's
+ * hundreds (305 = Level 3), never a retired one; every lesson one in course/numbers.js, unique in its stage.
+ */
+function checkNumbers(problems) {
+  const seen = new Map();
+  for (const t of EXERCISES) {
+    if (t.provisional) problems.push(`numbers: ${t.id} has no number: write ${t.num} (the next free in Level ${t.level}) in curriculum/numbers.js`);
+    else if (Math.floor(t.num / 100) !== t.level || t.num % 100 === 0) problems.push(`numbers: ${t.id} is ${t.num}, outside Level ${t.level}'s ${t.level}01–${t.level}99`);
+    if (seen.has(t.num)) problems.push(`numbers: ${t.num} is given to ${seen.get(t.num)} and ${t.id}`);
+    seen.set(t.num, t.id);
+    if (RETIRED.includes(t.num)) problems.push(`numbers: ${t.id} has the retired number ${t.num}`);
+  }
+  for (const id of Object.keys(NUMBERS)) if (!byId.has(id)) problems.push(`numbers: ${id} (${NUMBERS[id]}) is not an exercise: move its number to RETIRED`);
+  const perStage = new Map();
+  for (const l of LESSONS.filter((x) => x.kind === 'lesson')) {
+    const n = LESSON_NUMBERS[l.id];
+    if (n == null) { problems.push(`numbers: lesson ${l.id} has no number: write ${l.num.split('.')[1]} (the next free in Stage ${l.stage.level}) in course/numbers.js`); continue; }
+    const key = `${l.stage.level}.${n}`;
+    if (!perStage.has(l.stage.level)) perStage.set(l.stage.level, new Map());
+    const m = perStage.get(l.stage.level);
+    if (m.has(n)) problems.push(`numbers: lesson ${key} is given to ${m.get(n)} and ${l.id}`);
+    m.set(n, l.id);
+    if (RETIRED_LESSONS.includes(key)) problems.push(`numbers: lesson ${l.id} has the retired number ${key}`);
+  }
+  for (const id of Object.keys(LESSON_NUMBERS)) if (!lessonById.get(id) || lessonById.get(id).kind !== 'lesson') problems.push(`numbers: ${id} (${LESSON_NUMBERS[id]}) is not a lesson: move its number to RETIRED_LESSONS`);
+}
+
 function checkCourse(problems, strings) {
   // a changed step must exist (its stored records are dropped once)
   CHANGED_STEPS.forEach((c, i) => {
@@ -152,8 +182,7 @@ export function run({ strings = [4, 5, 6], verbose = false } = {}) {
   problems.push(...checkLicks([...LICK_TEMPLATES, ...PENTATONIC_LICKS]));
   checkDrums(problems);
   checkPro(problems);
-  // every exercise has its own number (its place in the Library: level, topic, module order)
-  for (const t of EXERCISES) if (!(t.num > 0) || byNumber.get(t.num) !== t) problems.push(`${t.id}: missing or duplicate number ${t.num}`);
+  checkNumbers(problems);
   for (const st of strings) {
     const S = { strings: st, notation: 'letters', maxFret: 20 };
     const ctx = makeCtx(S);
@@ -198,7 +227,7 @@ export async function catalogue() {
   const lines = [
     '# BassClass exercise catalogue', '',
     `${C.EXERCISES.length} exercise families. Each runs in any key (or all 12 keys in a row) and has its own variations (patterns, inversions, scales, positions, rhythms), so the number of distinct drills runs into the thousands.`, '',
-    'Generated from `web/js/curriculum/` (run `saveCatalogue()` from `js/selftest.js` to refresh). # = the exercise number shown in the app (its place in the Library: level, then topic, then the order of its module). ★ = core exercise.', '',
+    'Generated from `web/js/curriculum/` (run `saveCatalogue()` from `js/selftest.js` to refresh). # = the exercise number shown in the app: its level, then two digits (305 = Level 3), kept for good (`curriculum/numbers.js`). ★ = core exercise.', '',
     '## By level', '',
   ];
   for (const L of C.LEVELS) {

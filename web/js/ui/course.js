@@ -408,7 +408,7 @@ export function courseScreen(main) {
         h('summary', { class: 'section stage-head' }, h('span', { class: `chip lv lv${stage.level}` }, `Stage ${si + 1}`), h('h2', {}, stage.title), proChip(levelLocked(stage.level) ? `Stage ${stage.level} is part of BassClass Pro` : null), infoBtn(listLines(stage.desc), `About Stage ${si + 1}`), h('span', { class: 'muted small' }, `${done}/${list.length} lessons${known ? ` (${known} known)` : ''}`)),
         h('div', { class: 'grid unit-grid' },
           UNITS.filter((u) => u.stage === stage).map((u) => h('div', { class: 'unit-card' },
-            h('h3', {}, h('span', { class: 'ex-num' }, u.n), u.title, infoBtn(u.goal, `About unit ${u.n}`)),
+            h('h3', {}, u.title, infoBtn(u.goal, `About ${u.title}`)),
             h('div', { class: 'les-list' }, u.list.map(row)))),
           stage.lessons.filter((l) => l.kind === 'test').map((l) => h('div', { class: 'unit-card test' },
             h('h3', {}, '★ Stage test'), h('div', { class: 'les-list' }, row(l))))));

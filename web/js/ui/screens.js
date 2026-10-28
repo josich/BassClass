@@ -211,7 +211,7 @@ function levelSections() {
   const open = libOpen();
   return LEVELS.flatMap((L) => {
     // inside a level: the path's topic order (hands and time first), then by number
-    const list = byLevel(L.n).sort((a, b) => rank(a.module) - rank(b.module) || a.num - b.num);
+    const list = byLevel(L.n).sort((a, b) => a.order - b.order);
     if (!list.length) return [];
     const done = list.filter((t) => (getProgress(t.id) || {}).done).length;
     const fold = h('details', { class: 'lv-fold', id: `lv-${L.n}`, open: open.has(L.n) },
@@ -267,7 +267,7 @@ export function libraryScreen(main, params = {}) {
       const song = t.song ? `${t.song.name} ${t.song.artist} ${t.song.year}` : '';
       const hay = norm(`${t.title} ${t.summary} ${t.about} ${t.module} ${moduleOf(t.module)?.name || ''} ${song} ${optionText(t)}`);
       return words.every((w) => hay.includes(w));
-    }).sort((a, b) => a.num - b.num);
+    }).sort((a, b) => a.order - b.order);
     results.replaceChildren(list.length
       ? h('div', {}, h('p', { class: 'muted small' }, `${list.length} exercise${list.length > 1 ? 's' : ''} found`), h('div', { class: 'grid' }, list.map((t) => card(t))))
       : h('p', { class: 'muted' }, 'Nothing found.'));
