@@ -1,6 +1,6 @@
 // BassClass Pro (MONETIZATION-PLAN.md; the user's decisions of 2026-10-27): a free app with one payment, once, that
 // opens the rest for good. Free, everywhere: Levels 1–3 (the Library's exercises and song studies, the Course's
-// Stages 1–3, and the first two lessons of each later stage, to try it: user, 2026-10-28), the tuner, the whole
+// Stages 1–3, and two lessons of each later stage, to try it: user, 2026-10-28), the tuner, the whole
 // metronome, the Neck, the drone, the log and backup, and the Practice room's
 // starter set (three drum patterns of each genre, the Pop & rock and Blues progressions, My progression and its
 // ✎ Edit, the Pad, E-piano and Arpeggio sounds). Pro: Levels 4–6, every drum pattern and the fills, every other
@@ -24,8 +24,8 @@ export const TIPS = [['bassclass_tip_2', '€2'], ['bassclass_tip_4', '€4']];
 export const PRICE = '€7.99';
 export const FREE_LEVELS = 3;
 export const FREE_DRUMS = 3;   // patterns of each genre
-// lessons of each Pro stage free to try (user, 2026-10-28: "this way it can be checked a bit"): marked `free: true` in
-// the stage's file, so a stage that grows keeps the same ones; their steps play inside the lesson, the exercises stay
+// lessons of each Pro stage free to try (user, 2026-10-28: "this way it can be checked a bit"; representative ones,
+// "something more theoretic": scales, modes, two-octave arpeggios): marked `free: true` in the stage's file; their steps play inside the lesson, the exercises stay
 // Pro in the Library (the self-test counts them)
 export const FREE_TASTE = 2;
 // (My progression is free too, with ✎ Edit: user, 2026-10-28, "make the app useful in any plan, even free")

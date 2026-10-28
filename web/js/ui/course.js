@@ -51,6 +51,12 @@ const demoStep = (l) => l.steps.findIndex((s) => s.goal);
 // as it was planned until it is marked as practised.
 const isEar = (id) => ['ear', 'reading'].includes(byId.get(id).module) || id === 'iv-ear-quiz';
 const practised = (l) => ['done', 'known'].includes(status(l));
+/** A free player whose next lesson is Pro: the next lesson free to try in its stage (pro.js FREE_TASTE), or null
+ * (a later stage's are on the map). */
+function tryLesson(cont) {
+  if (!cont || !lessonLock(cont)) return null;
+  return LESSONS.slice(LESSONS.indexOf(cont)).find((l) => l.stage === cont.stage && l.kind === 'lesson' && !l.optional && !practised(l) && !lessonLock(l)) || null;
+}
 const WARM = ['technique', 'fretboard', 'rhythm'];
 export const FOCUS = [
   { name: 'Scales', of: (t) => ['scales', 'modes'].includes(t.module) },
@@ -168,7 +174,8 @@ function buildSession(minutes, cur, history) {
   const level = isPro() ? cur.level : Math.min(cur.level, FREE_LEVELS);
   let cont = continueLesson();
   const proNext = cont && lessonLock(cont);
-  if (proNext) cont = null;
+  // (the next lesson is Pro: a lesson free to try in its place, if one is left)
+  if (proNext) cont = tryLesson(cont);
   const recent = new Set(history.slice(0, 2).flatMap((s) => s.ids));
   const items = [];
   const has = (id) => items.some((x) => x.id === id);
@@ -277,18 +284,20 @@ const listLines = (text) => text.replace(/\.$/, '').split(/,\s+(?:and\s+)?/).map
 /** Where the course goes on: one button, and the map in the corner. */
 export function courseBlock() {
   const cont = continueLesson();
+  // a free player whose next lesson is Pro: the next lesson free to try, while one is left (FREE_TASTE)
+  const taste = tryLesson(cont);
   // a free player whose next lesson is Pro, or who knows every stage (placed): the free stages are behind them,
   // the rest is Pro, and today's session keeps them practising (QA round 19: no bare wall, no "Course complete" for
   // stages never opened)
-  const proWall = !isPro() && (!cont || lessonLock(cont)) && LESSONS.some((l) => lessonLock(l));
+  const proWall = !taste && !isPro() && (!cont || lessonLock(cont)) && LESSONS.some((l) => lessonLock(l));
   // one row: the title, where the course goes on, the map in the corner
   return h('section', { class: 'block course-block' },
-    h('div', { class: 'block-head course-row' }, h('h2', {}, '🎓 Course'), infoBtn(isPro() ? COURSE_INFO : [...COURSE_INFO.slice(0, -1), `🔓 Stages 1–${FREE_LEVELS} free, ${FREE_LEVELS + 1}–6 with Pro: their first ${FREE_TASTE} lessons free to try · Map: every lesson`], 'About the course'),
+    h('div', { class: 'block-head course-row' }, h('h2', {}, '🎓 Course'), infoBtn(isPro() ? COURSE_INFO : [...COURSE_INFO.slice(0, -1), `🔓 Stages 1–${FREE_LEVELS} free, ${FREE_LEVELS + 1}–6 with Pro: ${FREE_TASTE} lessons of each free to try · Map: every lesson`], 'About the course'),
       proWall
         ? h('div', { class: 'course-done course-wall grow' }, `✓ Stages 1–${FREE_LEVELS}`, h('button', { class: 'btn small locked', onClick: () => openPro(`Stage ${cont ? cont.stage.level : FREE_LEVELS + 1} is part of BassClass Pro`, { then: () => { if (cont) go(lessonHref(cont)); } }) }, `Stages ${FREE_LEVELS + 1}–6`, proChip('Pro')))
         : cont
-          ? h('button', { class: 'btn primary course-go', onClick: () => go(lessonHref(cont)) },
-            h('b', {}, anyProgress() || placed() ? '▶ Continue' : '▶ Start'), h('span', {}, lessonName(cont)))
+          ? h('button', { class: 'btn primary course-go', onClick: () => go(lessonHref(taste || cont)) },
+            h('b', {}, taste ? '▶ Try free' : anyProgress() || placed() ? '▶ Continue' : '▶ Start'), h('span', {}, lessonName(taste || cont)))
           : h('div', { class: 'course-done grow' }, '✓ Course complete'),
       h('button', { class: 'btn map-btn', title: 'Course map: every lesson', onClick: () => go('#/course') }, h('span', { html: icon('path') }), 'Map')));
 }
@@ -611,6 +620,7 @@ export function placementScreen(main) {
     // (a free player whose starting point is Pro: what the session holds meanwhile: QA round 19)
     const free = !isPro();
     toast(cont && !lessonLock(cont) ? `Start here: ${lessonName(cont)}`
+      : free && tryLesson(cont) ? `Your starting point is Stage ${cont.stage.level}, part of BassClass Pro: try it free with ${lessonName(tryLesson(cont))}`
       : free ? `Your starting point is Stage ${cont ? cont.stage.level : 6}, part of BassClass Pro: today's session keeps you practising Levels ${FREE_LEVELS - 1}–${FREE_LEVELS} meanwhile`
         : `You know ${stagesName()}: today's session brings Library exercises from Levels 5 and 6`, 4500);
     // back to where the check was opened from (the map or Home), which now shows the starting point

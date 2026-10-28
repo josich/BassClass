@@ -8,8 +8,7 @@ export default {
       goal: 'Odd groupings and alternating 3rds around all 12 keys without stopping.',
       lessons: [
         {
-          // (free to try: the first two lessons of a Pro stage, user 2026-10-28; pro.js FREE_TASTE)
-          id: 'odd-groupings', title: 'Odd groupings in 16ths', free: true,
+          id: 'odd-groupings', title: 'Odd groupings in 16ths',
           idea: 'Groups of 5 in 16ths, around all 12 keys: time, neck and stamina at once.',
           concept: [
             'Phrase the scale in groups of 5 while playing 16ths. Each group starts on a different part of the beat, and you go around all 12 keys without stopping. It tests time, knowledge of the neck and stamina at the same time.',
@@ -24,7 +23,7 @@ export default {
           ],
         },
         {
-          id: 'alternating-3rds', title: 'Alternating 3rds in all keys', free: true,
+          id: 'alternating-3rds', title: 'Alternating 3rds in all keys',
           idea: 'Wide, zig-zag lines, every key, no stopping.',
           concept: [
             'Alternating-direction intervals make wide, melodic lines that are hard to play cleanly. Taking them around all 12 keys without stopping is a mastery drill for ears, eyes and hands.',
@@ -100,7 +99,8 @@ export default {
           ],
         },
         {
-          id: 'sevenths-all-keys', title: 'The 7th chords of every key',
+          // (free to try: user 2026-10-28; pro.js FREE_TASTE)
+          id: 'sevenths-all-keys', title: 'The 7th chords of every key', free: true,
           idea: 'Imaj7 up, iim7 down, iiim7 up… then the next key.',
           concept: [
             'Every diatonic 7th chord of every key, without stopping: Imaj7 up, iim7 down, iiim7 up, then the next key in the cycle. Switch inversions and scales (harmonic and melodic minor) for a complete workout.',
@@ -149,7 +149,8 @@ export default {
           ],
         },
         {
-          id: 'harmonic-major', title: 'The modes of harmonic major',
+          // (free to try: user 2026-10-28; pro.js FREE_TASTE)
+          id: 'harmonic-major', title: 'The modes of harmonic major', free: true,
           idea: 'Major with a ♭6: major with a dark edge.',
           concept: [
             'Harmonic major is the major scale with a ♭6 (C D E F G A♭ B). With major, harmonic minor and melodic minor it completes the four parent scales of modern harmony. It keeps the major I chord but borrows the minor iv and the °7 on the 7th degree.',

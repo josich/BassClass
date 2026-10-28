@@ -8,8 +8,7 @@ export default {
       goal: 'Permutations across the strings, p-i-m arpeggios, polyrhythms and sweeps.',
       lessons: [
         {
-          // (free to try: the first two lessons of a Pro stage, user 2026-10-28; pro.js FREE_TASTE)
-          id: 'perm-across', title: 'Permutations across the strings', free: true,
+          id: 'perm-across', title: 'Permutations across the strings',
           idea: 'Each finger keeps its fret; every note moves to the next string.',
           concept: [
             'A harder take on the 24 permutations: the four fingers stay in their frets (one finger per fret), but every note moves to the next string. Permutation 1-3-2-4 becomes E string finger 1, A finger 3, D finger 2, G finger 4. Both hands cross strings on every note: one of the most demanding coordination drills there is.',
@@ -24,7 +23,7 @@ export default {
           ],
         },
         {
-          id: 'pim', title: 'Thumb, index and middle', free: true,
+          id: 'pim', title: 'Thumb, index and middle',
           idea: 'Thumb for the bass, fingers for the upper strings, like a classical guitarist.',
           concept: [
             'Chordal and solo bassists use the thumb (p) for the bass notes and the index and middle fingers (i, m) for the upper strings. One plucking finger per string lets you play wide arpeggios at speed. The pattern spreads each chord as root (p), 5th (i), 10th (m), 5th (i).',
@@ -173,7 +172,8 @@ export default {
       goal: 'Bebop scales, the 6th-diminished scale, diminished-chord tricks and chromatic approaches.',
       lessons: [
         {
-          id: 'bebop-scales', title: 'Bebop scales',
+          // (free to try: user 2026-10-28; pro.js FREE_TASTE)
+          id: 'bebop-scales', title: 'Bebop scales', free: true,
           idea: 'Eight notes: descending 8ths land chord tones on the beats.',
           concept: [
             'The bebop dominant scale adds a major 7th to Mixolydian; bebop major adds a ♯5 to major. With eight notes, an 8th-note run descending from the root lands chord tones on the downbeats: the secret of bebop lines and of good walking bass.',
@@ -268,7 +268,8 @@ export default {
           ],
         },
         {
-          id: 'melodic-modes', title: 'The modes of melodic minor',
+          // (free to try: user 2026-10-28; pro.js FREE_TASTE)
+          id: 'melodic-modes', title: 'The modes of melodic minor', free: true,
           idea: 'Lydian dominant, Locrian ♮2, altered: modern jazz from one scale.',
           concept: [
             'Melodic minor produces the key scales of modern jazz: Lydian dominant (4th mode) over 7♯11 chords, Locrian ♮2 (6th mode) over m7♭5 and the altered scale (7th mode) over altered dominants. Play all seven from the same parent and hear one set of notes make seven colours.',

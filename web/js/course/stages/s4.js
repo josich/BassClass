@@ -8,8 +8,7 @@ export default {
       goal: 'A wider hand, minutes of steady 16ths, and the natural harmonics.',
       lessons: [
         {
-          // (free to try: the first two lessons of a Pro stage, user 2026-10-28; pro.js FREE_TASTE)
-          id: 'stretch', title: 'Stretching towards the nut', free: true,
+          id: 'stretch', title: 'Stretching towards the nut',
           idea: 'One finger per fret, a fret lower each pass, and never through tension.',
           concept: [
             'Starting high on the neck, play 1-2-3-4 across all the strings and move down one fret per pass. As you approach the nut the frets get wider and the stretch grows. Stop as soon as you feel tension: over weeks you will reach the first position comfortably.',
@@ -25,7 +24,7 @@ export default {
           ],
         },
         {
-          id: 'endurance', title: 'Endurance 16ths', free: true,
+          id: 'endurance', title: 'Endurance 16ths',
           idea: 'Minutes of even 16ths: relax, breathe, keep the spacing.',
           concept: [
             'Rock, metal and dance music often need minutes of continuous 16ths. Play the root of each chord in 16ths and keep the volume and the spacing even from the first bar to the last.',
@@ -172,7 +171,8 @@ export default {
           ],
         },
         {
-          id: 'major-positions', title: 'The 7 positions of the major scale',
+          // (free to try: user 2026-10-28; pro.js FREE_TASTE)
+          id: 'major-positions', title: 'The 7 positions of the major scale', free: true,
           idea: 'Seven boxes, one per scale degree, and the neck is one key.',
           concept: [
             'Each position starts on a different scale degree on the E string and covers every note of the key within one hand span. They are numbered from the root: Position 1 starts on the root, Position 2 on the next note, and so on. Together they connect the whole neck in one key.',
@@ -594,7 +594,8 @@ export default {
           ],
         },
         {
-          id: 'two-octave-7ths', title: 'Two-octave 7th arpeggios',
+          // (free to try: user 2026-10-28; pro.js FREE_TASTE)
+          id: 'two-octave-7ths', title: 'Two-octave 7th arpeggios', free: true,
           idea: 'Plan the shift at the octave and keep it the same coming down.',
           concept: [
             'Two-octave arpeggios are typical of the intermediate grades of graded exams. Play the first octave in position, shift at the octave and repeat the shape higher.',
