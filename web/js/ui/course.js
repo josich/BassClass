@@ -254,7 +254,7 @@ const SESSION_INFO = [
   '🔥 2 warm-ups · + More warm-up for another',
   '↻ The reviews that are due',
   '▶ The next steps of the course',
-  '🎧 Hear it: a new lesson\'s example, played once: just listen and watch the neck',
+  '🎧 Hear it: a new lesson\'s exercise, played once for you: listen and watch the neck, then play it',
   '🧭 A focus topic, a new one each session',
   '⏱ Warm-ups ~3 min, the rest ~5 min · ✓ once played through',
   '✓ Practised: the next session follows on',
@@ -307,7 +307,8 @@ export function sessionBlock({ onLength } = {}) {
     all.reduce((k, it, i) => { nums[i] = it.demo ? null : k + 1; return it.demo ? k : k + 1; }, 0);
     const row = (it, i) => {
       const done = isPlayed(it);
-      const title = it.demo ? `Hear it: ${lessonOf(it).title}` : byId.get(it.id).title;
+      // (a demo is named after the exercise it plays, not its lesson: user, 2026-10-28)
+      const title = `${it.demo ? 'Hear it: ' : ''}${byId.get(it.id).title}`;
       return h('div', { class: `item${done ? ' played' : ''}${it.demo ? ' demo' : ''}`, title: it.demo ? 'Listen: the app plays this lesson\'s example once' : null, onClick: () => start(i) },
         h('div', { class: 'n', 'aria-label': it.demo ? 'Listen' : null }, done ? '✓' : it.demo ? '🎧' : nums[i]),
         h('div', { class: 't' }, h('b', {}, title)),
