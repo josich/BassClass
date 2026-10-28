@@ -12,7 +12,7 @@ import { buy, prices, restorePro, canBuy } from '../billing.js';
 let openNow = null;
 
 /** The free part, in one line (the sheet, Settings' Pro ⓘ, About's terms). */
-export const FREE_LINE = `Levels 1–${FREE_LEVELS} of the course and the Library, the tuner, the whole metronome, and the Practice room's starter set: 3 drum patterns of each genre, the Pop & rock and Blues progressions, the drone and the Neck`;
+export const FREE_LINE = `Levels 1–${FREE_LEVELS} of the course and the Library, the tuner, the whole metronome, and the Practice room's starter set: 3 drum patterns of each genre, the Pop & rock and Blues progressions, My progression, the drone and the Neck`;
 
 /** Runs `fn` once the sheet's history entry is gone (its own Back has landed), or at once when there was none. */
 function afterBack(wentBack, fn) {
@@ -78,7 +78,7 @@ export function openPro(reason = '', { then, cancel } = {}) {
       h('ul', { class: 'pro-list' },
         h('li', {}, `🎓 Levels ${FREE_LEVELS + 1}–6: ${c.les} more lessons and ${c.ex} more exercises (${c.songs} of them song-style studies)`),
         h('li', {}, `🥁 All ${c.styles} drum patterns, and fills`),
-        h('li', {}, '🎹 Every progression (jazz, minor, vamps…) and My progression'),
+        h('li', {}, '🎹 Every progression (soul, jazz, minor, vamps…)'),
         h('li', {}, '🎸 The Piano, Organ and Guitar sounds'),
         h('li', {}, '✨ Everything we add next')),
       h('p', { class: 'muted small' }, `Free for good: ${FREE_LINE}. One payment, yours for good: no subscription, no ads.`),

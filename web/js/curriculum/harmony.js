@@ -6,7 +6,7 @@ import {
 } from './common.js';
 
 const M = 'harmony';
-const ALL_PROGS = Object.keys(PROGS).filter((k) => !k.startsWith('vamp') && !k.startsWith('cycle') && k !== 'giant-steps');
+const ALL_PROGS = Object.keys(PROGS).filter((k) => !k.startsWith('vamp') && !k.startsWith('cycle') && k !== 'giant-steps' && k !== 'modal-form');
 
 const buildChord = ex({
   id: 'hm-build-a-chord', module: M, level: 1,

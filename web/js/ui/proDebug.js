@@ -48,7 +48,7 @@ export function proFields(field) {
  * Everything Pro opens, in full, counted and named from the data, so the list grows with the app (user, 2026-10-27:
  * "remember to update the list if the app grows"; a new Pro sound adds its line to pro.js PRO_SOUND_NOTES): the Course's
  * stages and their units, the Library's levels and their topics, the song studies, the drum patterns by genre and the
- * fills, the progressions by name and My progression, the sounds; then what stays free.
+ * fills, the progressions by name, the sounds; then what stays free.
  */
 function proDetails() {
   const sub = (text) => h('span', { class: 'pro-detail-sub' }, text);
@@ -85,7 +85,7 @@ function proDetails() {
     if (n.length) out.push(sub(`${g.icon} ${g.name}: ${n.length} more · ${n.slice(0, 4).map((k) => STYLES[k].name).join(', ')}${n.length > 4 ? '…' : ''}`));
   }
   const progs = room.progGroups.flatMap(([, keys]) => keys);
-  out.push(head(`🎹 ${progs.length} more progressions, and My progression (your own, up to 16 chords)`));
+  out.push(head(`🎹 ${progs.length} more progressions`));
   for (const [g, keys] of room.progGroups) out.push(sub(`${g}: ${keys.map(progName).join(', ')}`));
   const sounds = Object.keys(PAD_SOUNDS).filter((k) => !FREE_SOUNDS.has(k));
   out.push(head(`🎛 ${sounds.length} more sounds for the harmony`));

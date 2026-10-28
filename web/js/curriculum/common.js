@@ -268,6 +268,19 @@ export const PROGS = {
   'vamp-dorian': { name: 'Dorian vamp (i7 – IV7)', minor: true, chords: [['1', 'min7'], ['4', 'dom7']] },
   'vamp-mixo': { name: 'Mixolydian vamp (I – ♭VII)', pop: true, chords: [['1', 'maj7'], ['b7', 'maj7']] },
   'vamp-iiV': { name: 'ii – V vamp', chords: [['2', 'min7'], ['5', 'dom7']] },
+  // (more for the Practice room, user 2026-10-28: "All" of the common ones still missing)
+  'I-IV-V-IV': { name: 'I – IV – V – IV (rock\'n\'roll, montuno)', pop: true, chords: [['1', 'maj7'], ['4', 'maj7'], ['5', 'dom7'], ['4', 'maj7']] },
+  'neo-soul': { name: 'Neo-soul (IVmaj7 – III7 – vi7 – v7 – I7)', chords: [['4', 'maj7'], ['3', 'dom7'], ['6', 'min7'], ['5', 'min7', 2], ['1', 'dom7', 2]] },
+  'minor-bossa': {
+    name: 'Minor bossa (16 bars)', minor: true, chords: [['1', 'min7', 8], ['4', 'min7', 8], ['2', 'm7b5'], ['5', 'dom7b9'], ['1', 'min7', 8],
+      ['b3', 'min7'], ['b6', 'dom7'], ['b2', 'maj7', 8], ['2', 'm7b5'], ['5', 'dom7b9'], ['1', 'min7'], ['2', 'm7b5', 2], ['5', 'dom7b9', 2]],
+  },
+  // (32 bars: kept out of the Library's progression drills, as the vamps are; `modal`: its chords are vamps, Dorian)
+  'modal-form': { name: 'Modal form (Dorian 16 bars, up a half step 8, back 8)', minor: true, modal: true, chords: [['1', 'min7', 64], ['b2', 'min7', 32], ['1', 'min7', 32]] },
+  'vamp-phrygian': { name: 'Phrygian vamp (i – ♭II)', minor: true, pop: true, chords: [['1', 'min7'], ['b2', 'maj7']] },
+  'vamp-lydian': { name: 'Lydian vamp (I – II)', pop: true, chords: [['1', 'maj7'], ['2', 'maj7']] },
+  'vamp-i-iv': { name: 'Minor vamp (i – iv)', minor: true, chords: [['1', 'min7'], ['4', 'min7']] },
+  'vamp-i-bVII': { name: 'Minor vamp (i – ♭VII)', minor: true, pop: true, chords: [['1', 'min7'], ['b7', 'maj7']] },
   'cycle-dom7': {
     name: 'Dominant 7ths around the cycle', chords: [0, 5, 10, 3, 8, 1, 6, 11, 4, 9, 2, 7].map((o) => [o, 'dom7']),
   },
@@ -329,7 +342,7 @@ export function progChords(progKey, tonicPc, { triads, S = {} } = {}) {
     const leads = ivs.includes('3') && prog.chords.length > 1 && T.mod(T.pc(root) - pcs[(i + 1) % pcs.length], 12) === 7;
     if ((T.awkward(root) && chromatic) || (!leads && core.some((iv) => Math.abs(T.up(root, iv).a) > 1))) root = T.bestRoot(T.pc(root), ivs);
     const key = keyOff != null ? T.mod(tonicPc + keyOff, 12) : tonicPc;
-    return { root, type, beats, ivs, sym: chordName(root, type, S), key, minorKey: !!prog.minor && keyOff == null, vamp: prog.chords.length === 1 };
+    return { root, type, beats, ivs, sym: chordName(root, type, S), key, minorKey: !!prog.minor && keyOff == null, vamp: prog.chords.length === 1 || !!prog.modal };
   });
 }
 

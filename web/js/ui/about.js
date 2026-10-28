@@ -92,7 +92,7 @@ export function aboutScreen(main) {
       h('ul', { class: 'about-list' },
         li(`BassClass is free to use, with no time limit: ${FREE_LINE}.`),
         li('BassClass Pro is a one-time purchase made through Google Play, tied to your Google account. It is yours for good: no subscription, no ads. On a new phone, use Restore purchase with the same Google account.'),
-        li(`Pro opens Levels ${FREE_LEVELS + 1}–6, every drum pattern and the fills, every progression and My progression, the extra sounds, and what we add to them later. What is free today stays free.`),
+        li(`Pro opens Levels ${FREE_LEVELS + 1}–6, every drum pattern and the fills, every progression, the extra sounds, and what we add to them later. What is free today stays free.`),
         li('Prices are shown by Google Play in your currency. Refunds follow Google Play\'s refund policy; a refunded purchase closes Pro again.'),
         li('Tips are optional and unlock nothing; refunds follow Google Play\'s policy.'))),
 

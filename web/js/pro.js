@@ -1,9 +1,9 @@
 // BassClass Pro (MONETIZATION-PLAN.md; the user's decisions of 2026-10-27): a free app with one payment, once, that
 // opens the rest for good. Free, everywhere: Levels 1–3 (the Library's exercises and song studies, the Course's
 // Stages 1–3), the tuner, the whole metronome, the Neck, the drone, the log and backup, and the Practice room's
-// starter set (three drum patterns of each genre, the Pop & rock and Blues progressions, the Pad, E-piano and
-// Arpeggio sounds). Pro: Levels 4–6, every drum pattern and the fills, every progression and My progression, the
-// Piano, Organ and Guitar sounds, and whatever comes next.
+// starter set (three drum patterns of each genre, the Pop & rock and Blues progressions, My progression and its
+// ✎ Edit, the Pad, E-piano and Arpeggio sounds). Pro: Levels 4–6, every drum pattern and the fills, every other
+// progression, the Piano, Organ and Guitar sounds, and whatever comes next.
 //
 // Built to grow: what is Pro is worked out from the data, so new content takes its side on its own. An exercise,
 // a lesson (or its unit or stage), a drum pattern or a progression marked `pro: true` is Pro whatever its level;
@@ -15,7 +15,7 @@
 import { byId, byNumber } from './curriculum/index.js';
 import { lessonById } from './course/data.js';
 import { STYLES, GENRES } from './practice/styles.js';
-import { HARMONY_PROGS, MINE } from './practice/harmony.js';
+import { HARMONY_PROGS } from './practice/harmony.js';
 
 export const PRO_ID = 'bassclass_pro';
 export const TIPS = [['bassclass_tip_2', '€2'], ['bassclass_tip_4', '€4']];
@@ -23,7 +23,8 @@ export const TIPS = [['bassclass_tip_2', '€2'], ['bassclass_tip_4', '€4']];
 export const PRICE = '€7.99';
 export const FREE_LEVELS = 3;
 export const FREE_DRUMS = 3;   // patterns of each genre
-const FREE_PROG_GROUPS = new Set(['Pop & rock', 'Blues']);
+// (My progression is free too, with ✎ Edit: user, 2026-10-28, "make the app useful in any plan, even free")
+const FREE_PROG_GROUPS = new Set(['Mine', 'Pop & rock', 'Blues']);
 export const FREE_SOUNDS = new Set(['pad', 'epiano', 'arp']);
 /** Each Pro sound's line in Settings' Pro details (a new Pro sound adds its own: the self-test checks it). */
 export const PRO_SOUND_NOTES = {
@@ -126,11 +127,11 @@ export const freeStyleOf = (genre) => Object.values(STYLES).find((s) => s.genre 
 
 export function progLock(key) {
   if (isPro()) return null;
-  if (key === MINE) return 'My progression is part of BassClass Pro';
   const group = HARMONY_PROGS.find(([, keys]) => keys.includes(key))?.[0];
   return group && !FREE_PROG_GROUPS.has(group) ? `The ${group} progressions are part of BassClass Pro` : null;
 }
-export const freeProg = () => HARMONY_PROGS.find(([g]) => FREE_PROG_GROUPS.has(g))[1][0];
+// (a preset to fall back to, never My progression, which may be empty)
+export const freeProg = () => HARMONY_PROGS.find(([g]) => g !== 'Mine' && FREE_PROG_GROUPS.has(g))[1][0];
 
 export function soundLock(v) {
   if (isPro() || FREE_SOUNDS.has(v)) return null;

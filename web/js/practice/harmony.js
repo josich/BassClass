@@ -133,11 +133,13 @@ export function mineBars(list) {
 /** The progressions offered, by style. */
 export const HARMONY_PROGS = [
   ['Mine', [MINE]],
-  ['Pop & rock', ['I-V-vi-IV', 'I-vi-IV-V', 'vi-IV-I-V', 'I-IV-V-I', 'I-bVII-IV-I', 'canon']],
+  ['Pop & rock', ['I-V-vi-IV', 'I-vi-IV-V', 'vi-IV-I-V', 'I-IV-V-I', 'I-IV-V-IV', 'I-bVII-IV-I', 'I-bVI-bVII-I', 'canon']],
   ['Blues', ['blues', 'blues-quick', 'blues-8', 'minor-blues', 'jazz-blues']],
-  ['Jazz', ['ii-V-I', 'minor-ii-V-i', 'I-vi-ii-V', 'iii-vi-ii-V', 'autumn', 'rhythm-A', 'rhythm-B', 'cycle-251', 'cycle-dom7', 'giant-steps']],
-  ['Minor', ['i-bVII-bVI-V', 'i-iv-v-min', 'i-bVI-bIII-bVII']],
-  ['Vamps', ['vamp-min', 'vamp-dom', 'vamp-dorian', 'vamp-mixo', 'vamp-iiV']],
+  // (user, 2026-10-28: the soul turnaround, neo-soul, the minor plagal)
+  ['Soul & R&B', ['I-VI7-ii-V', 'neo-soul', 'I-iv-I']],
+  ['Jazz', ['ii-V-I', 'minor-ii-V-i', 'I-vi-ii-V', 'iii-vi-ii-V', 'ii-bII7-I', 'ii-V7alt-I', 'autumn', 'rhythm-A', 'rhythm-B', 'minor-bossa', 'modal-form', 'cycle-251', 'cycle-dom7', 'giant-steps']],
+  ['Minor', ['i-bVII-bVI-V', 'i-iv-v-min', 'i-iv-V-i', 'i-bVI-bIII-bVII']],
+  ['Vamps', ['vamp-min', 'vamp-dom', 'vamp-dorian', 'vamp-mixo', 'vamp-phrygian', 'vamp-lydian', 'vamp-i-iv', 'vamp-i-bVII', 'vamp-iiV']],
 ];
 export const PROG_KEYS = HARMONY_PROGS.flatMap(([, keys]) => keys);
 export const progName = (key) => (key === MINE ? 'My progression' : PROGS[key]?.name || key);
