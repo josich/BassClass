@@ -66,6 +66,42 @@ MONETIZATION-PLAN.md. Tick items off here as they are done; the user's decisions
 - [ ] Stop the GitHub APK releases and the web version at the launch (the workflow), and point anything that linked
   to them to the Play listing.
 
+## From the launch review (2026-10-28)
+
+Three expert reviews at the user's request ("what remains to be shippable, ask the experts"): Play release
+(`qa/reports/2026-10-28-launch-play.md`), legal and privacy (`…-launch-legal.md`), product and listing
+(`…-launch-product.md`, with the listing drafts in full). Nothing below is decided until the user picks it.
+
+Ours, blocking:
+- [ ] "My level" places nobody above Stage 3 (the Pentatonic colours units have no placement line): QA round 20 M1.
+- [ ] `billing.js`: a purchase answered after 60 s is dropped (slow card, bank check), and a purchase Play reports
+  with no request waiting (a pending one completing) is ignored.
+- [ ] Billing 9.1.0 (v8+ required since 31 Aug 2026; the Kotlin plugin probably to 2.2.x). It may merge the INTERNET
+  permission: print the merged manifest on the first Play build and decide (remove it, or update the privacy policy
+  and Data safety).
+- [ ] The privacy policy's content: legal name and address, legal bases, retention, rights, the authority, Gmail (US),
+  what the feedback e-mail carries, security. "Provided as is, without warranty" goes (EU consumer law). About's
+  libraries: Play Review and Billing are under Google's terms, not Apache 2.0.
+- [ ] Play's own prices everywhere (the tips are written €2/€4; €7.99 shows until Play answers); the launch price as
+  a plain price, never "was €7.99".
+- [ ] Before the repository goes private: delete the old CI artifacts (about 1 GB against the 500 MB of a private
+  repository), shorter retention, no Pages job.
+
+Ours, worth doing before the launch (each the user's call): keep the JS bridge on the app's own origin; CI checks
+of the bundle's permissions; backup rules; `onRenderProcessGone` and the last errors in the Feedback e-mail; a cap
+on large fonts; a first-run card (strings, "New to bass" / "I already play"); an opt-in practice reminder; an
+earlier first rating ask; a free player's playable cards first in the pickers; the Pro sheet naming skills; the
+`--dim` text contrast; the "Based on" panels (competitors' paid courses named; Janek Gwizdala named in ten source
+lines, against the no-naming rule of the pentatonic studies); the song studies' wording and "not affiliated"; QA
+round 20's fixes.
+
+The owner's:
+- [ ] Personal or organisation account: a personal account that sells shows the legal name and home address on the
+  listing, and the type cannot change later (an accountant's look).
+- [ ] The activity and tax registration before the first sale (Google collects the VAT in the EU).
+- [ ] Every closed tester a licence tester (otherwise testers pay real money).
+- [ ] Answer paid users within 3 business days (Google's distribution agreement): watch the inbox.
+
 ## Signing (decided: Google Play's key)
 
 The signing key `android/app/bassclass.p12` and its password are in the repository's history, which has been public:
