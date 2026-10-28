@@ -948,3 +948,6 @@ input[type="range"] { touch-action: pan-y; }
 .card .meta .chip.new, .picker-card small .chip.new { margin-left: 0; margin-right: 4px; }
 .picker-chip-row button.has-new { position: relative; }
 .picker-chip-row button.has-new::after { content: ''; position: absolute; top: 4px; right: 5px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+
+/* a lesson free to try in a Pro stage (pro.js FREE_TASTE): the app's teal, outlined, beside the gold Pro chips */
+.chip.try { background: transparent; color: var(--accent); border: 1px solid var(--accent); font-weight: 700; padding: 0 6px; }

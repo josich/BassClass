@@ -59,10 +59,11 @@ function proDetails() {
   // the Course
   const stages = STAGES.filter((s) => s.level > FREE_LEVELS);
   // (lessons as the map counts them, the optional ones apart: QA round 19)
-  const lessonsOf = (s) => LESSONS.filter((l) => l.stage === s && l.kind === 'lesson' && !l.optional);
-  const optional = LESSONS.filter((l) => stages.includes(l.stage) && l.kind === 'lesson' && l.optional).length;
+  // (the lessons free to try left out: FREE_TASTE)
+  const lessonsOf = (s) => LESSONS.filter((l) => l.stage === s && l.kind === 'lesson' && !l.optional && !l.free);
+  const optional = LESSONS.filter((l) => stages.includes(l.stage) && l.kind === 'lesson' && l.optional && !l.free).length;
   const units = UNITS.filter((u) => stages.includes(u.stage));
-  out.push(head(`🎓 Course Stages ${FREE_LEVELS + 1}–6: ${stages.reduce((a, s) => a + lessonsOf(s).length, 0)} lessons${optional ? ` (and ${optional} optional ones)` : ''} in ${units.length} units, with their checkpoints, stage tests and reviews`));
+  out.push(head(`🎓 Course Stages ${FREE_LEVELS + 1}–6: ${stages.reduce((a, s) => a + lessonsOf(s).length, 0)} more lessons${optional ? ` (and ${optional} optional ones)` : ''} in ${units.length} units, with their checkpoints, stage tests and reviews`));
   for (const s of stages) {
     out.push(`Stage ${s.level} · ${s.title}: ${lessonsOf(s).length} lessons`);
     for (const u of units.filter((x) => x.stage === s)) out.push(sub(`${u.n}. ${u.title}`));

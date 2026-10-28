@@ -5,7 +5,8 @@ MONETIZATION-PLAN.md. Tick items off here as they are done; the user's decisions
 
 ## Decided (user, 2026-10-27)
 
-- **Free**: Levels 1–3 on every front (the Library's exercises and song studies, the Course's Stages 1–3), the tuner,
+- **Free**: Levels 1–3 on every front (the Library's exercises and song studies, the Course's Stages 1–3), the first
+  two lessons of each of Stages 4–6 to try (user, 2026-10-28), the tuner,
   the whole metronome, the Neck, the drone, the log, backup; in the room, **3 drum patterns of each genre**, the Pop &
   rock and Blues progressions, the Pad, E-piano and Arpeggio sounds.
 - **Pro** (one-time): Levels 4–6, every drum pattern and the fills, every progression and My progression, the Piano,

@@ -9,7 +9,7 @@ launch; they change.
 ## The user's decisions (2026-10-27): they replace the proposal where it differs
 
 1. **Levels 1–3 free on every front** (the Library, the Course's Stages 1–3, the song studies), not 1–2; Pro is Levels
-   4–6. 2. **The room's extras in Pro**, with **3 drum patterns of each genre** free. 3. **€7.99, launch €4.99**, "yes,
+   4–6, except the first two lessons of each of Stages 4–6, free to try (user, 2026-10-28: `FREE_TASTE` in pro.js). 2. **The room's extras in Pro**, with **3 drum patterns of each genre** free. 3. **€7.99, launch €4.99**, "yes,
    for now". 4. **Tips**: yes. 5. **The drums and the piano inside the app**: done (no INTERNET permission). 6. **The web
    version and the GitHub APK are not kept after the launch**; the repository may go private (its consequences:
    LAUNCH-TODO.md). 7. Developer name, account and contact: later, listed in LAUNCH-TODO.md. 8. **The Pro gates are

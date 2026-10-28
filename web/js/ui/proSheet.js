@@ -6,13 +6,13 @@
 import { h, icon, toast, heart } from './dom.js';
 import { EXERCISES } from '../curriculum/index.js';
 import { LESSONS } from '../course/data.js';
-import { PRO_ID, PRICE, FREE_LEVELS, owned, proContents, PLAY } from '../pro.js';
+import { PRO_ID, PRICE, FREE_LEVELS, FREE_TASTE, owned, proContents, PLAY } from '../pro.js';
 import { buy, prices, restorePro, canBuy } from '../billing.js';
 
 let openNow = null;
 
 /** The free part, in one line (the sheet, Settings' Pro ⓘ, About's terms). */
-export const FREE_LINE = `Levels 1–${FREE_LEVELS} of the course and the Library, the tuner, the whole metronome, and the Practice room's starter set: 3 drum patterns of each genre, the Pop & rock and Blues progressions, My progression, the drone and the Neck`;
+export const FREE_LINE = `Levels 1–${FREE_LEVELS} of the course and the Library, the first ${FREE_TASTE} lessons of each later stage, the tuner, the whole metronome, and the Practice room's starter set: 3 drum patterns of each genre, the Pop & rock and Blues progressions, My progression, the drone and the Neck`;
 
 /** Runs `fn` once the sheet's history entry is gone (its own Back has landed), or at once when there was none. */
 function afterBack(wentBack, fn) {

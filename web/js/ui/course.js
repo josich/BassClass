@@ -7,7 +7,7 @@ import { EXERCISES, byId } from '../curriculum/index.js';
 import { SUB_NAMES, paramOptions } from './exercise.js';
 import { exHref, go, buildRoutine, routineParams, setRoutine, routineHref, proChip, newChip } from './screens.js';
 import { isNew, newCount, markUsed } from '../news.js';
-import { isPro, lessonLock, exerciseLock, levelLocked, FREE_LEVELS } from '../pro.js';
+import { isPro, lessonLock, exerciseLock, levelLocked, FREE_LEVELS, FREE_TASTE } from '../pro.js';
 import { openPro } from './proSheet.js';
 import { maybeAskRating } from './rate.js';
 import { replaceHash, goBack, canGoBack, nav } from './nav.js';
@@ -188,6 +188,8 @@ function buildSession(minutes, cur, history) {
     for (const l of LESSONS.slice(LESSONS.indexOf(cont))) {
       if (count() >= n - focusN || lessons >= (fresh ? n : Math.max(1, Math.round(minutes / 15)))) break;
       if (l.optional || practised(l)) continue;
+      // (a free player's lessons to try in a Pro stage come in; the session stops at the first that is Pro)
+      if (lessonLock(l)) break;
       lessons++;
       const slot = l.kind === 'lesson' ? `Lesson ${l.num}` : l.kind === 'check' ? 'Checkpoint' : 'Stage test';
       if (l.kind === 'lesson' && !started(l) && demoStep(l) >= 0) items.push(stepItem(l, demoStep(l), slot, { demo: 1 }));
@@ -281,7 +283,7 @@ export function courseBlock() {
   const proWall = !isPro() && (!cont || lessonLock(cont)) && LESSONS.some((l) => lessonLock(l));
   // one row: the title, where the course goes on, the map in the corner
   return h('section', { class: 'block course-block' },
-    h('div', { class: 'block-head course-row' }, h('h2', {}, '🎓 Course'), infoBtn(isPro() ? COURSE_INFO : [...COURSE_INFO.slice(0, -1), `🔓 Stages 1–${FREE_LEVELS} free, ${FREE_LEVELS + 1}–6 with Pro · Map: every lesson`], 'About the course'),
+    h('div', { class: 'block-head course-row' }, h('h2', {}, '🎓 Course'), infoBtn(isPro() ? COURSE_INFO : [...COURSE_INFO.slice(0, -1), `🔓 Stages 1–${FREE_LEVELS} free, ${FREE_LEVELS + 1}–6 with Pro: their first ${FREE_TASTE} lessons free to try · Map: every lesson`], 'About the course'),
       proWall
         ? h('div', { class: 'course-done course-wall grow' }, `✓ Stages 1–${FREE_LEVELS}`, h('button', { class: 'btn small locked', onClick: () => openPro(`Stage ${cont ? cont.stage.level : FREE_LEVELS + 1} is part of BassClass Pro`, { then: () => { if (cont) go(lessonHref(cont)); } }) }, `Stages ${FREE_LEVELS + 1}–6`, proChip('Pro')))
         : cont
@@ -392,6 +394,7 @@ export function courseScreen(main) {
       l.optional ? h('span', { class: 'chip' }, 'optional') : null,
       newChip(isNew(`lesson:${l.id}`)),
       proChip(lessonLock(l)),
+      levelLocked(l.stage.level) && !lessonLock(l) ? h('span', { class: 'chip try', title: 'Free to try: the rest of this stage is part of BassClass Pro' }, 'Free') : null,
       st === 'known' ? h('span', { class: 'chip' }, 'known') : null,
       isDue(l) ? h('span', { class: 'chip due' }, 'review') : null);
   };

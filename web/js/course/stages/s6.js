@@ -8,7 +8,8 @@ export default {
       goal: 'Odd groupings and alternating 3rds around all 12 keys without stopping.',
       lessons: [
         {
-          id: 'odd-groupings', title: 'Odd groupings in 16ths',
+          // (free to try: the first two lessons of a Pro stage, user 2026-10-28; pro.js FREE_TASTE)
+          id: 'odd-groupings', title: 'Odd groupings in 16ths', free: true,
           idea: 'Groups of 5 in 16ths, around all 12 keys: time, neck and stamina at once.',
           concept: [
             'Phrase the scale in groups of 5 while playing 16ths. Each group starts on a different part of the beat, and you go around all 12 keys without stopping. It tests time, knowledge of the neck and stamina at the same time.',
@@ -23,7 +24,7 @@ export default {
           ],
         },
         {
-          id: 'alternating-3rds', title: 'Alternating 3rds in all keys',
+          id: 'alternating-3rds', title: 'Alternating 3rds in all keys', free: true,
           idea: 'Wide, zig-zag lines, every key, no stopping.',
           concept: [
             'Alternating-direction intervals make wide, melodic lines that are hard to play cleanly. Taking them around all 12 keys without stopping is a mastery drill for ears, eyes and hands.',

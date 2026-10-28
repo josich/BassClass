@@ -8,7 +8,8 @@ export default {
       goal: 'Permutations across the strings, p-i-m arpeggios, polyrhythms and sweeps.',
       lessons: [
         {
-          id: 'perm-across', title: 'Permutations across the strings',
+          // (free to try: the first two lessons of a Pro stage, user 2026-10-28; pro.js FREE_TASTE)
+          id: 'perm-across', title: 'Permutations across the strings', free: true,
           idea: 'Each finger keeps its fret; every note moves to the next string.',
           concept: [
             'A harder take on the 24 permutations: the four fingers stay in their frets (one finger per fret), but every note moves to the next string. Permutation 1-3-2-4 becomes E string finger 1, A finger 3, D finger 2, G finger 4. Both hands cross strings on every note: one of the most demanding coordination drills there is.',
@@ -23,7 +24,7 @@ export default {
           ],
         },
         {
-          id: 'pim', title: 'Thumb, index and middle',
+          id: 'pim', title: 'Thumb, index and middle', free: true,
           idea: 'Thumb for the bass, fingers for the upper strings, like a classical guitarist.',
           concept: [
             'Chordal and solo bassists use the thumb (p) for the bass notes and the index and middle fingers (i, m) for the upper strings. One plucking finger per string lets you play wide arpeggios at speed. The pattern spreads each chord as root (p), 5th (i), 10th (m), 5th (i).',

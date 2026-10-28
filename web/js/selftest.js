@@ -3,7 +3,7 @@
 // the guided course opens an exercise with options it has.
 // Run in the browser console:  (await import('./js/selftest.js')).run()
 import { EXERCISES, byNumber, byId, defaultParams } from './curriculum/index.js';
-import { LESSONS, lessonById } from './course/data.js';
+import { LESSONS, STAGES, lessonById } from './course/data.js';
 import { CHANGED_STEPS } from './course/progress.js';
 import { CYCLE_OPTS } from './curriculum/common.js';
 import { NO_BACKING } from './harmony.js';
@@ -18,7 +18,7 @@ import * as T from './theory.js';
 import { GENRES } from './practice/styles.js';
 import { HARMONY_PROGS, PROG_KEYS } from './practice/harmony.js';
 import { PAD_SOUNDS } from './audio.js';
-import { FREE_SOUNDS, FREE_LEVELS, FREE_DRUMS, FREE_STYLE, PRO_SOUND_NOTES, isPro, gatesOn, exerciseLock, lessonLock, styleLock, progLock } from './pro.js';
+import { FREE_SOUNDS, FREE_LEVELS, FREE_TASTE, FREE_DRUMS, FREE_STYLE, PRO_SOUND_NOTES, isPro, gatesOn, exerciseLock, lessonLock, styleLock, progLock } from './pro.js';
 
 function combos(params, limit = 400, strings = 4) {
   const keys = Object.keys(params);
@@ -98,6 +98,11 @@ function checkPro(problems) {
   for (const v of Object.keys(PAD_SOUNDS)) if (!FREE_SOUNDS.has(v) && !PRO_SOUND_NOTES[v]) problems.push(`pro: Pro sound ${v} has no line in PRO_SOUND_NOTES`);
   if (!HARMONY_PROGS.some(([g]) => g === 'Pop & rock') || !HARMONY_PROGS.some(([g]) => g === 'Blues')) problems.push('pro: the free progression groups are missing');
   if (FREE_LEVELS < 1 || FREE_LEVELS > 6) problems.push(`pro: FREE_LEVELS ${FREE_LEVELS}`);
+  // (each Pro stage has its lessons free to try, plain lessons, not optional; nothing else in it is marked free)
+  for (const stage of STAGES.filter((s) => s.level > FREE_LEVELS)) {
+    const free = stage.lessons.filter((l) => l.free);
+    if (free.length !== FREE_TASTE || free.some((l) => l.kind !== 'lesson' || l.optional)) problems.push(`pro: Stage ${stage.level} has ${free.length} lessons free to try (want ${FREE_TASTE} plain lessons)`);
+  }
   if (!gatesOn()) {
     if (!isPro()) problems.push('pro: the gates are off but something is closed');
     const shut = [...EXERCISES.filter((t) => exerciseLock(t)), ...LESSONS.filter((l) => lessonLock(l)), ...Object.keys(STYLES).filter((k) => styleLock(k)), ...PROG_KEYS.filter((k) => progLock(k))];

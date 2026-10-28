@@ -8,7 +8,8 @@ export default {
       goal: 'A wider hand, minutes of steady 16ths, and the natural harmonics.',
       lessons: [
         {
-          id: 'stretch', title: 'Stretching towards the nut',
+          // (free to try: the first two lessons of a Pro stage, user 2026-10-28; pro.js FREE_TASTE)
+          id: 'stretch', title: 'Stretching towards the nut', free: true,
           idea: 'One finger per fret, a fret lower each pass, and never through tension.',
           concept: [
             'Starting high on the neck, play 1-2-3-4 across all the strings and move down one fret per pass. As you approach the nut the frets get wider and the stretch grows. Stop as soon as you feel tension: over weeks you will reach the first position comfortably.',
@@ -24,7 +25,7 @@ export default {
           ],
         },
         {
-          id: 'endurance', title: 'Endurance 16ths',
+          id: 'endurance', title: 'Endurance 16ths', free: true,
           idea: 'Minutes of even 16ths: relax, breathe, keep the spacing.',
           concept: [
             'Rock, metal and dance music often need minutes of continuous 16ths. Play the root of each chord in 16ths and keep the volume and the spacing even from the first bar to the last.',

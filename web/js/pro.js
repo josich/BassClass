@@ -1,6 +1,7 @@
 // BassClass Pro (MONETIZATION-PLAN.md; the user's decisions of 2026-10-27): a free app with one payment, once, that
 // opens the rest for good. Free, everywhere: Levels 1–3 (the Library's exercises and song studies, the Course's
-// Stages 1–3), the tuner, the whole metronome, the Neck, the drone, the log and backup, and the Practice room's
+// Stages 1–3, and the first two lessons of each later stage, to try it: user, 2026-10-28), the tuner, the whole
+// metronome, the Neck, the drone, the log and backup, and the Practice room's
 // starter set (three drum patterns of each genre, the Pop & rock and Blues progressions, My progression and its
 // ✎ Edit, the Pad, E-piano and Arpeggio sounds). Pro: Levels 4–6, every drum pattern and the fills, every other
 // progression, the Piano, Organ and Guitar sounds, and whatever comes next.
@@ -23,6 +24,10 @@ export const TIPS = [['bassclass_tip_2', '€2'], ['bassclass_tip_4', '€4']];
 export const PRICE = '€7.99';
 export const FREE_LEVELS = 3;
 export const FREE_DRUMS = 3;   // patterns of each genre
+// lessons of each Pro stage free to try (user, 2026-10-28: "this way it can be checked a bit"): marked `free: true` in
+// the stage's file, so a stage that grows keeps the same ones; their steps play inside the lesson, the exercises stay
+// Pro in the Library (the self-test counts them)
+export const FREE_TASTE = 2;
 // (My progression is free too, with ✎ Edit: user, 2026-10-28, "make the app useful in any plan, even free")
 const FREE_PROG_GROUPS = new Set(['Mine', 'Pop & rock', 'Blues']);
 export const FREE_SOUNDS = new Set(['pad', 'epiano', 'arp']);
@@ -176,6 +181,6 @@ export function proRoomItems() {
 export function proContents(EXERCISES, LESSONS) {
   const ex = EXERCISES.filter((t) => !t.free && (t.pro || t.level > FREE_LEVELS));
   // (lessons as the map counts them, the optional ones apart: QA round 19)
-  const les = LESSONS.filter((l) => l.kind === 'lesson' && (l.pro || l.stage?.level > FREE_LEVELS));
+  const les = LESSONS.filter((l) => l.kind === 'lesson' && !l.free && (l.pro || l.stage?.level > FREE_LEVELS));
   return { ex: ex.length, songs: ex.filter((t) => t.module === 'music').length, les: les.filter((l) => !l.optional).length, optional: les.filter((l) => l.optional).length, styles: Object.keys(STYLES).length };
 }
