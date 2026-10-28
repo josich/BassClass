@@ -51,8 +51,9 @@ MONETIZATION-PLAN.md. Tick items off here as they are done; the user's decisions
 - [x] "Rate BassClass on Google Play" in Settings → Support BassClass (2026-10-27; it opens the listing, which exists once published).
 - [x] The rate reminder (2026-10-28, `web/js/ui/rate.js`): a card with 5 stars at 10 and 20 hours played, at the end of
   something; it opens the listing too.
-- [ ] Maybe: Google Play's in-app review card (the rating inside the app, without leaving it) for the reminder: it needs
-  Google's Play Review library in the Android app (a new dependency: ask before adding it).
+- [x] Google Play's in-app review card for the reminder (user, 2026-10-28: "add the in-app review card"): the Play Review
+  library 2.0.2 in the Android app, `BassClassNative.requestReview`. It shows only in an app installed from Play
+  (internal testing or internal app sharing to try it); a sideloaded APK answers without showing anything.
 - [ ] **The privacy policy at a public address** (Play asks for a URL): the same text as About's, on a public page
   (e.g. the `josich.github.io` repository, as Polyorbit's).
 - [ ] **Store listing texts**: name (30), short description (80), full description (4000). Drafts by us.

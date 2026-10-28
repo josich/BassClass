@@ -84,7 +84,7 @@ export function aboutScreen(main) {
         li(h('b', {}, 'Feedback '), '(Settings) opens your own email app with a message to us, naming the app\'s version and your phone\'s model; nothing is sent unless you press Send there. We use what you write only to answer you and to improve BassClass.'),
         li(h('b', {}, 'The microphone '), 'is used only by the tuner, only while it is open, and only on your device: the sound is analysed to find the pitch and is never recorded, stored or sent.'),
         li(h('b', {}, 'Purchases '), 'are made through Google Play. BassClass receives only whether a purchase was made; Google\'s own privacy policy covers your payment.'),
-        li(h('b', {}, 'Network: '), 'the Android app works without an internet connection; it talks only to Google Play, for purchases. The web version loads the app from its site, GitHub Pages, which, like any web server, may log visitors\' IP addresses.'),
+        li(h('b', {}, 'Network: '), 'the Android app works without an internet connection; it talks only to Google Play, for purchases and its rating card. The web version loads the app from its site, GitHub Pages, which, like any web server, may log visitors\' IP addresses.'),
         li(h('b', {}, 'Children: '), 'BassClass is not directed to children under 13 and collects no data from anyone.')),
       CONTACT ? p(`Questions: ${CONTACT}`) : null),
 

@@ -28,6 +28,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.window.OnBackInvokedDispatcher
 import androidx.webkit.WebViewAssetLoader
+import com.google.android.play.core.review.ReviewManagerFactory
 
 /**
  * Hosts the BassClass web app (packaged from ../../web as assets) in a
@@ -126,6 +127,27 @@ class MainActivity : Activity() {
         }
 
         /**
+         * The rate reminder (web/js/ui/rate.js): Google Play's own rating card over the app ("in-app review"). Play
+         * decides whether it shows (a quota, and only in an app installed from Play) and never says whether the player
+         * rated, so the answer is only "done" or "error", as a 'bassclass-review' event.
+         */
+        @JavascriptInterface
+        fun requestReview() {
+            runOnUiThread {
+                try {
+                    val manager = ReviewManagerFactory.create(this@MainActivity)
+                    manager.requestReviewFlow().addOnCompleteListener { request ->
+                        if (request.isSuccessful) {
+                            manager.launchReviewFlow(this@MainActivity, request.result).addOnCompleteListener { reviewed("done") }
+                        } else reviewed("error")
+                    }
+                } catch (e: Exception) {
+                    reviewed("error")
+                }
+            }
+        }
+
+        /**
          * Settings → Feedback (web/js/feedback.js): the phone's e-mail apps, with the address, subject and message filled
          * in; a phone without one answers with a 'bassclass-mail' event ("none").
          */
@@ -146,6 +168,10 @@ class MainActivity : Activity() {
         } catch (e: Exception) {
             web.evaluateJavascript("window.dispatchEvent(new CustomEvent('bassclass-mail',{detail:'none'}))", null)
         }
+    }
+
+    private fun reviewed(result: String) {
+        web.evaluateJavascript("window.dispatchEvent(new CustomEvent('bassclass-review',{detail:'$result'}))", null)
     }
 
     private fun saved(result: String) {

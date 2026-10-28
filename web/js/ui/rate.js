@@ -6,6 +6,10 @@
 // filtering of the stars, as Google asks). Rated, it never asks again; "Not now" waits for the next mark. Only
 // where there is a Play listing to rate (the Play build, or the gates switched on for testing: Settings' debug
 // panel shows it at once, and resets it).
+// In the Android app the mark opens Google Play's own rating card instead (in-app review, user 2026-10-28: "add
+// the in-app review card"; `BassClassNative.requestReview`), with nothing of ours before it, as Google asks (no
+// question and no button in front of its card). Play shows it at most so often and never says whether the player
+// rated: the mark counts as asked. When Play cannot show it (an error), our card asks instead.
 import { h, icon } from './dom.js';
 import { gatesOn } from '../pro.js';
 import { totalMinutes } from '../practiceLog.js';
@@ -35,19 +39,41 @@ export function maybeAskRating() {
   if (!gatesOn()) return;
   const r = read();
   if (r.rated || r.asked >= RATE_AT.length || totalMinutes() < RATE_AT[r.asked] || busy()) return;
-  openRate();
+  if (window.BassClassNative?.requestReview) askPlay(); else openRate();
+}
+
+/** The marks passed so far count as asked (passed both at once, as after a backup: one ask, the next mark waits). */
+function markAsked(rated) {
+  const r = read();
+  const asked = Math.max(r.asked + 1, RATE_AT.filter((m) => totalMinutes() >= m).length);
+  write({ rated: r.rated || rated, asked: Math.min(RATE_AT.length, asked) });
+}
+
+let asking = false;
+/** Google Play's card (the Android app); its answer: 'done' (shown or not, Play does not say), or 'error'. */
+export function askPlay({ test = false } = {}) {
+  if (asking) return Promise.resolve('busy');
+  asking = true;
+  return new Promise((resolve) => {
+    const finish = (result) => {
+      removeEventListener('bassclass-review', onAnswer);
+      clearTimeout(timer);
+      asking = false;
+      if (!test) { if (result === 'error') openRate(); else markAsked(false); }
+      resolve(result);
+    };
+    const onAnswer = (e) => finish(e.detail === 'error' ? 'error' : 'done');
+    addEventListener('bassclass-review', onAnswer);
+    // (no answer within a minute: as done, so it never asks twice for one mark)
+    const timer = setTimeout(() => finish('done'), 60000);
+    try { window.BassClassNative.requestReview(); } catch { finish('error'); }
+  });
 }
 
 /** The card itself (`test`: from the debug panel, the answer not stored). */
 export function openRate({ test = false } = {}) {
   if (openNow) return;
-  const answer = (rated) => {
-    if (test) return;
-    const r = read();
-    // (passed both marks at once, as after a backup: one card, and the next mark waits)
-    const asked = Math.max(r.asked + 1, RATE_AT.filter((m) => totalMinutes() >= m).length);
-    write({ rated: r.rated || rated, asked: Math.min(RATE_AT.length, asked) });
-  };
+  const answer = (rated) => { if (!test) markAsked(rated); };
   const rate = () => { answer(true); close(); rateApp(); };
   const later = () => { answer(false); close(); };
   const stars = h('div', { class: 'rate-stars', role: 'group', 'aria-label': 'Rate BassClass on Google Play' },

@@ -11,7 +11,7 @@ import { STYLES, GENRES } from '../practice/styles.js';
 import { progName } from '../practice/harmony.js';
 import { syncPro, restorePro, billingLog, pretendDayPassed, canBuy, prices } from '../billing.js';
 import { openPro, tip, FREE_LINE } from './proSheet.js';
-import { openRate, rateState, resetRate, RATE_AT } from './rate.js';
+import { openRate, askPlay, rateState, resetRate, RATE_AT } from './rate.js';
 
 /** The Pro card and Support BassClass (the tips), for Settings; nothing while the gates are off. */
 export function proFields(field) {
@@ -153,6 +153,11 @@ export function devPanel(rerender) {
     // the rate reminder (ui/rate.js): asks at 10 and 20 hours played, at the end of something
     line('Rate reminder', h('div', { class: 'row' },
       h('button', { class: 'btn small', type: 'button', onClick: () => openRate({ test: true }) }, 'Show it now'),
+      // (Google Play's own card: only in the Android app, and it shows only in an app installed from Play)
+      window.BassClassNative?.requestReview ? h('button', { class: 'btn small', type: 'button', onClick: async () => {
+        const r = await askPlay({ test: true });
+        toast(r === 'error' ? 'Google Play could not open its rating card' : 'Google Play answered (its card shows only in an app installed from Play)', 4000);
+      } }, 'Google Play\'s card') : null,
       h('button', { class: 'btn small', type: 'button', onClick: () => { resetRate(); toast('The rate reminder will ask again at its marks'); rerender(); } }, 'Reset'),
       h('code', { class: 'dev-state' }, (() => { const r = rateState(); return `${Math.floor(r.minutes / 60)}h${String(r.minutes % 60).padStart(2, '0')} played · asks at ${RATE_AT.map((m) => `${m / 60} h`).join(' and ')} · asked ${r.asked} · rated ${r.rated ? 'yes' : 'no'}`; })()))),
     line('State', h('code', { class: 'dev-state' }, `gates ${gatesOn() ? 'on' : 'off'} · everything open: ${isPro() ? 'yes' : 'no'} · owned: ${owned() ? 'yes' : 'no'} · record ${JSON.stringify(r)} · Play reports: ${JSON.stringify(d.sim)}`)),

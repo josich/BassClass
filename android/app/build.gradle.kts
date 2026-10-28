@@ -66,4 +66,6 @@ android {
 
 dependencies {
     implementation("androidx.webkit:webkit:1.12.1")
+    // Google Play's in-app review card for the rate reminder (user, 2026-10-28: "add the in-app review card")
+    implementation("com.google.android.play:review:2.0.2")
 }
