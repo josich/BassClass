@@ -826,6 +826,22 @@ export default {
             'Letting other strings ring. Mute them with the fretting hand.',
           ],
         },
+        {
+          id: 'harmonic-chords', title: 'Harmonic chords', added: 1793190000000,
+          idea: 'A bass note under harmonics on the D and G strings: bell-like chords.',
+          concept: [
+            'One finger lying lightly across the D and G strings sounds two harmonics at once, and an open or fretted bass note under them makes a chord: over the open E the 12th-fret pair gives Em7 and the 4th-fret pair Esus2; over a fretted G, Gmaj7; over a fretted C, a Lydian Cmaj7♯11.',
+            'Roll each chord one note at a time and let it ring, then play it together. Solo bassists use these for intros, endings and ballads.',
+          ],
+          steps: [
+            { ex: 'tech-harmonic-chords', p: { style: 'roll' }, from: 50, goal: 72, do: 'One note at a time, then together. Fret the bass note firmly; only touch the harmonics.' },
+            { ex: 'tech-harmonic-chords', p: { style: 'together' }, from: 50, goal: 72, do: 'Each chord struck together, twice.' },
+          ],
+          mistakes: [
+            'Pressing the harmonic strings down. Only touch them, at the triangle.',
+            'Lifting the bass note too early. Let the whole chord ring.',
+          ],
+        },
       ],
       check: {
         can: [
@@ -833,12 +849,14 @@ export default {
           'I can develop one motif through the changes.',
           'I can imply a cadence over a vamp and resolve it.',
           'I can play the minor pentatonic in double stops, mostly 4ths.',
+          'I can play harmonic chords over an open or fretted bass note.',
         ],
         steps: [
           { ex: 'lk-motif', p: { lick: '0', feel: 'swing' }, from: 96, goal: 124, backing: 'chords' },
           { ex: 'lk-implied', p: { lick: '1', feel: 'swing' }, from: 92, goal: 120, backing: 'chords' },
           { ex: 'lk-bass-solo', p: { lick: '0', feel: 'swing' }, from: 100, goal: 124, backing: 'chords' },
           { ex: 'sc-pent-double-stops', p: { pattern: 'skip', rhythm: '0.5' }, from: 66, goal: 88 },
+          { ex: 'tech-harmonic-chords', p: { style: 'together' }, from: 56, goal: 76 },
         ],
       },
     },

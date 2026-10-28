@@ -172,6 +172,14 @@ export const CHORDS = {
   dom7s9: { iv: ['1', '3', '5', 'b7', '#9'], sym: '7♯9', name: 'Dominant 7♯9' },
   dom7b5: { iv: ['1', '3', 'b5', 'b7'], sym: '7♭5', name: 'Dominant 7♭5' },
   dom13: { iv: ['1', '3', '5', 'b7', '9', '13'], sym: '13', name: 'Dominant 13' },
+  // added-note, suspended and 11th/13th chords (user, 2026-10-28: the chord formulas the app was missing)
+  add9: { iv: ['1', '3', '5', '9'], sym: 'add9', name: 'Major add 9' },
+  maj69: { iv: ['1', '3', '5', '6', '9'], sym: '6/9', name: 'Major 6/9' },
+  min69: { iv: ['1', 'b3', '5', '6', '9'], sym: 'm6/9', name: 'Minor 6/9' },
+  maj7sus4: { iv: ['1', '4', '5', '7'], sym: 'maj7sus4', name: 'Major 7sus4' },
+  dom11: { iv: ['1', '3', '5', 'b7', '9', '11'], sym: '11', name: 'Dominant 11th' },
+  min11: { iv: ['1', 'b3', '5', 'b7', '9', '11'], sym: 'm11', name: 'Minor 11th' },
+  min13: { iv: ['1', 'b3', '5', 'b7', '9', '11', '13'], sym: 'm13', name: 'Minor 13th' },
   // dominant colours from melodic minor (their scales: Lydian dominant, Mixolydian ♭6, altered, Dorian ♭2)
   dom7s11: { iv: ['1', '3', '5', 'b7', '#11'], sym: '7♯11', name: 'Dominant 7♯11' },
   dom7b13: { iv: ['1', '3', '5', 'b7', 'b13'], sym: '7♭13', name: 'Dominant 7♭13' },

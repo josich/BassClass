@@ -40,17 +40,18 @@ export default {
         },
         {
           id: 'harmonics', title: 'Natural harmonics',
-          idea: 'Touch the string over the fret wire, don\'t press, and pluck near the bridge.',
+          idea: 'Touch the string at its node, don\'t press, and pluck near the bridge.',
           concept: [
-            'A natural harmonic sounds when you touch the string lightly, exactly above the fret wire, without pressing, and pluck near the bridge. The 12th fret gives the octave, the 7th the octave plus a 5th, the 5th two octaves and the 4th two octaves plus a major 3rd.',
+            'A natural harmonic sounds when you touch the string lightly at a node, without pressing, and pluck near the bridge. The 12th fret gives the octave, the 7th the octave plus a 5th and the 5th two octaves: these nodes are right over the fret wire. The 4th-fret harmonic (two octaves and a major 3rd) is just before the wire, and the lower ones sit just after the 3rd and 2nd wires: the neck draws each one as a triangle where you touch it.',
             'Harmonics are used for tuning, for melodies (Jaco\'s "Portrait of Tracy") and for chords. Diamond heads on the staff show them at the pitch they sound.',
           ],
           steps: [
             { ex: 'tech-harmonics', p: { order: 'fret' }, sub: 1, from: 50, goal: 72, do: 'Fret by fret across the strings: 12, 7, 5, 4.' },
             { ex: 'tech-harmonics', p: { order: 'string' }, sub: 1, from: 50, goal: 72, do: 'String by string.' },
+            { ex: 'tech-harmonics', p: { set: 'all', order: 'fret' }, sub: 1, from: 50, goal: 72, do: 'Every harmonic up to the 12th fret. The lower ones are not over the wire: touch at the triangle.' },
           ],
           mistakes: [
-            'Touching between the frets: the harmonic will not sound. Right over the metal fret.',
+            'Touching in the middle of the fret: the harmonic will not sound. Touch at the triangle.',
             'Pressing the string down. Just touch it.',
           ],
         },

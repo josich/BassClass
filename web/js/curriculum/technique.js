@@ -428,22 +428,88 @@ const accents = ex({
   },
 });
 
+// Natural harmonics (user, 2026-10-28: "harmonics with correct tone spelling", "finger position not always in the
+// middle of the fret"): each one's node on the string in frets (`at`: where the neck draws its triangle and the tab
+// writes it), the semitones it sounds above the open string and its interval from the open string, which spells it
+// (G♯ on the E string, never A♭). 12, 7 and 5 sit right over the wire; the 4th-fret one just before it (3.9), the
+// 3rd-fret one just after (3.2), the 9th-fret one just before (8.8); near the 2nd fret, 2.7 (the ♭7, a little flat)
+// and 2.3 (three octaves).
+export const HARMS = {
+  12: { at: 12, up: 12, iv: '1' },
+  9: { at: 8.84, up: 28, iv: '3' },
+  7: { at: 7.02, up: 19, iv: '5' },
+  5: { at: 4.98, up: 24, iv: '1' },
+  4: { at: 3.86, up: 28, iv: '3' },
+  3: { at: 3.16, up: 31, iv: '5' },
+  2.7: { at: 2.67, up: 34, iv: 'b7' },
+  2.3: { at: 2.31, up: 36, iv: '1' },
+};
+const HARM_SETS = { main: [12, 7, 5, 4], all: [12, 9, 7, 5, 4, 3, 2.7, 2.3] };
+const fretName = (h) => (Number.isInteger(h) ? String(h) : h.toFixed(1));
+/** One natural harmonic on string `s` (an item for Builder.frets / stack). */
+function harm(ctx, s, h, extra = {}) {
+  const H = HARMS[h];
+  return { s, f: Math.round(H.at), at: H.at, tag: '◊', play: ctx.tuning[s] + H.up, n: T.up(T.N(ctx.names[s]), H.iv), deg: T.fmtDeg(H.iv), ...extra };
+}
+
 const harmonics = ex({
   id: 'tech-harmonics', module: M, level: 4,
-  title: 'Natural harmonics map (12, 7, 5, 4)',
-  summary: 'Touch the string lightly over the fret wire: bell-like overtones.',
-  about: 'A natural harmonic sounds when you touch the string lightly, exactly above the fret wire, without pressing, and pluck near the bridge. The 12th fret gives the octave, the 7th the octave plus a 5th, the 5th two octaves and the 4th two octaves plus a major 3rd. Harmonics are used for tuning, melodies (Jaco\'s "Portrait of Tracy") and chords.',
-  tips: ['Touch directly over the metal fret, not between frets.', 'Pluck close to the bridge for a clearer harmonic.'],
-  source: 'RSL Grade 7, Trinity Grade 8, Berklee Online Bass 101 L9',
-  params: { order: sel('Order', [['fret', 'Fret by fret'], ['string', 'String by string']]) },
+  title: 'Natural harmonics map',
+  summary: 'Touch the string lightly at its node: 12, 7 and 5 over the wire, the lower ones just before or after it.',
+  about: 'A natural harmonic sounds when you touch the string lightly at a node, without pressing it down, and pluck near the bridge. The 12th fret gives the octave, the 7th the octave and a 5th, the 5th two octaves: these three nodes are right over the fret wire. Lower down they are not: the 4th-fret harmonic (two octaves and a major 3rd) is just before the 4th wire, the 3rd-fret one (two octaves and a 5th) just after the 3rd wire, and near the 2nd fret sit a ♭7 (at 2.7, a little flat against the tempered note) and three octaves (at 2.3). The 9th-fret node, just before the wire, sounds like the 4th-fret one.\n\nThe neck draws each harmonic as a triangle where you touch it, and the tab writes the in-between ones as 3.9, 3.2 and 2.7. Every note is spelled from its open string: on the E string the major 3rd is G♯ (never A♭) and the ♭7 is D.',
+  tips: ['Touch at the triangle, not in the middle of the fret.', 'Pluck close to the bridge for a clearer harmonic, and lift the touching finger as soon as it sounds.', 'Dot labels set to degrees show each harmonic\'s interval from its open string.'],
+  source: 'RSL Grade 7, Trinity Grade 8, Berklee Online Bass 101 L9; the harmonic series of a string',
+  params: {
+    set: sel('Harmonics', [['main', 'The main four: 12, 7, 5, 4'], ['all', 'All up to the 12th: 12, 9, 7, 5, 4, 3.2, 2.7, 2.3']]),
+    order: sel('Order', [['fret', 'Fret by fret'], ['string', 'String by string']]),
+  },
   bpm: 60, sub: 1, label: 'note',
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
-    const H = [[12, 12], [7, 19], [5, 24], [4, 28]];
-    const add = (s, f, up) => b.frets([{ s, f, finger: 0, tag: '◊', play: ctx.tuning[s] + up, n: spellMidi(ctx.tuning[s] + up) }]);
-    if (p.order === 'fret') for (const [f, up] of H) { b.chord(`Fret ${f}`); for (const s of strings(ctx)) add(s, f, up); }
-    else for (const s of strings(ctx)) { b.chord(ctx.names[s]); for (const [f, up] of H) add(s, f, up); }
+    const set = HARM_SETS[p.set] || HARM_SETS.main;
+    const add = (s, h) => b.frets([harm(ctx, s, h, { finger: 0 })]);
+    if (p.order === 'fret') for (const h of set) { b.chord(`Fret ${fretName(h)}`); for (const s of strings(ctx)) add(s, h); }
+    else for (const s of strings(ctx)) { b.chord(ctx.names[s]); for (const h of set) add(s, h); }
     return b.build({ label: 'note' });
+  },
+});
+
+// Harmonic chords: an open or fretted bass note under harmonics on the D and G strings, touched together with one
+// finger lying lightly across both. Original voicings, each spelled and labelled against its chord.
+const HARM_CHORDS = [
+  { sym: 'Em7', root: 'E', notes: [{ str: 'E', fret: 0, n: 'E', deg: 'R' }, { str: 'D', h: 12, deg: '♭7' }, { str: 'G', h: 12, deg: '♭3' }] },
+  { sym: 'Esus2', root: 'E', notes: [{ str: 'E', fret: 0, n: 'E', deg: 'R' }, { str: 'D', h: 4, deg: '2' }, { str: 'G', h: 4, deg: '5' }] },
+  { sym: 'Gmaj7', root: 'G', notes: [{ str: 'E', fret: 3, n: 'G', deg: 'R' }, { str: 'D', h: 4, deg: '7' }, { str: 'G', h: 4, deg: '3' }] },
+  { sym: 'Cmaj7♯11', root: 'C', notes: [{ str: 'A', fret: 3, n: 'C', deg: 'R' }, { str: 'D', h: 4, deg: '♯11' }, { str: 'G', h: 4, deg: '7' }] },
+  { sym: 'A7sus4', root: 'A', notes: [{ str: 'A', fret: 0, n: 'A', deg: 'R' }, { str: 'D', h: 12, deg: '4' }, { str: 'G', h: 12, deg: '♭7' }] },
+  { sym: 'D5', root: 'D', notes: [{ str: 'A', fret: 5, n: 'D', deg: 'R' }, { str: 'D', h: 7, deg: '5' }, { str: 'G', h: 7, deg: 'R' }] },
+];
+const harmonicChords = ex({
+  id: 'tech-harmonic-chords', module: M, level: 5,
+  title: 'Harmonic chords',
+  summary: 'An open or fretted bass note under harmonics on the D and G strings: Em7, Esus2, Gmaj7, Cmaj7♯11, A7sus4, D5.',
+  about: 'Harmonics on the D and G strings, touched together by one finger lying lightly across both, make bell-like chords over a bass note: an open string, or a note fretted by another finger. Over the open E, the 12th-fret harmonics give Em7 and the 4th-fret ones (just before the wire) Esus2; over a fretted G they give Gmaj7, over a fretted C a Lydian Cmaj7♯11; over the open A the 12th-fret pair gives A7sus4, and over a fretted D the 7th-fret pair a D5.\n\nRoll each chord one note at a time, letting everything ring, then play it together. Solo bassists use chords like these for intros, endings and ballads.',
+  tips: ['Fret the bass note firmly; only touch the harmonic strings.', 'Pluck near the bridge, then let the chord ring.', 'The triangles show where to touch: the 4th-fret pair sits just before the wire.'],
+  source: 'Original voicings. Harmonic chords are a classic solo-bass device (Jaco Pastorius, Victor Wooten).',
+  params: { style: sel('Style', [['roll', 'One by one, then together'], ['together', 'Together']]) },
+  bpm: 60, label: 'degree',
+  build(p, ctx, S) {
+    const b = new Builder(ctx, S);
+    for (const c of HARM_CHORDS) {
+      const notes = c.notes.map((x) => {
+        const s = ctx.str(x.str);
+        return x.h != null ? harm(ctx, s, x.h, { deg: x.deg }) : { s, f: x.fret, n: T.N(x.n), deg: x.deg };
+      });
+      b.chord(c.sym);
+      if (p.style === 'roll') {
+        b.frets(notes.map((x) => ({ ...x, dur: 1 })));
+        b.stack(notes, { dur: 3 });
+      } else {
+        b.stack(notes, { dur: 2 });
+        b.stack(notes, { dur: 2 });
+      }
+    }
+    return b.build({ uniform: false, label: 'degree' });
   },
 });
 
@@ -788,4 +854,4 @@ const tapping = ex({
   },
 });
 
-export default [permStrings, altPluck, c1234, raking, muting, climb, perms, spider, diagonal, fingerPairs, octaveRun, dynamics, trills, legato, stringSkip, shifting, simandl, accents, ghost16, stretch, harmonics, endurance, pim, sweep, tapping];
+export default [permStrings, altPluck, c1234, raking, muting, climb, perms, spider, diagonal, fingerPairs, octaveRun, dynamics, trills, legato, stringSkip, shifting, simandl, accents, ghost16, stretch, harmonics, endurance, pim, sweep, harmonicChords, tapping];

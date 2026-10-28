@@ -296,5 +296,47 @@ const chordal10ths = ex({
   },
 });
 
-export default [buildChord, thirdQuality, progRoots, blues, chordTonesProg, doubleStops, minorHarmony, shells, colour, chordal10ths];
+// Chord formulas (user, 2026-10-28: "more chord exercises to learn harmony"): every chord type a lead sheet uses,
+// built on one root from its formula, by family, with the textbook spelling (C°7 has B♭♭, C6/9 is C E G A D).
+const FORMULAS = {
+  triads: { name: 'Triads and sus chords', types: ['maj', 'min', 'dim', 'aug', 'sus2', 'sus4'] },
+  added: { name: '6ths and added 9ths', types: ['maj6', 'min6', 'add9', 'maj69', 'min69'] },
+  sevenths: { name: '7th chords', types: ['maj7', 'dom7', 'min7', 'm7b5', 'dim7', 'mMaj7', 'dom7sus4', 'maj7sus4'] },
+  extended: { name: '9ths, 11ths and 13ths', types: ['maj9', 'dom9', 'min9', 'dom11', 'min11', 'dom13', 'min13'] },
+};
+const formulas = ex({
+  id: 'hm-chord-formulas', module: M, level: 3,
+  title: 'Chord formulas: every chord from one root',
+  summary: 'Triads, sus, 6, add9, 6/9, the 7th chords, 9ths, 11ths and 13ths built on one root from their formulas.',
+  about: 'Every chord symbol is a formula: degrees of the major scale counted from the root, some of them lowered. Major is 1 3 5, minor 1 ♭3 5, sus4 1 4 5; a 6th chord adds the 6, add9 the 9 (no 7th), 6/9 both; the 7th chords add a 7 or ♭7 (and the °7 a ♭♭7); 9ths, 11ths and 13ths keep stacking 3rds above the 7th. Here each chord of a family is played up its formula and back down on one root, so you see what changes from chord to chord and hear what each extra note brings.\n\nThe notes keep their textbook spelling: the 3rd of a chord is always a 3rd (C°7 is C E♭ G♭ B♭♭, its B♭♭ sounding as A). In practice an 11th chord often leaves out its 3rd, and a 13th its 11th: the formula shows everything the name allows.',
+  tips: ['Say each chord\'s formula before you play it.', 'Watch which dot moves from one chord to the next: often only one.', 'Turn the Backing to Chords to hear each colour under the arpeggio.'],
+  source: 'Chord construction as taught in graded exams (RSL, Trinity, LCM) and jazz theory; TalkingBass Chord Tone Essentials',
+  params: {
+    family: sel('Chords', Object.entries(FORMULAS).map(([k, v]) => [k, v.name])),
+    key: keyP(['1', '3', '5']),
+    root: rootStrP('A'),
+  },
+  bpm: 72, sub: 2, label: 'degree',
+  build(p, ctx, S) {
+    const b = new Builder(ctx, S);
+    const types = (FORMULAS[p.family] || FORMULAS.triads).types;
+    let prev = null;
+    for (const k of keysFor(p.key)) {
+      const root = T.bestRoot(k, ['1', '3', '5']);
+      const r = pickRoot(ctx, k, { strings: [p.root, 'E', 'A'], hi: 9, prev, prefer: p.root });
+      const items = [];
+      for (const q of types) {
+        const ivs = T.CHORDS[q].iv;
+        // up the formula and back down to the root
+        const order = [...ivs.keys(), ...[...ivs.keys()].reverse().slice(1)];
+        chordTones(root, ivs, r.midi, order).forEach((t, j) => items.push({ ...t, chord: j === 0 ? chordName(root, q, S) : undefined }));
+      }
+      b.line(items, { pattern: false, place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
+      prev = r.midi;
+    }
+    return b.build({ label: 'degree' });
+  },
+});
+
+export default [buildChord, thirdQuality, formulas, progRoots, blues, chordTonesProg, doubleStops, minorHarmony, shells, colour, chordal10ths];
 void chordTones;

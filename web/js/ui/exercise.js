@@ -388,7 +388,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   function mkDot(n, state) {
     const label = reveal === 'quiz' && state === 'current' ? T.noteName(n.n, S.notation) : noteLabel(n, labelMode, S.notation);
     const color = n.tag === 'x' ? 'ghost' : degKey(n.deg);
-    return { s: n.s, f: n.f, label: n.tag === 'x' ? 'x' : label, color, state, tag: n.tag && n.tag !== 'x' ? n.tag : null };
+    return { s: n.s, f: n.f, at: n.at, label: n.tag === 'x' ? 'x' : label, color, state, tag: n.tag && n.tag !== 'x' ? n.tag : null };
   }
 
   function showStep(i) {

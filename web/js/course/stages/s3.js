@@ -609,17 +609,37 @@ export default {
             'Mixing up maj7 and 7. Listen to the third note, the 7th: right under the octave (maj7) or a whole step under it (7). The top note is the 3rd in both.',
           ],
         },
+        {
+          id: 'chord-formulas', title: 'Chord formulas', added: 1793190000000,
+          idea: 'Every chord symbol is a formula of degrees from its root.',
+          concept: [
+            'A chord symbol tells you which degrees to stack on the root: major 1 3 5, minor 1 ♭3 5, sus4 1 4 5, a 6th chord adds the 6, add9 the 9 without a 7th, 6/9 both. The 7th chords add a 7 or a ♭7 (the °7 a ♭♭7), and 9ths, 11ths and 13ths keep stacking 3rds above the 7th.',
+            'Play each family on one root and watch which notes change from chord to chord: often only one. The spelling stays textbook, so C°7 is C E♭ G♭ B♭♭.',
+          ],
+          steps: [
+            { ex: 'hm-chord-formulas', p: { family: 'triads' }, sub: 2, from: 60, goal: 88, do: 'Major, minor, diminished, augmented, sus2 and sus4 on one root. Say each formula first.' },
+            { ex: 'hm-chord-formulas', p: { family: 'added' }, sub: 2, from: 60, goal: 88, do: '6, m6, add9, 6/9 and m6/9: the notes added to a triad.' },
+            { ex: 'hm-chord-formulas', p: { family: 'sevenths' }, sub: 2, from: 60, goal: 88, do: 'All the 7th chords, sus ones included.' },
+            { ex: 'hm-chord-formulas', p: { family: 'extended' }, sub: 2, from: 56, goal: 80, do: '9ths, 11ths and 13ths: the stack keeps climbing.' },
+          ],
+          mistakes: [
+            'Reading add9 as a 9th chord. add9 has no 7th; a 9th chord has one.',
+            'Respelling to make it easier. A 3rd stays a 3rd: the B♭♭ of C°7 is not an A.',
+          ],
+        },
       ],
       check: {
         can: [
           'I can play the 7th chords of any major key.',
           'I can start a 7th chord from any of its notes.',
           'I can hear the difference between maj7, 7, m7, m7♭5 and °7.',
+          'I can build any chord from its formula on one root.',
         ],
         steps: [
           { ex: 'arp-diatonic-7ths', p: { scale: 'ionian', order: 'up', pattern: 'alt' }, sub: 2, from: 72, goal: 100 },
           { ex: 'ear-sevenths', p: { set: 'five' } },
           { ex: 'arp-broken', p: { quality: 'maj7', shape: 'broken', oct: '1' }, sub: 2, from: 72, goal: 100 },
+          { ex: 'hm-chord-formulas', p: { family: 'sevenths' }, sub: 2, from: 72, goal: 100 },
         ],
       },
     },

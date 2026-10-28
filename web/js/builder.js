@@ -152,6 +152,8 @@ export class Builder {
       const midi = this.ctx.tuning[it.s] + it.f;
       const note = { midi, n: it.n || spellMidi(midi, flats), deg: it.deg, s: it.s, f: it.f };
       if (it.tag) note.tag = it.tag;
+      // (a harmonic's node in frets, 3.86 = just before the 4th fret wire: the neck draws it there)
+      if (it.at != null) note.at = it.at;
       if (it.finger != null) { note.finger = it.finger; this.fixedFingers.add(note); }
       if (it.play != null) note.play = it.play;
       const step = { notes: [note], dur: it.dur ?? dur };
@@ -172,7 +174,7 @@ export class Builder {
   stack(pitches, opts = {}) {
     const { dur = 1 } = opts;
     if (pitches.every((p) => p.s != null)) {
-      const notes = pitches.map((p) => ({ midi: this.ctx.tuning[p.s] + p.f, n: p.n || spellMidi(this.ctx.tuning[p.s] + p.f), deg: p.deg, s: p.s, f: p.f, tag: p.tag }));
+      const notes = pitches.map((p) => ({ midi: this.ctx.tuning[p.s] + p.f, n: p.n || spellMidi(this.ctx.tuning[p.s] + p.f), deg: p.deg, s: p.s, f: p.f, tag: p.tag, ...(p.at != null ? { at: p.at } : {}), ...(p.play != null ? { play: p.play } : {}) }));
       const step = { notes, dur: opts.dur ?? dur };
       if (opts.accent) step.accent = true;
       if (opts.hide) step.hide = true;

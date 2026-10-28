@@ -127,6 +127,14 @@ export class FretboardView {
     const i = f - this.first;
     return this._x((this.wires[i] + this.wires[i + 1]) / 2);
   }
+  /**
+   * x of a harmonic's node (user, 2026-10-28: "not always in the middle of the fret"): `q` in frets along the
+   * string, 12 = right over the 12th fret wire, 3.86 = just before the 4th, 3.16 = just after the 3rd.
+   */
+  nodeX(q) {
+    const fl = Math.floor(q), frac = q - fl;
+    return this.wireX(fl) + frac * (this.wireX(fl + 1) - this.wireX(fl));
+  }
   stringY(s) { return this.boardTop + this.gap * (this.strings - 1 - s + 0.5); }
   dotR() { return Math.max(9, Math.min(this.minCell * 0.42, this.gap * 0.46)); }
 
@@ -260,21 +268,26 @@ export class FretboardView {
       out.push(`<path class="arc" d="M${ax},${ay} Q${mx},${my} ${bx},${by}" stroke="${col}"/>`);
     }
     for (const d of sorted) {
-      const cx = this.fretX(d.f), cy = this.stringY(d.s);
+      // a harmonic is a triangle on its node, not a dot in the middle of the fret (user, 2026-10-28)
+      const harm = d.tag === '◊';
+      const cx = harm ? this.nodeX(d.at ?? d.f) : this.fretX(d.f), cy = this.stringY(d.s);
       const key = PALETTE[d.color] ? d.color : 'none';
       const col = PALETTE[key];
       const st = d.state;
       const r = st === 'current' ? R * 1.1 : st === 'past' ? R * 0.88 : st === 'future' || st === 'ghost' ? R * 0.86 : R;
       const isRoot = key === 'root';
-      const body = (attrs) => (isRoot
-        ? `<rect x="${-r}" y="${-r}" width="${2 * r}" height="${2 * r}" rx="${r * 0.42}" ${attrs}/>`
-        : `<circle r="${r}" ${attrs}/>`);
+      const tri = (k) => `M0,${-k * 1.12} L${k * 1.08},${k * 0.78} L${-k * 1.08},${k * 0.78} Z`;
+      const body = (attrs) => (harm ? `<path d="${tri(r)}" stroke-linejoin="round" ${attrs}/>`
+        : isRoot
+          ? `<rect x="${-r}" y="${-r}" width="${2 * r}" height="${2 * r}" rx="${r * 0.42}" ${attrs}/>`
+          : `<circle r="${r}" ${attrs}/>`);
       const label = d.label !== '' && d.label != null ? String(d.label) : '';
-      const fs = Math.max(9, r * (label.length > 2 ? 0.66 : label.length > 1 ? 0.8 : 0.92));
+      // (a triangle's label sits lower, in its widest part, and a little smaller)
+      const fs = Math.max(9, r * (label.length > 2 ? 0.66 : label.length > 1 ? 0.8 : 0.92) * (harm ? 0.86 : 1));
       out.push(`<g class="dot ${st}" transform="translate(${cx},${cy})"><g class="in">`);
       if (st === 'current') {
         out.push(`<circle class="glow" r="${r * 2.1}" fill="url(#gl-${key}${uid})"/>`);
-        out.push(`<circle class="ripple" r="${r}" fill="none" stroke="${col}" stroke-width="2"/>`);
+        out.push(harm ? `<path class="ripple" d="${tri(r)}" fill="none" stroke="${col}" stroke-width="2"/>` : `<circle class="ripple" r="${r}" fill="none" stroke="${col}" stroke-width="2"/>`);
         out.push(body(`class="body" fill="url(#dg-${key}${uid})" stroke="#ffffff" stroke-width="2.2"`));
       } else if (st === 'next') {
         out.push(body(`class="ghostfill" fill="${col}" fill-opacity="0.16"`));
@@ -286,9 +299,10 @@ export class FretboardView {
       }
       if (label) {
         const outline = st === 'next' || st === 'future' || st === 'ghost';
-        out.push(`<text class="lbl${outline ? ' soft' : ''}" y="${fs * 0.35}" font-size="${fs}"${outline ? ` fill="${shade(col, 0.35)}"` : ''}>${label}</text>`);
+        out.push(`<text class="lbl${outline ? ' soft' : ''}" y="${fs * 0.35 + (harm ? r * 0.18 : 0)}" font-size="${fs}"${outline ? ` fill="${shade(col, 0.35)}"` : ''}>${label}</text>`);
       }
-      if (d.tag) {
+      // (the triangle already says "harmonic": no ◊ chip above it)
+      if (d.tag && !harm) {
         const tw = Math.max(16, String(d.tag).length * 7 + 8);
         // (the pick's down-stroke mark ⊓ is drawn, not written: some phone fonts lack the character)
         const mark = d.tag === '⊓' ? '<path d="M-3.2 3.6V-3.4H3.2V3.6" class="tagp"/>'
