@@ -172,7 +172,7 @@ function target(hash) {
     const t = byId.get(parts[1]) || (/^\d+$/.test(parts[1] || '') ? byNumber.get(Number(parts[1])) : null);
     return t ? { t, ls: new URLSearchParams(query || '').get('ls') || '' } : null;
   }
-  const lesson = parts[0] === 'course' && parts[1] && parts[1] !== 'placement' ? lessonById.get(parts[1]) : null;
+  const lesson = parts[0] === 'course' && parts[1] && parts[1] !== 'placement' ? lessonById.get(parts[1]) || [...lessonById.values()].find((l) => l.kind === 'lesson' && l.num === parts[1]) : null;
   return lesson ? { lesson } : null;
 }
 /** Why an address in the app is closed (an exercise, a lesson), or null. */

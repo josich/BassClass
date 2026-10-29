@@ -171,6 +171,12 @@ export function setClean(lesson, i, on) {
   if (on) masterFrom(lesson, i);
   return settle(lesson);
 }
+/** Takes a step's tick back: its own ✓ Clean, and its exercise's mastery when that is what ticks it (user, 2026-10-29:
+ * "checked exercises have to be able to be unchecked"). Returns what `setClean` returns. */
+export function untickStep(lesson, i) {
+  if (covered(lesson, i)) setMastered(lesson.steps[i].ex, false);
+  return setClean(lesson, i, false);
+}
 export const canTicked = (lesson, i) => !!state.can[skey(lesson.id, i)];
 export function setCan(lesson, i, on) {
   if (on) state.can[skey(lesson.id, i)] = true; else delete state.can[skey(lesson.id, i)];

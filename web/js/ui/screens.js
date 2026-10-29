@@ -13,7 +13,8 @@ import { resetCourse, placed, anyProgress } from '../course/progress.js';
 import { replaceHash, goBack, canGoBack } from './nav.js';
 import { saveBackup, parseBackup, restoreBackup } from '../backup.js';
 import { resetLog } from '../practiceLog.js';
-import { hashLock, exerciseLock, levelLocked, gatesOn, newsIdOf } from '../pro.js';
+import { hashLock, exerciseLock, lessonLock, levelLocked, gatesOn, newsIdOf } from '../pro.js';
+import { LESSONS } from '../course/data.js';
 import { openPro } from './proSheet.js';
 import { isNew, newCount, markUsed } from '../news.js';
 import { proFields, devTaps, devPanel } from './proDebug.js';
@@ -43,6 +44,8 @@ function card(t, { level = true, topic = true } = {}) {
   return h('div', { class: `card${pr.done ? ' done' : ''}${lock ? ' locked' : ''}`, onClick: () => go(exHref(t.id)) },
     starButton(t.id),
     h('h3', {}, h('span', { class: 'ex-num' }, t.num), t.title),
+    // (a song study says on its card that the line is ours, not the record's: user, 2026-10-29, "make them honest")
+    t.song ? h('div', { class: 'card-note' }, 'Our own line in this style, not the record\'s part') : null,
     // the title says what it is; the description opens on request
     h('div', { class: 'meta' },
       newChip(isNew(`ex:${t.id}`)),
@@ -227,6 +230,19 @@ function levelSections() {
   });
 }
 
+// everyday words the texts do not use, and what they mean here: a teacher or a student searches by the problem
+// ("rushing", "posture", "plectrum") or by another name ("sixteenth", "circle of fifths")
+const SYNONYMS = {
+  rushing: ['pulse', 'gap', 'subdivi', 'in time'], dragging: ['pulse', 'gap', 'subdivi', 'in time'], timing: ['pulse', 'gap', 'subdivi', 'in time'],
+  time: ['pulse', 'tempo'], groove: ['feel'], posture: ['holding', 'sitting', 'strap'], hold: ['holding'],
+  plectrum: ['pick'], pick: ['plectrum'], sixteenth: ['16th'], sixteenths: ['16ths'], eighth: ['8th'], eighths: ['8ths'],
+  triplet: ['triplet'], quaver: ['8th'], semiquaver: ['16th'], crotchet: ['quarter'], circle: ['cycle'], fifths: ['5ths', 'cycle'],
+  mute: ['muting'], muting: ['mute'], ringing: ['muting', 'mute'], sight: ['reading'], 'sight-reading': ['reading'], notation: ['staff', 'reading'],
+  sheet: ['staff', 'reading'], speed: ['tempo', 'speed trainer', 'endurance'], fast: ['speed', 'endurance', '16th'], stamina: ['endurance'],
+  warmup: ['warm-up', 'technique'], 'warm-up': ['technique'], ear: ['hear', 'listen'], listening: ['ear', 'hear'], neck: ['fretboard'],
+  fretboard: ['neck'], notes: ['note names'], thumb: ['slap', 'thumb'], popping: ['pop'], chords: ['chord', 'triad', 'arpeggio'],
+  jazz: ['walking', 'ii-v', 'bebop'], solo: ['lick', 'soloing'], improvise: ['lick', 'solo', 'your own'], improvisation: ['lick', 'solo', 'your own'],
+};
 export function libraryScreen(main, params = {}) {
   // the search text belongs to this history entry, so Back from an exercise finds it again
   const search = h('input', { class: 'search', type: 'search', placeholder: 'Search: triad, ii-V, 305…', 'aria-label': 'Search exercises', value: history.state?.q || '' });
@@ -258,23 +274,33 @@ export function libraryScreen(main, params = {}) {
     .replace(/colou?r/g, 'colour').replace(/practi[cs]e/g, 'practise');
   // option names count too ("spanish" finds the world scales, "augmented 7" the arpeggio study)
   const optionText = (t) => Object.values(t.params || {}).flatMap((d) => (d.kind === 'select' ? d.options.map((o) => o[1]) : [])).join(' ');
+  // a word also finds its everyday names: a teacher searches by the student's problem (QA round 21, user's choice)
+  const alts = (w) => [w, ...(SYNONYMS[w] || [])];
+  const lessonText = (l) => norm(`${l.title} ${l.idea || ''} ${[].concat(l.concept || []).join(' ')} ${[].concat(l.mistakes || []).join(' ')} ${(l.steps || []).map((s) => s.do || '').join(' ')} ${l.unit?.title || ''}`);
   const render = () => {
     const q = norm(search.value.trim());
     const topics = settings.libView === 'topics';
     jumps.hidden = !!q || topics;
     if (!q) { results.replaceChildren(...(topics ? [modulesGrid()] : levelSections())); return; }
-    // a number ("42" or "#42") finds that exercise
+    // a number ("305" or "#305") finds that exercise; a lesson's number ("3.15", "lesson 3.15") that lesson
     const num = q.match(/^#?(\d+)$/);
+    const lnum = q.match(/^(?:lesson\s*)?#?(\d\.\d{1,2})$/);
     const words = q.split(/\s+/);
+    const found = (hay) => words.every((w) => alts(w).some((a) => hay.includes(a)));
     // (a number with no exercise of its own, a year such as 1991, is searched as text)
-    const list = num && byNumber.has(Number(num[1])) ? [byNumber.get(Number(num[1]))] : EXERCISES.filter((t) => {
+    const list = lnum ? [] : num && byNumber.has(Number(num[1])) ? [byNumber.get(Number(num[1]))] : EXERCISES.filter((t) => {
       const song = t.song ? `${t.song.name} ${t.song.artist} ${t.song.year}` : '';
-      const hay = norm(`${t.title} ${t.summary} ${t.about} ${t.module} ${moduleOf(t.module)?.name || ''} ${song} ${optionText(t)}`);
-      return words.every((w) => hay.includes(w));
+      return found(norm(`${t.title} ${t.summary} ${t.about} ${t.module} ${moduleOf(t.module)?.name || ''} ${song} ${optionText(t)}`));
     }).sort((a, b) => a.order - b.order);
-    results.replaceChildren(list.length
-      ? h('div', {}, h('p', { class: 'muted small' }, `${list.length} exercise${list.length > 1 ? 's' : ''} found`), h('div', { class: 'grid' }, list.map((t) => card(t))))
-      : h('p', { class: 'muted' }, 'Nothing found.'));
+    // the course's lessons too, by number or by their words (QA round 21: "do lesson 3.15" is how teachers say it)
+    const lessons = lnum ? LESSONS.filter((l) => l.num === lnum[1]) : num ? [] : LESSONS.filter((l) => l.kind === 'lesson' && found(lessonText(l))).slice(0, 12);
+    const lessonCard = (l) => h('div', { class: `card${lessonLock(l) ? ' locked' : ''}`, onClick: () => go(`#/course/${l.id}`) },
+      h('h3', {}, h('span', { class: 'ex-num' }, l.num), l.title),
+      h('div', { class: 'meta' }, proChip(lessonLock(l)), h('span', { class: `chip lv lv${l.stage.level}` }, `Stage ${l.stage.level}`), l.unit ? h('span', { class: 'chip' }, l.unit.title) : null));
+    const parts = [];
+    if (lessons.length) parts.push(h('p', { class: 'muted small' }, `${lessons.length} lesson${lessons.length > 1 ? 's' : ''}`), h('div', { class: 'grid' }, lessons.map(lessonCard)));
+    if (list.length) parts.push(h('p', { class: 'muted small' }, `${list.length} exercise${list.length > 1 ? 's' : ''} found`), h('div', { class: 'grid' }, list.map((t) => card(t))));
+    results.replaceChildren(parts.length ? h('div', {}, ...parts) : h('p', { class: 'muted' }, 'Nothing found.'));
   };
   search.addEventListener('input', () => {
     try { history.replaceState({ ...(history.state || {}), q: search.value }, ''); } catch { /* ignore */ }
@@ -283,7 +309,7 @@ export function libraryScreen(main, params = {}) {
   // (a level the player has just reached opens: the page scrolls to it once, when it is not the first)
   const reached = settings.libOpen != null && settings.libAt !== playerLevel() && !params.l ? playerLevel() : null;
   main.replaceChildren(
-    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '▸ Levels: tap a level to open or fold it', '🗂 Topics: one card per topic, its exercises Level 1 to 6', '🔎 Search by name, topic, song, artist or number (#305)', '🔢 An exercise\'s number is its level, then its own: 305 is Level 3', '★ core: a key exercise of its level', `🎯 Master an exercise: a full loop at its goal, then ✓ Mastered; it counts in the course too`, `📈 ${Math.round(LEVEL_PASS * 100)}% of a level mastered moves your level on`, 'ⓘ on a card: what it is'], 'About the Library'), views, h('div', { class: 'grow' }), search),
+    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '▸ Levels: tap a level to open or fold it', '🗂 Topics: one card per topic, its exercises Level 1 to 6', '🔎 Search by name, topic, song, artist or number (#305); lessons by name or number (3.15)', '🔢 An exercise\'s number is its level, then its own: 305 is Level 3', '★ core: a key exercise of its level', `🎯 Master an exercise: a full loop at its goal, then ✓ Mastered; it counts in the course too`, `📈 ${Math.round(LEVEL_PASS * 100)}% of a level mastered moves your level on`, 'ⓘ on a card: what it is'], 'About the Library'), views, h('div', { class: 'grow' }), search),
     jumps,
     results);
   render();

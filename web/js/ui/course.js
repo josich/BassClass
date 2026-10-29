@@ -15,7 +15,7 @@ import { NEXT_LEVEL, COMPLETE } from '../course/data.js';
 import { PLACEMENT } from '../course/placement.js';
 import {
   STAGES, LESSONS, UNITS, lessonById, SESSION_LENGTHS,
-  stepPassed, stepClean, stepCovered, setClean, canTicked, setCan, isComplete, isDue, nextReview, dueLessons,
+  stepPassed, stepClean, stepCovered, untickStep, canTicked, setCan, isComplete, isDue, nextReview, dueLessons,
   status, started, anyProgress, continueLesson, firstGap, courseStats, knownUnits, setKnown, placed,
   sessionMinutes, setSessionMinutes, setLast, resetCourse,
   sessionStore, setSession, sessionPractised, clearSession,
@@ -482,14 +482,14 @@ export function lessonScreen(main, id) {
     const clean = stepClean(l, i), passed = stepPassed(l, i);
     // the essentials only: the Library number and the goal (the step's text is the exercise's tip)
     const tempo = `#${t.num} · ${s.goal ? `🎯 ${s.goal} BPM${s.sub ? ` in ${SUB_NAMES[s.sub]}` : ''}` : 'one full round'}`;
-    // a tick can be taken back here (not in the exercise, where a second tap would undo a lesson); a step the
-    // exercise's mastery ticks says so instead, as only unmastering it takes the tick back (QA round 19)
+    // a tick can be taken back, after a question (user, 2026-10-29); a step its exercise's mastery ticks says so,
+    // and its untick takes the mastery back too
     const byMastery = clean && stepCovered(l, i);
-    const untick = clean && !byMastery ? h('button', { class: 'icon-btn untick', title: 'Untick: practise this step again', 'aria-label': 'Untick this step', onClick: (e) => {
+    const untick = clean ? h('button', { class: 'icon-btn untick', title: 'Untick: practise this step again', 'aria-label': 'Untick this step', onClick: (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (!confirm('Untick this step? The lesson counts as done again once every step is ticked.')) return;
-      setClean(l, i, false);
+      if (!confirm(byMastery ? 'This step is ticked because you mastered its exercise. Untick it? ✓ Mastered is taken back too, in the Library and the course.' : 'Untick this step? The lesson counts as done again once every step is ticked.')) return;
+      untickStep(l, i);
       rerender();
     } }, '↺') : null;
     return h('a', { class: `step-row${clean ? ' clean' : passed ? ' passed' : ''}${s.music ? ' music' : ''}`, href: stepHref(l, i, due && i === rv ? { rv: 1 } : {}) },

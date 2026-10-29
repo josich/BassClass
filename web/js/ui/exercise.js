@@ -11,7 +11,7 @@ import * as T from '../theory.js';
 import { moduleOf, LEVELS, defaultParams } from '../curriculum/index.js';
 import { CYCLE_OPTS, PROGS, tonicFor } from '../curriculum/common.js';
 import { harmonyTrack, harmonyAt, NO_BACKING } from '../harmony.js';
-import { recordLoop, rememberTempo, stepState, stepPassed, stepClean, stepCovered, setClean, isDue, isComplete, reviewed } from '../course/progress.js';
+import { recordLoop, rememberTempo, stepState, stepPassed, stepClean, stepCovered, setClean, untickStep, isDue, isComplete, reviewed } from '../course/progress.js';
 import { goalOf, goalText as masteryGoal, meetsGoal, setMastered, isMastered, SUB_NAMES } from '../mastery.js';
 
 // what a lesson step's goal tempo counts in ("goal 96 BPM in 8ths"; the list lives in mastery.js)
@@ -132,7 +132,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const goalText = () => (LS?.goal ? `goal ${LS.goal} BPM${LS.sub ? ` in ${SUB_NAMES[LS.sub]}` : ''}` : 'one full round');
   const subtitle = L
     ? `${lessonName} · ${demo ? 'demo: listen and watch' : `step ${LI + 1}/${L.steps.length} · ${goalText()}`}`
-    : `${mod?.name ?? ''}${tpl.song ? ' · style study' : ''} · Level ${tpl.level} ${lvl ? lvl.name : ''}`;
+    : `${mod?.name ?? ''}${tpl.song ? ' · our own line in its style, not the record\'s' : ''} · Level ${tpl.level} ${lvl ? lvl.name : ''}`;
   const titleEl = h('div', { class: 'exv-title' }, h('b', { title: tpl.title }, h('span', { class: 'ex-num' }, tpl.num), tpl.short || tpl.title), h('span', { title: subtitle }, subtitle));
   let nextBtn = null;
   if (routine) {
@@ -482,11 +482,14 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       reviewing = false;
       toast(`Reviewed ✓ Next review in ${days} days`, 3000);
     } else if (stepClean(L, LI)) {
-      // a ticked step stays ticked here (a second tap must not undo a lesson): untick it on the lesson page, or,
-      // when the exercise's mastery ticks it, take ✓ Mastered back in the Library (QA round 19)
-      tip(stepCovered(L, LI)
-        ? 'Already ticked ✓: you mastered this exercise. To practise this step again from scratch, open it in the Library and take back ✓ Mastered (under ⋯).'
-        : 'Already ticked ✓. To practise this step again from scratch, untick it on the lesson page.');
+      // a ticked step can be unticked here too, after a question (user, 2026-10-29: "checked exercises have to be
+      // able to be unchecked"); one its exercise's mastery ticks takes the mastery back with it
+      const byMastery = stepCovered(L, LI);
+      if (!confirm(byMastery ? 'This step is ticked because you mastered this exercise. Untick it? ✓ Mastered is taken back too, in the Library and the course.' : `Untick ✓ ${earStep ? 'Got them all' : 'Clean'}? Practise the step again, and tick it when it is clean.`)) return;
+      untickStep(L, LI);
+      lessonDone = false;
+      if (nextBtn && !routine) nextBtn.classList.remove('primary');
+      toast('Unticked');
     } else {
       const ex = L.steps[LI].ex, was = isMastered(ex);
       const complete = setClean(L, LI, true);
