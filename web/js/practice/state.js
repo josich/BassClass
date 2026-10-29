@@ -1,6 +1,7 @@
 // The Practice room's own settings (localStorage, failure-tolerant like store.js): kept between visits.
 import { STYLES, GENRES } from './styles.js';
 import { PROG_KEYS, QUALITIES, LENGTHS, MINE_START } from './harmony.js';
+import { DRONES } from './drones.js';
 
 const KEY = 'bassclass.practice.v1';
 
@@ -8,15 +9,18 @@ export const SUBS = [1, 2, 3, 4];        // clicks per beat without drums: quart
 
 const DEFAULTS = { bpm: 90, beats: 4, sub: 1, accents: {}, lightsTapped: false, upFrom: null, fills: 0, click: true, play: 2, mute: 0, speedUp: false, upBy: 2, upEvery: 4, upTo: 200, drums: false, genre: 'rock', style: 'rock8', drumVol: 80, fab: null,
   harmony: 'off', hKey: 9, hProg: 'blues', hVol: 70, neckShow: 'chord',
+  // the drone's chord (practice/drones.js): its root and 5th to start with, as it always was
+  hQual: 'open',
   // My progression, to start: I – vi – ii – V, a bar each
   myProg: MINE_START, myMinor: false, hSound: 'pad',
   // the pickers' ★ favourites and recent picks (newest first)
-  drumFavs: [], drumRecent: [], progFavs: [], progRecent: [] };
+  drumFavs: [], drumRecent: [], progFavs: [], progRecent: [], droneFavs: [], droneRecent: [] };
 const int = (lo, hi) => (v) => Number.isInteger(v) && v >= lo && v <= hi;
 // (a list of a library's keys, each once, at most `max`)
 const keysOf = (ok, max) => (v) => Array.isArray(v) && v.length <= max && new Set(v).size === v.length && v.every((k) => typeof k === 'string' && ok(k));
 const isStyle = (k) => Object.prototype.hasOwnProperty.call(STYLES, k);
 const isProg = (k) => PROG_KEYS.includes(k);
+const isDrone = (k) => Object.prototype.hasOwnProperty.call(DRONES, k);
 // (`o`: the chord it was before the last Major | Minor switch, which the next switch gives back)
 const isChord = (c) => !!c && int(0, 11)(c.d) && QUALITIES.some(([q]) => q === c.q) && LENGTHS.some(([b]) => b === c.b) && (c.k == null || int(0, 11)(c.k))
   && (c.o == null || (!!c.o && int(0, 11)(c.o.d) && QUALITIES.some(([q]) => q === c.o.q)));
@@ -27,6 +31,7 @@ const isGrouping = ([k, list]) => int(1, 12)(Number(k)) && String(Number(k)) ===
 const keep = (ok, max) => (v) => (Array.isArray(v) ? [...new Set(v.filter((k) => typeof k === 'string' && ok(k)))].slice(0, max) : v);
 const CLEAN = {
   drumFavs: keep(isStyle, 99), drumRecent: keep(isStyle, 6), progFavs: keep(isProg, 40), progRecent: keep(isProg, 6),
+  droneFavs: keep(isDrone, 99), droneRecent: keep(isDrone, 6),
   myProg: (v) => (Array.isArray(v) ? v.filter(isChord).slice(0, 16) : v),
   // (one bad grouping goes on its own, not the player's others: QA round 18)
   accents: (v) => (v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).filter(isGrouping)) : v),
@@ -55,8 +60,10 @@ const RULES = {
   harmony: (v) => ['off', 'drone', 'chords'].includes(v),   // the pad: nothing, a drone on the key, or a progression
   hKey: int(0, 11),
   hProg: (v) => PROG_KEYS.includes(v),
+  hQual: isDrone,
   hVol: int(0, 100),
   drumFavs: keysOf(isStyle, 99), drumRecent: keysOf(isStyle, 6), progFavs: keysOf(isProg, 40), progRecent: keysOf(isProg, 6),
+  droneFavs: keysOf(isDrone, 99), droneRecent: keysOf(isDrone, 6),
   myProg: (v) => Array.isArray(v) && v.length >= 1 && v.length <= 16 && v.every(isChord),
   myMinor: (v) => typeof v === 'boolean',
   hSound: (v) => ['pad', 'epiano', 'piano', 'organ', 'guitar', 'arp'].includes(v),   // the harmony's sound (audio.js PAD_SOUNDS)

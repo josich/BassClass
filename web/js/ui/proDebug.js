@@ -2,6 +2,8 @@
 // the test switch), and the debug panel for the gates and the purchase (user, 2026-10-27: "create a way to debug the
 // payment gates"). The panel opens with seven taps on the version line, in every build but the Play one (where test
 // switches would hand out Pro); it is kept apart from the player's data (pro.js `dev`), so a backup never carries it.
+import { settings } from '../store.js';
+import { DRONES, DRONE_GROUPS, droneName } from '../practice/drones.js';
 import { h, toast, icon, heart, bubbleOnTap } from './dom.js';
 import { PLAY, PRO_ID, TIPS, PRICE, placeholder, proSub, FREE_LEVELS, FREE_SOUNDS, PRO_SOUND_NOTES, gatesOn, isPro, owned, proRecord, dev, setDev, setOwned, proRoomItems } from '../pro.js';
 import { PAD_SOUNDS } from '../audio.js';
@@ -90,6 +92,12 @@ function proDetails() {
   const progs = room.progGroups.flatMap(([, keys]) => keys);
   out.push(head(`🎹 ${progs.length} more progressions`));
   for (const [g, keys] of room.progGroups) out.push(sub(`${g}: ${keys.map(progName).join(', ')}`));
+  // (the drone's chords, by group: practice/drones.js)
+  out.push(head(`🎵 ${room.drones.length} more drone chords and voicings`));
+  for (const [g, name] of DRONE_GROUPS) {
+    const list = room.drones.filter((k) => DRONES[k].group === g);
+    if (list.length) out.push(sub(`${name}: ${list.map((k) => droneName(0, k, settings.notation)).join(', ')}`));
+  }
   const sounds = Object.keys(PAD_SOUNDS).filter((k) => !FREE_SOUNDS.has(k));
   out.push(head(`🎛 ${sounds.length} more sounds for the harmony`));
   out.push(...sounds.map((k) => sub(PRO_SOUND_NOTES[k] || k)));

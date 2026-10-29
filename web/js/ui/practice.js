@@ -10,14 +10,15 @@ import { accentsFor, groupsOf } from '../practice/accents.js';
 import { settings, saveSettings } from '../store.js';
 import { loadKit, kitReady } from '../drums.js';
 import { loadPiano, pianoReady } from '../piano.js';
-import { styleLock, progLock, soundLock, fillsLock, freeRoom } from '../pro.js';
+import { styleLock, progLock, soundLock, fillsLock, droneLock, freeRoom } from '../pro.js';
 import { openPro } from './proSheet.js';
 import { proChip, newChip } from './screens.js';
-import { isNew, markUsed } from '../news.js';
+import { isNew, newCount, markUsed } from '../news.js';
 import { neckPanel } from './neck.js';
 import { openPicker } from './picker.js';
 import { HARMONY_PROGS, progName, progression, keyName, isMinor, MINE, DEGREES, QUALITIES, LENGTHS, usualQuality, roman, mineFrom, scaleFor, MINE_START, mineBars } from '../practice/harmony.js';
 import { PROGS, toTriad } from '../curriculum/common.js';
+import { DRONES, DRONE_GROUPS, DRONE_KEYS, droneName, droneTitle, droneFormula, droneIvs, droneRoot, droneMidis } from '../practice/drones.js';
 import * as T from '../theory.js';
 
 const INFO = [
@@ -71,12 +72,12 @@ function subChoices(s) {
 const BEAT_ICON = { q: 'q1', e: 'e1', dq: 'dq' };
 // the Neck's scales that name a drone's key as a minor key does (C♯, not D♭)
 const HARMONY_INFO = [
-  '🎹 Something to play over: a drone (the key\'s root and 5th, held) for scales and modes, or a chord progression',
+  '🎹 Something to play over: a drone (the key\'s root and 5th, held, or a chord you pick beside the key: triads, 7ths, 9ths to 13ths, altered, voicings) for scales and modes, or a chord progression',
   '🎼 Pick a key and a progression: pop and rock, blues, jazz, minor, vamps',
   '✎ My progression: your own chords by degree (the Key moves them); ✎ Edit copies a progression into it',
   '🎼 My progression is in a major or a minor key: Minor turns the usual chords into the minor key\'s (I → i, vi → ♭VI)',
   '🎛 Sound: a pad, an electric piano, a recorded grand piano, an organ, a distorted rock guitar (power chords, chugging) or an arpeggio (the guitar and the arpeggio move with the Subdivision); another one plays from the next beat',
-  '🎸 The chords sit above the Neck in order, each lit while it sounds; Chord or Scale shows it on the neck, with the next change (over a drone, your scale on its key)',
+  '🎸 The chords sit above the Neck in order, each lit while it sounds; Chord or Scale shows it on the neck, with the next change (over a drone: Chord its chord, Scale your own scale on its key)',
   '🔇 Muted bars silence the harmony too, while the chords go on',
   '⏱ It follows the metronome and the drums: start it with the floating button',
 ];
@@ -639,6 +640,27 @@ export function practiceScreen(main, params = {}) {
       onPick: (k) => { markUsed(`prog:${k}`); set({ progRecent: recentWith(room.progRecent, k) }); mineAt = null; setHarmony({ hProg: k }); },
     });
   };
+  // ---- the drone's chord (practice/drones.js; user, 2026-10-29): the shared picker, by group; stopped, a pick is heard once
+  // (the open drone, root and 5th or the root alone, has no chord: the Neck shows the player's scale over it)
+  const openDrone = () => room.hQual === 'open' || room.hQual === 'root';
+  const pickDrone = (k) => {
+    markUsed(`drone:${k}`);
+    set({ droneRecent: recentWith(room.droneRecent, k) });
+    setHarmony({ hQual: k });
+    if (!engine.playing && !engine.starting) A.chordPreview(droneMidis(room.hKey, k), room.hSound);
+  };
+  const openDrones = () => {
+    closePicker = openPicker({
+      title: 'Drone chords', host: main,
+      groups: DRONE_GROUPS.map(([key, name]) => ({ key, name })),
+      items: DRONE_KEYS.map((k) => ({ key: k, name: droneTitle(k), group: DRONES[k].group, sub: `${droneName(room.hKey, k, settings.notation)} · ${droneFormula(k)}`, lock: droneLock(k), fresh: isNew(`drone:${k}`) })),
+      current: room.hQual,
+      favs: room.droneFavs, recent: room.droneRecent,
+      onLocked: (why, k) => openPro(why, { then: () => pickDrone(k), cancel: openDrones }),
+      onFav: (k, on) => set({ droneFavs: favsWith(room.droneFavs, k, on) }),
+      onPick: pickDrone,
+    });
+  };
   /** A preset copied into My progression, to change it. */
   const editPreset = () => {
     if (progLock(MINE)) { openPro(progLock(MINE), { then: editPreset }); return; }
@@ -667,7 +689,11 @@ export function practiceScreen(main, params = {}) {
     });
     if (Number.isInteger(curIdx) && curIdx >= 0) chipRow?.show(chips[curIdx], chips[curIdx + 1]);
     if (room.neckShow === 'off' || room.harmony === 'off') { neck.follow(null); return; }
-    if (room.harmony === 'drone') { neck.follow({ root: T.bestRoot(room.hKey, T.SCALES.ionian.iv), type: null, name: keyName(room.hKey, settings.notation) }); return; }
+    if (room.harmony === 'drone') {
+      if (room.neckShow === 'chord' && !openDrone()) { neck.follow({ root: droneRoot(room.hKey, room.hQual), ivs: droneIvs(room.hQual), name: droneName(room.hKey, room.hQual, settings.notation) }); return; }
+      neck.follow({ root: T.bestRoot(room.hKey, T.SCALES.ionian.iv), type: null, name: keyName(room.hKey, settings.notation) });
+      return;
+    }
     const ch = chordsNow();
     // (at rest, or before the first chord sounds: the progression's first chord)
     const i = Number.isInteger(curIdx) && curIdx >= 0 && curIdx < ch.length ? curIdx : 0;
@@ -688,12 +714,15 @@ export function practiceScreen(main, params = {}) {
     const mode = room.harmony;
     harmBlock.classList.toggle('off', mode === 'off');
     const minor = minorNow();
-    // (a drone is named as the Neck's own scale or chord names its root: C♯ under C♯ Dorian or C♯m7, A♭ under
-    // A♭ Altered; QA round 17)
-    const nameOf = (p) => (mode === 'drone' ? T.noteName(neck.rootName(p), settings.notation) : keyName(p, settings.notation, minor));
+    // (an open drone is named as the Neck's own scale or chord names its root: C♯ under C♯ Dorian or C♯m7, A♭ under
+    // A♭ Altered, QA round 17; a drone on a chord as its chord names it: D♭, C♯m)
+    const nameOf = (p) => (mode === 'drone' ? T.noteName(openDrone() ? neck.rootName(p) : droneRoot(p, room.hQual), settings.notation) : keyName(p, settings.notation, minor));
     const keySel = h('select', { class: 'mini-sel', 'aria-label': 'Key' }, T.CHROMATIC_PC.map((p) => h('option', { value: p, selected: p === room.hKey }, nameOf(p))));
     keySel.addEventListener('change', () => setHarmony({ hKey: Number(keySel.value) }));
     const progNow = pickNow(progName(room.hProg), progSub(room.hProg), openProgs);
+    // the drone's chord beside the key (user, 2026-10-29), with a dot of "New" while some are new
+    const droneNow = pickNow(droneName(room.hKey, room.hQual, settings.notation), `${droneTitle(room.hQual)} · ${droneFormula(room.hQual)}`, openDrones);
+    if (newCount(DRONE_KEYS.map((k) => `drone:${k}`))) droneNow.querySelector('.pick-text b').append(' ', newChip(true));
     const vol = h('input', { type: 'range', min: 0, max: 100, step: 1, value: room.hVol, 'aria-label': 'Harmony volume' });
     const volVal = h('b', { class: 'rl-val' }, `${room.hVol}%`);
     vol.addEventListener('input', () => {
@@ -718,14 +747,15 @@ export function practiceScreen(main, params = {}) {
     // above the Neck: Follow, then the chords (or the drone's key), so the two fit one screen
     // what the neck shows: the chord sounding, its scale, or the player's own choice (over a drone: the
     // player's scale on its key, or their own choice)
-    const shows = mode === 'chords' ? [['chord', 'Chord'], ['scale', 'Scale'], ['off', 'Off']] : [['scale', 'Scale'], ['off', 'Off']];
-    const lit = mode === 'drone' && room.neckShow === 'chord' ? 'scale' : room.neckShow;
+    // (over the open drone, root and 5th, there is no chord to show: Scale | Off, as before)
+    const shows = mode === 'chords' || !openDrone() ? [['chord', 'Chord'], ['scale', 'Scale'], ['off', 'Off']] : [['scale', 'Scale'], ['off', 'Off']];
+    const lit = mode === 'drone' && openDrone() && room.neckShow === 'chord' ? 'scale' : room.neckShow;
     neck.setBar(mode === 'off' ? null : h('div', { class: 'harm-bar' },
       h('div', { class: 'seg', title: 'What the neck shows' }, shows.map(([v, l]) => h('button', {
         class: lit === v ? 'on' : '',
         onClick: () => setHarmony({ neckShow: v }),
       }, l))),
-      chipRow || h('span', { class: 'drone-tag' }, `Drone on ${nameOf(room.hKey)}`)));
+      chipRow || h('span', { class: 'drone-tag' }, openDrone() ? `Drone on ${nameOf(room.hKey)}` : `Drone: ${droneName(room.hKey, room.hQual, settings.notation)}`)));
     harmBlock.replaceChildren(...[
       h('div', { class: 'block-head' }, h('h2', {}, '🎹 Harmony'), infoBtn(HARMONY_INFO, 'About the harmony'), h('div', { class: 'grow' }),
         h('div', { class: 'seg' }, [['off', 'Off'], ['drone', 'Drone'], ['chords', 'Chords']].map(([v, l]) => h('button', {
@@ -735,6 +765,7 @@ export function practiceScreen(main, params = {}) {
       mode === 'off' ? null : h('div', { class: 'harm-row' },
         h('label', {}, 'Key'), keySel,
         mode === 'chords' ? progNow : null,
+        mode === 'drone' ? droneNow : null,
         mode === 'chords' && room.hProg !== MINE ? h('button', { class: `btn small${progLock(MINE) ? ' locked' : ''}`, title: 'Copy it into My progression to change it', onClick: editPreset }, '✎ Edit', proChip(progLock(MINE))) : null),
       ...(mode === 'chords' && room.hProg === MINE ? mineEditor() : []),
       // its sound: synthesised, but the piano (recorded, loaded the first time it is picked)

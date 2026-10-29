@@ -149,21 +149,17 @@ export const isMinor = (key) => !!PROGS[key]?.minor;
 // The room's pad sits above the bass, in a guitar's or keys' register, where a phone's speaker sounds and the
 // player's own bass stays clear (user, 2026-10-23: the chords were too quiet under a real bass): its root
 // between E3 and D♯4.
-const LOW = 52;
+export const LOW = 52;
 /** The pad's notes for a chord: its root between E3 and D♯4, its tones above it; with a 9th, 11th or 13th the
  * plain 5th makes room for them (R 3 ♭7 9), five notes at most. */
-function chordMidis(root, type) {
+export function chordMidis(root, type) {
   const r = LOW + T.mod(T.pc(root) - LOW, 12);
   let ivs = T.CHORDS[type].iv;
   if (ivs.length > 4) ivs = ivs.filter((iv) => iv !== '5');
   return ivs.slice(0, 5).map((iv) => r + T.semis(iv));
 }
 
-/** The drone on a key: root (E3 to D♯4), 5th and octave. */
-export function droneMidis(keyPc) {
-  const r = LOW + T.mod(keyPc - LOW, 12);
-  return [r, r + 7, r + 12];
-}
+// (the drone and its chords: practice/drones.js)
 
 /** The key's name, as a lead sheet writes it: flats on the black keys, a minor key as its chords spell it (C♯m). */
 export const keyName = (pc, notation, minor = false) => (minor

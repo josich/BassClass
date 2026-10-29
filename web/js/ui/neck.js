@@ -41,7 +41,7 @@ export function neckPanel({ onOwn } = {}) {
   const S = settings;
   const ctx = makeCtx(S);
   let rootPc = 0, set = 's:ionian', label = 'degree', upTo = 12;
-  let lead = null;   // the harmony followed: { root, type (its chord) or scale (its scale), name, next }; neither over a drone
+  let lead = null;   // the harmony followed: { root, type (its chord), ivs (a drone's chord by its intervals) or scale (its scale), name, next }; none of them: the player's own scale on the root
   const boardWrap = h('div', { class: 'board neck-board' });
   const rootSel = h('select', { class: 'mini-sel', 'aria-label': 'Key' });
   const setSel = h('select', { class: 'mini-sel', 'aria-label': 'Scale or chord' }, EXPLORE_SETS.map(([v, l]) => h('option', { value: v }, l)));
@@ -58,9 +58,10 @@ export function neckPanel({ onOwn } = {}) {
   const fb = new FretboardView(host, {
     onTap: (s, f) => { A.playNote(ctx.tuning[s] + f, A.now() + 0.01, 1); fb.pluck(s, 'none'); },
   });
-  const shown = () => (lead?.type ? `c:${lead.type}` : lead?.scale ? `s:${lead.scale}` : set);
-  const ownRoot = () => lead?.type || lead?.scale;
+  const shown = () => (lead?.type ? `c:${lead.type}` : lead?.ivs ? 'c:*' : lead?.scale ? `s:${lead.scale}` : set);
+  const ownRoot = () => lead?.type || lead?.ivs || lead?.scale;
   const ivsOf = () => {
+    if (lead?.ivs) return lead.ivs;
     const [kind, k] = shown().split(':');
     if (kind === 's') return T.SCALES[k].iv;
     if (kind === 'c') return T.CHORDS[k].iv;
@@ -131,7 +132,7 @@ export function neckPanel({ onOwn } = {}) {
   labSel.addEventListener('change', () => { label = labSel.value; render(); });
   fretSel.addEventListener('change', () => { upTo = Number(fretSel.value); render(); });
   render();
-  /** Follow the harmony: { root, type or scale, name, next } (neither over a drone: the chosen scale on its key), or null to stop. */
+  /** Follow the harmony: { root, type, ivs or scale, name, next } (none of them: the player's own scale on the root), or null to stop. */
   const follow = (x) => {
     if (JSON.stringify(x) === JSON.stringify(lead)) return;
     lead = x;

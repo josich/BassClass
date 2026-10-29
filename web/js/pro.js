@@ -3,8 +3,9 @@
 // Stages 1–3, and two lessons of each later stage, to try it: user, 2026-10-28), the tuner, the whole
 // metronome, the Neck, the drone, the log and backup, and the Practice room's
 // starter set (three drum patterns of each genre, the Pop & rock and Blues progressions, My progression and its
-// ✎ Edit, the Pad, E-piano and Arpeggio sounds). Pro: Levels 4–6, every drum pattern and the fills, every other
-// progression, the Piano, Organ and Guitar sounds, and whatever comes next.
+// ✎ Edit, the Pad, E-piano and Arpeggio sounds, the drone open, on the triads and on the five 7th chords). Pro: Levels
+// 4–6, every drum pattern and the fills, every other progression, the Piano, Organ and Guitar sounds, the drone's
+// other chords and voicings, and whatever comes next.
 //
 // Built to grow: what is Pro is worked out from the data, so new content takes its side on its own. An exercise,
 // a lesson (or its unit or stage), a drum pattern or a progression marked `pro: true` is Pro whatever its level;
@@ -17,6 +18,7 @@ import { byId, byNumber } from './curriculum/index.js';
 import { lessonById } from './course/data.js';
 import { STYLES, GENRES } from './practice/styles.js';
 import { HARMONY_PROGS } from './practice/harmony.js';
+import { DRONES, droneTitle } from './practice/drones.js';
 
 export const PRO_ID = 'bassclass_pro';
 // (the tips' labels and PRICE are the test builds' figures: the Play build shows only Google Play's own prices)
@@ -150,6 +152,11 @@ export function soundLock(v) {
   return `The ${{ piano: 'Piano', organ: 'Organ', guitar: 'Guitar' }[v] || v} sound is part of BassClass Pro`;
 }
 export const fillsLock = () => (isPro() ? null : 'Fills are part of BassClass Pro');
+/** The drone's chords (practice/drones.js): the open drone, the triads and the five 7th chords free, `free: true`. */
+export function droneLock(key) {
+  if (isPro() || !DRONES[key] || DRONES[key].free) return null;
+  return `The ${droneTitle(key)} drone is part of BassClass Pro: the open drone, the triads and the five basic 7th chords are free`;
+}
 
 /** Why an address in the app is closed (an exercise, a lesson), or null. */
 export function hashLock(hash) {
@@ -173,14 +180,16 @@ export function freeRoom(room) {
   if (room.fills) patch.fills = 0;
   if (progLock(room.hProg)) patch.hProg = freeProg();
   if (soundLock(room.hSound)) patch.hSound = 'pad';
+  if (droneLock(room.hQual)) patch.hQual = 'open';
   return Object.keys(patch).length ? patch : null;
 }
 
-/** What Pro opens in the room, whoever owns it (Settings' Pro details): its drum patterns and progression groups. */
+/** What Pro opens in the room, whoever owns it (Settings' Pro details): its drum patterns, progression groups and drone chords. */
 export function proRoomItems() {
   return {
     styles: Object.keys(STYLES).filter((k) => !FREE_STYLE.has(k)),
     progGroups: HARMONY_PROGS.filter(([g]) => g !== 'Mine' && !FREE_PROG_GROUPS.has(g)),
+    drones: Object.keys(DRONES).filter((k) => !DRONES[k].free),
   };
 }
 

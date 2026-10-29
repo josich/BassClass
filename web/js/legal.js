@@ -17,7 +17,7 @@ export const CONTACT = 'polyorbit.app@gmail.com';
  */
 export const OWNER = { name: '', address: '' };
 /** The date the privacy policy and the terms last changed. */
-export const UPDATED = '28 October 2026';
+export const UPDATED = '29 October 2026';
 
 /**
  * The privacy policy. `where`: 'app' (the Android app), 'web' (the web version, until the launch) or 'page' (the
@@ -68,7 +68,7 @@ export function purchaseTerms({ free, from }) {
       `BassClass is free to use, with no time limit: ${free}.`,
       'BassClass Pro is a one-time purchase: one payment, no subscription, no ads. It is sold through Google Play, which takes the payment, charges VAT where it applies, sends your receipt and applies its terms of service.',
       'Pro gives your Google account a licence to use BassClass\'s Pro content, with no time limit, on the Android devices where you use BassClass with that account. On a new phone, use Restore purchase with the same Google account.',
-      `Pro opens Levels ${from}–6, every drum pattern and the fills, every progression, the extra sounds, and the new content we add to these parts later, at no extra cost. What is free today stays free.`,
+      `Pro opens Levels ${from}–6, every drum pattern and the fills, every progression, the extra sounds, the drone's other chords and voicings, and the new content we add to these parts later, at no extra cost. What is free today stays free.`,
       'We keep improving BassClass. We will not take away what Pro gives you unless we must (for example, a licence or legal problem); if that ever happens we will say so in the app, and you can ask for a refund.',
       'Pro is supplied at once: at checkout Google Play asks you to agree to that and to acknowledge that you then lose the 14-day right of withdrawal.',
       `Refunds: through Google Play, or write to us at ${CONTACT} and we can refund you through Google Play. A refunded purchase closes Pro again.`,

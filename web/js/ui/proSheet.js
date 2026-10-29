@@ -12,7 +12,7 @@ import { buy, prices, restorePro, canBuy } from '../billing.js';
 let openNow = null;
 
 /** The free part, in one line (the sheet, Settings' Pro ⓘ, About's terms). */
-export const FREE_LINE = `Levels 1–${FREE_LEVELS} of the course and the Library, ${FREE_TASTE} lessons of each later stage to try, the tuner, the whole metronome, and the Practice room's starter set: 3 drum patterns of each genre, the Pop & rock and Blues progressions, My progression, the drone and the Neck`;
+export const FREE_LINE = `Levels 1–${FREE_LEVELS} of the course and the Library, ${FREE_TASTE} lessons of each later stage to try, the tuner, the whole metronome, and the Practice room's starter set: 3 drum patterns of each genre, the Pop & rock and Blues progressions, My progression, the drone (open, on the triads and on the five basic 7th chords) and the Neck`;
 
 /** Runs `fn` once the sheet's history entry is gone (its own Back has landed), or at once when there was none. */
 function afterBack(wentBack, fn) {
@@ -80,6 +80,7 @@ export function openPro(reason = '', { then, cancel } = {}) {
         h('li', {}, `🥁 All ${c.styles} drum patterns, and fills`),
         h('li', {}, '🎹 Every progression (soul, jazz, minor, vamps…)'),
         h('li', {}, '🎸 The Piano, Organ and Guitar sounds'),
+        h('li', {}, '🎵 Every drone chord: 6ths, 9ths to 13ths, altered dominants, voicings'),
         h('li', {}, '✨ The new content we add to them')),
       h('p', { class: 'muted small' }, `Free for good: ${FREE_LINE}. One payment, yours for good: no subscription, no ads.`),
       msg ? h('p', { class: 'pro-msg' }, msg) : null,

@@ -19,7 +19,8 @@ import * as T from './theory.js';
 import { GENRES } from './practice/styles.js';
 import { HARMONY_PROGS, PROG_KEYS } from './practice/harmony.js';
 import { PAD_SOUNDS } from './audio.js';
-import { FREE_SOUNDS, FREE_LEVELS, FREE_TASTE, FREE_DRUMS, FREE_STYLE, PRO_SOUND_NOTES, isPro, gatesOn, exerciseLock, lessonLock, styleLock, progLock } from './pro.js';
+import { FREE_SOUNDS, FREE_LEVELS, FREE_TASTE, FREE_DRUMS, FREE_STYLE, PRO_SOUND_NOTES, isPro, gatesOn, exerciseLock, lessonLock, styleLock, progLock, droneLock } from './pro.js';
+import { DRONES, DRONE_GROUPS, droneMidis, droneName, droneFormula, droneIvs } from './practice/drones.js';
 
 function combos(params, limit = 400, strings = 4) {
   const keys = Object.keys(params);
@@ -106,7 +107,7 @@ function checkPro(problems) {
   }
   if (!gatesOn()) {
     if (!isPro()) problems.push('pro: the gates are off but something is closed');
-    const shut = [...EXERCISES.filter((t) => exerciseLock(t)), ...LESSONS.filter((l) => lessonLock(l)), ...Object.keys(STYLES).filter((k) => styleLock(k)), ...PROG_KEYS.filter((k) => progLock(k))];
+    const shut = [...EXERCISES.filter((t) => exerciseLock(t)), ...LESSONS.filter((l) => lessonLock(l)), ...Object.keys(STYLES).filter((k) => styleLock(k)), ...PROG_KEYS.filter((k) => progLock(k)), ...Object.keys(DRONES).filter((k) => droneLock(k))];
     if (shut.length) problems.push(`pro: ${shut.length} items closed with the gates off`);
   }
 }
@@ -127,6 +128,31 @@ function checkPlacement(problems) {
     if (found.some((u) => !u)) problems.push(`placement: "${text.slice(0, 40)}…" names a unit that does not exist`);
     else if (new Set(found.map((u) => u.stage)).size > 1) problems.push(`placement: "${text.slice(0, 40)}…" spans two stages`);
   }
+}
+
+/**
+ * The drone's chords (practice/drones.js): each in a group, a chord the theory knows or a voicing whose intervals,
+ * stacking and card agree; on every key its notes rise, sit above the bass (from E3) and below C6, and its name and
+ * formula are written; the open drone is free and plays the root, 5th and octave as before.
+ */
+function checkDrones(problems) {
+  const groups = new Set(DRONE_GROUPS.map(([g]) => g));
+  for (const [k, d] of Object.entries(DRONES)) {
+    if (!groups.has(d.group)) problems.push(`drone ${k}: group ${d.group}`);
+    if (d.type && !T.CHORDS[d.type]) problems.push(`drone ${k}: chord type ${d.type}`);
+    if (!d.type) {
+      if (!d.at || !d.iv || !d.deg || d.at.length !== d.deg.length) problems.push(`drone ${k}: voicing incomplete`);
+      else if (d.iv.some((iv) => !d.at.some((s) => s % 12 === T.mod(T.semis(iv), 12)))) problems.push(`drone ${k}: its intervals and its notes disagree`);
+      if (d.like && !T.CHORDS[d.like]) problems.push(`drone ${k}: named like ${d.like}`);
+    }
+    for (let pc = 0; pc < 12; pc++) {
+      const m = droneMidis(pc, k);
+      if (!m.length || m.some((x, i) => !Number.isInteger(x) || x < 52 || x > 84 || (i && x <= m[i - 1]))) problems.push(`drone ${k} on ${pc}: notes ${m.join(' ')}`);
+      if (T.mod(m[0], 12) !== pc) problems.push(`drone ${k} on ${pc}: the lowest note is not the root`);
+    }
+    if (!droneName(0, k, 'letters') || !droneFormula(k) || !droneIvs(k).length) problems.push(`drone ${k}: no name or formula`);
+  }
+  if (!DRONES.open?.free || droneMidis(9, 'open').join() !== '57,64,69') problems.push('drone: the open drone is not the root, 5th and octave, free');
 }
 
 function checkNumbers(problems) {
@@ -204,6 +230,7 @@ export function run({ strings = [4, 5, 6], verbose = false } = {}) {
   checkPro(problems);
   checkNumbers(problems);
   checkPlacement(problems);
+  checkDrones(problems);
   for (const st of strings) {
     const S = { strings: st, notation: 'letters', maxFret: 20 };
     const ctx = makeCtx(S);

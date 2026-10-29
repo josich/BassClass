@@ -41,7 +41,7 @@ BassClass teaches bass guitar the way a good teacher does: one step at a time, w
 ★ PRACTISE: THE PRACTICE ROOM
 • A metronome from 1 to 660 BPM, with accents, odd-metre groupings, subdivisions, muted bars, a speed-up trainer and tap tempo
 • 124 drum grooves in 13 styles, from rock and funk to jazz, Latin, reggae and odd metres, played on recorded drum kits
-• A drone or a chord progression to jam over, in any key, or write your own
+• A drone or a chord progression to jam over, in any key: the drone on a chord of your choice (triads, 7ths, 9ths to 13ths, altered, voicings), or write your own progression
 • The neck shows the scale or the chord that fits each chord as it goes by
 
 ★ ALSO INSIDE
@@ -53,7 +53,7 @@ BassClass teaches bass guitar the way a good teacher does: one step at a time, w
 ★ FREE TO START, PRO WHEN YOU WANT MORE
 Free for good: Levels 1 to 3 of the course and the exercises, two lessons of every later stage to try, the tuner, the whole metronome and the Practice room's starter set (three drum grooves of each style, the pop, rock and blues progressions, your own progression, the drone and the neck).
 
-BassClass Pro is an optional one-time purchase: one payment, no subscription. It opens Levels 4 to 6 (walking bass, slap, jazz licks and harmony, sweeps and tapping), every drum groove and the fills, every progression, and the piano, organ and guitar sounds, with the new content we add to these parts later.
+BassClass Pro is an optional one-time purchase: one payment, no subscription. It opens Levels 4 to 6 (walking bass, slap, jazz licks and harmony, sweeps and tapping), every drum groove and the fills, every progression, every drone chord, and the piano, organ and guitar sounds, with the new content we add to these parts later.
 
 ★ GOOD TO KNOW
 • BassClass is in English. Note names can be C D E or Do Re Mi.

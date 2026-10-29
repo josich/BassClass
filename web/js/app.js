@@ -25,6 +25,7 @@ import { LESSONS } from './course/data.js';
 import { STYLES } from './practice/styles.js';
 import { PROG_KEYS, MINE } from './practice/harmony.js';
 import { PAD_SOUNDS } from './audio.js';
+import { DRONE_KEYS } from './practice/drones.js';
 import { initNews, markUsed } from './news.js';
 
 // the last error messages, for the Feedback e-mail (errors.js)
@@ -37,6 +38,7 @@ initNews([
   ...Object.keys(STYLES).map((k) => `style:${k}`),
   ...PROG_KEYS.filter((k) => k !== MINE).map((k) => `prog:${k}`),
   ...Object.keys(PAD_SOUNDS).map((k) => `sound:${k}`),
+  ...DRONE_KEYS.map((k) => `drone:${k}`),
 ]);
 
 const app = document.getElementById('app');

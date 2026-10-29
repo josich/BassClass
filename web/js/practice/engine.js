@@ -7,7 +7,8 @@ import { logPlaying } from '../practiceLog.js';
 import { playDrum, kitReady, styleGain, trackGain } from '../drums.js';
 import { STYLES, levelsOf, clickTimes, phraseHits, regroup } from './styles.js';
 import { groupsOf } from './accents.js';
-import { progression, droneMidis } from './harmony.js';
+import { progression } from './harmony.js';
+import { droneMidis } from './drones.js';
 
 const LOOKAHEAD = 0.12;   // seconds scheduled ahead
 const TICK_MS = 25;
@@ -15,7 +16,7 @@ const TICK_MS = 25;
 export class Room {
   /**
    * `o`: { bpm, beats, sub, accents (the accented beats: [0, 2, 4]), click, play, mute, upBy, upEvery, upTo, drums, style, countIn,
-   *   harmony ('off' | 'drone' | 'chords'), hProg, hKey, notation };
+   *   harmony ('off' | 'drone' | 'chords'), hProg, hKey, hQual (the drone's chord), notation };
    * `onTick({ time, bar, beat, muted, count, bpm, chord })` once per beat (`count`: the count-in bar;
    *   `chord`: { at, of }, this beat's place in the progression's chord sounding, else null);
    * `onChord({ time, idx })` when the harmony's chord changes (idx -1: the drone, null: none; in muted
@@ -91,7 +92,7 @@ export class Room {
     if (this.hRestart && this.beat === 0) { this.hRestart = false; this.hBeat = 0; }
     let midis = null, idx = null, place = null;
     if (!this.hRestart) {
-      if (this.o.harmony === 'drone') { midis = droneMidis(this.o.hKey); idx = -1; }
+      if (this.o.harmony === 'drone') { midis = droneMidis(this.o.hKey, this.o.hQual); idx = -1; }
       const chords = this._chords();
       if (chords) {
         let pos = this.hBeat % this.hTotal;

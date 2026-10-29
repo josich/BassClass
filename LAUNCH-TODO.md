@@ -33,9 +33,10 @@ it take a few days of your time spread over a week or two (identity and payments
 - **Free**: Levels 1–3 on every front (the Library's exercises and song studies, the Course's Stages 1–3), two lessons
   of each of Stages 4–6 to try (scales, modes, two-octave arpeggios), the tuner, the whole metronome, the Neck, the
   drone, the log, backup; in the room, **3 drum patterns of each genre**, the Pop & rock and Blues progressions, My
-  progression and its ✎ Edit, the Pad, E-piano and Arpeggio sounds.
+  progression and its ✎ Edit, the Pad, E-piano and Arpeggio sounds, the drone open, on the triads and on the five basic
+  7th chords.
 - **Pro** (one-time): Levels 4–6, every drum pattern and the fills, every progression, the Piano, Organ and Guitar sounds,
-  and the new content added to these parts later.
+  the drone's other chords and voicings, and the new content added to these parts later.
 - **Price**: €7.99, launch price €4.99. **Tips**: €2 and €4. Products `bassclass_pro`, `bassclass_tip_2`,
   `bassclass_tip_4`.
 - **Developer name**: Josich. **Contact**: polyorbit.app@gmail.com (the same as Polyorbit).
