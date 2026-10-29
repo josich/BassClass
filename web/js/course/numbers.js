@@ -12,13 +12,13 @@ export const LESSON_NUMBERS = {
   'raking': 1, 'muting': 2, 'climb': 3, 'independence': 4, 'chromatic': 5, 'offbeats': 6, 'swing': 7, 'dotted': 8,
   'syncopation': 9, 'unisons': 10, 'find-every': 11, 'zone-roots': 12, 'note-quiz': 13, 'interval-shapes': 14, 'interval-family': 15, 'interval-ear': 16,
   'triad-types': 17, 'four-types': 18, 'triad-cycle': 19, 'five-sevenths': 20, 'seventh-shapes': 21, 'key-chords': 22, 'progressions': 23, 'twelve-bar': 24,
-  'blues-scale': 25, 'blues-lines': 26, 'octave-grooves': 27, 'riffs': 28, 'dynamics': 29, 'pick': 30, 'accidentals': 31, 'key-signatures': 32,
+  'blues-scale': 25, 'blues-lines': 26, 'octave-grooves': 27, 'riffs': 28, 'dynamics': 29, 'pick': 30, 'accidentals': 31, 'key-signatures': 32, 'fills': 33,
   // Stage 3
   'trills': 1, 'legato': 2, 'shifts': 3, 'string-skip': 4, 'triplet-feel': 5, 'sixteenths': 6, 'accents': 7, 'ghost-notes': 8,
   'position-notes': 9, 'all-octaves': 10, 'reading-up': 11, 'two-octaves': 12, 'scale-forms': 13, 'keys-in-position': 14, 'pent-three-boxes': 15, 'pent-minor-grooves': 16,
   'one-string': 17, 'three-per-string': 18, 'sequences': 19, 'diatonic-intervals': 20, 'relative-modes': 21, 'parallel-modes': 22, 'triad-forms': 23, 'inversions': 24,
   'neck-chain': 25, 'harmonised-triads': 26, 'diatonic-7ths': 27, 'broken-chords': 28, 'zone-7ths': 29, 'hear-7ths': 30, 'chord-formulas': 31, 'chord-tones': 32,
-  'approach-notes': 33, 'double-stops': 34, 'world-grooves': 35, 'two-feel': 36, 'walking-chord-tones': 37, 'styles': 38, 'slap-basics': 39,
+  'approach-notes': 33, 'double-stops': 34, 'world-grooves': 35, 'two-feel': 36, 'walking-chord-tones': 37, 'styles': 38, 'slap-basics': 39, 'rock-blues-licks': 40, 'pick-gallop': 41,
   // Stage 4
   'stretch': 1, 'endurance': 2, 'harmonics': 3, 'groupings': 4, 'displacement': 5, 'odd-meters': 6, 'gap-click': 7, 'key-box': 8,
   'major-positions': 9, 'pent-positions': 10, 'reading-keys': 11, 'pent-one-phrase': 12, 'pent-major-chord': 13, 'pent-groove-fill': 14, 'harmonic-melodic': 15, 'minor-triads': 16,

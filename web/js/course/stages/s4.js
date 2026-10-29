@@ -777,15 +777,18 @@ export default {
           ],
         },
         {
-          id: 'slap-grooves', title: 'Slap grooves', optional: true,
+          // (in the core path since 2026-10-29, user: "slap in the core path")
+          id: 'slap-grooves', title: 'Slap grooves', added: 1793285509000,
           idea: 'Thumb ghosts, hammers, pops and pull-offs fill the 16th grid.',
           concept: [
-            'Real slap lines fill the 16th grid with thumb ghosts (x), hammered notes (H), pops (P) and pull-offs (PO). These patterns combine them over a funk vamp. Optional, for players who slap.',
+            'Real slap lines fill the 16th grid with thumb ghosts (x), hammered notes (H), pops (P) and pull-offs (PO). These patterns combine them over a funk vamp, then 16th-note octaves and thumb–pop–hammer triplets.',
             'The x is a thumb on a muted string: percussive, no pitch. Hammer from the thumb note to the next with no pluck.',
           ],
           steps: [
             { ex: 'sl-grooves', p: { style: 'tmp' }, from: 70, goal: 92, backing: 'chords', do: 'Thumb, mute, pop in 16ths.' },
             { ex: 'sl-grooves', p: { style: 'hammer' }, from: 70, goal: 88, backing: 'chords', do: 'Thumb, hammer, pop, pull-off.' },
+            { ex: 'sl-octaves-16', p: { lick: '0' }, from: 64, goal: 88, backing: 'chords', do: '16th-note octaves: thumb on the root, pop the octave.' },
+            { ex: 'sl-octaves-16', p: { lick: '2' }, from: 60, goal: 84, backing: 'chords', do: 'Thumb, pop, hammer in triplets.' },
           ],
           mistakes: [
             'Uneven 16ths between thumb, pop and hammer. The grid stays perfectly even.',
@@ -796,11 +799,13 @@ export default {
         can: [
           'I can play neo-soul and soul-ballad lines with the right feel.',
           'I can groove in 5/4, 6/8 and 7/8.',
+          'I can slap 16th-note grooves with ghosts, hammers and pops.',
         ],
         steps: [
           { ex: 'gr-soul', p: { style: 'neoSoul' }, from: 76, goal: 92, backing: 'chords' },
           { ex: 'gr-odd-meters', p: { meter: '78' }, from: 130, goal: 170 },
           { ex: 'gr-soul', p: { style: 'soulBallad' }, from: 66, goal: 84, backing: 'chords' },
+          { ex: 'sl-octaves-16', p: { lick: '1' }, from: 72, goal: 92, backing: 'chords' },
         ],
       },
     },

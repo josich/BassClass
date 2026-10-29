@@ -1,7 +1,7 @@
 // Course Stage 2: Building blocks (Level 2). See ../data.js for the format.
 export default {
   id: 's2', title: 'Building blocks', level: 2,
-  desc: 'Stronger hands, off-beats and swing, the whole neck, intervals, every triad and 7th chord, the blues, your first grooves and reading in keys.',
+  desc: 'Stronger hands, off-beats and swing, the whole neck, intervals, every triad and 7th chord, the blues, your first grooves, fills and the pick, and reading in keys.',
   units: [
     {
       id: 'u-hands2', title: 'Stronger hands',
@@ -564,18 +564,42 @@ export default {
           ],
         },
         {
-          id: 'pick', title: 'Playing with a pick', optional: true,
+          // (in the core path since 2026-10-29, user: "pick, slap in the core path"; `added`: a player past this unit is
+          // not sent back for it)
+          id: 'pick', title: 'Playing with a pick', added: 1793285509000,
           idea: 'Down-strokes for punch, alternate picking for speed.',
           concept: [
-            'Many rock, punk and metal players use a pick: down-strokes for a driving attack, alternate picking (down-up) for speed, and the gallop (an 8th and two 16ths) for metal. Optional, but worth knowing.',
+            'Many rock, punk and metal players use a pick: down-strokes for a driving attack, alternate picking (down-up) for speed, and the gallop (an 8th and two 16ths) for metal.',
+            'Hold the pick between the thumb and the side of the index, only its tip showing, and keep the stroke small. Rest the edge of the picking hand on the strings by the bridge (palm muting) for a short, chunky sound.',
           ],
           steps: [
             { ex: 'gr-pick', p: { style: 'pickDown' }, from: 100, goal: 140, backing: 'chords', do: 'Punk 8ths with down-strokes only.' },
             { ex: 'gr-pick', p: { style: 'pickAlt' }, from: 100, goal: 140, backing: 'chords', do: 'Alternate picking: down on the beat, up on the "&".' },
             { ex: 'gr-pick', p: { style: 'gallop' }, from: 90, goal: 120, backing: 'chords', do: 'The gallop: an 8th and two 16ths.' },
+            { ex: 'tech-pick-alt', p: { lick: '2' }, from: 72, goal: 100, do: 'Alternate 16ths on one note: every stroke the same loudness.' },
+            { ex: 'tech-pick-alt', p: { lick: '3' }, from: 80, goal: 110, do: 'Root and octave across the strings, down on the root, up on the octave.' },
           ],
           mistakes: [
             'Gripping the pick hard. Hold it just firmly enough not to drop it.',
+            'A big stroke. The pick moves only just past the string.',
+          ],
+        },
+        {
+          id: 'fills', title: 'Fills into the next bar', added: 1793285509000,
+          idea: 'A short phrase in the last beats that leads the band back to beat 1.',
+          concept: [
+            'A fill lives in the last beat or two of a bar (or of a phrase) and always lands: the next beat 1 comes back on the root, on time. Down the minor pentatonic box, up to the octave, a triplet run, or a chromatic walk-up into the next chord.',
+            'Play the groove bar plain, then the fill, and count all the way through it. In a song, one fill every 4 or 8 bars: more and it stops being a fill.',
+          ],
+          steps: [
+            { ex: 'gr-fills', p: { lick: '0' }, from: 80, goal: 104, backing: 'chords', do: 'Down the box: the last two beats, back to the root on 1.' },
+            { ex: 'gr-fills', p: { lick: '1' }, from: 80, goal: 104, backing: 'chords', do: 'Up to the octave, then down to the root.' },
+            { ex: 'gr-fills', p: { lick: '2' }, from: 72, goal: 96, backing: 'chords', do: 'A triplet run: two beats of triplets, even and in time.' },
+            { ex: 'gr-fills', p: { lick: '5', feel: 'swing' }, from: 80, goal: 104, backing: 'chords', music: true, do: 'A blues: walk up chromatically into the IV chord, shuffled.' },
+          ],
+          mistakes: [
+            'Rushing the fill. It is in time like the groove.',
+            'Landing late on beat 1. The note after the fill matters most.',
           ],
         },
       ],
@@ -584,11 +608,15 @@ export default {
           'I can play octave grooves with the string in between silent.',
           'I can move a riff through a progression.',
           'I control my volume from very soft to very loud.',
+          'I can play a fill and land beat 1 on the root.',
+          'I can pick 8ths with down-strokes and with alternate picking.',
         ],
         steps: [
           { ex: 'gr-octaves', p: { style: 'octaves' }, from: 104, goal: 120, backing: 'chords' },
           { ex: 'gr-octaves', p: { style: 'r5b7', prog: 'blues' }, from: 100, goal: 120, backing: 'chords' },
           { ex: 'tech-dynamics', p: { pos: '5' }, sub: 2, from: 72, goal: 90 },
+          { ex: 'gr-fills', p: { lick: '3' }, from: 88, goal: 112, backing: 'chords' },
+          { ex: 'gr-pick', p: { style: 'pickAlt' }, from: 110, goal: 150, backing: 'chords' },
         ],
       },
     },

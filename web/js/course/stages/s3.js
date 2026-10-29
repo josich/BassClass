@@ -1,7 +1,7 @@
 // Course Stage 3: Harmony on the neck (Level 3). See ../data.js for the format.
 export default {
   id: 's3', title: 'Harmony on the neck', level: 3,
-  desc: 'Legato and shifts, 16th-note funk, every note in every position, scales over two octaves and in sequences, the modes, the triads and 7th chords of every key, and lines that move between chords.',
+  desc: 'Legato and shifts, 16th-note funk, rock and blues licks, gallops with a pick, every note in every position, scales over two octaves and in sequences, the modes, the triads and 7th chords of every key, lines that move between chords, and your first slap.',
   units: [
     {
       id: 'u-legato', title: 'Legato and shifts',
@@ -163,6 +163,61 @@ export default {
           { ex: 'gr-funk', p: { style: 'fill' }, from: 80, goal: 96, backing: 'chords' },
           { ex: 'rh-triplets', p: {}, from: 72, goal: 96 },
           { ex: 'mm-pressure', p: { part: 'all' }, from: 84, goal: 108, backing: 'chords', music: true, do: 'Make music: a pedal riff with a 16th kick, then an octave pedal in 16ths.' },
+        ],
+      },
+    },
+    {
+      // (added 2026-10-29, user: "groove and rock beyond jazz… let's do it", woven into the course for everyone)
+      id: 'u-rock3', title: 'Rock and blues', added: 1793285509000,
+      goal: 'Rock and blues licks, and gallops and string skips with a pick.',
+      lessons: [
+        {
+          id: 'rock-blues-licks', title: 'Rock and blues licks',
+          idea: 'Short phrases from the pentatonic, the blues scale and the Mixolydian mode.',
+          concept: [
+            'The rock and blues bassist\'s vocabulary is built on the minor pentatonic box, the blues scale\'s ♭5, the major pentatonic of country and soul, and the Mixolydian riffs of a blues in 7th chords. Use these phrases as fills, as answers to the singer, or as a short solo.',
+            'Over a 7th chord, slide or hammer from the ♭3 into the 3rd: that is the blues sound. Leave space after a lick: a phrase needs a breath.',
+          ],
+          steps: [
+            { ex: 'lk-rock-blues', p: { lick: '0', feel: 'straight' }, from: 72, goal: 96, backing: 'chords', do: 'Down the minor pentatonic and back up.' },
+            { ex: 'lk-rock-blues', p: { lick: '3', feel: 'swing' }, from: 72, goal: 96, backing: 'chords', do: 'The blue note sliding into the 3rd, over a 7th chord.' },
+            { ex: 'lk-rock-blues', p: { lick: '5', feel: 'swing' }, from: 72, goal: 96, backing: 'chords', do: 'A Mixolydian riff with a chromatic step into the 5th.' },
+            { ex: 'lk-rock-blues', p: { lick: '2', feel: 'straight' }, from: 72, goal: 96, backing: 'chords', do: 'Hammer-ons up the box: one pluck, two notes.' },
+            { ex: 'lk-rock-blues', p: { lick: '7', feel: 'swing' }, from: 72, goal: 96, backing: 'chords', music: true, do: 'A turnaround from I to V, back to the top of the blues.' },
+          ],
+          mistakes: [
+            'Playing licks all the time. A lick is an answer: leave room around it.',
+            'The ♭3 held over a major or 7th chord. It slides into the 3rd.',
+          ],
+        },
+        {
+          id: 'pick-gallop', title: 'Gallops and string skips',
+          idea: 'An 8th and two 16ths, down, down-up: the rhythm of metal.',
+          concept: [
+            'The gallop is an 8th note and two 16ths, again and again. Pick it down, down-up, so every beat starts with a down-stroke; the reverse gallop (two 16ths and an 8th) is down-up, down. Then skip strings with the pick: root, 5th and octave, with nothing ringing in between.',
+            'Palm mute lightly for the classic chug, and keep the 16ths even: the second one is the one that rushes.',
+          ],
+          steps: [
+            { ex: 'tech-pick-gallop', p: { lick: '0' }, from: 72, goal: 104, do: 'The gallop on one note.' },
+            { ex: 'tech-pick-gallop', p: { lick: '1' }, from: 72, goal: 104, do: 'The reverse gallop.' },
+            { ex: 'tech-pick-gallop', p: { lick: '2' }, from: 72, goal: 100, do: 'A gallop riff moving between the notes of the box.' },
+            { ex: 'tech-pick-gallop', p: { lick: '3' }, from: 80, goal: 110, do: 'String skips with the pick: root, 5th, octave.' },
+          ],
+          mistakes: [
+            'An up-stroke on the beat. The gallop is down, down-up.',
+            'Skipped strings ringing. Mute them with the palm and the spare fingers.',
+          ],
+        },
+      ],
+      check: {
+        can: [
+          'I can play rock and blues licks and land them on the chord.',
+          'I can gallop and skip strings with a pick.',
+        ],
+        steps: [
+          { ex: 'lk-rock-blues', p: { lick: '1', feel: 'straight' }, from: 80, goal: 104, backing: 'chords' },
+          { ex: 'lk-rock-blues', p: { lick: '6', feel: 'swing' }, from: 76, goal: 100, backing: 'chords' },
+          { ex: 'tech-pick-gallop', p: { lick: '2' }, from: 84, goal: 112 },
         ],
       },
     },
@@ -735,7 +790,7 @@ export default {
           ],
           steps: [
             { ex: 'wk-two-feel', p: { prog: 'ii-V-I' }, from: 96, goal: 132, backing: 'chords', do: 'ii–V–I in two. Let every note ring.' },
-            { ex: 'wk-two-feel', p: { prog: 'autumn' }, from: 96, goal: 132, backing: 'chords', do: 'A longer form: ii–V–I–IV, then a minor ii–V–i (iiø–V–i) into the relative minor. Unit 30 looks at minor keys.' },
+            { ex: 'wk-two-feel', p: { prog: 'autumn' }, from: 96, goal: 132, backing: 'chords', do: 'A longer form: ii–V–I–IV, then a minor ii–V–i (iiø–V–i) into the relative minor. Stage 4\'s minor harmony looks at minor keys.' },
           ],
           mistakes: [
             'Cutting the half notes short. They last until the next note.',
@@ -773,10 +828,11 @@ export default {
           ],
         },
         {
-          id: 'slap-basics', title: 'Slap: thumb and pop', optional: true,
+          // (in the core path since 2026-10-29, user: "slap in the core path")
+          id: 'slap-basics', title: 'Slap: thumb and pop', added: 1793285509000,
           idea: 'The thumb is a drumstick; the finger pops the string away and lets it snap back.',
           concept: [
-            'Slap has two motions. The thumb (T) bounces off a low string like a drumstick, and the index or middle finger pops (P) a higher string by pulling it away from the fretboard so it snaps back. Start with the thumb alone, then thumb–pop octaves, the backbone of funk and disco slap. Optional, but a lot of fun.',
+            'Slap has two motions. The thumb (T) bounces off a low string like a drumstick, and the index or middle finger pops (P) a higher string by pulling it away from the fretboard so it snaps back. Start with the thumb alone, then thumb–pop octaves, the backbone of funk and disco slap.',
             'Rotate the forearm, like turning a door handle, rather than swinging from the elbow, and strike over the end of the fretboard.',
           ],
           steps: [
@@ -794,11 +850,13 @@ export default {
           'I can play a tune in two with roots and 5ths.',
           'I can walk a bass line with chord tones through a jazz blues.',
           'I can play country, samba and second-line grooves.',
+          'I can slap the roots with the thumb and pop the octaves.',
         ],
         steps: [
           { ex: 'wk-chord-tones', p: { prog: 'jazz-blues' }, from: 104, goal: 132, backing: 'chords' },
           { ex: 'gr-genres', p: { style: 'samba' }, from: 88, goal: 108, backing: 'chords' },
           { ex: 'wk-two-feel', p: { prog: 'ii-V-I' }, from: 110, goal: 144, backing: 'chords' },
+          { ex: 'sl-thumb-pop', p: { style: 'octPop' }, from: 80, goal: 104, backing: 'chords' },
         ],
       },
     },

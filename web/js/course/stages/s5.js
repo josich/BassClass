@@ -798,10 +798,11 @@ export default {
           ],
         },
         {
-          id: 'slap-advanced', title: 'Advanced slap', optional: true,
+          // (in the core path since 2026-10-29, user: "slap in the core path")
+          id: 'slap-advanced', title: 'Advanced slap', added: 1793285509000,
           idea: 'Thumb ghosts keep the grid; hammers, pulls and pops make the notes.',
           concept: [
-            'Denser 16th patterns where the thumb ghosts keep the grid, hammer-ons and pull-offs make notes without plucking, and pops accent the off-beats. The second pattern ends each bar with a fill down the minor pentatonic. Optional, for players who slap.',
+            'Denser 16th patterns where the thumb ghosts keep the grid, hammer-ons and pull-offs make notes without plucking, and pops accent the off-beats. The second pattern ends each bar with a fill down the minor pentatonic.',
             'Keep the thumb bouncing on every ghost: it is your hi-hat.',
           ],
           steps: [
