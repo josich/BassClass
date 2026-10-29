@@ -15,6 +15,7 @@ import reading from './reading.js';
 import ear from './ear.js';
 import songs from './songs.js';
 import { NUMBERS } from './numbers.js';
+import { EAR_GAMES, READ_GAMES } from './games.js';
 
 export const LEVELS = [
   { n: 1, name: 'Foundations', desc: 'Open strings, first notes, steady pulse, first shapes.' },
@@ -44,7 +45,7 @@ export const MODULES = [
   { id: 'music', name: 'Make Music', icon: '🎵', desc: 'Original lines in the style of famous songs, from the first riff to a whole bass solo.' },
 ];
 
-const ALL = [...fretboard, ...reading, ...technique, ...rhythm, ...intervals, ...ear, ...scales, ...pentatonics, ...modes, ...triads, ...arpeggios, ...harmony, ...grooves, ...licks, ...songs];
+const ALL = [...fretboard, ...reading, ...READ_GAMES, ...technique, ...rhythm, ...intervals, ...ear, ...EAR_GAMES, ...scales, ...pentatonics, ...modes, ...triads, ...arpeggios, ...harmony, ...grooves, ...licks, ...songs];
 {
   const seen = new Set();
   for (const t of ALL) {

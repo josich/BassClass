@@ -97,7 +97,15 @@
   const nearest = (map, midi) => { let best = null; for (const m of map.keys()) if (!best || Math.abs(m - midi) < Math.abs(best - midi)) best = m; return best; };
 
   // ------------------------------------------------------------------ the score, as the app's Player lays it out
-  async function score(id, { params = {}, strings = 4, bpm = 100, sub = 2 } = {}) {
+  async function score(id, { params = {}, strings = 4, bpm = 100, sub = 2, line = null } = {}) {
+    if (line) {
+      // a written line: [[midi, beats], ...] in 4/4 after one count-in bar
+      const spb = 60 / bpm, bpb = 4, pre = bpb * spb; let b = 0;
+      const notes = line.map(([midi, beats], i) => { const n = { i, step: i, t: pre + b * spb, dur: beats * spb, midi, tag: '', vel: Math.abs(b - Math.round(b)) < 1e-6 ? 0.88 : 0.74, chord: false }; b += beats; return n; });
+      const total = pre + Math.ceil(b / bpb) * bpb * spb;
+      const clicks = []; for (let k = 0; k * spb < total - 1e-9; k++) clicks.push({ t: k * spb, level: k % bpb === 0 ? 2 : 1 });
+      return { id: 'line', notes, clicks, total, bpm, sub, bpb, spb, pre, uniform: false };
+    }
     const F = await M('/js/fretboard.js'); const I = await M('/js/curriculum/index.js'); const { Player } = await M('/js/player.js');
     const S = { strings, notation: 'letters', maxFret: 20, label: 'note', backing: 'off' };
     const t = I.byId.get(id);
@@ -159,6 +167,8 @@
       if (x.ring) hold += 0.9;
       const e = { t: on, midi: x.midiPlayed, ghost: x.ghost && !o.pitchedGhost, v: x.ghost && o.pitchedGhost ? 0.45 : x.v, amp: 10 ** (x.ampDb / 20) * (x.ghost ? (o.pitchedGhost ? 0.6 : 0.55) : 1), hold, tau: x.ghost ? 0.02 : 0.05, legato: x.legato };
       if (x.legato && ev.length) { const p = ev[ev.length - 1]; p.hold = Math.max(0.01, on - p.t); p.tau = 0.004; }
+      // (an extra note is played on the same string: it stops the note before it)
+      if (x.extra && ev.length) { const p = ev[ev.length - 1]; p.hold = Math.min(p.hold, Math.max(0.01, on - p.t)); }
       ev.push(e);
     });
     return { truth, ev };
@@ -187,12 +197,25 @@
   }
 
   // the app's click (audio.js click()): a sine, 1 ms attack, 90 ms exponential tail
-  async function renderClicks(clicks, total) {
+  // (vary: dB of random level change per click, jitter: ms of random timing error per click: what a real phone's
+  // speaker, its automatic gain and a moving player do to the bleed, which the subtraction assumes constant)
+  // high: a click made for recording (a candidate, not the app's): 4.5 / 5.3 kHz with a 4 ms smooth attack, so it
+  // has no energy in the band the analyser reads (40-2500 Hz)
+  async function renderClicks(clicks, total, { vary = 0, jitter = 0, seed = 11, high = false } = {}) {
     const oc = new OfflineAudioContext(1, Math.ceil((total + 1.6) * SR), SR);
-    for (const c of clicks) {
+    const r = rng(seed);
+    for (const c0 of clicks) {
+      const c = { ...c0, t: Math.max(0, c0.t + (jitter ? gauss(r) * jitter / 1000 : 0)) };
       const o = oc.createOscillator(), g = oc.createGain();
-      o.frequency.value = c.level === 2 ? 1760 : c.level === 1 ? 1175 : 900;
-      const v = c.level === 2 ? 0.9 : c.level === 1 ? 0.6 : 0.25;
+      o.frequency.value = high ? (c.level === 2 ? 5300 : 4500) : c.level === 2 ? 1760 : c.level === 1 ? 1175 : 900;
+      const v = (c.level === 2 ? 0.9 : c.level === 1 ? 0.6 : 0.25) * 10 ** ((vary ? gauss(r) * vary : 0) / 20);
+      if (high) {
+        const curve = new Float32Array(64); for (let i = 0; i < 64; i++) curve[i] = v * (0.5 - 0.5 * Math.cos(Math.PI * i / 63));
+        g.gain.setValueAtTime(0, c.t); g.gain.setValueCurveAtTime(curve, c.t, 0.004);
+        g.gain.setTargetAtTime(0, c.t + 0.004, 0.02);
+        o.connect(g).connect(oc.destination); o.start(c.t); o.stop(c.t + 0.15);
+        continue;
+      }
       g.gain.setValueAtTime(0, c.t); g.gain.linearRampToValueAtTime(v, c.t + 0.001);
       g.gain.exponentialRampToValueAtTime(0.0001, c.t + (c.level === 0 ? 0.03 : 0.09));
       o.connect(g).connect(oc.destination); o.start(c.t); o.stop(c.t + 0.11);
@@ -258,14 +281,15 @@
     const L = cond.latency ?? 0.15, sh = Math.round(L * SR);
     const mix = new Float32Array(n + sh); mix.set(bass, sh);   // the round trip: what the mic hears is stamped L late
     if (cond.click != null) {
-      const cl = await webChain(await renderClicks(sc.clicks, total), (oc, s) => SPEAKER(oc, s));
+      const cl = await webChain(await renderClicks(sc.clicks, total, { vary: cond.clickVary || 0, jitter: cond.clickJitter || 0, high: !!cond.clickHigh }), (oc, s) => SPEAKER(oc, s));
       let pk = 0; for (let i = 0; i < n; i++) pk = Math.max(pk, Math.abs(cl[i]));
       const k = ref * 10 ** (cond.click / 20) / pk;
       for (let i = 0; i < n; i++) mix[i + sh] += cl[i] * k;
     }
     if (cond.pad != null) {
       const root = 52 + ((sc.notes[0].midi - 52) % 12 + 12) % 12;   // the key's triad, E3-D#4, as the Backing voices it
-      const pd = await webChain(await renderPad(cond.padNotes || [root, root + 4, root + 7], sc.pre, total), (oc, s) => SPEAKER(oc, s));
+      var padNotes = cond.padNotes || [root, root + 4, root + 7];
+      const pd = await webChain(await renderPad(padNotes, sc.pre, total), (oc, s) => SPEAKER(oc, s));
       let rm = 0; for (let i = 0; i < n; i++) rm += pd[i] * pd[i]; rm = Math.sqrt(rm / n);
       const k = bassRms * 10 ** (cond.pad / 20) / rm;
       for (let i = 0; i < n; i++) mix[i + sh] += pd[i] * k;
@@ -284,31 +308,38 @@
     }
     const B = await bank();
     for (const x of truth) x.tRec = x.t + x.dt + L + (x.played && !x.ghost ? (B.lead.get(nearest(B.reg, x.midiPlayed)) || 0) : 0);
-    return { sc, truth, rec: shifted, L };
+    return { sc, truth, rec: shifted, L, padNotes: typeof padNotes === 'undefined' ? null : padNotes };
   }
 
   // ------------------------------------------------------------------ the analyser (the prototype under test)
   const CLICK_FREQS = [900, 1175, 1480, 1760, 2350, 3520];
-  function prep(rec, { notch = true } = {}) {
+  function prep(rec, { notch = true, padNotes = null } = {}) {
     // 48 -> 12 kHz (anti-alias low-pass, then every 4th sample), a 30 Hz high-pass, the click's frequencies notched
     let x = biquad(biquad(rec, 'lp', 4800, 0.54, SR), 'lp', 4800, 1.31, SR);
     const y = new Float32Array(Math.floor(x.length / 4)); for (let i = 0; i < y.length; i++) y[i] = x[i * 4];
     let z = biquad(y, 'hp', 30, 0.707, AR);
     if (notch) for (const f of CLICK_FREQS) z = biquad(z, 'notch', f, 2.5, AR);
+    // the Backing's pad notched out, partial by partial (its notes are known), up to 2.5 kHz
+    if (padNotes) for (const m of padNotes) for (let h = 1; midiF(m) * h < 2500; h++) z = biquad(z, 'notch', midiF(m) * h, 12, AR);
     return z;
   }
 
   // onset detection function: log-magnitude spectral flux (frequency max-filtered, as in "SuperFlux") over 40-2500 Hz,
   // N = 512 (43 ms) at 12 kHz, hop 24 (2 ms); click bands left out
-  const N = 512, HOP = 24;
+  let N = 512, HOP = 24, WEIGHT = 'none';
+  // BG: the flux measured against a slow average of each bin too (0.4 s), plus 6 dB, so a steady sound that beats
+  // (the Backing's detuned pad heard through the speaker) does not make onsets; null = plain flux
+  let BG = null;
+  let BAND = [40, 2500];
   function odf(z) {
     const nf = Math.floor((z.length - N) / HOP);
     const win = new Float32Array(N); for (let i = 0; i < N; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / N);
-    const kLo = Math.round(40 * N / AR), kHi = Math.round(2500 * N / AR);
+    const kLo = Math.round(BAND[0] * N / AR), kHi = Math.round(BAND[1] * N / AR);
     const skip = new Uint8Array(N / 2); for (const f of CLICK_FREQS) { const k = Math.round(f * N / AR); for (let j = k - 2; j <= k + 2; j++) if (j >= 0 && j < N / 2) skip[j] = 1; }
     const re = new Float32Array(N), im = new Float32Array(N);
     const prev = []; const LAG = 2;
     const flux = new Float32Array(nf), low = new Float32Array(nf);
+    let bg = null; const alpha = BG ? (HOP / AR) / BG.tau : 0;
     for (let f = 0; f < nf; f++) {
       for (let i = 0; i < N; i++) { re[i] = z[f * HOP + i] * win[i]; im[i] = 0; }
       fft(re, im);
@@ -317,11 +348,13 @@
       for (let k = 0; k < N / 2; k++) { const m = Math.hypot(re[k], im[k]); L[k] = Math.log(1 + 1000 * m); if (k >= 2 && k <= 43) le += m * m; }
       low[f] = Math.log(1e-9 + le);
       const P = prev[(f - LAG) % (LAG + 1)];
+      if (BG && !bg) bg = Float32Array.from(L);
       if (P) {
         let s = 0;
-        for (let k = kLo; k <= kHi; k++) { if (skip[k]) continue; const ref = Math.max(P[k - 1], P[k], P[k + 1]); const d = L[k] - ref; if (d > 0) s += d; }
+        for (let k = kLo; k <= kHi; k++) { if (skip[k]) continue; let ref = Math.max(P[k - 1], P[k], P[k + 1]); if (bg) ref = Math.max(ref, bg[k] + BG.margin); const d = L[k] - ref; if (d > 0) s += WEIGHT === 'hfc' ? d * k / kHi : d; }
         flux[f] = s;
       }
+      if (bg) for (let k = 0; k < N / 2; k++) bg[k] += alpha * (L[k] - bg[k]);
       prev[f % (LAG + 1)] = L;
     }
     return { flux, low, nf, t: (f) => (f * HOP + N / 2) / AR };
@@ -345,10 +378,20 @@
     return out;
   }
 
-  // refine an onset on the 12 kHz signal: the steepest rise of the log energy (1.5 ms windows, over +-3 ms) within
-  // 45 ms before to 15 ms after the flux peak
-  function refine(z, t) {
-    const a = Math.max(40, Math.round((t - 0.06) * AR)), b = Math.min(z.length - 40, Math.round((t + 0.02) * AR));
+  // where an onset is put (compared in the report):
+  //   'peak'   the flux peak, interpolated between frames (parabola)
+  //   'energy' the steepest rise of the log energy (1.5 ms windows, over +-3 ms), 25 ms before to 10 ms after the peak
+  //   'hf'     the same on the signal above 300 Hz (the pluck's attack, not the string's slow low build-up)
+  let REFINE = 'peak';
+  function place(o, p, z, zh) {
+    const f = p.f, y = o.flux;
+    const a = y[f - 1] ?? y[f], b = y[f], c = y[f + 1] ?? y[f], den = a - 2 * b + c;
+    const tp = o.t(f + (den ? Math.max(-1, Math.min(1, 0.5 * (a - c) / den)) : 0));
+    if (REFINE === 'peak') return tp;
+    return refine(REFINE === 'hf' ? zh : z, tp, -0.025, 0.01);
+  }
+  function refine(z, t, from = -0.06, to = 0.02) {
+    const a = Math.max(40, Math.round((t + from) * AR)), b = Math.min(z.length - 40, Math.round((t + to) * AR));
     const W = 18, K = 36;
     const e = new Float32Array(b - a + 2 * K + W);
     for (let i = 0; i < e.length; i++) { let s = 0; const st = a - K + i; for (let j = 0; j < W; j++) { const v = z[st + j] || 0; s += v * v; } e[i] = Math.log10(1e-12 + s); }
@@ -359,6 +402,14 @@
 
   // the score-informed alignment: a monotonic match of detected onsets to the expected notes (dynamic programming):
   // a match costs (dt / tol)^2, a missed note 1, an extra onset 0.25 + its strength
+  // the onset's own pitch (yin, 30-130 ms after it) against the note expected there: the same pitch class costs
+  // nothing, another 0.6, no clear pitch 0.3 (PITCHCOST; off = timing and strength only)
+  let PITCHCOST = true;
+  function pitchCost(d, e) {
+    if (d.f == null) return 0.3;
+    const c = 1200 * Math.log2(d.f / midiF(e.midi)); const pcErr = ((c % 1200) + 1800) % 1200 - 600;
+    return Math.abs(pcErr) <= 50 ? 0 : 0.6;
+  }
   function align(det, exp) {
     const n = det.length, m = exp.length, INF = 1e9;
     const D = Array.from({ length: n + 1 }, () => new Float64Array(m + 1).fill(INF));
@@ -366,8 +417,8 @@
     D[0][0] = 0;
     for (let i = 0; i <= n; i++) for (let j = 0; j <= m; j++) {
       const v = D[i][j]; if (v >= INF) continue;
-      if (i < n && j < m) { const dt = det[i].t - exp[j].t; const tol = exp[j].tol; if (Math.abs(dt) < tol) { const c = v + (dt / tol) ** 2; if (c < D[i + 1][j + 1]) { D[i + 1][j + 1] = c; P[i + 1][j + 1] = 1; } } }
-      if (i < n) { const c = v + 0.25 + det[i].s; if (c < D[i + 1][j]) { D[i + 1][j] = c; P[i + 1][j] = 2; } }
+      if (i < n && j < m) { const dt = det[i].t - exp[j].t; const tol = exp[j].tol; if (Math.abs(dt) < tol) { const c = v + (dt / tol) ** 2 + (PITCHCOST ? pitchCost(det[i], exp[j]) : 0); if (c < D[i + 1][j + 1]) { D[i + 1][j + 1] = c; P[i + 1][j + 1] = 1; } } }
+      if (i < n) { const c = v + (PITCHCOST ? 0.35 + (det[i].clar > 0.9 ? 0.4 : 0) : 0.25 + det[i].s); if (c < D[i + 1][j]) { D[i + 1][j] = c; P[i + 1][j] = 2; } }
       if (j < m) { const c = v + 1; if (c < D[i][j + 1]) { D[i][j + 1] = c; P[i][j + 1] = 3; } }
     }
     const pairs = []; let i = n, j = m;
@@ -375,21 +426,48 @@
     return pairs.reverse();
   }
 
+  // the click taken out of the recording: the count-in's clicks (heard alone, before the player starts) are averaged
+  // into one template per click sound, which is then subtracted at every known click time (same clock: exact places)
+  function subtractClicks(rec, sc, L) {
+    const x = Float32Array.from(rec), pre = Math.round(0.002 * SR), len = Math.round(0.25 * SR);
+    const tpl = {};
+    for (const lv of [2, 1]) {
+      const ins = sc.clicks.filter((c) => c.level === lv && c.t < sc.pre - 1e-6);
+      if (!ins.length) continue;
+      const t = new Float32Array(len);
+      for (const c of ins) { const s = Math.round((c.t + L) * SR) - pre; for (let i = 0; i < len; i++) t[i] += (rec[s + i] || 0) / ins.length; }
+      tpl[lv] = t;
+    }
+    for (const c of sc.clicks) {
+      const t = tpl[c.level] || tpl[1] || tpl[2]; if (!t) continue;
+      const s = Math.round((c.t + L) * SR) - pre;
+      const end = Math.min(len, Math.round((sc.spb * 0.98) * SR));   // (never into the next click)
+      for (let i = 0; i < end; i++) if (s + i >= 0 && s + i < x.length) x[s + i] -= t[i];
+    }
+    return x;
+  }
+
   let PITCH = null;
-  async function analyse(take, { L = take.L, notch = true, informed = true } = {}) {
+  async function analyse(take, { L = take.L, notch = true, informed = true, subtract = false, padNotes = null } = {}) {
     PITCH ||= await M('/js/pitch.js');
     const t0 = performance.now();
-    const z = prep(take.rec, { notch });
+    const z = prep(subtract ? subtractClicks(take.rec, take.sc, L) : take.rec, { notch, padNotes });
     const zp = biquad(biquad(z, 'lp', 1100, 0.707, AR), 'lp', 1100, 0.707, AR);   // the tuner's pitch band
     const o = odf(z);
-    const det = peaks(o).map((p) => ({ ...p, tr: refine(z, p.t) }));
+    const zh = REFINE === 'hf' ? biquad(biquad(z, 'hp', 300, 0.707, AR), 'hp', 300, 0.707, AR) : null;
+    const rmsOf = (x, a, b) => { a = Math.max(0, Math.round(a * AR)); b = Math.min(x.length, Math.round(b * AR)); let s = 0; for (let i = a; i < b; i++) s += x[i] * x[i]; return Math.sqrt(s / Math.max(1, b - a)); };
+    // the room's noise, heard in the count-in (the player waits for it), in the pitch band; an onset must be 12 dB over it
+    const floor = rmsOf(zp, L + 0.05, take.sc.pre + L - 0.05);
+    const cand = peaks(o).map((p) => ({ ...p, tr: place(o, p, z, zh) })).map((p) => ({ ...p, lv: rmsOf(zp, p.tr, p.tr + 0.06) }));
+    const det = cand.filter((p) => p.lv > floor * 10 ** (12 / 20));
+    for (const d of det) { const y = PITCH.yin(zp.subarray(Math.round((d.tr + 0.03) * AR), Math.round((d.tr + 0.13) * AR)), AR, { fmin: 26, fmax: 520 }); d.f = y?.freq ?? null; d.clar = y?.clarity ?? 0; }
     const sc = take.sc;
     const exp = sc.notes.map((n, j) => {
       const prevT = j ? sc.notes[j - 1].t : -1, nextT = sc.notes[j + 1]?.t ?? 1e9;
       const ioi = Math.min(n.t - prevT, nextT - n.t);
       return { ...n, t: n.t + L, tol: Math.min(0.11, Math.max(0.04, 0.45 * ioi)) };
     });
-    const pairs = align(det.map((d) => ({ t: d.tr, s: d.s })), exp);
+    const pairs = align(det.map((d) => ({ t: d.tr, s: d.s, f: d.f, clar: d.clar })), exp);
     const res = [];
     const onsets = det.map((d) => d.tr);
     for (const [di, ej] of pairs) {
@@ -426,15 +504,22 @@
       }
       res.push(r);
     }
+    // an onset left over is an extra NOTE only when it is about as strong as the notes and has a clear pitch
+    const medS = median(res.filter((r) => r.exp >= 0 && r.det >= 0).map((r) => r.s));
+    for (const r of res) if (r.exp < 0) r.extraNote = r.s > 0.35 * medS && r.clarity > 0.8;
+    // a weak onset matched to a note whose pitch was not heard: the note was most likely not played
+    for (const r of res) if (r.exp >= 0 && r.det >= 0 && r.s < 0.35 * medS && r.pc !== 'ok') r.weak = true;
+    const strong = res.filter((r) => r.det >= 0 && r.s > 0.35 * medS).map((r) => r.t).sort((a, b) => a - b);
     // ringing: the previous note's harmonics (those far from the new note's) 80-300 ms into the new note, against
     // the previous note's own level
-    const matched = res.filter((r) => r.exp >= 0 && r.det >= 0).sort((a, b) => a.t - b.t);
+    const matched = res.filter((r) => r.exp >= 0 && r.det >= 0 && !r.weak).sort((a, b) => a.t - b.t);
     for (let q = 1; q < matched.length; q++) {
       const cur = matched[q], pr = matched[q - 1];
       const fPrev = midiF(exp[pr.exp].midi), fCur = midiF(exp[cur.exp].midi);
-      const nextOn = matched[q + 1]?.t ?? cur.t + 1;
+      const nextOn = strong.find((x) => x > cur.t + 0.03) ?? cur.t + 1;
       const a = Math.round((cur.t + 0.08) * AR), b = Math.round(Math.min(cur.t + 0.3, nextOn - 0.01) * AR);
-      if (b - a < 0.05 * AR || exp[pr.exp].midi === exp[cur.exp].midi) continue;
+      // (only when the previous note was heard as written: its pitch is then known)
+      if (b - a < 0.05 * AR || exp[pr.exp].midi === exp[cur.exp].midi || pr.pc !== 'ok') continue;
       const res2 = 1.5 * AR / (b - a);   // Hann main lobe half-width, Hz
       let now = 0, then = 0, used = 0;
       const a0 = Math.round((pr.t + 0.04) * AR), b0 = Math.min(Math.round(pr.t * AR) + (b - a) + Math.round(0.04 * AR), Math.round((cur.t - 0.005) * AR));
@@ -473,12 +558,12 @@
     const T = take.truth, sc = take.sc;
     const byI = new Map(T.filter((x) => x.i >= 0).map((x) => [x.i, x]));
     const out = { onsetErr: [], dtErr: [], byReg: {}, missedTrue: 0, missedFound: 0, missedFalse: 0, extraTrue: T.filter((x) => x.extra).length, extraFound: 0, extraFalse: 0, pitch: { ok: 0, wrongTrue: 0, wrongFound: 0, falseWrong: 0, octave: 0, none: 0, n: 0 }, ring: { rung: [], damped: [] }, levels: [] };
-    const extraDet = an.pairs.filter((r) => r.exp < 0 && r.det >= 0);
+    const extraDet = an.pairs.filter((r) => r.exp < 0 && r.det >= 0 && r.extraNote);
     for (const r of an.pairs) {
       if (r.exp < 0) continue;
       const tr = byI.get(r.exp); if (!tr) continue;
-      if (!tr.played) { out.missedTrue++; if (r.det < 0) out.missedFound++; continue; }
-      if (r.det < 0) { out.missedFalse++; continue; }
+      if (!tr.played) { out.missedTrue++; if (r.det < 0 || r.weak) out.missedFound++; continue; }
+      if (r.det < 0 || r.weak) { out.missedFalse++; continue; }
       if (tr.ghost) continue;
       const err = (r.t - tr.tRec) * 1000;
       out.onsetErr.push(err);
@@ -524,7 +609,7 @@
     let cal = null;
     if (o.calibrate) { cal = calibrate(tk); L = cal.L; }
     if (o.Lknown != null) L = o.Lknown;
-    const an = await analyse(tk, { L, notch: o.notch ?? true, informed: o.informed ?? true });
+    const an = await analyse(tk, { L, notch: o.notch ?? true, informed: o.informed ?? true, subtract: !!o.subtract, padNotes: o.padNotch && o.cond?.pad != null ? tk.padNotes : null });
     const ev = evaluate(tk, an);
     if (cal) ev.cal = { L: tk.L, est: cal.L, errMs: r1((cal.L - tk.L) * 1000), spreadMs: r1(sd(cal.lags) * 1000) };
     return { sc, truth: tk.truth, found: an.pairs, eval: ev, take: tk };
@@ -565,32 +650,38 @@
     };
     const faults = { sd: 0, wrong: [[3, 1], [9, -1]], miss: [6], extra: [[11, 2]], ring: [1, 12] };
     const S1 = { id: 'sc-one-octave', bpm: 100, sub: 2 };
+    const LOWB = [[23, 1], [23, 0.5], [26, 0.5], [28, 1], [30, 1], [31, 1], [30, 0.5], [28, 0.5], [26, 1], [23, 1], [35, 1], [33, 1], [31, 1], [30, 1], [28, 1], [26, 1], [23, 2]];
+    const amp = { mic: 'amp', noise: -60 }, unp = { mic: 'unplugged', noise: -40 };
     // 1. how exactly onsets are found, by setup (a clean player: every error is the analyser's)
-    await run('line, no bleed', { ...S1, cond: { mic: 'line', noise: -70 } });
-    await run('amp, headphones', { ...S1, cond: { mic: 'amp', noise: -60 } });
-    await run('amp, speaker click 0 dB', { ...S1, cond: { mic: 'amp', click: 0, noise: -60 } });
-    await run('amp, speaker click +10 dB', { ...S1, cond: { mic: 'amp', click: 10, noise: -60 } });
-    await run('amp, speaker click +10, no notch', { ...S1, notch: false, cond: { mic: 'amp', click: 10, noise: -60 } });
-    await run('amp, click +10 + pad 0 dB', { ...S1, cond: { mic: 'amp', click: 10, pad: 0, noise: -60 } });
-    await run('amp, click +10 + pad +6 dB', { ...S1, cond: { mic: 'amp', click: 10, pad: 6, noise: -60 } });
-    await run('amp, headphones, AGC', { ...S1, cond: { mic: 'amp', noise: -55, agc: true } });
-    await run('unplugged, headphones', { ...S1, cond: { mic: 'unplugged', noise: -40 } });
-    await run('unplugged, speaker click +20 dB', { ...S1, cond: { mic: 'unplugged', click: 20, noise: -40 } });
-    await run('unplugged, click +30 dB', { ...S1, cond: { mic: 'unplugged', click: 30, noise: -40 } });
+    await run('USB interface (line), no bleed', { ...S1, cond: { mic: 'line', noise: -70 } });
+    await run('amp, headphones', { ...S1, cond: amp });
+    await run('amp, headphones, AGC', { ...S1, cond: { ...amp, noise: -55, agc: true } });
+    await run('unplugged, headphones', { ...S1, cond: unp });
+    await run('amp, app click on speaker +10 dB, not removed', { ...S1, notch: false, cond: { ...amp, click: 10 } });
+    await run('amp, app click +10 dB, notched', { ...S1, cond: { ...amp, click: 10 } });
+    await run('amp, app click +10 dB, subtracted (ideal)', { ...S1, subtract: true, cond: { ...amp, click: 10 } });
+    await run('amp, app click +10 dB, subtracted, 1 dB / 20 us wobble', { ...S1, subtract: true, cond: { ...amp, click: 10, clickVary: 1, clickJitter: 0.02 } });
+    await run('amp, recording click +20 dB', { ...S1, notch: false, cond: { ...amp, click: 20, clickHigh: true, clickVary: 3, clickJitter: 0.1 } });
+    await run('unplugged, recording click +30 dB, AGC', { ...S1, notch: false, cond: { ...unp, click: 30, clickHigh: true, agc: true } });
+    await run('amp, recording click +10, pad 0 dB', { ...S1, notch: false, cond: { ...amp, click: 10, clickHigh: true, pad: 0 } });
+    await run('amp, recording click +10, pad +6 dB', { ...S1, notch: false, cond: { ...amp, click: 10, clickHigh: true, pad: 6 } });
+    await run('unplugged, recording click +20, pad +10 dB', { ...S1, notch: false, cond: { ...unp, click: 20, clickHigh: true, pad: 10 } });
     // 2. faults: wrong, missed, extra notes and ringing strings
-    await run('faults, amp, headphones', { ...S1, perf: faults, cond: { mic: 'amp', noise: -60 } });
-    await run('faults, amp, click +10 + pad 0', { ...S1, perf: faults, cond: { mic: 'amp', click: 10, pad: 0, noise: -60 } });
-    await run('faults, unplugged, headphones', { ...S1, perf: faults, cond: { mic: 'unplugged', noise: -40 } });
+    await run('faults, amp, headphones', { ...S1, perf: faults, cond: amp });
+    await run('faults, amp, recording click +10, pad 0', { ...S1, notch: false, perf: faults, cond: { ...amp, click: 10, clickHigh: true, pad: 0 } });
+    await run('faults, unplugged, headphones', { ...S1, perf: faults, cond: unp });
+    await run('faults, unplugged, recording click +20, pad +10', { ...S1, notch: false, perf: faults, cond: { ...unp, click: 20, clickHigh: true, pad: 10 } });
     // 3. fast notes, the low B, two octaves
-    await run('16ths at 120, amp, headphones', { id: 'sc-one-octave', bpm: 120, sub: 4, cond: { mic: 'amp', noise: -60 } });
-    await run('16ths at 120, amp, click +10', { id: 'sc-one-octave', bpm: 120, sub: 4, cond: { mic: 'amp', click: 10, noise: -60 } });
-    await run('low B (5-string), amp, headphones', { id: 'sc-one-octave', params: { key: '11', root: 'B' }, strings: 5, bpm: 90, sub: 2, perf: { wrong: [[2, 1]] }, cond: { mic: 'amp', noise: -60 } });
-    await run('low B (5-string), unplugged', { id: 'sc-one-octave', params: { key: '11', root: 'B' }, strings: 5, bpm: 90, sub: 2, perf: { wrong: [[2, 1]] }, cond: { mic: 'unplugged', noise: -40 } });
-    await run('two octaves, amp, headphones', { id: 'sc-two-octaves', bpm: 90, sub: 2, perf: { wrong: [[5, 1], [17, -1]] }, cond: { mic: 'amp', noise: -60 } });
+    await run('16ths at 120, amp, headphones', { id: 'sc-one-octave', bpm: 120, sub: 4, perf: { wrong: [[5, 1]] }, cond: amp });
+    await run('16ths at 140, amp, headphones', { id: 'sc-one-octave', bpm: 140, sub: 4, perf: { wrong: [[5, 1]] }, cond: amp });
+    await run('16ths at 120, unplugged', { id: 'sc-one-octave', bpm: 120, sub: 4, perf: { wrong: [[5, 1]] }, cond: unp });
+    await run('low B line (5-string), amp', { line: LOWB, bpm: 90, perf: { wrong: [[4, 1]] }, cond: amp });
+    await run('low B line (5-string), unplugged', { line: LOWB, bpm: 90, perf: { wrong: [[4, 1]] }, cond: unp });
+    await run('two octaves, amp, headphones', { id: 'sc-two-octaves', bpm: 90, sub: 2, perf: { wrong: [[5, 1], [17, -1]] }, cond: amp });
     // 4. the player's own timing, recovered: dt error = measured minus true deviation
     out.timing = [];
     for (const seed of seeds) {
-      const t = await take({ ...S1, perf: { seed, sd: 15, rushBar: 1, rushMs: -30, late: [[10, 50]] }, cond: { mic: 'amp', click: 10, noise: -60 } });
+      const t = await take({ ...S1, notch: false, perf: { seed, sd: 15, rushBar: 1, rushMs: -30, late: [[10, 50]] }, cond: { mic: 'amp', click: 10, clickHigh: true, noise: -60 } });
       const m = t.found.filter((r) => r.exp >= 0 && r.det >= 0).map((r) => { const tr = t.truth.find((x) => x.i === r.exp); return { i: r.exp, bar: tr.bar, trueMs: r1(tr.dt * 1000), measMs: r1(r.dt * 1000) }; });
       const err = m.map((x) => x.measMs - x.trueMs);
       const bars = {}; for (const x of m) (bars[x.bar] ||= { t: [], m: [] }), bars[x.bar].t.push(x.trueMs), bars[x.bar].m.push(x.measMs);
@@ -636,5 +727,5 @@
     return out;
   }
 
-  window.__rs = { take, suite, score, perform, record, analyse, calibrate, evaluate, bank };
+  window.__rs = { take, suite, score, perform, record, analyse, calibrate, evaluate, bank, set refine(v) { REFINE = v; }, get refine() { return REFINE; }, set band(v) { BAND = v; }, get band() { return BAND; }, set frame(v) { [N, HOP] = v; }, get frame() { return [N, HOP]; }, set weight(v) { WEIGHT = v; }, set bg(v) { BG = v; }, set pitchCost(v) { PITCHCOST = v; } };
 })();

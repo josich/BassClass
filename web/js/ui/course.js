@@ -141,7 +141,8 @@ function pickFor(of, n, { level, rand, slot, skip, withGoal = false }) {
     const x = pool[Math.floor(rand() * pool.length)];
     out.push(stepItem(x.l, x.i, slot));
   }
-  const lib = EXERCISES.filter((t) => of(t) && t.level <= level && t.level >= Math.max(1, level - 1) && !exerciseLock(t));
+  // (the tap games are played on their own screen, outside the session's run of exercises, for now)
+  const lib = EXERCISES.filter((t) => of(t) && !t.game && t.level <= level && t.level >= Math.max(1, level - 1) && !exerciseLock(t));
   while (out.length < n) {
     const pool = lib.filter((t) => !used(t.id));
     if (!pool.length) break;

@@ -3,6 +3,7 @@ import { watchErrors, logError } from './errors.js';
 import { h, icon, toast, guardSliders } from './ui/dom.js';
 import { byId, byNumber } from './curriculum/index.js';
 import { renderExercise } from './ui/exercise.js';
+import { gameScreen } from './ui/game.js';
 import { loadBank, setAudioOptions, tapTick } from './audio.js';
 import { settings } from './store.js';
 import { tunerScreen } from './ui/tuner.js';
@@ -172,7 +173,7 @@ function route() {
       // (a lesson's step played from a session row or a link: the lesson is used too; QA round 20)
       if (lesson) markUsed(`lesson:${lesson.lesson.id}`);
       // (a Pro exercise opens for a free player as a preview: user, 2026-10-29)
-      active = renderExercise(app, tpl, { params, routine, lesson, onBack: back, preview: exerciseLock(tpl, ls) });
+      active = tpl.game ? gameScreen(app, tpl, { params, onBack: back }) : renderExercise(app, tpl, { params, routine, lesson, onBack: back, preview: exerciseLock(tpl, ls) });
     } catch (err) {
       console.error(err);
       logError(err);

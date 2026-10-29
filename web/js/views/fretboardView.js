@@ -234,7 +234,7 @@ export class FretboardView {
   }
 
   /**
-   * dots: [{s, f, label, color (palette key), state: 'current'|'past'|'future'|'next'|'ghost'|'static', tag}]
+   * dots: [{s, f, label, color (palette key), state: 'current'|'past'|'future'|'next'|'ghost'|'static', tag, fx}]
    */
   setDots(dots) {
     this.dots = dots;
@@ -284,7 +284,8 @@ export class FretboardView {
       const label = d.label !== '' && d.label != null ? String(d.label) : '';
       // (a triangle's label sits lower, in its widest part, and a little smaller)
       const fs = Math.max(9, r * (label.length > 2 ? 0.66 : label.length > 1 ? 0.8 : 0.92) * (harm ? 0.86 : 1));
-      out.push(`<g class="dot ${st}" transform="translate(${cx},${cy})"><g class="in">`);
+      // (`fx`: an extra class for an effect, the tap games' "win" growth and "miss" shake)
+      out.push(`<g class="dot ${st}${d.fx ? ` ${d.fx}` : ''}" transform="translate(${cx},${cy})"><g class="in">`);
       if (st === 'current') {
         out.push(`<circle class="glow" r="${r * 2.1}" fill="url(#gl-${key}${uid})"/>`);
         out.push(harm ? `<path class="ripple" d="${tri(r)}" fill="none" stroke="${col}" stroke-width="2"/>` : `<circle class="ripple" r="${r}" fill="none" stroke="${col}" stroke-width="2"/>`);

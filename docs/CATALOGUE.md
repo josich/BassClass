@@ -1,6 +1,6 @@
 # BassClass exercise catalogue
 
-231 exercise families. Each runs in any key (or all 12 keys in a row) and has its own variations (patterns, inversions, scales, positions, rhythms), so the number of distinct drills runs into the thousands.
+235 exercise families. Each runs in any key (or all 12 keys in a row) and has its own variations (patterns, inversions, scales, positions, rhythms), so the number of distinct drills runs into the thousands.
 
 Generated from `web/js/curriculum/` (run `saveCatalogue()` from `js/selftest.js` to refresh). # = the exercise number shown in the app: its level, then two digits (305 = Level 3), kept for good (`curriculum/numbers.js`). ★ = core exercise.
 
@@ -33,6 +33,8 @@ _Open strings, first notes, steady pulse, first shapes._
 | 119 | With or Without You style | Make Music | Steady root 8ths through D – A – Bm – G, then a lift through each chord's triad. | Original line in the style of “With or Without You” (U2, 1987): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 120 | Zombie style | Make Music | Em – C – G – D: a heavy verse groove with a walk down, then pumping octaves in the chorus. | Original line in the style of “Zombie” (The Cranberries, 1994): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 121 | Smells Like Teen Spirit style | Make Music | F5 – B♭5 – A♭5 – D♭5: long, quiet notes in the verse, then loud root 8ths in the chorus. | Original line in the style of “Smells Like Teen Spirit” (Nirvana, 1991): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
+| 122 | Hear it, tap it: notes on a string | Ear training | A game, no bass needed: the open string sounds, then a note on it. Tap where it is. | Original game. Finding notes by ear on one string is classic ear and fretboard training. |
+| 123 | Read it, tap it | Reading | A game, no bass needed: a note on the bass clef. Tap its place on the neck, or every place. | Original game. Note reading in the bass clef is part of graded exams and every method. |
 
 ### Level 2: Elementary
 
@@ -84,6 +86,7 @@ _Core shapes in every key, simple grooves, 8ths and triplets._
 | 242 | Californication style | Make Music | Am – F verse arpeggios that climb to the octave, then a dotted chorus line over C – G – Dm – Am. | Original line in the style of “Californication” (Red Hot Chili Peppers, 1999): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 243 | Feel Good Inc. style | Make Music | A laid-back minor riff that hops octaves and leaves holes, then a chorus that bounces off the root. | Original line in the style of “Feel Good Inc.” (Gorillaz, 2005): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 244 | Blitzkrieg Bop style | Make Music | Fast root 8ths through A, D and E, every note a down-stroke (Π) with a pick or one finger. | Original line in the style of “Blitzkrieg Bop” (Ramones, 1976): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
+| 245 | Hear it, tap it: intervals | Ear training | A game, no bass needed: the root sounds and shows, then a second note. Tap it on the neck. | Original game. Interval recognition is part of the aural tests in graded exams. |
 
 ### Level 3: Intermediate
 
@@ -137,6 +140,7 @@ _Harmony on the neck: diatonic chords, sequences, positions._
 | 344 | Come Together style | Make Music | A slow D blues riff with hammer-ons and a lazy feel, then a chorus that climbs Bm – G – A. | Original line in the style of “Come Together” (The Beatles, 1969): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 345 | Longview style | Make Music | A busy 8th-note verse that runs up and down each chord, then a driving root chorus. | Original line in the style of “Longview” (Green Day, 1994): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 346 | The Chain style | Make Music | A low E pedal that builds tension, then a solo bass break up the E minor pentatonic. | Original line in the style of “The Chain” (Fleetwood Mac, 1977): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
+| 347 | Hear it, tap it: chord tones | Ear training | A game, no bass needed: a chord sounds over its root, then one of its notes. Tap it: the 3rd, the 5th, the 7th. | Original game. Hearing chord tones is part of aural training for bassists and of jazz ear training. |
 
 ### Level 4: Upper-intermediate
 
@@ -346,6 +350,7 @@ _All keys, all inversions, Coltrane changes, pro-level stamina._
 ### Reading
 
 - **111 · Reading bass clef: the natural notes in first position** (L1, `rd-naturals`): Notes: E and A strings / All four strings
+- **123 · Read it, tap it** (L1, `game-read-notes`): Notes: F and its neighbours / The first position / With sharps and flats / Up the neck (ledger lines) · Places: One place is enough / Every place, to the 12th fret
 - **219 · Reading sharps and flats in first position** (L2, `rd-accidentals`): Notes: All four strings / E and A strings
 - **220 · Reading melodies in C, G, F, D and B♭** (L2, `rd-melodies`): Key: C major / G major / F major / D major / B♭ major
 - **312 · Reading up the neck: ledger lines and higher positions** (L3, `rd-upper`): Position: 5th position (frets 5–8) / 7th position (frets 7–10) / 9th position (frets 9–12) · Key: C major / G major / F major / A minor
@@ -364,8 +369,11 @@ _All keys, all inversions, Coltrane changes, pro-level stamina._
 
 ### Ear training
 
+- **122 · Hear it, tap it: notes on a string** (L1, `game-ear-notes`): String: Any string / The lowest string / The second string / The third string / The fourth string · Frets: Up to fret 5 / Up to fret 7 / Up to fret 12
 - **225 · Hear the chord: major, minor, diminished, augmented** (L2, `ear-triads`): Chords: Major and minor / Major, minor, diminished, augmented
+- **245 · Hear it, tap it: intervals** (L2, `game-ear-intervals`): Intervals: The octave and the 5th / Major and minor 3rds / 3rds, 4th, 5th and octave / Every interval to the octave · Direction: Up from the root / Up and down
 - **314 · Hear the 7th chord: maj7, 7, m7, m7♭5, °7** (L3, `ear-sevenths`): Chords: maj7, 7, m7 / maj7, 7, m7, m7♭5, °7 / …plus m(maj7), 6 and m6
+- **347 · Hear it, tap it: chord tones** (L3, `game-ear-chordtones`): Chords: Major and minor triads / maj7, 7 and m7 / Triads and 7th chords · Ask for: The 3rd / Any chord tone
 - **412 · Hear the progression: name the chords by number** (L4, `ear-progressions`): Progressions: Pop and rock (I IV V vi ♭VII) / Jazz (ii–V–I, turnarounds) / Minor keys
 
 ### Scales

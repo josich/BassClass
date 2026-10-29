@@ -21,6 +21,7 @@ import { HARMONY_PROGS, PROG_KEYS } from './practice/harmony.js';
 import { PAD_SOUNDS } from './audio.js';
 import { FREE_SOUNDS, FREE_LEVELS, FREE_TASTE, FREE_DRUMS, FREE_STYLE, PRO_SOUND_NOTES, isPro, gatesOn, exerciseLock, lessonLock, styleLock, progLock, droneLock } from './pro.js';
 import { DRONES, DRONE_GROUPS, droneMidis, droneName, droneFormula, droneIvs, droneNeeds } from './practice/drones.js';
+import { placesOf } from './curriculum/games.js';
 
 function combos(params, limit = 400, strings = 4) {
   const keys = Object.keys(params);
@@ -162,6 +163,33 @@ function checkDrones(problems) {
   if (!DRONES.open?.free || droneMidis(9, 'open').join() !== '57,64,69') problems.push('drone: the open drone is not the root, 5th and octave, free');
 }
 
+/**
+ * The tap games (curriculum/games.js): on 4, 5 and 6 strings, every option, 200 rounds each: every answer has a place
+ * on the neck within the frets the game shows (0–12), every note shown on the neck is where its pitch is, and
+ * every sound is a real note.
+ */
+function checkGames(problems) {
+  let seed = 11;
+  const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  for (const t of EXERCISES.filter((x) => x.game)) {
+    for (const st of [4, 5, 6]) {
+      const ctx = makeCtx({ strings: st, maxFret: 20 });
+      for (const p of combos(t.params || {}, 50, st)) {
+        for (let i = 0; i < 200; i++) {
+          const r = t.game.round(p, ctx, rand);
+          const where = `${t.id} [${st}str] ${JSON.stringify(p)}`;
+          if (!Number.isInteger(r.answer?.midi) || !r.answer.n) { problems.push(`${where}: an answer without a note`); break; }
+          if (!placesOf(r.answer.midi, ctx, 12).length) { problems.push(`${where}: ${r.answer.midi} has no place in frets 0–12`); break; }
+          if (T.mod(T.pc(r.answer.n), 12) !== T.mod(r.answer.midi, 12)) { problems.push(`${where}: answer ${r.answer.midi} spelled ${r.answer.n.l}/${r.answer.n.a}`); break; }
+          if (r.refs.some((x) => ctx.tuning[x.s] + x.f !== x.midi || x.f < 0 || x.f > 12)) { problems.push(`${where}: a note shown off its place`); break; }
+          if (r.play.some((x) => !Number.isInteger(x.midi) || x.midi < 18 || x.midi > 72)) { problems.push(`${where}: a sound out of range`); break; }
+          if (!r.play.length && !r.staff) { problems.push(`${where}: a round with nothing to hear or read`); break; }
+        }
+      }
+    }
+  }
+}
+
 function checkNumbers(problems) {
   const seen = new Map();
   for (const t of EXERCISES) {
@@ -238,6 +266,7 @@ export function run({ strings = [4, 5, 6], verbose = false } = {}) {
   checkNumbers(problems);
   checkPlacement(problems);
   checkDrones(problems);
+  checkGames(problems);
   for (const st of strings) {
     const S = { strings: st, notation: 'letters', maxFret: 20 };
     const ctx = makeCtx(S);

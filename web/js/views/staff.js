@@ -159,7 +159,7 @@ function rest(x, mid, s, t, dots) {
   for (let d = 0; d < dots; d++) g += `<circle cx="${f2(x + (8 + 4 * d) * u)}" cy="${f2(mid - 4 * u)}" r="${f2(1.5 * u)}" class="srf"/>`;
   return g;
 }
-function bassClef(x, yF, s) {
+export function bassClef(x, yF, s) {
   const u = s;
   const P = (dx, dy) => `${f2(x + dx * u)} ${f2(yF + dy * u)}`;
   return `<path d="M${P(-0.05, -0.1)}C${P(0.05, -1.05)} ${P(1.1, -1.4)} ${P(1.7, -0.98)}C${P(2.45, -0.5)} ${P(2.4, 0.6)} ${P(1.9, 1.25)}C${P(1.35, 2.0)} ${P(0.55, 2.5)} ${P(-0.3, 2.85)}C${P(0.45, 2.35)} ${P(1.2, 1.75)} ${P(1.5, 1.05)}C${P(1.8, 0.35)} ${P(1.72, -0.55)} ${P(1.25, -0.82)}C${P(0.8, -1.05)} ${P(0.3, -0.85)} ${P(0.2, -0.35)}Z" class="sclf"/>`
