@@ -144,8 +144,8 @@ export function tunerScreen(main) {
       h('small', {}, offs[i] ? `${offs[i] > 0 ? '+' : '−'}${Math.abs(offs[i])}` : '·'),
       h('button', { class: 'lbl-btn', 'data-silent': '', 'aria-label': `String ${tuning.midi.length - i} a half step lower`, disabled: offs[i] <= -OFF_MAX, onClick: () => move(i, -1) }, '▼')));
     eachEl.replaceChildren(h('div', { class: 'tn-each-card' },
-      h('h3', {}, 'Tune each string'),
-      h('p', { class: 'muted small' }, `A half step at a time from ${tuning.base}; each new note plays.`),
+      h('div', { class: 'row tn-each-head' }, h('h3', {}, 'Tune each string'),
+        infoBtn([`▲▼ A half step at a time, from ${tuning.base}`, '🔊 Each new note plays, and its string is chosen for tuning', `↺ Back to ${tuning.base} undoes them all`, '🎚 A new Standard / Drop or lowest note starts the strings again'], 'About tuning each string')),
       h('div', { class: 'tn-cols' }, cols),
       h('div', { class: 'row' },
         h('button', { class: 'btn', disabled: !tuning.custom, onClick: () => { saveSettings({ tunerOffs: null }); retune(); drawEach(); } }, `↺ Back to ${tuning.base}`),

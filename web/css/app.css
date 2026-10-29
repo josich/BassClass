@@ -1000,7 +1000,7 @@ input[type="range"] { touch-action: pan-y; }
 .rec-card h3.no { color: #e9bd73; }
 .rec-card p { margin: 0; }
 .rec-line { font-size: 14px; font-weight: 600; }
-.rec-lines { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; color: var(--muted); }
+.rec-head, .tn-each-head { gap: 2px; }
 .rec-btns { display: flex; gap: 8px; flex-wrap: wrap; }
 .rec-notes { display: flex; gap: 4px; flex-wrap: wrap; }
 .rec-notes button { min-width: 40px; min-height: 36px; padding: 3px 5px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--panel-2); font-size: 12.5px; font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }

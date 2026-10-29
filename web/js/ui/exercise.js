@@ -1,5 +1,5 @@
 // Exercise player screen: fretboard with step-by-step dots, tab strip and transport.
-import { h, icon, toast, esc } from './dom.js';
+import { h, icon, toast, esc, infoBtn } from './dom.js';
 import { starButton } from './favorites.js';
 import { settings, saveSettings, getProgress, updateProgress } from '../store.js';
 import { makeCtx } from '../fretboard.js';
@@ -734,12 +734,11 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     hideTip();
     if (player.playing) player.pause();
     recCard(
-      h('h3', {}, '🎙 Record a take'),
-      h('ul', { class: 'rec-lines' },
-        h('li', {}, '🎸 Play it on your bass, once from the first note, after a bar of clicks.'),
-        h('li', {}, '🔊 On the speaker the app hears its click and times you against it; with headphones it judges how even you are.'),
-        h('li', {}, '🔇 The app\'s bass and backing stay silent, so the microphone hears only you.'),
-        h('li', {}, '📱 Only your latest take is kept, on this phone, until the next one. Nothing is sent.')),
+      h('div', { class: 'row rec-head' }, h('h3', {}, '🎙 Record a take'),
+        infoBtn(['🎸 Play it on your bass, once from the first note, after a bar of clicks',
+          '🔊 On the speaker the app hears its click and times you against it; with headphones it judges how even you are',
+          '🔇 The app\'s bass and backing stay silent, so the microphone hears only you',
+          '📱 Only your latest take is kept, on this phone, until the next one. Nothing is sent'], 'About recording a take')),
       recBtns(h('button', { class: 'btn primary', onClick: () => startRec() }, '● Record')));
   }
   async function startRec() {
@@ -834,10 +833,9 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     const timing = res.timing === 'click'
       ? `${s.inTime} of ${s.timed} in time with the click${bias}${s.spread != null ? ` · spread ${s.spread} ms` : ''}`
       : `${s.inTime} of ${s.timed} even with your own pulse${s.spread != null ? ` · spread ${s.spread} ms` : ''}`;
-    const how = res.timing === 'click' ? null
-      : h('p', { class: 'muted small' }, res.timing === 'estimated'
-        ? 'The click was not heard (headphones?), so the app judged how even you are, not how close to the click.'
-        : 'The click\'s delay could not be measured (Bluetooth?), so the app judged how even you are.');
+    const how = res.timing === 'click' ? '⏱ In time: within 50 ms of the click (closer on fast notes)'
+      : res.timing === 'estimated' ? '⏱ The click was not heard (headphones?), so the app judged how even you are, not how close to the click'
+        : '⏱ The click\'s delay could not be measured (Bluetooth?), so the app judged how even you are';
     const cells = res.notes.map((n, j) => {
       const sn = r.sched.notes[j];
       const off = n.dt != null && !n.inTime;
@@ -857,12 +855,14 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       me.onended = () => { if (listening === me) { listening = null; listen.textContent = '▶ Listen'; } };
     } }, '▶ Listen');
     recCard(
-      h('h3', { class: res.clean ? 'ok' : 'no' }, res.clean ? '✓ A clean take' : 'Not clean yet'),
+      h('div', { class: 'row rec-head' }, h('h3', { class: res.clean ? 'ok' : 'no' }, res.clean ? '✓ A clean take' : 'Not clean yet'),
+        infoBtn(['🎵 Notes: the pitch the microphone heard on each one', how,
+          '🟢 Each note: green edge right and in time, gold early or late (ms), red ✗ a wrong note, dashed not heard or unclear; tap one to see it on the neck',
+          `✓ The app's ear is kept beside your own ✓${lesson && !demo ? ' Clean' : ' Mastered'}: tick that one yourself when it felt clean`,
+          '📱 Only this take is kept, until the next one. Nothing is sent'], 'About this result')),
       h('p', { class: 'rec-line' }, `🎵 Notes: ${parts.join(' · ')}`),
       h('p', { class: 'rec-line' }, `⏱ Timing: ${timing}`),
-      how,
       h('div', { class: 'rec-notes' }, cells),
-      h('p', { class: 'muted small' }, `The app's ear, kept beside your own ✓${lesson && !demo ? ' Clean' : ' Mastered'}: tick that one yourself when it felt clean.`),
       recBtns(listen, again));
   }
 
