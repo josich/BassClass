@@ -23,15 +23,22 @@ const sd = (a) => { const m = mean(a); return Math.sqrt(a.reduce((s, v) => s + (
 
 let last = null;   // the one take kept: { samples, sr, t0 }, replaced by the next (user, 2026-10-29)
 export const lastTake = () => last;
+// that take's result, for the exercise it was played on: 🎙 shows it again, greyed, with ▶ Listen (user, 2026-10-29:
+// "to be able to check results not only once"): { id, at, bpm, res, notes }
+let kept = null;
+export function keepResult(r) { kept = r; }
+export const resultFor = (id) => (kept?.id === id ? kept : null);
 
-/** Opens the microphone and starts capturing; `stop()` resolves with the take { samples, sr, t0 (context time) }. */
+/** Opens the microphone; `begin()` starts the take and `stop()` returns it: { samples, sr, t0 (context time) }. */
 export async function startTake() {
   const ac = A.audioCtx();
   await ac.audioWorklet.addModule(new URL('./recworklet.js', import.meta.url));
   const mic = await A.openMic();
   const node = new AudioWorkletNode(ac, 'bc-recorder');
   const chunks = [];
-  node.port.onmessage = (e) => chunks.push(e.data);
+  // (the microphone opens when the player gets ready; the take starts with `begin()`, when they tap ●)
+  let on = false;
+  node.port.onmessage = (e) => { if (on) chunks.push(e.data); };
   // (a worklet runs only when pulled: through a silent gain to the output)
   const sink = ac.createGain();
   sink.gain.value = 0;
@@ -39,6 +46,7 @@ export async function startTake() {
   const settings = mic.source.mediaStream?.getAudioTracks?.()[0]?.getSettings?.() || {};
   return {
     inputLatency: Number.isFinite(settings.latency) ? settings.latency : null,
+    begin() { on = true; },
     /** Stops the capture; the take is kept (the one take, replacing the last) unless `keep` is false. */
     stop({ keep = true } = {}) {
       mic.source.disconnect();
@@ -125,6 +133,8 @@ function prep(x, sr) {
   return { z: biquad(y, 'hp', 30, 0.707, sr / step), rate: sr / step };
 }
 const N = 512, HOP = 24, BAND = [40, 2500];
+/** The analysis's thresholds (tuned on the study's takes; exported so the QA harness can try others). */
+export const TUNING = { delta: 0.05, gateDb: 6, weak: 0.35 };
 /** Onset strength: log-magnitude spectral flux over 40–2500 Hz (the recording click, near 5 kHz, is outside it). */
 function odf(z, rate) {
   const nf = Math.max(0, Math.floor((z.length - N) / HOP));
@@ -192,6 +202,11 @@ const pcErrCents = (f, m) => { const c = 1200 * Math.log2(f / midiF(m)); return 
 /** The detected onsets matched to the written notes, in order (dynamic programming): a match costs (dt / tol)², a
  * wrong pitch class 0.6 more, a missed note 1, an extra onset 0.35 (0.75 with a clear pitch). */
 function align(det, exp) {
+  // (a weak onset costs more as a note, and less to leave out even with a clear pitch, as a ringing string's ripples
+  // have: a strong pluck a little off the beat beats a faint ripple on it)
+  // (a note's typical strength: the median of the strongest onsets, as many as there are notes)
+  const top = det.map((d) => d.s).sort((a, b) => b - a).slice(0, Math.max(1, exp.length));
+  const sRef = top[Math.floor(top.length / 2)] || 1;
   const n = det.length, m = exp.length, INF = 1e9;
   const D = Array.from({ length: n + 1 }, () => new Float64Array(m + 1).fill(INF));
   const P = Array.from({ length: n + 1 }, () => new Int8Array(m + 1));
@@ -204,11 +219,11 @@ function align(det, exp) {
         const dt = det[i].t - exp[j].t, tol = exp[j].tol;
         if (Math.abs(dt) < tol) {
           const pc = det[i].f == null ? 0.3 : Math.abs(pcErrCents(det[i].f, exp[j].midi)) <= 50 ? 0 : 0.6;
-          const c = v + (dt / tol) ** 2 + pc;
+          const c = v + (dt / tol) ** 2 + pc + (det[i].s < 0.25 * sRef ? 0.5 : 0);
           if (c < D[i + 1][j + 1]) { D[i + 1][j + 1] = c; P[i + 1][j + 1] = 1; }
         }
       }
-      if (i < n) { const c = v + 0.35 + (det[i].clar > 0.9 ? 0.4 : 0); if (c < D[i + 1][j]) { D[i + 1][j] = c; P[i + 1][j] = 2; } }
+      if (i < n) { const c = v + 0.35 + (det[i].clar > 0.9 && det[i].s >= 0.5 * sRef ? 0.4 : 0); if (c < D[i + 1][j]) { D[i + 1][j] = c; P[i + 1][j] = 2; } }
       if (j < m) { const c = v + 1; if (c < D[i][j + 1]) { D[i][j + 1] = c; P[i][j + 1] = 3; } }
     }
   }
@@ -256,7 +271,7 @@ function calibrate(take, clicks, inputLatency) {
  * | 'missed', heard (midi) }], extra, summary, clean, timing: 'click' (the delay heard on the speaker) | 'estimated'
  * (headphones) | 'even' (judged against the player's own pulse), lag }.
  */
-export function judge(take, sched, { inputLatency = null } = {}) {
+export function judge(take, sched, { inputLatency = null, debug = false } = {}) {
   const { lag, measured } = calibrate(take, sched.clicks, inputLatency);
   const { z, rate } = prep(take.samples, take.sr);
   const zp = biquad(biquad(z, 'lp', 1100, 0.707, rate), 'lp', 1100, 0.707, rate);   // the tuner's pitch band
@@ -269,9 +284,9 @@ export function judge(take, sched, { inputLatency = null } = {}) {
   for (let i = at(take.t0 + 0.05); i + fr <= at(first + lag - 0.08); i += fr) frames.push(rmsOf(i, i + fr));
   const floor = frames.length ? [...frames].sort((x, y) => x - y)[Math.floor(frames.length / 3)] : 1e-4;
   const o = odf(z, rate);
-  const det = peaks(o, rate).map((p) => ({ ...p, t: take.t0 + p.t })).filter((p) => {
+  const det = peaks(o, rate, { delta: TUNING.delta }).map((p) => ({ ...p, t: take.t0 + p.t })).filter((p) => {
     const a = at(p.t);
-    return rmsOf(a, a + Math.round(0.06 * rate)) > floor * 4;
+    return rmsOf(a, a + Math.round(0.06 * rate)) > floor * 10 ** (TUNING.gateDb / 20);
   });
   for (const d of det) {
     const a = at(d.t + 0.03), b = at(d.t + 0.13);
@@ -317,7 +332,9 @@ export function judge(take, sched, { inputLatency = null } = {}) {
       const dip = seg.length > 64 ? dipAt(seg, rate, midiF(e.midi)) : null;
       const sal = (m) => { let v = 0; for (let h = 1; h <= 6; h++) { const fh = midiF(m) * h; if (fh < 1000) v += Math.sqrt(goertzel(zp, a, Math.max(a + 64, b), fh, rate)) / Math.sqrt(h); } return v; };
       const se = sal(e.midi), sn = Math.max(sal(e.midi - 1), sal(e.midi + 1), sal(e.midi - 2), sal(e.midi + 2));
-      r.pitch = f == null ? (dip != null && dip < 0.3 ? 'ok' : 'unclear') : se >= sn ? 'ok' : 'wrong';
+      // (no clear pitch: two strings ringing together; the written note's own harmonics standing over its
+      // neighbours' say it is there)
+      r.pitch = f == null ? ((dip != null && dip < 0.3) || se >= 1.3 * sn ? 'ok' : 'unclear') : se >= sn ? 'ok' : 'wrong';
     }
     matched.push({ d, ej });
   }
@@ -325,16 +342,23 @@ export function judge(take, sched, { inputLatency = null } = {}) {
   // left over is an extra NOTE only when it is about as strong as the notes, with a clear pitch that is not the note
   // already sounding (a low string's sustain swells and makes onsets of its own)
   const medS = median(matched.map(({ d }) => d.s));
+  // weak against the notes of its own register (within a major 3rd; user, 2026-10-29: "the B string or lower is not well
+  // detected"): a phone's microphone hears a low string far quieter than the others, so its plucks are weak against
+  // the take's loudest but not against each other
+  const near = (midi) => {
+    const s = matched.filter(({ ej }) => Math.abs(exp[ej].midi - midi) <= 4).map(({ d }) => d.s);
+    return s.length >= 3 ? Math.min(medS, median(s)) : medS;
+  };
   // (and a weak onset that does not raise the level is the note before fading, not a pluck)
   const rises = (t) => rmsOf(at(t + 0.01), at(t + 0.06)) > 1.2 * rmsOf(at(t - 0.06), at(t - 0.01));
-  for (const r of notes) {
-    if (r.dt != null && r.s < 0.35 * medS && (r.pitch !== 'ok' || !rises(exp[notes.indexOf(r)].t + r.dt))) { r.pitch = 'missed'; r.dt = null; }
-  }
+  notes.forEach((r, j) => {
+    if (r.dt != null && r.s < TUNING.weak * near(r.midi) && (r.pitch !== 'ok' || !rises(exp[j].t + r.dt))) { r.pitch = 'missed'; r.dt = null; }
+  });
   let extra = 0;
   for (const [di, ej] of pairs) {
     if (ej >= 0 || di < 0) continue;
     const d = det[di];
-    if (!(d.s > 0.35 * medS)) continue;
+    if (!(d.s > TUNING.weak * medS)) continue;
     d.until = det.find((q) => q.t > d.t + 0.03)?.t ?? d.t + 1;
     const { f, clar } = pitchOf(d, 26);
     if (clar <= 0.8 || f == null) continue;
@@ -366,5 +390,5 @@ export function judge(take, sched, { inputLatency = null } = {}) {
   };
   const clean = summary.missed === 0 && summary.wrong === 0 && extra === 0 && summary.unclear <= Math.floor(notes.length / 10)
     && inTime >= Math.ceil(0.9 * timed.length);
-  return { notes, extra, summary, clean, timing, lag: useLag };
+  return { notes, extra, summary, clean, timing, lag: useLag, ...(debug ? { det, exp, medS } : {}) };
 }
