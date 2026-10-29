@@ -175,11 +175,12 @@ function target(hash) {
   const lesson = parts[0] === 'course' && parts[1] && parts[1] !== 'placement' ? lessonById.get(parts[1]) || [...lessonById.values()].find((l) => l.kind === 'lesson' && l.num === parts[1]) : null;
   return lesson ? { lesson } : null;
 }
-/** Why an address in the app is closed (an exercise, a lesson), or null. */
+/** Why an address in the app is closed, or null. Exercises and lessons open for a free player as previews (user,
+ * 2026-10-29: "allow free users to check what is in Pro exercises, even to see the options"): the exercise screen
+ * and the lesson page take `exerciseLock` / `lessonLock` as their preview's reason, so no address is closed now. */
 export function hashLock(hash) {
-  if (isPro()) return null;
-  const x = target(hash);
-  return !x ? null : x.t ? exerciseLock(x.t, x.ls) : lessonLock(x.lesson);
+  void hash;
+  return null;
 }
 /** The "New" id of what an address opens: a Pro item tapped counts as seen, its chip goes (QA round 20). */
 export const newsIdOf = (hash) => { const x = target(hash); return x?.t ? `ex:${x.t.id}` : x?.lesson ? `lesson:${x.lesson.id}` : null; };

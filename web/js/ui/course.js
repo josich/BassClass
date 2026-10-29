@@ -464,10 +464,10 @@ export function courseScreen(main) {
 export function lessonScreen(main, id) {
   const l = lessonById.get(id);
   if (!l) { replaceHash('#/course'); return; }
-  // (a Pro lesson reached by an old link or Back: the map, and the Pro sheet)
-  const why = lessonLock(l);
-  if (why) { replaceHash('#/course'); openPro(why); return; }
-  setLast(l.id);
+  // a Pro lesson opens for a free player as a preview: read it, hear it, try each step once (user, 2026-10-29: "allow
+  // free users to check what is in Pro"); nothing is ticked or recorded
+  const preview = lessonLock(l);
+  if (!preview) setLast(l.id);
   markUsed(`lesson:${l.id}`);
   const rerender = () => { const y = main.scrollTop; lessonScreen(main, id); main.scrollTop = y; };
   const idx = LESSONS.indexOf(l);
@@ -502,7 +502,7 @@ export function lessonScreen(main, id) {
       h('span', { class: 'go', html: icon('next') }));
   };
   const canList = (l.can || []).map((text, i) => {
-    const box = h('input', { type: 'checkbox', checked: canTicked(l, i) });
+    const box = h('input', { type: 'checkbox', checked: canTicked(l, i), disabled: !!preview });
     box.addEventListener('change', () => { if (setCan(l, i, box.checked)) toast(`${l.kind === 'lesson' ? 'Lesson' : l.title} complete ✓`); rerender(); });
     return h('label', { class: 'can-row' }, box, h('span', {}, text));
   });
@@ -530,6 +530,8 @@ export function lessonScreen(main, id) {
       st === 'known' ? h('span', { class: 'chip' }, 'known (My level)') : null,
       prev ? h('button', { class: 'icon-btn', title: `Previous: ${lessonName(prev)}`, 'aria-label': 'Previous lesson', html: icon('prev'), onClick: () => go(lessonHref(prev)) }) : null,
       nextL ? h('button', { class: 'icon-btn', title: `Next: ${lessonName(nextL)}`, 'aria-label': 'Next lesson', html: icon('next'), onClick: () => go(lessonHref(nextL)) }) : null),
+    preview ? h('div', { class: 'pro-preview-bar' }, h('span', {}, '⭐ A Pro lesson: read it, hear it and try its steps once'),
+      h('button', { class: 'btn small locked', onClick: () => openPro(preview, { then: rerender }) }, 'Get Pro', proChip(preview))) : null,
     h('div', { class: 'les-cols' },
       h('div', { class: 'les-main' },
         l.idea ? h('div', { class: 'idea-box' }, l.idea) : null,

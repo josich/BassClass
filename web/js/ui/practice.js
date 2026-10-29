@@ -5,10 +5,10 @@ import { h, icon, infoBtn, toast, sideScroll } from './dom.js';
 import * as A from '../audio.js';
 import { Room } from '../practice/engine.js';
 import { room, saveRoom, SUBS } from '../practice/state.js';
-import { STYLES, GENRES, levelsOf, regroup } from '../practice/styles.js';
+import { STYLES, GENRES, levelsOf, regroup, beatHits } from '../practice/styles.js';
 import { accentsFor, groupsOf } from '../practice/accents.js';
 import { settings, saveSettings } from '../store.js';
-import { loadKit, kitReady } from '../drums.js';
+import { loadKit, kitReady, playDrum, styleGain, trackGain } from '../drums.js';
 import { loadPiano, pianoReady } from '../piano.js';
 import { styleLock, progLock, soundLock, fillsLock, droneLock, freeRoom } from '../pro.js';
 import { openPro } from './proSheet.js';
@@ -255,6 +255,8 @@ export function practiceScreen(main, params = {}) {
     raf = engine.playing ? requestAnimationFrame(frame) : null;
   };
   const toggle = async () => {
+    // (a preview still sounding stops when the room starts or stops)
+    stopPreview();
     queue.length = 0;
     shownTick = null;
     if (engine.playing || engine.starting) {
@@ -458,6 +460,47 @@ export function practiceScreen(main, params = {}) {
         toast('The piano could not load: the e-piano plays meanwhile', 3500);
       });
   };
+  // ---- a Pro choice tapped by a free player is heard once before the Pro sheet, while the room is stopped (user,
+  // 2026-10-29: "sounds in the practice room too: it can play once when tapped, not while the metronome runs")
+  let previewNodes = [], previewTimers = [];
+  const stopPreview = () => {
+    for (const n of previewNodes) { try { n.disconnect(); } catch { /* gone */ } }
+    for (const t of previewTimers) clearTimeout(t);
+    previewNodes = []; previewTimers = [];
+  };
+  const canPreview = () => !engine.playing && !engine.starting;
+  /** Two bars of a drum pattern at its own tempo. */
+  const previewStyle = (key) => {
+    if (!canPreview()) return;
+    const s = STYLES[key];
+    const go = () => {
+      stopPreview();
+      const t0 = A.now() + 0.08, len = 60 / s.bpm, g = styleGain(key);
+      for (let bar = 0; bar < Math.max(2, s.bars); bar++) {
+        for (let beat = 0; beat < s.beats; beat++) {
+          for (const [f, piece, v] of beatHits(s, s.sub, bar, beat)) {
+            const node = playDrum(piece, t0 + (bar * s.beats + beat + f) * len, v, g * trackGain(s, piece));
+            if (node) previewNodes.push(node);
+          }
+        }
+      }
+    };
+    if (kitReady()) go(); else loadKit().then(() => { if (canPreview()) go(); }).catch(() => {});
+  };
+  /** A progression's first chords, one after another, in the room's sound. */
+  const previewProg = (key) => {
+    if (!canPreview()) return;
+    const ch = progression(key, room.hKey, 4, { notation: settings.notation }).filter((c, i, a) => i === 0 || c.sym !== a[i - 1].sym).slice(0, 4);
+    stopPreview();
+    ch.forEach((c, i) => previewTimers.push(setTimeout(() => { if (canPreview()) A.chordPreview(c.midis, room.hSound); }, i * 900)));
+  };
+  /** The chord sounding now (the progression's first, or the drone's) in another sound. */
+  const previewSound = (v) => {
+    if (!canPreview()) return;
+    const midis = room.harmony === 'chords' ? chordsNow()[0].midis : droneMidis(room.hKey, room.hQual);
+    if (v === 'piano' && !pianoReady()) { loadPiano().then(() => { if (canPreview()) A.chordPreview(midis, v); }).catch(() => {}); return; }
+    A.chordPreview(midis, v);
+  };
   // ---- the shared picker for the drum patterns and the progressions
   let closePicker = null;
   /** A library's current choice on one line, and Change. */
@@ -480,7 +523,7 @@ export function practiceScreen(main, params = {}) {
       current: room.style, open: at ?? room.genre,
       favs: room.drumFavs, recent: room.drumRecent,
       // (a Pro pattern: the Pro sheet; bought, it plays; closed, the picker opens again on the group browsed)
-      onLocked: (why, k, g) => { markUsed(`style:${k}`); openPro(why, { then: () => { set({ drumRecent: recentWith(room.drumRecent, k) }); pickStyle(k); }, cancel: () => openDrums(g) }); },
+      onLocked: (why, k, g) => { markUsed(`style:${k}`); previewStyle(k); openPro(why, { then: () => { set({ drumRecent: recentWith(room.drumRecent, k) }); pickStyle(k); }, cancel: () => openDrums(g) }); },
       onGroup: (g) => set({ genre: g }),
       onFav: (k, on) => set({ drumFavs: favsWith(room.drumFavs, k, on) }),
       onPick: (k) => { set({ drumRecent: recentWith(room.drumRecent, k) }); pickStyle(k); },
@@ -638,7 +681,7 @@ export function practiceScreen(main, params = {}) {
       items: HARMONY_PROGS.flatMap(([g, keys]) => keys.map((k) => ({ key: k, name: progName(k), group: g, sub: progSub(k).split(' · ').filter((w) => w !== g && w !== 'Yours').join(' · '), lock: progLock(k), fresh: isNew(`prog:${k}`) }))),
       current: room.hProg, open: at,
       favs: room.progFavs, recent: room.progRecent,
-      onLocked: (why, k, g) => { markUsed(`prog:${k}`); openPro(why, { then: () => { set({ progRecent: recentWith(room.progRecent, k) }); mineAt = null; setHarmony({ hProg: k }); }, cancel: () => openProgs(g) }); },
+      onLocked: (why, k, g) => { markUsed(`prog:${k}`); previewProg(k); openPro(why, { then: () => { set({ progRecent: recentWith(room.progRecent, k) }); mineAt = null; setHarmony({ hProg: k }); }, cancel: () => openProgs(g) }); },
       onFav: (k, on) => set({ progFavs: favsWith(room.progFavs, k, on) }),
       onPick: (k) => { markUsed(`prog:${k}`); set({ progRecent: recentWith(room.progRecent, k) }); mineAt = null; setHarmony({ hProg: k }); },
     });
@@ -664,7 +707,7 @@ export function practiceScreen(main, params = {}) {
       items: DRONE_KEYS.map((k) => ({ key: k, name: droneTitle(k), group: DRONES[k].group, sub: `${droneName(room.hKey, k, settings.notation)} · ${droneFormula(k)}`, lock: droneLock(k), fresh: isNew(`drone:${k}`) })),
       current: room.hQual, open: at,
       favs: room.droneFavs, recent: room.droneRecent,
-      onLocked: (why, k, g) => { markUsed(`drone:${k}`); openPro(why, { then: () => pickDrone(k), cancel: () => openDrones(g) }); },
+      onLocked: (why, k, g) => { markUsed(`drone:${k}`); if (canPreview()) A.chordPreview(droneMidis(room.hKey, k), room.hSound); openPro(why, { then: () => pickDrone(k), cancel: () => openDrones(g) }); },
       onFav: (k, on) => set({ droneFavs: favsWith(room.droneFavs, k, on) }),
       onPick: pickDrone,
     });
@@ -781,7 +824,7 @@ export function practiceScreen(main, params = {}) {
       mode === 'off' ? null : h('div', { class: 'room-field' }, h('label', {}, 'Sound'),
         h('div', { class: 'seg' }, [['pad', 'Pad'], ['epiano', 'E-piano'], ['piano', 'Piano'], ['organ', 'Organ'], ['guitar', 'Guitar'], ['arp', 'Arpeggio']].map(([v, l]) => h('button', {
           class: room.hSound === v ? 'on' : soundLock(v) ? 'locked' : '', type: 'button',
-          onClick: () => { if (soundLock(v)) { markUsed(`sound:${v}`); openPro(soundLock(v), { then: () => { markUsed(`sound:${v}`); setHarmony({ hSound: v }); ensurePiano(); } }); return; } markUsed(`sound:${v}`); if (room.hSound !== v) { setHarmony({ hSound: v }); ensurePiano(); } else redraw(); },
+          onClick: () => { if (soundLock(v)) { markUsed(`sound:${v}`); previewSound(v); openPro(soundLock(v), { then: () => { markUsed(`sound:${v}`); setHarmony({ hSound: v }); ensurePiano(); } }); return; } markUsed(`sound:${v}`); if (room.hSound !== v) { setHarmony({ hSound: v }); ensurePiano(); } else redraw(); },
         }, l, newChip(isNew(`sound:${v}`)), proChip(soundLock(v))))), pianoState),
       mode === 'off' ? null : h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal),
     ].filter(Boolean));
@@ -844,6 +887,7 @@ export function practiceScreen(main, params = {}) {
     proChanged: () => { const free = freeRoom(room); if (free) set(free); redraw(); },
     dispose: () => {
       engine.stop();
+      stopPreview();
       for (const b of [slower, faster, slower5, faster5]) b.stopHold();
       neck.dispose();
       closePicker?.('route');

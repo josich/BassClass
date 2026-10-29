@@ -13,6 +13,10 @@ import { CYCLE_OPTS, PROGS, tonicFor } from '../curriculum/common.js';
 import { harmonyTrack, harmonyAt, NO_BACKING } from '../harmony.js';
 import { recordLoop, rememberTempo, stepState, stepPassed, stepClean, stepCovered, setClean, untickStep, isDue, isComplete, reviewed } from '../course/progress.js';
 import { goalOf, goalText as masteryGoal, meetsGoal, setMastered, isMastered, SUB_NAMES } from '../mastery.js';
+import { openPro } from './proSheet.js';
+
+// a Pro exercise opened by a free player plays its first bars once, a preview (user, 2026-10-29)
+const PREVIEW_BEATS = 16;
 
 // what a lesson step's goal tempo counts in ("goal 96 BPM in 8ths"; the list lives in mastery.js)
 export { SUB_NAMES };
@@ -69,9 +73,13 @@ export function paramSummary(tpl, p, S, fixed = {}) {
   }).join(' · ');
 }
 
-export function renderExercise(root, tpl, { params = {}, onBack, routine = null, lesson = null }) {
+export function renderExercise(root, tpl, { params = {}, onBack, routine = null, lesson = null, preview = null }) {
   const S = settings;
   const prog = getProgress(tpl.id) || {};
+  // `preview`: a Pro exercise opened by a free player (the reason it is Pro): every option can be seen and tried, its
+  // first bars play once, no loop, and nothing is recorded (user, 2026-10-29: "allow free users to check what is in
+  // Pro exercises, even to see the options")
+  const offerPro = () => openPro(preview);
   // a warm-up or a lesson opens exercises with preset options: they must not replace the player's own choices
   const keep = () => (routine || lesson ? {} : { params: p });
   // a course lesson step: L = the lesson, LI = the step's index, LS = the step
@@ -85,7 +93,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   let visitPassed = false, passShown = false;
   let alive = true;
   // "Continue" on Home reopens the last exercise opened
-  updateProgress(tpl.id, {});
+  if (!preview) updateProgress(tpl.id, {});
   const p = { ...defaultParams(tpl), ...(prog.params || {}), ...params };
   for (const [k, def] of Object.entries(tpl.params || {})) {
     if (!paramOptions(def, S, p).some((o) => o[0] === p[k])) p[k] = def.default;
@@ -132,7 +140,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const goalText = () => (LS?.goal ? `goal ${LS.goal} BPM${LS.sub ? ` in ${SUB_NAMES[LS.sub]}` : ''}` : 'one full round');
   const subtitle = L
     ? `${lessonName} · ${demo ? 'demo: listen and watch' : `step ${LI + 1}/${L.steps.length} · ${goalText()}`}`
-    : `${mod?.name ?? ''}${tpl.song ? ' · our own line in its style, not the record\'s' : ''} · Level ${tpl.level} ${lvl ? lvl.name : ''}`;
+    : `${mod?.name ?? ''}${tpl.song ? ' · our own line in its style, not the record\'s' : ''} · Level ${tpl.level} ${lvl ? lvl.name : ''}${preview ? ' · Pro preview' : ''}`;
   const titleEl = h('div', { class: 'exv-title' }, h('b', { title: tpl.title }, h('span', { class: 'ex-num' }, tpl.num), tpl.short || tpl.title), h('span', { title: subtitle }, subtitle));
   let nextBtn = null;
   if (routine) {
@@ -147,10 +155,12 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         h('small', {}, `${LI + 1}/${L.steps.length}`), last ? 'Done ›' : 'Next ›');
   }
   // the step's pass mark: its goal tempo (recorded by the app), then the player's own "clean" tick
-  const goalBtn = lesson && !demo ? h('button', { class: 'btn goal-btn', onClick: () => onGoal() }) : null;
+  const goalBtn = lesson && !demo && !preview ? h('button', { class: 'btn goal-btn', onClick: () => onGoal() }) : null;
+  // (in a preview, the Pro offer in its place)
+  const previewBtn = preview ? h('button', { class: 'btn small locked pro-try', title: preview, onClick: offerPro }, '⭐ Preview', h('span', { class: 'chip pro' }, 'Pro')) : null;
   let lessonDone = false; // the lesson was completed in this visit: Next goes back to its page
   const top = h('header', { class: `exv-top${lesson ? ' lesson' : ''}` },
-    btn('back', 'Back', () => close()), titleEl, optsBtn, goalBtn, nextBtn,
+    btn('back', 'Back', () => close()), titleEl, optsBtn, goalBtn, previewBtn, nextBtn,
     starButton(tpl.id, { cls: 'icon-btn' }),
     btn('tuner', 'Tuner', () => { location.hash = '#/tuner'; }), btn('info', 'About this exercise', () => openDrawer()));
 
@@ -177,18 +187,18 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   subSel.addEventListener('change', () => {
     userSub = Number(subSel.value);
     player.setSub(userSub);
-    if (!lesson) updateProgress(tpl.id, { sub: userSub });
+    if (!lesson && !preview) updateProgress(tpl.id, { sub: userSub });
     renderTab();
     syncGoal();
   });
   // shown instead of the subdivision select when the rhythm is part of the exercise (licks, grooves…)
   const rhythmBtn = h('button', { class: 'lbl-btn written', title: 'Why can\'t I change the subdivision?',
     onClick: () => tip('The rhythm is written into this exercise, so the subdivision is fixed. Change the tempo instead.') }, '♪ Written rhythm');
-  const loopBtn = btn('loop', 'Loop', () => { player.loop = !player.loop; syncToggles(); });
+  const loopBtn = btn('loop', 'Loop', () => { if (preview) { offerPro(); return; } player.loop = !player.loop; syncToggles(); });
   const metroBtn = btn('metro', 'Metronome', () => { player.metro = !player.metro; saveSettings({ metro: player.metro }); syncToggles(); });
   const soundBtn = btn('sound', 'Bass sound on/off', () => { player.sound = !player.sound; syncToggles(); });
-  const trainerBtn = btn('trainer', 'Speed trainer (+4 BPM each loop)', () => toggleTrainer());
-  const doneBtn = btn('check', 'Mark as mastered', () => toggleDone());
+  const trainerBtn = btn('trainer', 'Speed trainer (+4 BPM each loop)', () => (preview ? offerPro() : toggleTrainer()));
+  const doneBtn = btn('check', 'Mark as mastered', () => (preview ? offerPro() : toggleDone()));
   const revealBtn = h('button', { class: 'lbl-btn ico', title: 'Reveal mode: step by step / whole shape / quiz', onClick: () => cycleReveal() });
   const backingBtn = h('button', { class: 'lbl-btn', title: 'Backing: off / a drone on the root / the chords', onClick: () => cycleBacking() });
   const scoreBtn = h('button', { class: 'lbl-btn ico', title: 'Under the neck: tab or bass-clef staff', onClick: () => cycleScore() });
@@ -213,7 +223,11 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const tab = new TabView(tabEl, { onSeek: (i) => { if (player.playing) player.pause(); player.stepTo(i); } });
 
   const player = new Player({
-    onStep: (i) => showStep(i),
+    onStep: (i) => {
+      // (a preview stops after its first bars, and says what Pro opens)
+      if (preview && i > 0 && (player.starts?.[i] ?? 0) >= PREVIEW_BEATS) { player.pause(); previewEnd(); return; }
+      showStep(i);
+    },
     onBeat: (level, beat) => flashBeat(beat),
     onState: (playing) => { playBtn.innerHTML = icon(playing ? 'pause' : 'play'); },
     onLoop: (n, bpm, done) => {
@@ -221,6 +235,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       // `done`: the slowest tempo of the loop just played, or null when it did not start on the first
       // note (not a full loop). A lesson step leaves the exercise's own progress alone.
       const played = done;
+      if (preview) return;
       if (played != null && !demo) routine?.played?.();
       if (!lesson) {
         const pr = getProgress(tpl.id) || {};
@@ -244,6 +259,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     },
     onEnd: (full) => {
       showStep(-1);
+      if (preview) { previewEnd(); return; }
       // played through without the loop: today's session ticks it too
       if (demo || full) routine?.played?.();
       if (demo) tip(`Your turn: tap ${routine ? 'Next' : 'Practise'} › to play it yourself.`, { title: 'Demo finished' });
@@ -254,8 +270,12 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   player.bpm = (lesson
     ? (demo ? clampBpm(LS.goal || LS.from) : (clampBpm(stepState(L.id, LI).last) || clampBpm(LS.from)))
     : clampBpm(prog.lastBpm)) || tpl.bpm || 70;
-  // the demo plays once, with the sound on
+  // the demo plays once, with the sound on; a preview plays once
   if (demo) { player.loop = false; player.sound = true; }
+  if (preview) player.loop = false;
+  function previewEnd() {
+    tip(h('span', {}, 'That was a preview. BassClass Pro opens the whole exercise, every option, the loop and the speed trainer. ', h('button', { class: 'btn small locked', onClick: offerPro }, '⭐ Get Pro')), { title: 'Pro preview' });
+  }
   player.metro = S.metro;
   player.countIn = S.countIn;
   player.clickSubs = S.clickSubs;
@@ -281,7 +301,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
           rebuild();
           renderParams();
           renderOptions();
-          updateProgress(tpl.id, keep());
+          if (!preview) updateProgress(tpl.id, keep());
         } }, l));
       }
       return h('div', { class: `opt-group${fixed[k] ? ' fixed' : ''}` }, h('h4', {}, def.label),
@@ -508,6 +528,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   function setBpm(v) {
     player.setBpm(v);
     syncBpm();
+    if (preview) return;
     if (lesson && !demo) rememberTempo(L, LI, player.bpm);
     else if (!lesson) updateProgress(tpl.id, { lastBpm: player.bpm });
   }

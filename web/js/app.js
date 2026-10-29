@@ -15,7 +15,7 @@ import { courseScreen, lessonScreen, placementScreen, stepHref } from './ui/cour
 import { lessonById } from './course/data.js';
 import { sessionPlayed } from './course/progress.js';
 import { nav, replaceHash, goBack, canGoBack } from './ui/nav.js';
-import { hashLock, gatesOn, newsIdOf } from './pro.js';
+import { hashLock, gatesOn, newsIdOf, exerciseLock } from './pro.js';
 import { openPro } from './ui/proSheet.js';
 import { maybeAskRating } from './ui/rate.js';
 import { syncPro } from './billing.js';
@@ -171,7 +171,8 @@ function route() {
       markUsed(`ex:${tpl.id}`);
       // (a lesson's step played from a session row or a link: the lesson is used too; QA round 20)
       if (lesson) markUsed(`lesson:${lesson.lesson.id}`);
-      active = renderExercise(app, tpl, { params, routine, lesson, onBack: back });
+      // (a Pro exercise opens for a free player as a preview: user, 2026-10-29)
+      active = renderExercise(app, tpl, { params, routine, lesson, onBack: back, preview: exerciseLock(tpl, ls) });
     } catch (err) {
       console.error(err);
       logError(err);
