@@ -10,9 +10,32 @@ const SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const DECIM = 4;       // 48 kHz -> 12 kHz analysis rate
 const GATE = 0.004;    // RMS below this = silence
 
+// The tunings the tuner offers (user, 2026-10-29: "tune not only on standard, in any key selectable from a list, but
+// also to drops: I play drop A on a 5-string or F♯ standard on a 6-string"): the bass's standard tuning moved to any
+// key, from 5 semitones up (A standard: a 4-string's A D G C, the tenor bass) to 6 down, each also with its lowest
+// string dropped a whole step. The neck and the exercises stay in standard tuning.
+export const TUNER_SHIFTS = [5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6];
+const NAMES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
+const SHARPS = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+const FLATS = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
+/**
+ * A tuning on a bass of `strings` strings: { midi, names, name }. The strings are spelled as its lowest one is named
+ * (E♭ standard E♭ A♭ D♭ G♭, C♯ standard C♯ F♯ B E, F standard F B♭ E♭ A♭); its name is "Standard", "D standard",
+ * "Drop A".
+ */
+export function tunerTuning(strings, shift = 0, drop = false) {
+  const base = TUNINGS[strings] || TUNINGS[4];
+  const midi = base.midi.map((m) => m + shift);
+  if (drop) midi[0] -= 2;
+  const low = NAMES[T.mod(midi[0], 12)];
+  const set = low.includes('♯') ? SHARPS : FLATS;
+  const names = midi.map((m) => set[T.mod(m, 12)]);
+  return { midi, names, name: drop ? `Drop ${names[0]}` : shift ? `${names[0]} standard` : 'Standard' };
+}
+
 export function tunerScreen(main) {
   const S = settings;
-  const tuning = TUNINGS[S.strings] || TUNINGS[4];
+  let tuning = tunerTuning(S.strings, S.tunerShift, S.tunerDrop);
   let target = null;   // selected string midi, or null for auto
   let mic = null, analyser = null, raf = 0, frame = 0;
   let opening = false, disposed = false; // the mic request can still be pending when the screen is left
@@ -39,15 +62,31 @@ export function tunerScreen(main) {
           target = m;
           drawStrings();
         },
-      }, h('b', {}, nm(m)), h('small', {}, `${midiFreq(m, S.a4).toFixed(1)} Hz`))),
+      }, h('b', {}, nm(m, tuning.names[i])), h('small', {}, `${midiFreq(m, S.a4).toFixed(1)} Hz`))),
     );
   };
-  const nm = (m) => T.noteName(T.N(SHARP[T.mod(m, 12)]), S.notation) + (Math.floor(m / 12) - 1);
+  const nm = (m, name = SHARP[T.mod(m, 12)]) => T.noteName(T.N(name), S.notation) + (Math.floor(m / 12) - 1);
+  // the tuning: standard in any key, or a drop, from a list (the bass's own number of strings)
+  const say = (n) => T.noteName(T.N(n), S.notation);
+  const tuningSel = h('select', { class: 'mini-sel tn-tuning', 'aria-label': 'Tuning' },
+    [[false, 'Standard'], [true, 'Drop']].map(([drop, group]) => h('optgroup', { label: group }, TUNER_SHIFTS.map((shift) => {
+      const t = tunerTuning(S.strings, shift, drop);
+      const label = drop ? `Drop ${say(t.names[0])}` : shift ? `${say(t.names[0])} standard` : 'Standard';
+      return h('option', { value: `${shift}:${drop ? 1 : 0}`, selected: shift === S.tunerShift && drop === S.tunerDrop }, `${label} · ${t.names.map(say).join(' ')}`);
+    }))));
+  tuningSel.addEventListener('change', () => {
+    const [shift, drop] = tuningSel.value.split(':').map(Number);
+    saveSettings({ tunerShift: shift, tunerDrop: drop === 1 });
+    tuning = tunerTuning(S.strings, shift, drop === 1);
+    target = null;
+    drawStrings();
+  });
 
   main.replaceChildren(h('div', { class: 'tuner' },
     h('div', { class: 'page-head' },
       h('h1', {}, 'Tuner'),
-      infoBtn(['🎤 Uses the microphone', 'Pluck one string at a time, near the neck, and let it ring', 'Tap a string to tune it even when it is far off; tap it again to hear its note'], 'About the tuner'),
+      infoBtn(['🎤 Uses the microphone', 'Pluck one string at a time, near the neck, and let it ring', 'Tap a string to tune it even when it is far off; tap it again to hear its note', '🎚 Tuning: standard in any key, or a drop (the lowest string a whole step down); the lessons and the neck stay in standard tuning'], 'About the tuner'),
+      tuningSel,
       h('div', { class: 'grow' }),
       h('div', { class: 'row tn-ref' }, h('span', { class: 'muted small' }, 'A4 ='),
         h('button', { class: 'lbl-btn', onClick: () => setA4(S.a4 - 1) }, '−'), a4El,
@@ -145,7 +184,8 @@ export function tunerScreen(main) {
   let goal = 0;
   function show(f) {
     const ref = target != null ? { midi: target, cents: 1200 * Math.log2(f / midiFreq(target, S.a4)) } : freqToNote(f, S.a4);
-    const name = T.noteName(T.N(SHARP[T.mod(ref.midi, 12)]), S.notation);
+    // (a chosen string is named as its tuning spells it: E♭, not D♯)
+    const name = T.noteName(T.N(target != null && tuning.midi.includes(ref.midi) ? tuning.names[tuning.midi.indexOf(ref.midi)] : SHARP[T.mod(ref.midi, 12)]), S.notation);
     noteEl.textContent = name;
     octEl.textContent = Math.floor(ref.midi / 12) - 1;
     hzEl.textContent = `${f.toFixed(1)} Hz · ${ref.cents >= 0 ? '+' : ''}${ref.cents.toFixed(0)} cents`;

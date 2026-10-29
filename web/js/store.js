@@ -11,6 +11,8 @@ export const DEFAULT_SETTINGS = {
   reveal: 'gradual',       // 'gradual' | 'full' | 'quiz'
   lefty: false,
   a4: 440,                 // tuner reference
+  tunerShift: 0,           // the tuner's tuning: standard moved this many semitones (ui/tuner.js TUNER_SHIFTS)
+  tunerDrop: false,        // … with its lowest string dropped a whole step
   countIn: true,
   metro: true,
   clickSubs: false,
@@ -39,6 +41,7 @@ const SETTING_RULES = {
   reveal: oneOf(['gradual', 'full', 'quiz']),
   lefty: isBool, countIn: isBool, metro: isBool, clickSubs: isBool, tapSounds: isBool,
   a4: numIn(425, 455),
+  tunerShift: (v) => Number.isInteger(v) && v >= -6 && v <= 5, tunerDrop: isBool,
   bassVol: numIn(0, 2), clickVol: numIn(0, 1.5),
   maxFret: oneOf([17, 20, 21, 24]),
   level: oneOf([1, 2, 3, 4, 5, 6]),
