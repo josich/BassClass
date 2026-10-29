@@ -330,7 +330,7 @@ const sparse = ex({
   title: 'Gap click: keep time when the metronome disappears',
   summary: 'The click plays one bar, then goes silent for one or more bars. Land back on it.',
   about: 'Real time-keeping means playing steadily with no reference. Here the metronome clicks only on beat 1 every few bars. Keep playing 8ths through the silence and check whether you land exactly on the next click. When you can do it at "every 4 bars", your time is solid.',
-  tips: ['Record yourself: are you rushing in the gaps?', 'Victor Wooten\'s "disappearing drummer" game works the same way.'],
+  tips: ['Record yourself: are you rushing in the gaps?', 'With a friend: one of you claps the beat and drops out for a bar or two while the other keeps going.'],
   source: 'Keeping time through gaps in the click',
   params: { note: noteP, every: sel('Click', [['2', 'Beat 1, every 2 bars'], ['4', 'Beat 1, every 4 bars']]) },
   bpm: 80, sub: 2, label: 'note',

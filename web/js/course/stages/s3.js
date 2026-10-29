@@ -354,7 +354,7 @@ export default {
           id: 'one-string', title: 'Scales along one string',
           idea: 'Two frets for a whole step, one for a half step.',
           concept: [
-            'Played along one string, a scale shows its structure plainly: two frets for a whole step, one for a half step. Gary Willis and Victor Wooten recommend it for understanding the neck horizontally and for practising shifts.',
+            'Played along one string, a scale shows its structure plainly: two frets for a whole step, one for a half step. Bass teachers often use it to show the neck horizontally and to practise shifts.',
             'Say the step sizes as you go: W W H W W W H.',
           ],
           steps: [

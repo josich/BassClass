@@ -157,7 +157,7 @@ const oneString = ex({
   id: 'sc-one-string', module: M, level: 3,
   title: 'Scales on one string (linear)',
   summary: 'The whole scale along a single string: see the whole and half steps.',
-  about: 'Played along one string, a scale shows its structure clearly: two frets for a whole step, one for a half step. Gary Willis and Victor Wooten recommend this to understand the neck horizontally and to practise shifting.',
+  about: 'Played along one string, a scale shows its structure clearly: two frets for a whole step, one for a half step. Bass teachers often use it to show the neck horizontally and to practise shifting.',
   tips: ['Use fingers 1-2-4 or 1-3-4 per shift, like the double-bass Simandl method.', 'Say the step size: W W H W W W H.'],
   source: 'Scales along one string: linear playing',
   params: { type: typeP(['ionian', 'aeolian', 'dorian', 'mixolydian', 'majorPent', 'minorPent', 'harmonicMinor', 'melodicMinor']), key: keyP(T.SCALES.ionian.iv, { cycles: false }), string: oneStringP('A') },
