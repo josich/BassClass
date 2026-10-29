@@ -68,7 +68,7 @@ function proDetails() {
   out.push(head(`🎓 Course Stages ${FREE_LEVELS + 1}–6: ${stages.reduce((a, s) => a + lessonsOf(s).length, 0)} more lessons${optional ? ` (and ${optional} optional ones)` : ''} in ${units.length} units, with their checkpoints, stage tests and reviews`));
   for (const s of stages) {
     out.push(`Stage ${s.level} · ${s.title}: ${lessonsOf(s).length} lessons`);
-    for (const u of units.filter((x) => x.stage === s)) out.push(sub(`${u.n}. ${u.title}`));
+    for (const u of units.filter((x) => x.stage === s)) out.push(sub(u.title));
   }
   // the Library
   const pro = EXERCISES.filter((t) => t.level > FREE_LEVELS);

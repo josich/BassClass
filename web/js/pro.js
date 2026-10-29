@@ -109,9 +109,13 @@ export function exerciseLock(t, ls = '') {
     if (L && L.steps[Number(n)]?.ex === t.id) return lessonLock(L);
   }
   const m = marked(t);
-  if (m) return m === 'pro' ? `${t.title} is part of BassClass Pro` : null;
-  return t.level > FREE_LEVELS ? levelWhy(t.level) : null;
+  const why = m ? (m === 'pro' ? `${t.title} is part of BassClass Pro` : null) : t.level > FREE_LEVELS ? levelWhy(t.level) : null;
+  // (one a free lesson plays says where: QA round 21, a locked exercise just played inside that lesson looked a bug)
+  const L = why && freeLessonOf(t);
+  return L ? `${why}: play this one free in Lesson ${L.num}` : why;
 }
+/** The first lesson open to a free player that plays this exercise. */
+const freeLessonOf = (t) => [...lessonById.values()].find((L) => L.kind === 'lesson' && L.steps.some((s) => s.ex === t.id) && !lessonLock(L)) || null;
 /** Why a lesson (checkpoint, test) is closed, or null. */
 export function lessonLock(L) {
   if (isPro() || !L) return null;
@@ -152,25 +156,33 @@ export function soundLock(v) {
   return `The ${{ piano: 'Piano', organ: 'Organ', guitar: 'Guitar' }[v] || v} sound is part of BassClass Pro`;
 }
 export const fillsLock = () => (isPro() ? null : 'Fills are part of BassClass Pro');
-/** The drone's chords (practice/drones.js): the open drone, the triads and the five 7th chords free, `free: true`. */
+/** The drone's chords (practice/drones.js): its root and 5th or octave, the triads, the five 7th chords and their
+ * spread and shell voicings free, `free: true`. */
 export function droneLock(key) {
   if (isPro() || !DRONES[key] || DRONES[key].free) return null;
-  return `The ${droneTitle(key)} drone is part of BassClass Pro: the open drone, the triads and the five basic 7th chords are free`;
+  return `The ${droneTitle(key)} drone is part of BassClass Pro: its root and 5th or octave, the triads, the five basic 7th chords and their spread and shell voicings are free`;
 }
 
-/** Why an address in the app is closed (an exercise, a lesson), or null. */
-export function hashLock(hash) {
-  if (isPro()) return null;
+/** What an address in the app opens: { t, ls } an exercise (by its id, or by its number, as the router opens it:
+ * QA round 19), { lesson } a lesson, or null. */
+function target(hash) {
   const [path, query] = String(hash || '').replace(/^#/, '').split('?');
   const parts = path.split('/').filter(Boolean);
   if (parts[0] === 'ex') {
-    // (by its id, or by its number, as the router opens it: QA round 19)
     const t = byId.get(parts[1]) || (/^\d+$/.test(parts[1] || '') ? byNumber.get(Number(parts[1])) : null);
-    return t ? exerciseLock(t, new URLSearchParams(query || '').get('ls') || '') : null;
+    return t ? { t, ls: new URLSearchParams(query || '').get('ls') || '' } : null;
   }
-  if (parts[0] === 'course' && parts[1] && parts[1] !== 'placement') return lessonLock(lessonById.get(parts[1]));
-  return null;
+  const lesson = parts[0] === 'course' && parts[1] && parts[1] !== 'placement' ? lessonById.get(parts[1]) : null;
+  return lesson ? { lesson } : null;
 }
+/** Why an address in the app is closed (an exercise, a lesson), or null. */
+export function hashLock(hash) {
+  if (isPro()) return null;
+  const x = target(hash);
+  return !x ? null : x.t ? exerciseLock(x.t, x.ls) : lessonLock(x.lesson);
+}
+/** The "New" id of what an address opens: a Pro item tapped counts as seen, its chip goes (QA round 20). */
+export const newsIdOf = (hash) => { const x = target(hash); return x?.t ? `ex:${x.t.id}` : x?.lesson ? `lesson:${x.lesson.id}` : null; };
 
 /** The room's stored choices a free player cannot use any more go back to free ones (the gates came on). */
 export function freeRoom(room) {

@@ -24,7 +24,8 @@ export const COMPLETE = STAGES[STAGES.length - 1].level >= 6;
 // ---------------------------------------------------------------- flattened view
 // Every lesson (checkpoints included) in course order. A lesson's number is its stage and its own number in that
 // stage ("3.15"), fixed in numbers.js and kept for good (user, 2026-10-28); one not given a number yet gets the next
-// free one of its stage for now (the self-test asks for it). Units have names; a checkpoint is "✓", a test "★".
+// free one of its stage for now (the self-test asks for it). Units have names; a checkpoint is "◆" (a ✓ read as done
+// beside its status: QA round 20), a test "★".
 export const LESSONS = [];
 export const UNITS = [];
 // (each stage's numbers in use, so a lesson without one gets the next free number of its stage)
@@ -45,7 +46,7 @@ function lessonNumber(stage, id) {
     for (const unit of stage.units) {
       u++;
       const list = unit.lessons.map((l) => ({ ...l, kind: 'lesson', unit, stage, num: `${stage.level}.${lessonNumber(stage, l.id)}` }));
-      if (unit.check) list.push({ ...unit.check, id: `${unit.id}-check`, kind: 'check', title: `Checkpoint: ${unit.title}`, unit, stage, num: '✓', idea: unit.goal });
+      if (unit.check) list.push({ ...unit.check, id: `${unit.id}-check`, kind: 'check', title: `Checkpoint: ${unit.title}`, unit, stage, num: '◆', idea: unit.goal });
       UNITS.push({ ...unit, n: u, stage, list });
       LESSONS.push(...list);
       stageLessons.push(...list);

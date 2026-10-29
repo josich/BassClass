@@ -173,6 +173,30 @@ function lickItems(lick, k, S, ctx, swing, { keyPcs, blue }) {
   });
 }
 
+// the minor pentatonic box, two notes a string from its root: the string of each of its notes above the root
+const BOX_STRING = { 0: 0, 3: 0, 5: 1, 7: 1, 10: 2, 12: 2, 15: 3, 17: 3 };
+/**
+ * A lick that moves the one box to other places (`boxes`: [from, to] in beats, each place from its first note, the
+ * box's root) is fingered as the box in each place, its root on the string that puts it nearest the 7th fret, with
+ * two strings above it (QA round 20: "same fingering in all three places" was played up one string).
+ */
+function boxRegions(seg, boxes, ctx) {
+  let t = 0;
+  const timed = seg.map((x) => { const at = t; t += x.dur; return { x, at }; });
+  for (const [from, to] of boxes) {
+    const span = timed.filter(({ x, at }) => !x.rest && at >= from - 1e-9 && at < to - 1e-9);
+    if (!span.length) continue;
+    const root = span[0].x.midi;
+    const at = ctx.tuning.map((o, s) => ({ s, f: root - o })).filter(({ s, f }) => s + 2 < ctx.tuning.length && f >= 1 && f + 3 <= ctx.maxFret);
+    if (!at.length) continue;
+    const { s, f } = at.reduce((a, c) => (Math.abs(c.f - 7) < Math.abs(a.f - 7) ? c : a));
+    for (const { x } of span) {
+      const k = BOX_STRING[x.midi - root];
+      if (k != null && s + k < ctx.tuning.length) x.region = { lo: f - 1, hi: f + 4, s: s + k, box: true };
+    }
+  }
+}
+
 /** True when a lick has 8th notes on the "&" (otherwise swing changes nothing). */
 const canSwing = (lick) => lick.feel !== 'straight' && parseLick(lick.notes).notes.some((x) => !x.rest && Math.abs(x.t - Math.floor(x.t) - 0.5) < 1e-6);
 
@@ -180,10 +204,10 @@ const feelP = sel('Feel', [['swing', 'Swing 8ths'], ['straight', 'Straight 8ths'
 
 /**
  * An exercise of written phrases (`licks`, each over its own chords). Other modules use it too (pentatonics.js):
- * `module` (licks by default) and `defKey` (the key it opens in, C by default).
+ * `module` (licks by default), `defKey` (the key it opens in, C by default) and `pick` (its option's name, "Lick").
  */
 export function lickTemplate(def) {
-  const { licks, minor = false, keys = minor ? 'minor' : 'major', blue = false, defKey = '0', ...meta } = def;
+  const { licks, minor = false, keys = minor ? 'minor' : 'major', blue = false, defKey = '0', pick = 'Lick', ...meta } = def;
   const key = keyP(minor ? T.SCALES.aeolian.iv : T.SCALES.ionian.iv, { suffix: minor ? 'm' : '', def: defKey });
   // the key chips name minor keys (C♯m, not D♭) when the chosen lick is over a minor chord
   if (licks.some((l) => l.minor != null)) key.minorWhen = (p) => !!(licks[Number(p.lick)] || licks[0]).minor;
@@ -192,7 +216,7 @@ export function lickTemplate(def) {
     module: meta.module || M,
     label: 'degree',
     params: {
-      lick: sel('Lick', licks.map((l, i) => [String(i), l.name])),
+      lick: sel(pick, licks.map((l, i) => [String(i), l.name])),
       key,
       feel: feelP,
     },
@@ -215,6 +239,7 @@ export function lickTemplate(def) {
           if (awkward(last.n)) last.n = plain(last.n);
         }
       });
+      if (lick.boxes) segs.forEach((seg) => boxRegions(seg, lick.boxes, ctx));
       const items = segs.flat();
       // the phrase keeps its shape: it is moved as a whole, never note by note
       emitMixed(b, items, { center: 6, open: 'avoid', fold: false });

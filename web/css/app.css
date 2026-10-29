@@ -622,7 +622,9 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .can-row input { width: 20px; height: 20px; accent-color: var(--accent); flex: none; margin: 0; }
 .les-done { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: var(--radius); background: rgba(70, 201, 162, 0.1); margin-bottom: 8px; }
 .les-done b { color: var(--good); }
-.les-next { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.les-next { display: flex; align-items: center; gap: 6px; max-width: 100%; }
+.les-next-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.les-next .chip { flex: none; }
 
 /* ---------------------------------------------------------------- placement check */
 .place-list { display: flex; flex-direction: column; gap: 6px; max-width: 900px; }
@@ -759,7 +761,7 @@ details.les-more > ul { margin: 0 0 10px; }
 .pick-text small { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pick-change { margin-left: auto; flex: none; display: flex; align-items: center; gap: 2px; color: var(--accent); font-weight: 600; font-size: 13px; }
 .pick-change svg { width: 16px; height: 16px; }
-.harm-row .pick-now { flex: 1 1 220px; width: auto; min-height: 44px; }
+.harm-row .pick-now { flex: 1 1 220px; width: auto; min-width: 0; max-width: 100%; min-height: 44px; }
 .drums.off .pick-text, .drums.off .range-line { opacity: 0.6; }
 /* the shared picker: over the screen, a search, group chips, cards */
 .picker-backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(5, 7, 20, 0.62); display: flex; align-items: flex-start; justify-content: center; padding: 10px; }
@@ -823,7 +825,7 @@ input[type="range"] { touch-action: pan-y; }
 .harm-bar .side-scroll { flex: 1; }
 .harm-bar > .seg { flex: none; }
 .harm-bar > .seg button { min-height: 32px; padding: 4px 9px; font-size: 13px; }
-.drone-tag { font-weight: 700; font-size: 14px; color: var(--text); }
+.drone-tag { font-weight: 700; font-size: 14px; color: var(--text); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chord-chip { font: inherit; color: inherit; cursor: pointer; flex: none; position: relative; overflow: hidden; min-width: 64px; min-height: 36px; text-align: center; padding: 5px 10px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--line); font-weight: 700; font-size: 14px; transition: background 0.08s; }
 /* the chord sounding fills with the pulse, left to right, over its length (--fill: 0..1, set as it plays) */
 .chord-chip::before { content: ''; position: absolute; inset: 0; background: var(--accent-2); transform: scaleX(var(--fill, 0)); transform-origin: left; }

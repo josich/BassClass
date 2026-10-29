@@ -11,8 +11,8 @@ addEventListener('popstate', () => { if (history.state?.picker && !opened) histo
 
 /**
  * Opens a picker. `o`: { title, groups: [{ key, name }], items: [{ key, name, sub, group, lock, fresh }], current,
- * open (the group shown first; else the current item's), favs, recent (item keys), onPick(key),
- * onFav(key, on), onGroup(key) (a group opened), host (where it goes; document.body by default) }.
+ * open (the group shown first; else the current item's), favs, recent (item keys), onPick(key), onLocked(why,
+ * key, group browsed) (a Pro card tapped), onFav(key, on), onGroup(key) (a group opened), host (where it goes; document.body by default) }.
  * Returns close(how): 'route' closes it without going back in the history (the screen is leaving).
  */
 export function openPicker(o) {
@@ -46,9 +46,10 @@ export function openPicker(o) {
         if (fresh()) return;
         if (it.lock) {
           // (the Pro sheet opens once the picker's own history entry is gone, or Back would close it at once)
-          const why = it.lock;
+          // (with the group browsed, so a picker opened again after the sheet comes back to it: QA round 21)
+          const why = it.lock, at = open;
           let done = false;
-          const show = () => { if (!done) { done = true; o.onLocked?.(why, it.key); } };
+          const show = () => { if (!done) { done = true; o.onLocked?.(why, it.key, at); } };
           if (history.state?.picker) { addEventListener('popstate', () => setTimeout(show, 0), { once: true }); setTimeout(show, 400); }
           close();
           if (!history.state?.picker) show();

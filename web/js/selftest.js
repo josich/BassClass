@@ -20,7 +20,7 @@ import { GENRES } from './practice/styles.js';
 import { HARMONY_PROGS, PROG_KEYS } from './practice/harmony.js';
 import { PAD_SOUNDS } from './audio.js';
 import { FREE_SOUNDS, FREE_LEVELS, FREE_TASTE, FREE_DRUMS, FREE_STYLE, PRO_SOUND_NOTES, isPro, gatesOn, exerciseLock, lessonLock, styleLock, progLock, droneLock } from './pro.js';
-import { DRONES, DRONE_GROUPS, droneMidis, droneName, droneFormula, droneIvs } from './practice/drones.js';
+import { DRONES, DRONE_GROUPS, droneMidis, droneName, droneFormula, droneIvs, droneNeeds } from './practice/drones.js';
 
 function combos(params, limit = 400, strings = 4) {
   const keys = Object.keys(params);
@@ -149,6 +149,13 @@ function checkDrones(problems) {
       const m = droneMidis(pc, k);
       if (!m.length || m.some((x, i) => !Number.isInteger(x) || x < 52 || x > 84 || (i && x <= m[i - 1]))) problems.push(`drone ${k} on ${pc}: notes ${m.join(' ')}`);
       if (T.mod(m[0], 12) !== pc) problems.push(`drone ${k} on ${pc}: the lowest note is not the root`);
+      // (every tone its name calls for sounds: QA round 21, the m13 drone had no 13th)
+      const heard = new Set(m.map((x) => T.mod(x, 12)));
+      const missing = droneNeeds(k).filter((iv) => !heard.has(T.mod(pc + T.semis(iv), 12)));
+      if (missing.length) problems.push(`drone ${k} on ${pc}: ${missing.join(' ')} not heard`);
+      // (one key names every card alike: flats on the black keys, a minor-type chord as its minor key)
+      const name = droneName(pc, k, 'letters');
+      if (/^[A-G](♭|♯)/.test(name) && /^[A-G]♯/.test(name) !== /^[A-G]♯/.test(droneName(pc, DRONES[k].type?.startsWith('min') || ['m7b5', 'dim', 'dim7', 'mMaj7'].includes(DRONES[k].type) || ['min', 'min7'].includes(DRONES[k].like) ? 'min' : 'maj', 'letters'))) problems.push(`drone ${k} on ${pc}: named ${name}, unlike its key's other cards`);
     }
     if (!droneName(0, k, 'letters') || !droneFormula(k) || !droneIvs(k).length) problems.push(`drone ${k}: no name or formula`);
   }

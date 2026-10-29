@@ -272,11 +272,11 @@ export const PROGS = {
   'I-IV-V-IV': { name: 'I – IV – V – IV (rock\'n\'roll, montuno)', pop: true, chords: [['1', 'maj7'], ['4', 'maj7'], ['5', 'dom7'], ['4', 'maj7']] },
   'neo-soul': { name: 'Neo-soul (IVmaj7 – III7 – vi7 – v7 – I7)', chords: [['4', 'maj7'], ['3', 'dom7'], ['6', 'min7'], ['5', 'min7', 2], ['1', 'dom7', 2]] },
   'minor-bossa': {
-    name: 'Minor bossa (16 bars)', minor: true, chords: [['1', 'min7', 8], ['4', 'min7', 8], ['2', 'm7b5'], ['5', 'dom7b9'], ['1', 'min7', 8],
+    name: 'Minor bossa (16 bars, Blue Bossa changes)', minor: true, chords: [['1', 'min7', 8], ['4', 'min7', 8], ['2', 'm7b5'], ['5', 'dom7b9'], ['1', 'min7', 8],
       ['b3', 'min7'], ['b6', 'dom7'], ['b2', 'maj7', 8], ['2', 'm7b5'], ['5', 'dom7b9'], ['1', 'min7'], ['2', 'm7b5', 2], ['5', 'dom7b9', 2]],
   },
   // (32 bars: kept out of the Library's progression drills, as the vamps are; `modal`: its chords are vamps, Dorian)
-  'modal-form': { name: 'Modal form (Dorian 16 bars, up a half step 8, back 8)', minor: true, modal: true, chords: [['1', 'min7', 64], ['b2', 'min7', 32], ['1', 'min7', 32]] },
+  'modal-form': { name: 'Modal form, AABA (So What changes)', minor: true, modal: true, chords: [['1', 'min7', 64], ['b2', 'min7', 32], ['1', 'min7', 32]] },
   'vamp-phrygian': { name: 'Phrygian vamp (i – ♭II)', minor: true, pop: true, chords: [['1', 'min7'], ['b2', 'maj7']] },
   'vamp-lydian': { name: 'Lydian vamp (I – II)', pop: true, chords: [['1', 'maj7'], ['2', 'maj7']] },
   'vamp-i-iv': { name: 'Minor vamp (i – iv)', minor: true, chords: [['1', 'min7'], ['4', 'min7']] },
@@ -319,7 +319,7 @@ export function progChords(progKey, tonicPc, { triads, S = {} } = {}) {
   const asTriads = triads ?? !!prog.pop;
   // each chord's root pitch class, to know where it leads
   const pcs = prog.chords.map(([where]) => (typeof where === 'number' ? T.mod(tonicPc + where, 12) : T.pc(T.up(tonic, where))));
-  return prog.chords.map(([where, type0, beats = 4, keyOff], i) => {
+  const out = prog.chords.map(([where, type0, beats = 4, keyOff], i) => {
     const type = asTriads ? toTriad(type0) : type0;
     const ivs = T.CHORDS[type].iv;
     let root;
@@ -340,10 +340,26 @@ export function progChords(progKey, tonicPc, { triads, S = {} } = {}) {
     // (a major chord a 5th above the next keeps the key's spelling: its 3rd is the next chord's leading tone,
     // D♯7 → G♯m in G♯ minor with F𝄪, as the key writes it; QA round 17, user's choice)
     const leads = ivs.includes('3') && prog.chords.length > 1 && T.mod(T.pc(root) - pcs[(i + 1) % pcs.length], 12) === 7;
+    const keyed = root;
     if ((T.awkward(root) && chromatic) || (!leads && core.some((iv) => Math.abs(T.up(root, iv).a) > 1))) root = T.bestRoot(T.pc(root), ivs);
+    // (a chromatic minor chord on a black key takes its minor key's name, as lead sheets write it: the modal form's
+    // ♭ii in C minor is C♯m7, not D♭m7 with F♭ and C♭; QA round 20)
+    else if (chromatic && typeof where !== 'number' && ivs.includes('b3') && root.a < 0) root = T.bestRoot(T.pc(root), T.SCALES.aeolian.iv);
     const key = keyOff != null ? T.mod(tonicPc + keyOff, 12) : tonicPc;
-    return { root, type, beats, ivs, sym: chordName(root, type, S), key, minorKey: !!prog.minor && keyOff == null, vamp: prog.chords.length === 1 || !!prog.modal };
+    return { root, keyed, where, type, beats, ivs, key, minorKey: !!prog.minor && keyOff == null, vamp: prog.chords.length === 1 || !!prog.modal };
   });
+  // a dominant leading into a chord these rules respelled follows it, and so does its ii: F♯m7 – B7 – Emaj7 in E♭
+  // minor, not F♯m7 – C♭7 – Emaj7; C♯m7 – F♯7 – Bmaj7 in B♭ minor (QA round 20); never the tonic, nor a cycle's
+  // chords (they keep the cycle's names)
+  const moved = out.map((c) => c.root.l !== c.keyed.l);
+  for (let i = out.length - 1; i >= 0; i--) {
+    const c = out[i], j = (i + 1) % out.length, nx = out[j];
+    if (j === i || !moved[j] || typeof c.where === 'number' || c.where === '1' || moved[i]) continue;
+    const fifthAbove = T.mod(T.pc(c.root) - T.pc(nx.root), 12) === 7;
+    const isDom = c.ivs.includes('3'), isII = c.ivs.includes('b3') && nx.ivs.includes('3') && nx.ivs.includes('b7');
+    if (fifthAbove && (isDom || isII)) { c.root = T.up(nx.root, '5'); moved[i] = true; }
+  }
+  return out.map(({ keyed, where, ...c }) => ({ ...c, sym: chordName(c.root, c.type, S) }));
 }
 
 /** Pick bass-register root midis: each nearest to the previous within [lo, hi]. */
@@ -680,7 +696,8 @@ export function emitMixed(b, items, popts = {}) {
   const moved = regions ? [...regions] : notes.map(() => null);
   let again = false;
   const seen = new Map();
-  if (!byShape) midis.forEach((m, j) => { const k = `${chordOf[j]}|${m}`; if (!seen.has(k)) seen.set(k, []); seen.get(k).push(j); });
+  // (a note fingered as part of a box keeps the box's place: licks.js boxRegions)
+  if (!byShape) midis.forEach((m, j) => { if (notes[j].region?.box) return; const k = `${chordOf[j]}|${m}`; if (!seen.has(k)) seen.set(k, []); seen.get(k).push(j); });
   // (every repeated pitch is held where it is, so placing the others again cannot split it)
   for (const js of seen.values()) {
     if (js.length < 2) continue;

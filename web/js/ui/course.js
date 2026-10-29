@@ -25,9 +25,15 @@ const back = (fallback) => (canGoBack() ? goBack() : go(fallback));
 const lessonHref = (l) => `#/course/${l.id}`;
 /** Opens one step of a lesson (`extra`: { demo: 1 } for the demo). */
 export const stepHref = (lesson, i, extra = {}) => exHref(lesson.steps[i].ex, { ...lesson.steps[i].p, ls: `${lesson.id}.${i}`, ...extra });
-const where = (l) => [`Stage ${STAGES.indexOf(l.stage) + 1} · ${l.stage.title}`, l.unit ? `Unit ${UNITS.find((u) => u.id === l.unit.id).n} · ${l.unit.title}` : null].filter(Boolean).join(' · ');
+// (units are named, not numbered: QA rounds 20–21)
+const where = (l) => [`Stage ${STAGES.indexOf(l.stage) + 1} · ${l.stage.title}`, l.unit?.title].filter(Boolean).join(' · ');
 const lessonName = (l) => (l.kind === 'lesson' ? `Lesson ${l.num} · ${l.title}` : l.title);
 const STATUS_ICON = { done: '✓', known: '✓', started: '◐', new: '○' };
+/** A Pro stage's lessons free to try, counted on its header: "2 free" (QA round 21). */
+const tasteChip = (list) => {
+  const n = levelLocked(list[0]?.stage.level) ? list.filter((l) => !lessonLock(l)).length : 0;
+  return n ? h('span', { class: 'chip try', title: `${n} lessons of this stage are free to try` }, `${n} free`) : null;
+};
 /** "Stages 1 and 2", "Stages 1–3"… */
 const stagesName = () => (STAGES.length === 2 ? 'Stages 1 and 2' : `Stages 1–${STAGES.length}`);
 
@@ -52,11 +58,11 @@ const demoStep = (l) => l.steps.findIndex((s) => s.goal);
 // as it was planned until it is marked as practised.
 const isEar = (id) => ['ear', 'reading'].includes(byId.get(id).module) || id === 'iv-ear-quiz';
 const practised = (l) => ['done', 'known'].includes(status(l));
-/** A free player whose next lesson is Pro: the next lesson free to try in its stage (pro.js FREE_TASTE), or null
- * (a later stage's are on the map). */
+/** A free player whose next lesson is Pro: the next lesson free to try (pro.js FREE_TASTE), in its stage or a later
+ * one (QA round 21: after Stage 4's two, Stage 5's), or null. */
 function tryLesson(cont) {
   if (!cont || !lessonLock(cont)) return null;
-  return LESSONS.slice(LESSONS.indexOf(cont)).find((l) => l.stage === cont.stage && l.kind === 'lesson' && !l.optional && !practised(l) && !lessonLock(l)) || null;
+  return LESSONS.slice(LESSONS.indexOf(cont)).find((l) => l.kind === 'lesson' && !l.optional && !practised(l) && !lessonLock(l)) || null;
 }
 const WARM = ['technique', 'fretboard', 'rhythm'];
 export const FOCUS = [
@@ -200,7 +206,8 @@ function buildSession(minutes, cur, history) {
       if (lessonLock(l)) break;
       lessons++;
       const slot = l.kind === 'lesson' ? `Lesson ${l.num}` : l.kind === 'check' ? 'Checkpoint' : 'Stage test';
-      if (l.kind === 'lesson' && !started(l) && demoStep(l) >= 0) items.push(stepItem(l, demoStep(l), slot, { demo: 1 }));
+      // (a demo of an exercise the session already plays for you once is not played again: QA round 20)
+      if (l.kind === 'lesson' && !started(l) && demoStep(l) >= 0 && !items.some((x) => x.demo && x.id === l.steps[demoStep(l)].ex)) items.push(stepItem(l, demoStep(l), slot, { demo: 1 }));
       l.steps.forEach((s, i) => { if (count() < n - focusN && !stepClean(l, i)) items.push(stepItem(l, i, slot)); });
     }
   }
@@ -319,6 +326,8 @@ export function sessionBlock({ onLength } = {}) {
     // (the rows the player plays are numbered; a "Hear it" demo, only listened to, shows 🎧: user, 2026-10-28)
     const nums = [];
     all.reduce((k, it, i) => { nums[i] = it.demo ? null : k + 1; return it.demo ? k : k + 1; }, 0);
+    // (rows of the same exercise carry what tells them apart, so no two read alike: QA round 20)
+    const vs = variants(all.map((it) => ({ ex: it.demo ? `demo:${it.id}` : it.id, p: it.params, sub: it.ls ? lessonOf(it)?.steps[Number(it.ls.split('.')[1])]?.sub : null })));
     const row = (it, i) => {
       const done = isPlayed(it);
       // (a demo is named after the exercise it plays, not its lesson: user, 2026-10-28)
@@ -326,7 +335,7 @@ export function sessionBlock({ onLength } = {}) {
       return h('div', { class: `item${done ? ' played' : ''}${it.demo ? ' demo' : ''}`, title: it.demo ? 'Listen: the app plays this lesson\'s example once' : null, onClick: () => start(i) },
         h('div', { class: 'n', 'aria-label': it.demo ? 'Listen' : null }, done ? '✓' : it.demo ? '🎧' : nums[i]),
         h('div', { class: 't' }, h('b', {}, title)),
-        stepTag(it) ? h('span', { class: 'tag' }, stepTag(it)) : null);
+        stepTag(it) || vs[i] ? h('span', { class: 'tag' }, [stepTag(it), vs[i]].filter(Boolean).join(' · ')) : null);
     };
     const more = () => {
       const taken = new Set(all.map((x) => x.id));
@@ -420,7 +429,7 @@ export function courseScreen(main) {
       const done = list.filter((l) => status(l) === 'done').length;
       const known = list.filter((l) => status(l) === 'known').length;
       const fold = h('details', { class: 'lv-fold map-fold', id: `stage-${si + 1}`, open: open.has(si + 1) },
-        h('summary', { class: 'section stage-head' }, h('span', { class: `chip lv lv${stage.level}` }, `Stage ${si + 1}`), h('h2', {}, stage.title), proChip(levelLocked(stage.level) ? `Stage ${stage.level} is part of BassClass Pro` : null), newChip(newCount(list.map((l) => `lesson:${l.id}`)) > 0, newCount(list.map((l) => `lesson:${l.id}`))), infoBtn(listLines(stage.desc), `About Stage ${si + 1}`), h('span', { class: 'muted small' }, `${done}/${list.length} lessons${known ? ` (${known} known)` : ''}`)),
+        h('summary', { class: 'section stage-head' }, h('span', { class: `chip lv lv${stage.level}` }, `Stage ${si + 1}`), h('h2', {}, stage.title), proChip(levelLocked(stage.level) ? `Stage ${stage.level} is part of BassClass Pro` : null), tasteChip(list), newChip(newCount(list.map((l) => `lesson:${l.id}`)) > 0, newCount(list.map((l) => `lesson:${l.id}`))), infoBtn(listLines(stage.desc), `About Stage ${si + 1}`), h('span', { class: 'muted small' }, `${done}/${list.length} lessons${known ? ` (${known} known)` : ''}`)),
         h('div', { class: 'grid unit-grid' },
           UNITS.filter((u) => u.stage === stage).map((u) => h('div', { class: 'unit-card' },
             h('h3', {}, u.title, infoBtn(u.goal, `About ${u.title}`)),
@@ -533,7 +542,8 @@ export function lessonScreen(main, id) {
         h('h4', {}, 'Practise', infoBtn(stepsInfo, 'About the steps')),
         ...l.steps.map(stepRow),
         footer,
-        nextL ? h('button', { class: `btn${isComplete(l) && !lessonLock(nextL) ? ' primary' : ''} les-next${lessonLock(nextL) ? ' locked' : ''}`, onClick: () => go(lessonHref(nextL)) }, `Next: ${lessonName(nextL)} ›`, proChip(lessonLock(nextL))) : null),
+        // (the title gives way, the Pro chip and › keep their place: QA round 21)
+        nextL ? h('button', { class: `btn${isComplete(l) && !lessonLock(nextL) ? ' primary' : ''} les-next${lessonLock(nextL) ? ' locked' : ''}`, onClick: () => go(lessonHref(nextL)) }, h('span', { class: 'les-next-t' }, `Next: ${lessonName(nextL)}`), proChip(lessonLock(nextL)), h('span', {}, '›')) : null),
       l.mistakes?.length ? h('details', { class: 'les-more' }, h('summary', {}, `⚠ Watch out (${l.mistakes.length})`), h('ul', { class: 'mistakes' }, l.mistakes.map((m) => h('li', {}, m)))) : null));
 }
 
@@ -580,7 +590,7 @@ export function placementScreen(main) {
     // (a free player whose starting point is Pro: what the session holds meanwhile: QA round 19)
     const free = !isPro();
     toast(cont && !lessonLock(cont) ? `Start here: ${lessonName(cont)}`
-      : free && tryLesson(cont) ? `Your starting point is Stage ${cont.stage.level}, part of BassClass Pro: try it free with ${lessonName(tryLesson(cont))}`
+      : free && tryLesson(cont) ? `Your starting point is Stage ${cont.stage.level}, part of BassClass Pro. ${FREE_TASTE} lessons of each Pro stage are free to try: start with ${lessonName(tryLesson(cont))}`
       : free ? `Your starting point is Stage ${cont ? cont.stage.level : 6}, part of BassClass Pro: today's session keeps you practising Levels ${FREE_LEVELS - 1}–${FREE_LEVELS} meanwhile`
         : `You know ${stagesName()}: today's session brings Library exercises from Levels 5 and 6`, 4500);
     // back to where the check was opened from (the map or Home), which now shows the starting point

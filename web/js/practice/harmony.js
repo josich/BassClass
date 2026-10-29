@@ -106,20 +106,38 @@ export function scaleFor(c, next, all = null) {
 }
 
 /**
+ * A scale for a chord held on its own (a drone on it): its family's first scale that holds every tone it names
+ * (Cm7 and Cm13 Dorian, C7alt altered, Cmaj7♯5 Lydian augmented); an augmented triad whole tone, a 7♭9 standing
+ * alone half-whole (its natural 13th; Phrygian dominant is the V of a minor key's).
+ */
+export function droneScale(type) {
+  if (type === 'aug') return 'wholeTone';
+  if (type === 'dom7b9') return 'dimHW';
+  const ivs = T.CHORDS[type].iv;
+  // (every minor-type chord by its ♭3: the extended ones too, m11, m13, m6/9)
+  const fam = ivs.includes('b3') && !['m7b5', 'dim', 'dim7'].includes(type) ? 'min' : familyOf(type);
+  return FAMILY[fam].find((m) => holds(m, type)) || FAMILY[fam][0];
+}
+
+/**
  * A preset copied into My progression: { minor, chords }, its chords by degree, quality and length (pop ones as
  * triads), a cycle's chords with their local key (`k`), the first 16 cut at a whole bar.
  */
 export function mineFrom(key) {
   const prog = PROGS[key];
-  const chords = prog.chords.slice(0, 16).map(([where, type, beats = 4, keyOff]) => {
-    const t = prog.pop ? toTriad(type) : type;
-    return {
+  // (a chord longer than 4 bars takes several 4-bar slots, so the modal form copies as its 32 bars, and a modal
+  // preset's chords stay vamps (`v`): Dorian on the Neck, not Aeolian; QA round 20)
+  const chords = prog.chords.flatMap(([where, type, beats = 4, keyOff]) => {
+    const t = prog.pop || POP_ROOM.has(key) ? toTriad(type) : type;
+    const slot = (b) => ({
       d: T.mod(typeof where === 'number' ? where : T.semis(where), 12),
       q: QUALITIES.some(([k]) => k === t) ? t : t.startsWith('dom') ? 'dom7' : MINORISH.includes(t) ? 'min7' : 'maj7',
-      b: LENGTHS.reduce((best, [l]) => (Math.abs(l - beats) < Math.abs(best - beats) ? l : best), 4),
+      b: LENGTHS.reduce((best, [l]) => (Math.abs(l - b) < Math.abs(best - b) ? l : best), 4),
       ...(keyOff != null ? { k: T.mod(keyOff, 12) } : {}),
-    };
-  });
+      ...(prog.modal ? { v: true } : {}),
+    });
+    return [...Array(Math.floor((beats - 1) / 16)).fill(16), beats - Math.floor((beats - 1) / 16) * 16].map(slot);
+  }).slice(0, 16);
   // (cut at a whole bar: the copy of a long cycle does not end on half a ii – V)
   while (chords.length > 1 && chords.reduce((a, c) => a + c.b, 0) % 4) chords.pop();
   return { minor: !!prog.minor, chords };
@@ -142,6 +160,9 @@ export const HARMONY_PROGS = [
   ['Vamps', ['vamp-min', 'vamp-dom', 'vamp-dorian', 'vamp-mixo', 'vamp-phrygian', 'vamp-lydian', 'vamp-i-iv', 'vamp-i-bVII', 'vamp-iiV']],
 ];
 export const PROG_KEYS = HARMONY_PROGS.flatMap(([, keys]) => keys);
+// the room plays its Pop & rock group as triads, as the pop presets are (QA round 20: the borrowed I – ♭VI – ♭VII – I,
+// a 7th-chord drill in the Library, sounded like jazz there)
+const POP_ROOM = new Set(HARMONY_PROGS.find(([g]) => g === 'Pop & rock')[1]);
 export const progName = (key) => (key === MINE ? 'My progression' : PROGS[key]?.name || key);
 /** A progression in a minor key (its key is named as a minor key). */
 export const isMinor = (key) => !!PROGS[key]?.minor;
@@ -151,11 +172,13 @@ export const isMinor = (key) => !!PROGS[key]?.minor;
 // between E3 and D♯4.
 export const LOW = 52;
 /** The pad's notes for a chord: its root between E3 and D♯4, its tones above it; with a 9th, 11th or 13th the
- * plain 5th makes room for them (R 3 ♭7 9), five notes at most. */
+ * plain 5th makes room for them (R 3 ♭7 9), and a 13th chord's 11th for its 13th (Cm13: C E♭ B♭ D A; QA round
+ * 21), five notes at most. */
 export function chordMidis(root, type) {
   const r = LOW + T.mod(T.pc(root) - LOW, 12);
   let ivs = T.CHORDS[type].iv;
   if (ivs.length > 4) ivs = ivs.filter((iv) => iv !== '5');
+  if (ivs.length > 5 && ivs.includes('13')) ivs = ivs.filter((iv) => iv !== '11');
   return ivs.slice(0, 5).map((iv) => r + T.semis(iv));
 }
 
@@ -187,9 +210,9 @@ export function progression(key, keyPc, beatsPerBar = 4, S = {}, groups = null, 
   if (key === MINE) {
     const list = mine || [];
     const pad = (4 - (list.reduce((a, c) => a + c.b, 0) % 4)) % 4;
-    prog = { minor: mineMinor, chords: list.map((c, i) => [c.k != null ? c.d : DEG_IV[c.d], c.q, c.b + (i === list.length - 1 ? pad : 0), c.k]) };
+    prog = { minor: mineMinor, modal: list.length > 0 && list.every((c) => c.v), chords: list.map((c, i) => [c.k != null ? c.d : DEG_IV[c.d], c.q, c.b + (i === list.length - 1 ? pad : 0), c.k]) };
   }
-  return progChords(prog, keyPc, { S }).map((c) => {
+  return progChords(prog, keyPc, { S, ...(POP_ROOM.has(key) ? { triads: true } : {}) }).map((c) => {
     const from = at(pos);
     pos += c.beats;
     return {

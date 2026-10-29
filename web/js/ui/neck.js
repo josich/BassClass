@@ -10,7 +10,7 @@ import * as T from '../theory.js';
 import * as A from '../audio.js';
 
 const EXPLORE_SETS = [
-  ...['ionian', 'aeolian', 'majorPent', 'minorPent', 'blues', 'dorian', 'mixolydian', 'lydian', 'phrygian', 'locrian', 'harmonicMinor', 'melodicMinor', 'harmonicMajor', 'altered', 'lydianDom', 'phrygianDom', 'bebopDom', 'dimHW', 'dimWH', 'wholeTone', 'chromatic']
+  ...['ionian', 'aeolian', 'majorPent', 'minorPent', 'blues', 'dorian', 'mixolydian', 'lydian', 'phrygian', 'locrian', 'harmonicMinor', 'melodicMinor', 'harmonicMajor', 'altered', 'lydianDom', 'phrygianDom', 'mixolydianB6', 'lydianAug', 'locrianN2', 'bebopDom', 'dimHW', 'dimWH', 'wholeTone', 'chromatic']
     .map((k) => [`s:${k}`, `Scale · ${T.SCALES[k].name}`]),
   ...['maj', 'min', 'dim', 'aug', 'sus4', 'maj7', 'dom7', 'min7', 'm7b5', 'dim7', 'mMaj7', 'maj6', 'min6', 'dom9', 'maj9', 'min9']
     .map((k) => [`c:${k}`, `Chord · ${T.CHORDS[k].name}`]),
@@ -36,7 +36,7 @@ const INFO = [
 // blues as its minor pentatonic, the key's lead-sheet name (E♭ blues, as the Library writes it)
 const nameIvs = (shown, ivs) => (shown === 's:altered' ? T.CHORDS.dom7.iv : shown === 's:blues' ? T.SCALES.minorPent.iv : ivs);
 
-/** The Neck block: { el, follow, setBar, own, rootName, dispose }. */
+/** The Neck block: { el, follow, setBar, own, setOwn, rootName, dispose }. */
 export function neckPanel({ onOwn } = {}) {
   const S = settings;
   const ctx = makeCtx(S);
@@ -142,10 +142,17 @@ export function neckPanel({ onOwn } = {}) {
   const setBar = (node) => bar.replaceChildren(...(node ? [node] : []));
   /** The player's own choice: 's:dorian', 'c:min7', 'n:none'. */
   const own = () => set;
+  /** Their choice set for them (a drone's chord picks a scale that fits it; QA round 21): they can change it. */
+  const setOwn = (v) => {
+    if (v === set || !EXPLORE_SETS.some(([k]) => k === v)) return;
+    set = v;
+    setSel.value = v;
+    render();
+  };
   /** A root as the player's own choice names it (C♯ Dorian, D♭ major, A♭ Altered): the drone takes its name. */
   const rootName = (pc) => {
     const [kind, k] = set.split(':');
     return T.bestRoot(pc, nameIvs(set, kind === 's' ? T.SCALES[k].iv : kind === 'c' ? T.CHORDS[k].iv : T.SCALES.ionian.iv));
   };
-  return { el, follow, setBar, own, rootName, dispose: () => fb.destroy() };
+  return { el, follow, setBar, own, setOwn, rootName, dispose: () => fb.destroy() };
 }

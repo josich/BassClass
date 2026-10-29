@@ -125,7 +125,7 @@ const tenths = ex({
   summary: 'Root on the E string, 10th on the G string, up the scale: big, piano-like harmony.',
   about: 'A 10th is a 3rd plus an octave. Play the scale on the E string and add the diatonic 10th on the G string: one fret higher for a major 10th, the same fret for a minor 10th. Played broken or as double stops, this is the sound of Jaco Pastorius\' ballads and Motown-era chordal bass.',
   tips: ['Pluck the E string with the thumb and the G string with a finger.', 'Mute the A and D strings with the fretting hand.'],
-  source: 'Advanced graded exams (LCM); 10ths as played by Jaco Pastorius',
+  source: 'Advanced graded exams (LCM); 10ths in the style of Jaco Pastorius',
   params: { key: keyP(T.SCALES.ionian.iv, { cycles: false }), mode: sel('Style', [['broken', 'Broken (R then 10th)'], ['stop', 'Double stops']]), scale: sel('Scale', SCALE_TYPE_OPTS(['ionian', 'aeolian', 'mixolydian', 'dorian'])) },
   bpm: 66, sub: 2, label: 'degree',
   build(p, ctx, S) {
@@ -205,7 +205,7 @@ const cycles = ex({
   summary: 'Chains of the same interval: 4ths, minor 3rds, major 3rds, whole tones… across the neck.',
   about: 'Stack the same interval again and again: 4ths give C F B♭ E♭…, minor 3rds give the diminished cycle C E♭ G♭ A, major 3rds give the augmented C E G♯. These symmetrical chains appear throughout modern jazz (Coltrane, Brecker) and are perfect for hand-to-ear coordination. The line climbs up to two octaves and comes back.',
   tips: ['Find the repeating hand shape; the cycles are geometric on the bass.', 'Groups of 3 or 4 notes in 16ths sound very modern.'],
-  source: 'Nicolas Slonimsky "Thesaurus of Scales and Melodic Patterns"; interval cycles in the language of John Coltrane and Michael Brecker',
+  source: 'Nicolas Slonimsky "Thesaurus of Scales and Melodic Patterns"; interval cycles in the style of John Coltrane and Michael Brecker',
   params: { iv: sel('Interval', Object.entries(CYC).map(([k, v]) => [k, v[1]])), key: keyP(['1'], { cycles: false }) },
   bpm: 72, sub: 4, label: 'note',
   build(p, ctx, S) {

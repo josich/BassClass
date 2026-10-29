@@ -171,7 +171,7 @@ export const CHORDS = {
   dom7b9: { iv: ['1', '3', '5', 'b7', 'b9'], sym: '7♭9', name: 'Dominant 7♭9' },
   dom7s9: { iv: ['1', '3', '5', 'b7', '#9'], sym: '7♯9', name: 'Dominant 7♯9' },
   dom7b5: { iv: ['1', '3', 'b5', 'b7'], sym: '7♭5', name: 'Dominant 7♭5' },
-  dom13: { iv: ['1', '3', '5', 'b7', '9', '13'], sym: '13', name: 'Dominant 13' },
+  dom13: { iv: ['1', '3', '5', 'b7', '9', '13'], sym: '13', name: 'Dominant 13th' },
   // added-note, suspended and 11th/13th chords (user, 2026-10-28: the chord formulas the app was missing)
   add9: { iv: ['1', '3', '5', '9'], sym: 'add9', name: 'Major add 9' },
   maj69: { iv: ['1', '3', '5', '6', '9'], sym: '6/9', name: 'Major 6/9' },

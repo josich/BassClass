@@ -15,7 +15,7 @@ import { courseScreen, lessonScreen, placementScreen, stepHref } from './ui/cour
 import { lessonById } from './course/data.js';
 import { sessionPlayed } from './course/progress.js';
 import { nav, replaceHash, goBack, canGoBack } from './ui/nav.js';
-import { hashLock, gatesOn } from './pro.js';
+import { hashLock, gatesOn, newsIdOf } from './pro.js';
 import { openPro } from './ui/proSheet.js';
 import { maybeAskRating } from './ui/rate.js';
 import { syncPro } from './billing.js';
@@ -38,7 +38,8 @@ initNews([
   ...Object.keys(STYLES).map((k) => `style:${k}`),
   ...PROG_KEYS.filter((k) => k !== MINE).map((k) => `prog:${k}`),
   ...Object.keys(PAD_SOUNDS).map((k) => `sound:${k}`),
-  ...DRONE_KEYS.map((k) => `drone:${k}`),
+  // (the drone's Change, new with its chords; its root and 5th and root and octave were there before)
+  'drone:picker', ...DRONE_KEYS.filter((k) => k !== 'open' && k !== 'root').map((k) => `drone:${k}`),
 ]);
 
 const app = document.getElementById('app');
@@ -97,6 +98,7 @@ function route() {
   const why = hashLock(location.hash);
   if (why) {
     const want = location.hash;
+    markUsed(newsIdOf(want));
     const to = hashLock(lastHash) ? '#/' : lastHash;
     const open = () => openPro(why, { then: () => { location.hash = want; } });
     // (the sheet opens once the screen it covers is drawn again, so its history entry sits above that screen's,
@@ -167,6 +169,8 @@ function route() {
     }
     try {
       markUsed(`ex:${tpl.id}`);
+      // (a lesson's step played from a session row or a link: the lesson is used too; QA round 20)
+      if (lesson) markUsed(`lesson:${lesson.lesson.id}`);
       active = renderExercise(app, tpl, { params, routine, lesson, onBack: back });
     } catch (err) {
       console.error(err);
@@ -220,6 +224,7 @@ document.addEventListener('click', (e) => {
   e.preventDefault();
   e.stopPropagation();
   const href = a.getAttribute('href');
+  markUsed(newsIdOf(href));
   openPro(why, { then: () => { location.hash = href; } });
 }, true);
 // (the Practice room redraws in place, so what it was doing goes on; the other screens are drawn again)

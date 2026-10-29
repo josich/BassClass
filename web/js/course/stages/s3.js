@@ -321,7 +321,7 @@ export default {
           id: 'pent-minor-grooves', title: 'One pentatonic, three chords',
           idea: 'Over i – ♭VII – ♭VI the key\'s minor pentatonic fits every chord.',
           concept: [
-            'In i – ♭VII – ♭VI (Em7 – D – Cmaj7 in E minor) the roots fall a step at a time, and the minor pentatonic of the key fits all three chords: over the ♭VII its notes become the 9th, 11th, 5th and 13th, over the ♭VI the 3rd, 5th, 7th and 9th. So the line stays in one familiar box while the harmony moves under it.',
+            'In i – ♭VII – ♭VI (Em7 – D – Cmaj7 in E minor) the roots fall a step at a time, and the minor pentatonic of the key fits all three chords: over the ♭VII its notes become the 9th, 11th, 5th and 13th, over the ♭VI the 3rd, 5th, 13th, 7th and 9th. So the line stays in one familiar box while the harmony moves under it.',
             'Each groove puts the roots on beat 1 and ends the phrase with a fill that leads back to the top. When a groove is easy, keep the chords and the form and make your own line: play too much first, then take notes away until only the best are left.',
           ],
           steps: [
@@ -610,7 +610,7 @@ export default {
           ],
         },
         {
-          id: 'chord-formulas', title: 'Chord formulas', added: 1793190000000,
+          id: 'chord-formulas', title: 'Chord formulas', added: 1793181501000,
           idea: 'Every chord symbol is a formula of degrees from its root.',
           concept: [
             'A chord symbol tells you which degrees to stack on the root: major 1 3 5, minor 1 ♭3 5, sus4 1 4 5, a 6th chord adds the 6, add9 the 9 without a 7th, 6/9 both. The 7th chords add a 7 or a ♭7 (the °7 a ♭♭7), and 9ths, 11ths and 13ths keep stacking 3rds above the 7th.',
@@ -624,7 +624,7 @@ export default {
           ],
           mistakes: [
             'Reading add9 as a 9th chord. add9 has no 7th; a 9th chord has one.',
-            'Respelling to make it easier. A 3rd stays a 3rd: the B♭♭ of C°7 is not an A.',
+            'Respelling to make it easier. Each chord tone keeps its letter: the 7th of C°7 is B♭♭, not A (an A would be a 6th).',
           ],
         },
       ],

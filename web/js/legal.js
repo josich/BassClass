@@ -74,7 +74,7 @@ export function purchaseTerms({ free, from }) {
       `Refunds: through Google Play, or write to us at ${CONTACT} and we can refund you through Google Play. A refunded purchase closes Pro again.`,
       'Tips are optional gifts to support BassClass. They unlock nothing and are not charitable donations.',
       'Prices are shown by Google Play in your currency, taxes included where they apply.',
-      'The drum samples remain under their CC BY 4.0 licence (see the credits): nothing in these terms limits your rights under it.',
+      'The MuldjordKit drum samples remain under their CC BY 4.0 licence (see the credits): nothing in these terms limits your rights under it.',
       'Nothing in these terms limits your rights under consumer law.',
     ]],
   ];

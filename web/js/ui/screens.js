@@ -13,9 +13,9 @@ import { resetCourse, placed, anyProgress } from '../course/progress.js';
 import { replaceHash, goBack, canGoBack } from './nav.js';
 import { saveBackup, parseBackup, restoreBackup } from '../backup.js';
 import { resetLog } from '../practiceLog.js';
-import { hashLock, exerciseLock, levelLocked, gatesOn } from '../pro.js';
+import { hashLock, exerciseLock, levelLocked, gatesOn, newsIdOf } from '../pro.js';
 import { openPro } from './proSheet.js';
-import { isNew, newCount } from '../news.js';
+import { isNew, newCount, markUsed } from '../news.js';
 import { proFields, devTaps, devPanel } from './proDebug.js';
 import { sendFeedback, CONTACT } from '../feedback.js';
 
@@ -23,7 +23,7 @@ import { sendFeedback, CONTACT } from '../feedback.js';
 export const go = (hash) => {
   const why = hashLock(hash);
   // (bought there and then, "Let's play" opens it)
-  if (why) { openPro(why, { then: () => { location.hash = hash; } }); return; }
+  if (why) { markUsed(newsIdOf(hash)); openPro(why, { then: () => { location.hash = hash; } }); return; }
   location.hash = hash;
 };
 /** The small "Pro" chip of something a free player cannot open (`why`: its reason, or null). */
@@ -229,7 +229,7 @@ function levelSections() {
 
 export function libraryScreen(main, params = {}) {
   // the search text belongs to this history entry, so Back from an exercise finds it again
-  const search = h('input', { class: 'search', type: 'search', placeholder: 'Search: triad, ii-V, 42…', 'aria-label': 'Search exercises', value: history.state?.q || '' });
+  const search = h('input', { class: 'search', type: 'search', placeholder: 'Search: triad, ii-V, 305…', 'aria-label': 'Search exercises', value: history.state?.q || '' });
   const results = h('div');
   // jump to a level (opening it if it is folded)
   const jump = (n) => {
@@ -283,7 +283,7 @@ export function libraryScreen(main, params = {}) {
   // (a level the player has just reached opens: the page scrolls to it once, when it is not the first)
   const reached = settings.libOpen != null && settings.libAt !== playerLevel() && !params.l ? playerLevel() : null;
   main.replaceChildren(
-    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '▸ Levels: tap a level to open or fold it', '🗂 Topics: one card per topic, its exercises Level 1 to 6', '🔎 Search by name, topic, song, artist or number (#42)', '★ core: a key exercise of its level', `🎯 Master an exercise: a full loop at its goal, then ✓ Mastered; it counts in the course too`, `📈 ${Math.round(LEVEL_PASS * 100)}% of a level mastered moves your level on`, 'ⓘ on a card: what it is'], 'About the Library'), views, h('div', { class: 'grow' }), search),
+    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '▸ Levels: tap a level to open or fold it', '🗂 Topics: one card per topic, its exercises Level 1 to 6', '🔎 Search by name, topic, song, artist or number (#305)', '🔢 An exercise\'s number is its level, then its own: 305 is Level 3', '★ core: a key exercise of its level', `🎯 Master an exercise: a full loop at its goal, then ✓ Mastered; it counts in the course too`, `📈 ${Math.round(LEVEL_PASS * 100)}% of a level mastered moves your level on`, 'ⓘ on a card: what it is'], 'About the Library'), views, h('div', { class: 'grow' }), search),
     jumps,
     results);
   render();
@@ -312,7 +312,7 @@ export function settingsScreen(main) {
     });
     return h('div', { class: 'range-row' }, el, pct);
   };
-  const field = (label, control, hint) => h('div', { class: 'field' }, h('div', { class: 'field-head' }, h('label', {}, label), hint ? infoBtn(hint, `About ${label.toLowerCase()}`) : null), control);
+  const field = (label, control, hint) => h('div', { class: 'field' }, h('div', { class: 'field-head' }, h('label', {}, label), hint ? infoBtn(hint, `About ${label.charAt(0).toLowerCase()}${label.slice(1)}`) : null), control);
   // backup: one file with everything stored; loading one replaces this device's records, then reloads
   // (one save at a time: a second tap while Android's "Save to" picker is open does nothing)
   let saving = false;
@@ -362,7 +362,7 @@ export function settingsScreen(main) {
       field('Backup', h('div', { class: 'row' },
         h('button', { class: 'btn', onClick: save }, '💾 Save a backup'),
         h('button', { class: 'btn', onClick: () => fileIn.click() }, '📂 Load a backup'), fileIn),
-      ['💾 One file: progress, course, sessions, favourites, practice log and settings', '📂 Load it on a new phone, or to go back to it: it replaces what is on this device', '☁ Keep the file somewhere safe: Drive, e-mail, a computer']),
+      ['💾 One file: progress, course, sessions, favourites, practice log and settings', '📂 Load it on a new phone, or to go back to it: it replaces what is on this device', '☁ Keep the file somewhere safe: Drive, email, a computer']),
       field('Progress', h('div', { class: 'row' },
         h('button', { class: 'btn', onClick: () => { if (confirm('Reset all progress, the course and the practice log included?')) { resetProgress(); resetCourse(); resetLog(); toast('Progress reset'); } } }, 'Reset progress'),
         h('button', { class: 'btn', onClick: () => {
@@ -373,7 +373,7 @@ export function settingsScreen(main) {
         } }, 'Restore defaults'))),
       // a message to us, from the player's own email app (user, 2026-10-27)
       field('Feedback', h('div', { class: 'row' }, h('button', { class: 'btn', onClick: sendFeedback }, '✉ Send feedback')),
-        ['✉ Your email app opens with a message to us: write, then press Send', '🐞 It names the app\'s version and your phone, to find a problem faster', `📮 ${CONTACT}`]),
+        ['✉ Your email app opens with a message to us: write, then press Send', '🐞 It names the app\'s version, your phone and its last error messages, to find a problem faster: you see it all before you send it', `📮 ${CONTACT}`]),
       // Pro and Support after the bass's own settings: the offer is one tap away on every Pro item (QA round 19)
       ...proFields(field)),
     // the credits, the licences and the legal texts: About (also the rail's logo)

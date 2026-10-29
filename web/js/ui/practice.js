@@ -13,12 +13,12 @@ import { loadPiano, pianoReady } from '../piano.js';
 import { styleLock, progLock, soundLock, fillsLock, droneLock, freeRoom } from '../pro.js';
 import { openPro } from './proSheet.js';
 import { proChip, newChip } from './screens.js';
-import { isNew, newCount, markUsed } from '../news.js';
+import { isNew, markUsed } from '../news.js';
 import { neckPanel } from './neck.js';
 import { openPicker } from './picker.js';
-import { HARMONY_PROGS, progName, progression, keyName, isMinor, MINE, DEGREES, QUALITIES, LENGTHS, usualQuality, roman, mineFrom, scaleFor, MINE_START, mineBars } from '../practice/harmony.js';
+import { HARMONY_PROGS, progName, progression, keyName, isMinor, MINE, DEGREES, QUALITIES, LENGTHS, usualQuality, roman, mineFrom, scaleFor, droneScale, MINE_START, mineBars } from '../practice/harmony.js';
 import { PROGS, toTriad } from '../curriculum/common.js';
-import { DRONES, DRONE_GROUPS, DRONE_KEYS, droneName, droneTitle, droneFormula, droneIvs, droneRoot, droneMidis } from '../practice/drones.js';
+import { DRONES, DRONE_GROUPS, DRONE_KEYS, droneName, droneTitle, droneFormula, droneLead, droneRoot, droneMidis } from '../practice/drones.js';
 import * as T from '../theory.js';
 
 const INFO = [
@@ -35,7 +35,7 @@ const DRUM_INFO = [
   '🎚 A pattern sets its metre, its usual tempo and its subdivision',
   '🎵 Subdivision: fewer or more notes of the pattern (16ths: its fills)',
   '🔢 In odd metres the drums play the grouping you tap on the beat lights ("played 3 + 2 + 2")',
-  '💥 Fills: a crash at each phrase and a fill at its end, every 4 or 8 bars',
+  '💥 Fills: every 4 or 8 bars, four kinds in turn, and a crash on the next downbeat (not on soft grooves)',
   '🔇 Muted bars and Speed up work on the drums too',
   '📴 The drums play offline',
 ];
@@ -72,12 +72,14 @@ function subChoices(s) {
 const BEAT_ICON = { q: 'q1', e: 'e1', dq: 'dq' };
 // the Neck's scales that name a drone's key as a minor key does (C♯, not D♭)
 const HARMONY_INFO = [
-  '🎹 Something to play over: a drone (the key\'s root and 5th, held, or a chord you pick beside the key: triads, 7ths, 9ths to 13ths, altered, voicings) for scales and modes, or a chord progression',
-  '🎼 Pick a key and a progression: pop and rock, blues, jazz, minor, vamps',
+  '🎹 Something to play over: a drone or a chord progression, in any key',
+  '🎵 Drone: the key\'s root and 5th, or any chord or voicing from Change; stopped, a pick plays once',
+  '🎼 Chords: a progression, by style: pop and rock, blues, soul and R&B, jazz, minor, vamps',
   '✎ My progression: your own chords by degree (the Key moves them); ✎ Edit copies a progression into it',
   '🎼 My progression is in a major or a minor key: Minor turns the usual chords into the minor key\'s (I → i, vi → ♭VI)',
-  '🎛 Sound: a pad, an electric piano, a recorded grand piano, an organ, a distorted rock guitar (power chords, chugging) or an arpeggio (the guitar and the arpeggio move with the Subdivision); another one plays from the next beat',
-  '🎸 The chords sit above the Neck in order, each lit while it sounds; Chord or Scale shows it on the neck, with the next change (over a drone: Chord its chord, Scale your own scale on its key)',
+  '🎛 Sound: a pad, an electric piano, a recorded grand piano, an organ, a distorted rock guitar (chugging) or an arpeggio (the guitar and the arpeggio move with the Subdivision); another one plays from the next beat',
+  '🎸 The chords sit above the Neck in order, each lit while it sounds; Chord or Scale shows it on the neck, with the next change',
+  '🎸 Over a drone the Neck shows its chord (Chord) or a scale on its key (Scale): a chord picks a scale that fits it, which you can change on the Neck',
   '🔇 Muted bars silence the harmony too, while the chords go on',
   '⏱ It follows the metronome and the drums: start it with the floating button',
 ];
@@ -459,7 +461,7 @@ export function practiceScreen(main, params = {}) {
   // ---- the shared picker for the drum patterns and the progressions
   let closePicker = null;
   /** A library's current choice on one line, and Change. */
-  const pickNow = (name, sub, onOpen) => h('button', { class: 'pick-now', type: 'button', onClick: onOpen },
+  const pickNow = (name, sub, onOpen) => h('button', { class: 'pick-now', type: 'button', onClick: () => onOpen() },
     h('span', { class: 'pick-text' }, h('b', {}, name), h('small', {}, sub)),
     h('span', { class: 'pick-change' }, 'Change', h('span', { html: icon('next') })));
   // (a name that already says its metre, "5/4 (3 + 2)", does not repeat it)
@@ -467,17 +469,18 @@ export function practiceScreen(main, params = {}) {
   /** A pick joins the recent ones (newest first, six of them). */
   const recentWith = (list, k) => [k, ...list.filter((x) => x !== k)].slice(0, 6);
   const favsWith = (list, k, on) => (on ? [...list.filter((x) => x !== k), k] : list.filter((x) => x !== k));
-  const openDrums = () => {
+  // (a Pro card tapped counts as seen: its New chip goes; QA round 20)
+  const openDrums = (at) => {
     closePicker = openPicker({
       title: 'Drum patterns', host: main,
       groups: GENRES.map((g) => ({ key: g.key, name: `${g.icon} ${g.name}` })),
       items: Object.values(STYLES).map((s) => ({
         key: s.key, name: s.name, group: s.genre, sub: styleSub(s), lock: styleLock(s.key), fresh: isNew(`style:${s.key}`),
       })),
-      current: room.style, open: room.genre,
+      current: room.style, open: at ?? room.genre,
       favs: room.drumFavs, recent: room.drumRecent,
-      // (a Pro pattern: the Pro sheet; bought, it plays; closed, the picker opens again where it was)
-      onLocked: (why, k) => openPro(why, { then: () => { set({ drumRecent: recentWith(room.drumRecent, k) }); pickStyle(k); }, cancel: openDrums }),
+      // (a Pro pattern: the Pro sheet; bought, it plays; closed, the picker opens again on the group browsed)
+      onLocked: (why, k, g) => { markUsed(`style:${k}`); openPro(why, { then: () => { set({ drumRecent: recentWith(room.drumRecent, k) }); pickStyle(k); }, cancel: () => openDrums(g) }); },
       onGroup: (g) => set({ genre: g }),
       onFav: (k, on) => set({ drumFavs: favsWith(room.drumFavs, k, on) }),
       onPick: (k) => { set({ drumRecent: recentWith(room.drumRecent, k) }); pickStyle(k); },
@@ -628,35 +631,40 @@ export function practiceScreen(main, params = {}) {
       PROGS[k].chords.length === 1 ? '1 chord' : null,
     ].filter(Boolean).join(' · ');
   };
-  const openProgs = () => {
+  const openProgs = (at) => {
     closePicker = openPicker({
       title: 'Progressions', host: main,
       groups: HARMONY_PROGS.map(([g]) => ({ key: g, name: g })),
       items: HARMONY_PROGS.flatMap(([g, keys]) => keys.map((k) => ({ key: k, name: progName(k), group: g, sub: progSub(k).split(' · ').filter((w) => w !== g && w !== 'Yours').join(' · '), lock: progLock(k), fresh: isNew(`prog:${k}`) }))),
-      current: room.hProg,
+      current: room.hProg, open: at,
       favs: room.progFavs, recent: room.progRecent,
-      onLocked: (why, k) => openPro(why, { then: () => { set({ progRecent: recentWith(room.progRecent, k) }); mineAt = null; setHarmony({ hProg: k }); }, cancel: openProgs }),
+      onLocked: (why, k, g) => { markUsed(`prog:${k}`); openPro(why, { then: () => { set({ progRecent: recentWith(room.progRecent, k) }); mineAt = null; setHarmony({ hProg: k }); }, cancel: () => openProgs(g) }); },
       onFav: (k, on) => set({ progFavs: favsWith(room.progFavs, k, on) }),
       onPick: (k) => { markUsed(`prog:${k}`); set({ progRecent: recentWith(room.progRecent, k) }); mineAt = null; setHarmony({ hProg: k }); },
     });
   };
   // ---- the drone's chord (practice/drones.js; user, 2026-10-29): the shared picker, by group; stopped, a pick is heard once
-  // (the open drone, root and 5th or the root alone, has no chord: the Neck shows the player's scale over it)
+  // (the open drone, root and 5th or the root and octave, has no chord: the Neck shows the player's scale over it)
   const openDrone = () => room.hQual === 'open' || room.hQual === 'root';
   const pickDrone = (k) => {
     markUsed(`drone:${k}`);
     set({ droneRecent: recentWith(room.droneRecent, k) });
+    // (a chord picks the Neck's scale that fits it, Cm7 Dorian, C7♭9 half-whole; the player can change it: QA round 21)
+    const d = DRONES[k];
+    if (d.type || d.like) neck.setOwn(`s:${droneScale(d.type || d.like)}`);
     setHarmony({ hQual: k });
     if (!engine.playing && !engine.starting) A.chordPreview(droneMidis(room.hKey, k), room.hSound);
   };
-  const openDrones = () => {
+  const openDrones = (at) => {
+    // (Change itself is new for a player who had the room before the drone chords: its chip goes once opened)
+    markUsed('drone:picker');
     closePicker = openPicker({
       title: 'Drone chords', host: main,
       groups: DRONE_GROUPS.map(([key, name]) => ({ key, name })),
       items: DRONE_KEYS.map((k) => ({ key: k, name: droneTitle(k), group: DRONES[k].group, sub: `${droneName(room.hKey, k, settings.notation)} · ${droneFormula(k)}`, lock: droneLock(k), fresh: isNew(`drone:${k}`) })),
-      current: room.hQual,
+      current: room.hQual, open: at,
       favs: room.droneFavs, recent: room.droneRecent,
-      onLocked: (why, k) => openPro(why, { then: () => pickDrone(k), cancel: openDrones }),
+      onLocked: (why, k, g) => { markUsed(`drone:${k}`); openPro(why, { then: () => pickDrone(k), cancel: () => openDrones(g) }); },
       onFav: (k, on) => set({ droneFavs: favsWith(room.droneFavs, k, on) }),
       onPick: pickDrone,
     });
@@ -690,7 +698,7 @@ export function practiceScreen(main, params = {}) {
     if (Number.isInteger(curIdx) && curIdx >= 0) chipRow?.show(chips[curIdx], chips[curIdx + 1]);
     if (room.neckShow === 'off' || room.harmony === 'off') { neck.follow(null); return; }
     if (room.harmony === 'drone') {
-      if (room.neckShow === 'chord' && !openDrone()) { neck.follow({ root: droneRoot(room.hKey, room.hQual), ivs: droneIvs(room.hQual), name: droneName(room.hKey, room.hQual, settings.notation) }); return; }
+      if (room.neckShow === 'chord' && !openDrone()) { neck.follow(droneLead(room.hKey, room.hQual, settings.notation)); return; }
       neck.follow({ root: T.bestRoot(room.hKey, T.SCALES.ionian.iv), type: null, name: keyName(room.hKey, settings.notation) });
       return;
     }
@@ -720,9 +728,10 @@ export function practiceScreen(main, params = {}) {
     const keySel = h('select', { class: 'mini-sel', 'aria-label': 'Key' }, T.CHROMATIC_PC.map((p) => h('option', { value: p, selected: p === room.hKey }, nameOf(p))));
     keySel.addEventListener('change', () => setHarmony({ hKey: Number(keySel.value) }));
     const progNow = pickNow(progName(room.hProg), progSub(room.hProg), openProgs);
-    // the drone's chord beside the key (user, 2026-10-29), with a dot of "New" while some are new
+    // the drone's chord beside the key (user, 2026-10-29), "New" until its picker is first opened (QA round 21:
+    // the cards keep their own chips, as the patterns' and progressions' do)
     const droneNow = pickNow(droneName(room.hKey, room.hQual, settings.notation), `${droneTitle(room.hQual)} · ${droneFormula(room.hQual)}`, openDrones);
-    if (newCount(DRONE_KEYS.map((k) => `drone:${k}`))) droneNow.querySelector('.pick-text b').append(' ', newChip(true));
+    if (isNew('drone:picker')) droneNow.querySelector('.pick-text b').append(' ', newChip(true));
     const vol = h('input', { type: 'range', min: 0, max: 100, step: 1, value: room.hVol, 'aria-label': 'Harmony volume' });
     const volVal = h('b', { class: 'rl-val' }, `${room.hVol}%`);
     vol.addEventListener('input', () => {
@@ -772,7 +781,7 @@ export function practiceScreen(main, params = {}) {
       mode === 'off' ? null : h('div', { class: 'room-field' }, h('label', {}, 'Sound'),
         h('div', { class: 'seg' }, [['pad', 'Pad'], ['epiano', 'E-piano'], ['piano', 'Piano'], ['organ', 'Organ'], ['guitar', 'Guitar'], ['arp', 'Arpeggio']].map(([v, l]) => h('button', {
           class: room.hSound === v ? 'on' : soundLock(v) ? 'locked' : '', type: 'button',
-          onClick: () => { if (soundLock(v)) { openPro(soundLock(v), { then: () => { markUsed(`sound:${v}`); setHarmony({ hSound: v }); ensurePiano(); } }); return; } markUsed(`sound:${v}`); if (room.hSound !== v) { setHarmony({ hSound: v }); ensurePiano(); } else redraw(); },
+          onClick: () => { if (soundLock(v)) { markUsed(`sound:${v}`); openPro(soundLock(v), { then: () => { markUsed(`sound:${v}`); setHarmony({ hSound: v }); ensurePiano(); } }); return; } markUsed(`sound:${v}`); if (room.hSound !== v) { setHarmony({ hSound: v }); ensurePiano(); } else redraw(); },
         }, l, newChip(isNew(`sound:${v}`)), proChip(soundLock(v))))), pianoState),
       mode === 'off' ? null : h('div', { class: 'range-line' }, h('span', {}, 'Volume'), vol, volVal),
     ].filter(Boolean));

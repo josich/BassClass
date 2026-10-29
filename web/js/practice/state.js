@@ -22,7 +22,7 @@ const isStyle = (k) => Object.prototype.hasOwnProperty.call(STYLES, k);
 const isProg = (k) => PROG_KEYS.includes(k);
 const isDrone = (k) => Object.prototype.hasOwnProperty.call(DRONES, k);
 // (`o`: the chord it was before the last Major | Minor switch, which the next switch gives back)
-const isChord = (c) => !!c && int(0, 11)(c.d) && QUALITIES.some(([q]) => q === c.q) && LENGTHS.some(([b]) => b === c.b) && (c.k == null || int(0, 11)(c.k))
+const isChord = (c) => !!c && int(0, 11)(c.d) && QUALITIES.some(([q]) => q === c.q) && LENGTHS.some(([b]) => b === c.b) && (c.k == null || int(0, 11)(c.k)) && (c.v == null || c.v === true)
   && (c.o == null || (!!c.o && int(0, 11)(c.o.d) && QUALITIES.some(([q]) => q === c.o.q)));
 // a stored grouping: { beats: [accented beats] }, each beat once and inside the bar
 const isGrouping = ([k, list]) => int(1, 12)(Number(k)) && String(Number(k)) === k && Array.isArray(list) && new Set(list).size === list.length && list.every(int(0, Number(k) - 1));

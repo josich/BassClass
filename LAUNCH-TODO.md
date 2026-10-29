@@ -33,8 +33,8 @@ it take a few days of your time spread over a week or two (identity and payments
 - **Free**: Levels 1–3 on every front (the Library's exercises and song studies, the Course's Stages 1–3), two lessons
   of each of Stages 4–6 to try (scales, modes, two-octave arpeggios), the tuner, the whole metronome, the Neck, the
   drone, the log, backup; in the room, **3 drum patterns of each genre**, the Pop & rock and Blues progressions, My
-  progression and its ✎ Edit, the Pad, E-piano and Arpeggio sounds, the drone open, on the triads and on the five basic
-  7th chords.
+  progression and its ✎ Edit, the Pad, E-piano and Arpeggio sounds, the drone on its root and 5th or octave, the triads,
+  the five basic 7th chords and their spread and shell voicings.
 - **Pro** (one-time): Levels 4–6, every drum pattern and the fills, every progression, the Piano, Organ and Guitar sounds,
   the drone's other chords and voicings, and the new content added to these parts later.
 - **Price**: €7.99, launch price €4.99. **Tips**: €2 and €4. Products `bassclass_pro`, `bassclass_tip_2`,
@@ -246,6 +246,11 @@ Claude what happened:
   course and the settings come back (Android's backup), and Pro (Restore)? If not, tell Claude.
 - ☐ Read the **pre-launch report** (Play Console → Testing → Pre-launch report): crashes, accessibility, screenshots on
   real devices.
+- ☐ **Logcat after a purchase** (QA round 21): with the phone on a computer (Android Studio → Logcat, or
+  `adb logcat`), buy with a test card, then leave the app in the background for 30 minutes. Look for
+  `SecurityException`, `ACCESS_NETWORK_STATE` or "Background execution failure" from `com.google.android.datatransport`:
+  Google's billing library sends its own logs and may need the network-state permission, which the build removes. If
+  they show, tell Claude: adding ACCESS_NETWORK_STATE back gives no internet access and changes no privacy text.
 **If buying fails with a network error**, Google's library may need the internet permission after all: tell Claude,
 who adds it back and updates the privacy policy and the Data safety answer (1 hour).
 

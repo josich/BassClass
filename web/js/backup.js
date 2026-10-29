@@ -67,6 +67,9 @@ export function restoreBackup(data) {
   try {
     for (const k of Object.keys(old)) if (!KEEP.has(k)) localStorage.removeItem(k);
     for (const [k, s] of Object.entries(data)) if (!KEEP.has(k)) localStorage.setItem(k, s);
+    // (a backup from before the New chips keeps this device's record of what is new, or the last additions would
+    // show as new again, even those used: QA round 20)
+    if (!('bassclass.new.v1' in data) && old['bassclass.new.v1'] != null) localStorage.setItem('bassclass.new.v1', old['bassclass.new.v1']);
   } catch (err) {
     // (storage full or blocked: put the device's own records back)
     try {

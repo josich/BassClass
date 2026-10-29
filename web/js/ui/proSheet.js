@@ -12,7 +12,7 @@ import { buy, prices, restorePro, canBuy } from '../billing.js';
 let openNow = null;
 
 /** The free part, in one line (the sheet, Settings' Pro ⓘ, About's terms). */
-export const FREE_LINE = `Levels 1–${FREE_LEVELS} of the course and the Library, ${FREE_TASTE} lessons of each later stage to try, the tuner, the whole metronome, and the Practice room's starter set: 3 drum patterns of each genre, the Pop & rock and Blues progressions, My progression, the drone (open, on the triads and on the five basic 7th chords) and the Neck`;
+export const FREE_LINE = `Levels 1–${FREE_LEVELS} of the course and the Library, ${FREE_TASTE} lessons of each later stage to try, the tuner, the whole metronome, and the Practice room's starter set: 3 drum patterns of each genre, the Pop & rock and Blues progressions, My progression, the drone (its root and 5th or octave, the triads, the five basic 7th chords and their spread and shell voicings) and the Neck`;
 
 /** Runs `fn` once the sheet's history entry is gone (its own Back has landed), or at once when there was none. */
 function afterBack(wentBack, fn) {
@@ -41,7 +41,7 @@ export function openPro(reason = '', { then, cancel } = {}) {
     bought = true;
     body.replaceChildren(
       h('p', { class: 'pro-why' }, '🎉 Thank you!'),
-      h('p', {}, 'BassClass Pro is yours, for good: every level, every pattern and progression, every sound, and the new content we add to them.'));
+      h('p', {}, 'BassClass Pro is yours, for good: every level, every pattern and progression, every sound and drone chord, and the new content we add to them.'));
     foot.replaceChildren(h('div', { class: 'row pro-actions' }, h('button', { class: 'btn primary', type: 'button', onClick: () => close(undefined, then) }, 'Let\'s play')));
   };
 
@@ -80,9 +80,9 @@ export function openPro(reason = '', { then, cancel } = {}) {
         h('li', {}, `🥁 All ${c.styles} drum patterns, and fills`),
         h('li', {}, '🎹 Every progression (soul, jazz, minor, vamps…)'),
         h('li', {}, '🎸 The Piano, Organ and Guitar sounds'),
-        h('li', {}, '🎵 Every drone chord: 6ths, 9ths to 13ths, altered dominants, voicings'),
+        h('li', {}, '🎵 Every drone chord: 6ths and added notes, 9ths to 13ths, altered dominants, voicings in 4ths'),
         h('li', {}, '✨ The new content we add to them')),
-      h('p', { class: 'muted small' }, `Free for good: ${FREE_LINE}. One payment, yours for good: no subscription, no ads.`),
+      h('p', { class: 'muted small' }, `Free for good: ${FREE_LINE}. No subscription, no ads.`),
       msg ? h('p', { class: 'pro-msg' }, msg) : null,
       canBuy() ? null : h('p', { class: 'pro-msg' }, PLAY ? 'Google Play is not available on this phone.' : 'Buying works in the app from Google Play.'),
     ].filter(Boolean));

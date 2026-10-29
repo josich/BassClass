@@ -445,7 +445,8 @@ export const HARMS = {
   2.3: { at: 2.31, up: 36, iv: '1' },
 };
 const HARM_SETS = { main: [12, 7, 5, 4], all: [12, 9, 7, 5, 4, 3, 2.7, 2.3] };
-const fretName = (h) => (Number.isInteger(h) ? String(h) : h.toFixed(1));
+// (one name per node, the tab's: where it is touched, 12, 7, 5 over the wire, 8.8, 3.9, 3.2, 2.7, 2.3 between; QA round 20)
+const fretName = (h) => { const at = HARMS[h].at; return Math.abs(at - Math.round(at)) > 0.1 ? at.toFixed(1) : String(Math.round(at)); };
 /** One natural harmonic on string `s` (an item for Builder.frets / stack). */
 function harm(ctx, s, h, extra = {}) {
   const H = HARMS[h];
@@ -455,12 +456,12 @@ function harm(ctx, s, h, extra = {}) {
 const harmonics = ex({
   id: 'tech-harmonics', module: M, level: 4,
   title: 'Natural harmonics map',
-  summary: 'Touch the string lightly at its node: 12, 7 and 5 over the wire, the lower ones just before or after it.',
-  about: 'A natural harmonic sounds when you touch the string lightly at a node, without pressing it down, and pluck near the bridge. The 12th fret gives the octave, the 7th the octave and a 5th, the 5th two octaves: these three nodes are right over the fret wire. Lower down they are not: the 4th-fret harmonic (two octaves and a major 3rd) is just before the 4th wire, the 3rd-fret one (two octaves and a 5th) just after the 3rd wire, and near the 2nd fret sit a ♭7 (at 2.7, a little flat against the tempered note) and three octaves (at 2.3). The 9th-fret node, just before the wire, sounds like the 4th-fret one.\n\nThe neck draws each harmonic as a triangle where you touch it, and the tab writes the in-between ones as 3.9, 3.2 and 2.7. Every note is spelled from its open string: on the E string the major 3rd is G♯ (never A♭) and the ♭7 is D.',
+  summary: 'Touch the string lightly at its node: 12, 7 and 5 over the wire, the others just before or after one.',
+  about: 'A natural harmonic sounds when you touch the string lightly at a node, without pressing it down, and pluck near the bridge. The 12th fret gives the octave, the 7th the octave and a 5th, the 5th two octaves: these three nodes are right over the fret wire. Lower down they are not: the 4th-fret harmonic (two octaves and a major 3rd) is just before the 4th wire, the 3rd-fret one (two octaves and a 5th) just after the 3rd wire, and near the 2nd fret sit a ♭7 (at 2.7, a little flat against the tempered note) and three octaves (at 2.3). The 9th-fret node, just before the wire (8.8), sounds like the 4th-fret one.\n\nThe neck draws each harmonic as a triangle where you touch it, and the tab writes it in angle brackets at that place: <12>, <7>, <5>, and between the wires <8.8>, <3.9>, <3.2>, <2.7>, <2.3>. Every note is spelled from its open string: on the E string the major 3rd is G♯ (never A♭) and the ♭7 is D.',
   tips: ['Touch at the triangle, not in the middle of the fret.', 'Pluck close to the bridge for a clearer harmonic, and lift the touching finger as soon as it sounds.', 'Dot labels set to degrees show each harmonic\'s interval from its open string.'],
   source: 'The harmonic series of a string; harmonics in advanced graded exams',
   params: {
-    set: sel('Harmonics', [['main', 'The main four: 12, 7, 5, 4'], ['all', 'All up to the 12th: 12, 9, 7, 5, 4, 3.2, 2.7, 2.3']]),
+    set: sel('Harmonics', [['main', 'The main four: 12, 7, 5, 3.9'], ['all', 'All up to the 12th: 12, 8.8, 7, 5, 3.9, 3.2, 2.7, 2.3']]),
     order: sel('Order', [['fret', 'Fret by fret'], ['string', 'String by string']]),
   },
   bpm: 60, sub: 1, label: 'note',
@@ -502,8 +503,9 @@ const harmonicChords = ex({
       });
       b.chord(c.sym);
       if (p.style === 'roll') {
+        // (rolled over three beats, then held for five: two bars a chord, each on beat 1; QA round 20)
         b.frets(notes.map((x) => ({ ...x, dur: 1 })));
-        b.stack(notes, { dur: 3 });
+        b.stack(notes, { dur: 5 });
       } else {
         b.stack(notes, { dur: 2 });
         b.stack(notes, { dur: 2 });
@@ -729,7 +731,7 @@ const sweep = ex({
   summary: 'One note per string in one motion: down-strokes (Π) through the strings going up, up-strokes (V) coming down, or rakes with the fingers.',
   about: 'An arpeggio with one note per string can be played in a single motion. With a pick, the pick falls through the strings going up in pitch, all down-strokes (Π Π Π Π), and comes back through them going down, all up-strokes (V V V): a sweep. With the fingers the same economy is raking: alternate i and m going up the strings, and let one finger fall through them coming down. Each shape is one hand position per chord, and each note must stop as the next one sounds, or the arpeggio blurs into a strummed chord. Four-string shapes run in sextuplets (one sweep up and down per beat); the five-string shape, from the low B, in 16ths.',
   tips: ['Lift (or roll) each fretting finger as soon as its note has sounded: a sweep is a line, not a chord.', 'Slow and even first: the turn at the top gets the same time as every other note.'],
-  source: 'Sweep picking from rock and fusion guitar (Frank Gambale, Yngwie Malmsteen), adapted to the bass; finger raking',
+  source: 'Sweep picking from rock and fusion guitar, in the style of Frank Gambale and Yngwie Malmsteen, adapted to the bass; finger raking',
   params: {
     shape: sel('Shape', Object.entries(SWEEPS).map(([k, v]) => [k, v.name, ...(v.minStrings ? [{ minStrings: v.minStrings }] : [])])),
     hand: sel('Right hand', [['pick', 'Pick (Π up the strings, V down)'], ['fingers', 'Fingers (alternate up, rake down)']]),
@@ -788,7 +790,7 @@ const tapping = ex({
   summary: 'RH right-hand tap · LH left-hand tap (no pluck) · PO pull-off · H hammer-on: both hands on the fretboard.',
   about: 'In two-hand tapping the right hand leaves the plucking position and hammers notes onto the fretboard with a fingertip (RH), while the left hand taps its own notes without plucking (LH); pull-offs (PO) and hammer-ons (H) join them into one line. Three patterns: tap the 5th, pull off to the root and hammer the 3rd on one string, in triplets; split each chord between the hands (left hand root and 5th, right hand three chord tones higher up); and keep a left-hand pedal on the root under a tapped melody. The finger labels show the left hand\'s fingers (1–4) and the right hand\'s (i, m, a).',
   tips: ['A tap is a hammer: fast and firm, straight down just behind the fret.', 'Mute the strings you are not playing with the side of the left hand, or a hair tie at the nut.'],
-  source: 'Two-hand tapping as played by Billy Sheehan, Stu Hamm, Victor Wooten and Michael Manring',
+  source: 'Two-hand tapping in the style of Billy Sheehan, Stu Hamm, Victor Wooten and Michael Manring',
   params: {
     pattern: sel('Pattern', TAPS),
     prog: progP(HAND_PROGS, 'i-bVI-bIII-bVII'),

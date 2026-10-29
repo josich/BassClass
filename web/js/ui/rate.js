@@ -32,8 +32,10 @@ export const rateState = () => ({ ...read(), minutes: Math.round(totalMinutes())
 export const resetRate = () => write({ rated: false, asked: 0 });
 
 let openNow = null;
-/** Something else is on screen: a sheet, a picker, a bubble, or the player is busy. */
-const busy = () => !!openNow || !!document.querySelector('.picker-backdrop, .info-pop') || document.hidden;
+/** Something else is on screen: a sheet, a picker, a bubble, or the player is busy: in an exercise, the room or
+ * the tuner, entered a moment after leaving the last (QA round 20). */
+const busy = () => !!openNow || !!document.querySelector('.picker-backdrop, .info-pop') || document.hidden
+  || document.body.classList.contains('in-ex') || /^#\/(ex|practice|explorer|tuner)\b/.test(location.hash);
 
 /** At the end of something: asks when a mark has been passed and not asked yet. */
 export function maybeAskRating() {

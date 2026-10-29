@@ -7,6 +7,12 @@ import {
 
 const M = 'harmony';
 const ALL_PROGS = Object.keys(PROGS).filter((k) => !k.startsWith('vamp') && !k.startsWith('cycle') && k !== 'giant-steps' && k !== 'modal-form');
+// a drill of roots only offers each list of roots once (QA round 20: five ii – V – I with an altered V played the same
+// notes): the first progression of each
+const ROOT_PROGS = ALL_PROGS.filter((k, i) => {
+  const sig = (key) => PROGS[key].chords.map(([w, , beats = 4]) => `${w}:${beats}`).join(' ');
+  return ALL_PROGS.findIndex((x) => sig(x) === sig(k)) === i;
+});
 
 const buildChord = ex({
   id: 'hm-build-a-chord', module: M, level: 1,
@@ -71,7 +77,7 @@ const progRoots = ex({
   about: 'Most songs use a handful of progressions. Play only the roots, in whole notes, halves, quarters or 8ths, and learn to recognise each progression by ear and by shape. The Roman numerals tell you the function: I is home, V is tension, IV is the "going away" chord.',
   tips: ['Name the numeral of each chord as you play it.', 'Transpose to all 12 keys; the shapes stay the same.'],
   source: 'Nashville numbers; harmonic recall in graded exams',
-  params: { prog: progP(ALL_PROGS, 'I-V-vi-IV'), key: keyP(T.SCALES.ionian.iv), rhythm: sel('Rhythm', [['4', 'Whole notes'], ['2', 'Half notes'], ['1', 'Quarter notes'], ['0.5', '8th notes']], '1') },
+  params: { prog: progP(ROOT_PROGS, 'I-V-vi-IV'), key: keyP(T.SCALES.ionian.iv), rhythm: sel('Rhythm', [['4', 'Whole notes'], ['2', 'Half notes'], ['1', 'Quarter notes'], ['0.5', '8th notes']], '1') },
   bpm: 84, sub: 1, label: 'note',
   build(p, ctx, S) {
     const b = new Builder(ctx, S, { jazz: true });
@@ -104,7 +110,7 @@ const chordTonesProg = ex({
   id: 'hm-chord-tones', module: M, level: 3, star: true,
   title: 'Chord tones over progressions',
   summary: 'Outline every chord of real progressions: R-5, R-3-5-3, R-3-5-7…',
-  about: 'Chord tones are the backbone of bass lines: every academy builds lines as chord tones first, then scale tones, then chromatic notes. Pick a progression and an outline pattern and play it through, in one key or all 12. The chord symbol appears above the fretboard: say its numeral (I, IV, V…) as you play it.',
+  about: 'Chord tones are the backbone of bass lines: bass methods usually build lines from chord tones first, then scale tones, then chromatic notes. Pick a progression and an outline pattern and play it through, in one key or all 12. The chord symbol appears above the fretboard: say its numeral (I, IV, V…) as you play it.',
   tips: ['Choose the octave of each root that keeps the hand in one area.', 'This is RSL\'s "transpose a riff" skill: same pattern, new chord.'],
   source: 'Chord tones first: common bass-line practice; graded exams',
   params: { prog: progP(ALL_PROGS, 'I-vi-IV-V'), key: keyP(T.SCALES.ionian.iv), pattern: sel('Pattern', Object.entries(PATTERNS).map(([k, v]) => [k, v.name]), 'r353') },
@@ -264,7 +270,7 @@ const chordal10ths = ex({
   summary: 'Three-note chords across four strings: accompany yourself like a pianist.',
   about: 'Solo and chordal bassists (Jaco, Victor Wooten, Steve Lawson) voice chords across the strings: root on E or A, 5th or 7th in the middle, 3rd as a 10th on top. The exercise strums each voicing, then arpeggiates it, through jazz and pop progressions.',
   tips: ['Use thumb for the root, index and middle for the upper notes (p-i-m).', 'Aim for even volume: let the 10th sing a little louder.'],
-  source: 'Chordal bass as played by Jaco Pastorius and Victor Wooten; advanced graded exams',
+  source: 'Chordal bass in the style of Jaco Pastorius and Victor Wooten; advanced graded exams',
   params: { voicing: sel('Voicing', [['5', 'R-5-10'], ['7', 'R-7-10']]), prog: progP(['I-vi-IV-V', 'I-V-vi-IV', 'ii-V-I', 'I-vi-ii-V', 'autumn']), key: keyP(['1', '3', '5', '7']) },
   bpm: 70, sub: 1, label: 'degree',
   build(p, ctx, S) {
@@ -308,7 +314,7 @@ const formulas = ex({
   id: 'hm-chord-formulas', module: M, level: 3,
   title: 'Chord formulas: every chord from one root',
   summary: 'Triads, sus, 6, add9, 6/9, the 7th chords, 9ths, 11ths and 13ths built on one root from their formulas.',
-  about: 'Every chord symbol is a formula: degrees of the major scale counted from the root, some of them lowered. Major is 1 3 5, minor 1 ♭3 5, sus4 1 4 5; a 6th chord adds the 6, add9 the 9 (no 7th), 6/9 both; the 7th chords add a 7 or ♭7 (and the °7 a ♭♭7); 9ths, 11ths and 13ths keep stacking 3rds above the 7th. Here each chord of a family is played up its formula and back down on one root, so you see what changes from chord to chord and hear what each extra note brings.\n\nThe notes keep their textbook spelling: the 3rd of a chord is always a 3rd (C°7 is C E♭ G♭ B♭♭, its B♭♭ sounding as A). In practice an 11th chord often leaves out its 3rd, and a 13th its 11th: the formula shows everything the name allows.',
+  about: 'Every chord symbol is a formula: degrees of the major scale counted from the root, some of them lowered. Major is 1 3 5, minor 1 ♭3 5, sus4 1 4 5; a 6th chord adds the 6, add9 the 9 (no 7th), 6/9 both; the 7th chords add a 7 or ♭7 (and the °7 a ♭♭7); 9ths, 11ths and 13ths keep stacking 3rds above the 7th. Here each chord of a family is played up its formula and back down on one root, so you see what changes from chord to chord and hear what each extra note brings.\n\nThe notes keep their textbook spelling: each chord tone keeps its letter, so the 7th of C°7 is B♭♭, not A (an A would be a 6th). In practice an 11th chord often leaves out its 3rd, and a dominant 13th its 11th, which clashes with the 3rd (C13 is built without it here); a minor 13th keeps its 11th.',
   tips: ['Say each chord\'s formula before you play it.', 'Watch which dot moves from one chord to the next: often only one.', 'Turn the Backing to Chords to hear each colour under the arpeggio.'],
   source: 'Chord construction as taught in graded exams (RSL, Trinity, LCM) and jazz theory',
   params: {
@@ -327,9 +333,9 @@ const formulas = ex({
       const items = [];
       for (const q of types) {
         const ivs = T.CHORDS[q].iv;
-        // up the formula and back down to the root
+        // up the formula and back down to the root, held to the bar line, so each chord starts on beat 1 (QA round 20)
         const order = [...ivs.keys(), ...[...ivs.keys()].reverse().slice(1)];
-        chordTones(root, ivs, r.midi, order).forEach((t, j) => items.push({ ...t, chord: j === 0 ? chordName(root, q, S) : undefined }));
+        chordTones(root, ivs, r.midi, order).forEach((t, j) => items.push({ ...t, chord: j === 0 ? chordName(root, q, S) : undefined, fill: j === order.length - 1 }));
       }
       b.line(items, { pattern: false, place: { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
       prev = r.midi;

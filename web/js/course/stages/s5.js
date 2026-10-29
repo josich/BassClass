@@ -829,7 +829,7 @@ export default {
           ],
         },
         {
-          id: 'harmonic-chords', title: 'Harmonic chords', added: 1793190000000,
+          id: 'harmonic-chords', title: 'Harmonic chords', added: 1793181501000,
           idea: 'A bass note under harmonics on the D and G strings: bell-like chords.',
           concept: [
             'One finger lying lightly across the D and G strings sounds two harmonics at once, and an open or fretted bass note under them makes a chord: over the open E the 12th-fret pair gives Em7 and the 4th-fret pair Esus2; over a fretted G, Gmaj7; over a fretted C, a Lydian Cmaj7♯11.',

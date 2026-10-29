@@ -177,6 +177,7 @@ export class Builder {
       const notes = pitches.map((p) => ({ midi: this.ctx.tuning[p.s] + p.f, n: p.n || spellMidi(this.ctx.tuning[p.s] + p.f), deg: p.deg, s: p.s, f: p.f, tag: p.tag, ...(p.at != null ? { at: p.at } : {}), ...(p.play != null ? { play: p.play } : {}) }));
       const step = { notes, dur: opts.dur ?? dur };
       if (opts.accent) step.accent = true;
+      if (opts.fill) step.fill = true;
       if (opts.hide) step.hide = true;
       if (opts.silent) step.silent = true;
       this._push(step);
@@ -194,7 +195,7 @@ export class Builder {
       used.add(pos.s);
       return { midi: p.midi, n: p.n, deg: p.deg, s: pos.s, f: pos.f, tag: p.tag };
     });
-    this._push({ notes, dur: opts.dur ?? dur, ...(opts.hide ? { hide: true } : {}), ...(opts.silent ? { silent: true } : {}) });
+    this._push({ notes, dur: opts.dur ?? dur, ...(opts.fill ? { fill: true } : {}), ...(opts.hide ? { hide: true } : {}), ...(opts.silent ? { silent: true } : {}) });
     return this;
   }
 

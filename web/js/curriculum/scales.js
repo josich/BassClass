@@ -429,7 +429,7 @@ const sidestep = ex({
   summary: 'Play the pentatonic, slip a half step up or down (or a tritone away) for one bar ("outside"), then resolve back.',
   about: 'Side-stepping is a classic way to play "outside": shift the whole pentatonic up a half step for a moment, creating tension, and then resolve back into the key. It works because the shape is strong and the resolution is clear. The backing stays on the home key during the outside bar, so you hear the tension. Fusion and modern jazz players use it constantly.',
   tips: ['Make the outside bar sound intentional: strong rhythm, clear shape.', 'Resolve to a chord tone on beat 1.'],
-  source: 'Pentatonic side-stepping in the language of Michael Brecker and Scott Henderson',
+  source: 'Pentatonic side-stepping in the style of Michael Brecker and Scott Henderson',
   params: { key: keyP(T.SCALES.minorPent.iv, { def: '9', cycles: false }), side: sel('Side-step', [['1', 'Half step up'], ['-1', 'Half step down'], ['6', 'Tritone away']]), oct: octP() },
   bpm: 80, sub: 2, label: 'note',
   build(p, ctx, S) {

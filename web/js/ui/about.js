@@ -55,7 +55,7 @@ export function aboutScreen(main) {
         li(h('b', {}, 'Rim shot, cross-stick, flam, pedal hi-hat and percussion: '), '"Virtuosity Drums" by Versilian Studios and Karoryfer Samples, CC0 1.0.'),
         li(h('b', {}, 'Brushes: '), '"Swirly Drums" by Karoryfer Samples, CC0 1.0.'),
         li(h('b', {}, 'Piano: '), 'the Kawai grand piano of the Versilian Community Sample Library (VCSL) by Versilian Studios, CC0 1.0.'),
-        li(h('b', {}, 'Made in the app: '), 'the metronome click, the pad, the electric piano, the organ, the guitar, the arpeggio, the drone and the tap sounds are synthesised by BassClass itself.'))),
+        li(h('b', {}, 'Made in the app: '), 'the metronome click, the tap sounds and the harmony\'s pad, electric piano, organ, guitar and arpeggio are synthesised by BassClass itself; the drone and the chords play in the sound you pick, the piano being the recorded one above.'))),
 
     section('📄 Licence files', false,
       p('The licence notices that come with the sounds, as they are:'),
@@ -68,7 +68,7 @@ export function aboutScreen(main) {
     section('🎼 The content', false,
       p('The exercises, lessons, licks, grooves, drum patterns and progressions were written for BassClass. The song-style studies are original lines in the style of famous songs: they keep a song\'s key, feel and technique; they are not transcriptions, and the notes are our own.'),
       p('Songs, artists, players, books, methods and exam syllabi named in the app (an exercise\'s "Related" line, a study\'s source) are mentioned for reference only, as related listening and reading. BassClass is not affiliated with or endorsed by them, and their names and trademarks belong to their owners.'),
-      p('BassClass has no tracking, no ads and no third-party web code or fonts: the app itself was written for it. The Android app uses a few libraries (below).')),
+      p('BassClass has no tracking, no ads and no third-party web code or fonts: all of its code was written for BassClass. The Android app uses a few libraries (below).')),
 
     section('🧩 Libraries', false,
       p('The Android app uses these libraries:'),

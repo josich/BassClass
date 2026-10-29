@@ -353,7 +353,7 @@ const doubleThumb = slapEx('sl-double-thumb', 6, ['double'], 'double', 'vamp-min
   summary: 'Thumb down (TΠ) and up (TV) like a pick: Victor Wooten\'s signature technique.',
   about: 'Double thumbing uses the thumb in both directions: a downstroke that rests on the next string, then an upstroke with the thumbnail side. Combined with pops it allows continuous 16th-note slap lines at high speed.',
   tips: ['Start painfully slow, thumb only: down–up on one string.', 'Keep the wrist loose; the thumb moves like a pick.'],
-  source: 'Double thumbing, as played by Victor Wooten', bpm: 60,
+  source: 'Double thumbing, in the style of Victor Wooten', bpm: 60,
 });
 
 export default [roots, pick, octaveDisco, blues, approach, world, genres, funk, soul, funkChanges, oddGroove, twoFeel, chordToneWalk, approachWalk, scalarWalk, mixedWalk, enclosureWalk, twoPerBar, minorWalk, tripletWalk, giantWalk, slapBasics, slapGrooves, slapAdvanced, doubleThumb];

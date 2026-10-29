@@ -46,8 +46,8 @@ export default {
             'Harmonics are used for tuning, for melodies (Jaco\'s "Portrait of Tracy") and for chords. Diamond heads on the staff show them at the pitch they sound.',
           ],
           steps: [
-            { ex: 'tech-harmonics', p: { order: 'fret' }, sub: 1, from: 50, goal: 72, do: 'Fret by fret across the strings: 12, 7, 5, 4.' },
-            { ex: 'tech-harmonics', p: { order: 'string' }, sub: 1, from: 50, goal: 72, do: 'String by string.' },
+            { ex: 'tech-harmonics', p: { set: 'main', order: 'fret' }, sub: 1, from: 50, goal: 72, do: 'Fret by fret across the strings: 12, 7, 5 and 3.9.' },
+            { ex: 'tech-harmonics', p: { set: 'main', order: 'string' }, sub: 1, from: 50, goal: 72, do: 'String by string.' },
             { ex: 'tech-harmonics', p: { set: 'all', order: 'fret' }, sub: 1, from: 50, goal: 72, do: 'Every harmonic up to the 12th fret. The lower ones are not over the wire: touch at the triangle.' },
           ],
           mistakes: [
@@ -60,11 +60,11 @@ export default {
         can: [
           'I can stretch one finger per fret in the low positions without tension.',
           'I keep even 16ths for minutes.',
-          'I can play the harmonics at frets 12, 7, 5 and 4.',
+          'I can play the harmonics at 12, 7, 5 and 3.9 (just before the 4th fret).',
         ],
         steps: [
           { ex: 'tech-endurance', p: { prog: 'i-iv-v-min' }, sub: 4, from: 88, goal: 104 },
-          { ex: 'tech-harmonics', p: { order: 'fret' }, sub: 1, from: 60, goal: 80 },
+          { ex: 'tech-harmonics', p: { set: 'main', order: 'fret' }, sub: 1, from: 60, goal: 80 },
           { ex: 'tech-stretch', p: { from: '9', to: '1' }, sub: 2, from: 60, goal: 80 },
         ],
       },
@@ -260,7 +260,7 @@ export default {
           idea: 'On the 3rd, the 6th and the 7th of a major chord, the minor box adds colour.',
           concept: [
             'Over a major chord three minor pentatonics add colour without leaving it. Over C, the one on the 3rd (E minor) is bright and lifting; the one on the 6th (A minor, the relative minor) is open and sweet; the one on the 7th (B minor) brings the F♯, a ♯11: the floating Lydian sound, still major.',
-            'Keep the groove plain (root, 5th and octave) and put the colour in the fill at the end of the phrase. The plainer the groove, the more the fill stands out.',
+            'Keep the groove plain (chord tones only) and put the colour in the fill at the end of the phrase. The plainer the groove, the more the fill stands out.',
           ],
           steps: [
             { ex: 'sc-pent-major-chord', p: { lick: '0' }, from: 70, goal: 96, backing: 'chords', do: 'Three bars of roots and 5ths, then a fill from the minor pentatonic on the 3rd.' },

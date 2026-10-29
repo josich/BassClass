@@ -79,8 +79,29 @@ export function levelMastery(level) {
   const list = EXERCISES.filter((t) => t.level === level);
   return { total: list.length, done: list.filter((t) => isMastered(t.id)).length };
 }
+// a level passed is measured against the number of exercises it had then (`bassclass.levels.v1`: { level: count }),
+// so exercises an update adds to it never take it back (QA round 20: Levels 3–5 grew, and 35 of 43 became 35 of 46);
+// unmastering below 80% of that count still does
+const LEVELS_KEY = 'bassclass.levels.v1';
+let passedAt = null;
+function readPassed() {
+  if (passedAt) return passedAt;
+  try {
+    const v = JSON.parse(localStorage.getItem(LEVELS_KEY) || '{}');
+    passedAt = v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+  } catch { passedAt = {}; }
+  return passedAt;
+}
 /** Is a level mastered enough (80%) to count as known? */
 export function levelPassed(level) {
   const { total, done } = levelMastery(level);
-  return total > 0 && done / total >= LEVEL_PASS;
+  if (!total) return false;
+  const was = readPassed()[level];
+  const count = Number.isInteger(was) && was > 0 && was < total ? was : total;
+  const ok = done / count >= LEVEL_PASS;
+  if (ok && count === total && was !== total) {
+    passedAt[level] = total;
+    try { localStorage.setItem(LEVELS_KEY, JSON.stringify(passedAt)); } catch { /* storage unavailable */ }
+  }
+  return ok;
 }

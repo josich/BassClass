@@ -167,8 +167,16 @@ export class TabView {
       if (this.opts.quiz && c.st.notes.length) out.push(`<text x="${cx - 3}" y="${top + rowH * (strings - 1) / 2 + 4}" class="tnum tqm">?</text>`, '<g class="tq">');
       for (const n of c.st.notes) {
         const y = top + (strings - 1 - n.s) * rowH;
-        // (a harmonic between frets is written where it is touched: 3.9, 3.2, 2.7)
-        const t = n.tag === 'x' ? 'x' : n.tag === '◊' && n.at != null && Math.abs(n.at - Math.round(n.at)) > 0.1 ? n.at.toFixed(1) : String(n.f);
+        // (a harmonic is written in angle brackets, as bass tab books do, where it is touched: <12>, <3.9>; QA round 20)
+        if (n.tag === '◊') {
+          const at = n.at ?? n.f;
+          const t = `<${Math.abs(at - Math.round(at)) > 0.1 ? at.toFixed(1) : Math.round(at)}>`;
+          const w = Math.round(t.length * 6.6 + 4);
+          out.push(`<rect x="${cx + 1 - w / 2}" y="${y - 6}" width="${w}" height="12" class="tbg"/>`);
+          out.push(`<text x="${cx + 1}" y="${y + 4}" text-anchor="middle" class="tnum${c.st.accent ? ' acc' : ''}">${t.replace('<', '&lt;').replace('>', '&gt;')}</text>`);
+          continue;
+        }
+        const t = n.tag === 'x' ? 'x' : String(n.f);
         out.push(`<rect x="${cx - 7}" y="${y - 6}" width="${t.length > 1 ? 16 : 11}" height="12" class="tbg"/>`);
         out.push(`<text x="${cx - 2 + (t.length > 1 ? 3 : 0)}" y="${y + 4}" class="tnum${c.st.accent ? ' acc' : ''}">${t}</text>`);
       }

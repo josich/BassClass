@@ -567,13 +567,13 @@ export const PAD_SOUNDS = {
     click.start(when);
     return [...out, perc, click];
   } },
-  // a distorted rock and metal rhythm guitar (user, 2026-10-27): power chords (`chord`: root, 5th and octave, an
-  // octave under the chord, as a guitar plays them; full chords turn to mud under distortion), double-tracked
+  // a distorted rock and metal rhythm guitar (user, 2026-10-27): the whole chord as a guitarist grips it (`chord`,
+  // user, 2026-10-29: "correct chords, not only power chords"; it played root, 5th and octave before), double-tracked
   // (two takes a few cents and ms apart, left and right), through the amp (`amp`). Each note a plucked string
   // (`pluck`, user, 2026-10-27: "more realistic, no sample"), open or palm-muted, a little different at every
   // strike. In the room it chugs ("chug the guitar"): palm-muted strikes, one on each subdivision (`chugNote`);
   // a chord tapped on the Neck rings once (`muted` false)
-  guitar: { level: 1, struck: true, amp: true, chug: true, release: 0.09, chord: powerChord, voice(x, f, when, g, peak, muted = false) {
+  guitar: { level: 1, struck: true, amp: true, chug: true, release: 0.09, chord: guitarChord, voice(x, f, when, g, peak, muted = false) {
     const out = [];
     const midi = Math.round(69 + 12 * Math.log2(f / 440));
     // (the two takes keep their places and levels at every strike: user, 2026-10-27, it "feels like panning
@@ -655,16 +655,31 @@ function fxSweep() {
   if (!fx.leslie && !fx.amp) { clearInterval(fx.timer); fx.timer = null; }
 }
 /**
- * The guitar's shape of a chord (its notes from the room's voicing, root first): root, 5th and octave, an octave
- * under the chord. Its own 5th (QA round 19: a perfect 5th over m7♭5 or °7 is the wrong chord): perfect, ♭5 (°, ø, °7,
- * 7♭5) or ♯5 (+, 7♯5, maj7♯5), read from the notes within the octave; a chord that dropped its plain 5th for a 9th,
- * 11th or 13th keeps the perfect one; an altered dominant (♯9 and ♭13, no 5th of its own) plays root and octave.
+ * The guitar's grip of a chord (user, 2026-10-29: "correct chords, not only power chords"), from the room's voicing
+ * (root first, between E3 and D♯4, its tones close above it; a 9th, 11th or 13th in the 5th's place), its root an
+ * octave down, as a guitar's lowest strings play it:
+ * - with a 5th (perfect, ♭5 or ♯5): root, 5th, the 6th or 7th, the 3rd (or the sus 2nd or 4th) a 10th up, and any
+ *   tension where the voicing has it: C7 C3 G3 B♭3 E4, Cmaj7 C3 G3 B3 E4, C°7 C3 G♭3 A3 E♭4, Cadd9 C3 G3 D4 E4;
+ *   a triad doubles its root: C3 G3 C4 E4 (Csus4 C3 G3 C4 F4, C5 C3 G3 C4);
+ * - with tensions in the 5th's place: root, 3rd, 7th, then the tensions, the grips of jazz and funk: C9 C3 E3 B♭3 D4,
+ *   C7♯9 C3 E3 B♭3 D♯4, C7alt C3 E3 B♭3 D♯4 A♭4, Cm11 C3 E♭3 B♭3 D4 F4, C6/9 C3 E3 A3 D4;
+ * - a voicing already open (its two lowest gaps a 4th or more: the drone's spread, shell and 4ths voicings) keeps
+ *   its shape, an octave down.
  */
-function powerChord(m) {
-  const r = m[0], d = new Set(m.map((x) => x - r));
-  if (!d.has(7) && d.has(20) && (d.has(15) || d.has(13))) return [r - 12, r];
-  const fifth = d.has(7) ? 7 : d.has(6) ? 6 : d.has(8) ? 8 : 7;
-  return [r - 12, r - 12 + fifth, r];
+function guitarChord(m) {
+  const r = m[0], low = r - 12;
+  const d = m.map((x) => x - r);
+  if (d.length > 2 && d[1] >= 5 && d[2] - d[1] >= 5) return m.map((x) => x - 12);
+  const fifth = d.find((x) => x >= 6 && x <= 8);
+  const third = d.filter((x) => x >= 2 && x <= 5);
+  const seventh = d.filter((x) => x >= 9 && x <= 11);
+  const tensions = d.filter((x) => x > 12);
+  const out = fifth != null
+    ? [low, low + fifth, ...seventh.map((x) => low + x), ...third.map((x) => low + 12 + x)]
+    : [low, ...third.map((x) => low + x), ...seventh.map((x) => low + x)];
+  if (fifth != null && !seventh.length && !tensions.length) out.push(low + 12);
+  out.push(...tensions.map((x) => low + x));
+  return [...new Set(out)].sort((a, b) => a - b);
 }
 
 /**
@@ -816,7 +831,7 @@ export function arpNote(midi, when = now(), rate = 4) {
 }
 
 /**
- * One palm-muted strike of the guitar's power chord at `when` on its amp (user, 2026-10-27: "chug the guitar"):
+ * One palm-muted strike of the guitar's chord at `when` on its amp (user, 2026-10-27: "chug the guitar"):
  * the engine plays one on each subdivision of the beat, in the groove's feel, as the arpeggio; `rate` strikes a
  * second (faster ones a little shorter), `accent` the beat's own (3 dB up). Returns its gain node.
  */
@@ -856,7 +871,7 @@ export function padSet(midis, when = now(), sound = 'pad') {
   padStop(when);
   if (!midis?.length) return;
   const kind = PAD_SOUNDS[sound] || PAD_SOUNDS.pad;
-  // (the guitar plays its own shape of the chord: a power chord)
+  // (the guitar plays its own grip of the chord)
   if (kind.chord) midis = kind.chord(midis);
   const peak = (0.16 / Math.sqrt(midis.length)) * kind.level;
   for (const m of midis) {
