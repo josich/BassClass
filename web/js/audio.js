@@ -10,7 +10,7 @@ const ACCOMP_THRESHOLD = -3.0;   // dB: the accompaniment's limiter (see audioCt
 const makeupGain = (threshold, ratio) => 10 ** ((0.6 * -threshold * (1 - 1 / ratio)) / 20);
 const synthCache = new Map();
 // route: what the Android app reports ('speaker' | 'external'), or null in a browser
-const opts = { bassVol: 2, clickVol: 0.75, drumVol: 0.8, padVol: 1, padTone: 1500, route: null };
+const opts = { bassVol: 2, clickVol: 0.75, drumVol: 0.8, padVol: 1, padTone: 1500, route: null, recClick: false };
 // The click (user, 2026-10-24: too quiet at 100% with the phone at its loudest): it joins the output past the
 // accompaniment's limiter, so at the top of its slider (clickVol 1.5) its bar accent peaks at -2.8 dB, the
 // loudest it can be without distortion (measured through this graph: with drums and the room's pad at 100%,
@@ -29,6 +29,8 @@ const DRUM_DRIVE = 4, DRUM_TRIM = 1.2;
 // (their glue and limiter, the accompaniment's, the last one), the pad two, the bass two, the click one. These
 // delays bring everything to the drums' 24 ms, so the click, the chords and the bass land with the hits.
 const ALIGN = { click: 0.018, pad: 0.012, bass: 0.012 };
+/** The click's own delay to the output (a recorded take's delay is estimated from it on headphones). */
+export const CLICK_ALIGN = ALIGN.click;
 const PHONE_BOOST = 15; // dB lifted around 850 Hz on the phone speaker
 // the guitar amp's output level (its distortion is set by its own drive): its chugs 5 dB over the pad (user,
 // 2026-10-27: "it needs to be louder compared to other sounds"; A-weighted, measured)
@@ -459,6 +461,7 @@ function harmonicVoice(midi, when, dur, vel) {
 /** Schedule a metronome click. level: 2 = bar accent, 1.5 = a group's start (odd metres), 1 = beat, 0 = subdivision. */
 export function click(when = now(), level = 1) {
   audioCtx();
+  if (opts.recClick) return recClick(when, level);
   const o = ac.createOscillator();
   const g = ac.createGain();
   o.type = 'sine';
@@ -472,6 +475,26 @@ export function click(when = now(), level = 1) {
   o.start(when);
   o.stop(when + 0.11);
   return g;   // (disconnected, a click not yet sounded is cancelled)
+}
+
+/**
+ * The click while a take is recorded (judge.js): a short high tick, 4.6 kHz (5.3 on the bar, 5 on a group), 2 ms up
+ * and gone in about 6 ms, far above the bass's onsets and pitch (they are read under 2.5 kHz), so the microphone can
+ * hear it on the speaker without it passing for a note.
+ */
+function recClick(when, level) {
+  const o = ac.createOscillator();
+  const g = ac.createGain();
+  o.type = 'sine';
+  o.frequency.value = level === 2 ? 5300 : level === 1.5 ? 5000 : 4600;
+  const v = level === 2 ? 0.9 : level === 1.5 ? 0.8 : level === 1 ? 0.7 : 0.3;
+  g.gain.setValueAtTime(0, when);
+  g.gain.linearRampToValueAtTime(v, when + 0.002);
+  g.gain.setTargetAtTime(0, when + 0.002, 0.0015);
+  o.connect(g).connect(clickBus);
+  o.start(when);
+  o.stop(when + 0.02);
+  return g;
 }
 
 // ------------------------------------------------------------------ backing pad

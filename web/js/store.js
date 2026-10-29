@@ -92,6 +92,12 @@ function cleanEntry(e) {
   if (e.params && typeof e.params === 'object' && !Array.isArray(e.params)) {
     out.params = Object.fromEntries(Object.entries(e.params).filter(([, v]) => typeof v === 'string'));
   }
+  // the app's verdict on the last recorded take (judge.js), beside the player's own ✓
+  const j = e.judged;
+  if (j && typeof j === 'object' && isBool(j.clean) && numIn(30, 260)(j.bpm) && [j.right, j.total, j.inTime].every(numIn(0, 1e4))) {
+    out.judged = { at: numIn(0, 1e15)(j.at) ? j.at : 0, clean: j.clean, bpm: j.bpm, right: j.right, total: j.total, inTime: j.inTime,
+      timing: ['click', 'estimated', 'even'].includes(j.timing) ? j.timing : 'click' };
+  }
   return out;
 }
 

@@ -14,6 +14,7 @@ import { harmonyTrack, harmonyAt, NO_BACKING } from '../harmony.js';
 import { recordLoop, rememberTempo, stepState, stepPassed, stepClean, stepCovered, setClean, untickStep, isDue, isComplete, reviewed } from '../course/progress.js';
 import { goalOf, goalText as masteryGoal, meetsGoal, setMastered, isMastered, SUB_NAMES } from '../mastery.js';
 import { openPro } from './proSheet.js';
+import { JUDGED, startTake, judge, playTake } from '../judge.js';
 
 // a Pro exercise opened by a free player plays its first bars once, a preview (user, 2026-10-29)
 const PREVIEW_BEATS = 16;
@@ -128,7 +129,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const btn = (name, title, onClick, cls = '') => h('button', { class: `icon-btn ${cls}`, title, 'aria-label': title, html: icon(name), onClick });
   // (a control that sounds itself gives no tap tick: Play, and ‹ › which play the note)
   const silent = (el) => { el.dataset.silent = ''; return el; };
-  const playBtn = silent(btn('play', 'Play / pause (space)', () => { player.toggle(); }, 'big'));
+  const playBtn = silent(btn('play', 'Play / pause (space)', () => (rec ? cancelTake() : player.toggle()), 'big'));
   // all exercise options live behind one clear button (a strip of selects gets cut off on phones)
   const optsSum = h('span', { class: 'opts-sum' });
   const hasParams = Object.keys(tpl.params || {}).length > 0;
@@ -159,8 +160,10 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   // (in a preview, the Pro offer in its place)
   const previewBtn = preview ? h('button', { class: 'btn small locked pro-try', title: preview, onClick: offerPro }, '⭐ Preview', h('span', { class: 'chip pro' }, 'Pro')) : null;
   let lessonDone = false; // the lesson was completed in this visit: Next goes back to its page
+  // 🎙 a recorded take, judged by the app (a prototype on a few single-note exercises: judge.js)
+  const recBtn = JUDGED.has(tpl.id) && !preview && !demo ? btn('mic', 'Record a take: the app listens and judges it', () => openRec()) : null;
   const top = h('header', { class: `exv-top${lesson ? ' lesson' : ''}` },
-    btn('back', 'Back', () => close()), titleEl, optsBtn, goalBtn, previewBtn, nextBtn,
+    btn('back', 'Back', () => close()), titleEl, optsBtn, goalBtn, previewBtn, nextBtn, recBtn,
     starButton(tpl.id, { cls: 'icon-btn' }),
     btn('tuner', 'Tuner', () => { location.hash = '#/tuner'; }), btn('info', 'About this exercise', () => openDrawer()));
 
@@ -174,8 +177,12 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const tipEl = h('div', { class: 'coach', role: 'status', hidden: true });
   boardEl.append(fbHost, nowEl, promptEl, beatsEl);
   const tabEl = h('div', { class: 'exv-tab' });
+  // a take: its card (before and after) over the stage, and while it runs a badge that leaves the neck in view
+  const recLayer = h('div', { class: 'rec-layer', hidden: true, onClick: (e) => { if (e.target === recLayer && !rec) closeRec(); } });
+  const recBadge = h('div', { class: 'rec-badge', role: 'status', hidden: true }, h('i'), h('span', {}, 'Recording: play from the first note'),
+    h('button', { class: 'btn small', onClick: () => cancelTake() }, 'Stop'));
   // (the tip sits low, over the strip, so it never hides the first notes on the neck)
-  const stage = h('div', { class: 'exv-stage' }, boardEl, tabEl, tipEl);
+  const stage = h('div', { class: 'exv-stage' }, boardEl, tabEl, tipEl, recLayer, recBadge);
 
   const bpmVal = h('div', { class: 'bpm' });
   const bpmRange = h('input', { type: 'range', min: MIN_BPM, max: MAX_BPM, step: 1, 'aria-label': 'Tempo' });
@@ -229,7 +236,12 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       showStep(i);
     },
     onBeat: (level, beat) => flashBeat(beat),
-    onState: (playing) => { playBtn.innerHTML = icon(playing ? 'pause' : 'play'); },
+    onState: (playing) => {
+      playBtn.innerHTML = icon(playing ? 'pause' : 'play');
+      // (a take stopped before its end, by any control, is dropped; its end comes right after this, with onEnd)
+      if (!playing && rec) setTimeout(() => { if (rec && !rec.ending && !player.playing) cancelTake(); });
+    },
+    onSched: (e) => onSched(e),
     onLoop: (n, bpm, done) => {
       syncBpm();
       // `done`: the slowest tempo of the loop just played, or null when it did not start on the first
@@ -259,6 +271,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     },
     onEnd: (full) => {
       showStep(-1);
+      if (rec) { endTake(); return; }
       if (preview) { previewEnd(); return; }
       // played through without the loop: today's session ticks it too
       if (demo || full) routine?.played?.();
@@ -697,9 +710,160 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         ${tpl.source ? `<h4>Related</h4><p class="muted small">${esc(tpl.source)}</p>` : ''}
         <h4>Your progress</h4>
         <p class="muted">${pr.plays ? `${pr.plays} loops played · best ${pr.bestBpm || '–'} BPM` : 'Not played yet.'}${pr.done ? ' · <b style="color:var(--good)">mastered</b>' : ` · 🎯 to master it: ${esc(masteryGoal(tpl.id))}, then ✓ Mastered`}</p>
+        ${pr.judged ? `<p class="muted small">🎙 Your last take, as the app heard it: ${pr.judged.clean ? 'clean' : 'not clean yet'} at ${pr.judged.bpm} BPM (${pr.judged.right} of ${pr.judged.total} notes right, ${pr.judged.inTime} in time).</p>` : ''}
       </div>`;
     drawer.querySelector('[data-close]').addEventListener('click', () => drawer.classList.remove('open'));
     drawer.classList.add('open');
+  }
+
+  // ------------------------------------------------------------ 🎙 a take (user, 2026-10-29: a prototype)
+  // One pass from the first note with the player's real bass: the app's bass and backing stay silent and the click
+  // turns into a high tick the analysis does not hear as a note (audio.js `recClick`), then judge.js listens back.
+  // Only the latest take is kept, in memory, until the next one (user's choice); nothing is sent. The verdict is
+  // kept beside the player's own ✓ Clean and ✓ Mastered, which stay theirs.
+  let rec = null;        // the take running: { take, sched, saved, bpm, ending }
+  let listening = null;  // the take playing back
+  function recCard(...children) {
+    recLayer.replaceChildren(h('div', { class: 'rec-card' }, ...children));
+    recLayer.hidden = false;
+  }
+  function closeRec() { listening?.stop(); listening = null; recLayer.hidden = true; }
+  const recBtns = (...b) => h('div', { class: 'rec-btns' }, ...b, h('button', { class: 'btn', onClick: closeRec }, 'Close'));
+  function openRec() {
+    closeMore();
+    hideTip();
+    if (player.playing) player.pause();
+    recCard(
+      h('h3', {}, '🎙 Record a take'),
+      h('ul', { class: 'rec-lines' },
+        h('li', {}, '🎸 Play it on your bass, once from the first note, after a bar of clicks.'),
+        h('li', {}, '🔊 On the speaker the app hears its click and times you against it; with headphones it judges how even you are.'),
+        h('li', {}, '🔇 The app\'s bass and backing stay silent, so the microphone hears only you.'),
+        h('li', {}, '📱 Only your latest take is kept, on this phone, until the next one. Nothing is sent.')),
+      recBtns(h('button', { class: 'btn primary', onClick: () => startRec() }, '● Record')));
+  }
+  async function startRec() {
+    if (rec) return;
+    listening?.stop();
+    listening = null;
+    recCard(h('p', {}, 'Opening the microphone…'));
+    let take;
+    try { take = await startTake(); } catch (e) {
+      console.warn(e);
+      recCard(h('h3', {}, 'No microphone'),
+        h('p', { class: 'muted' }, window.isSecureContext ? 'The microphone could not be opened. Allow BassClass to use it, then try again.' : 'Browsers open the microphone only on secure (https) pages.'),
+        recBtns());
+      return;
+    }
+    if (!alive) { take.stop({ keep: false }); return; }
+    player.stop();
+    rec = { take, sched: { clicks: [], notes: [] }, bpm: player.bpm, ending: false,
+      saved: { loop: player.loop, sound: player.sound, metro: player.metro, countIn: player.countIn, trainer: player.trainer.on } };
+    Object.assign(player, { loop: false, sound: false, metro: true, countIn: true, harmony: null });
+    player.trainer.on = false;
+    A.padStop();
+    A.setAudioOptions({ recClick: true, clickVol: Math.max(S.clickVol, 0.75) });
+    recLayer.hidden = true;
+    recBadge.querySelector('span').textContent = 'Recording: play from the first note';
+    recBadge.hidden = false;
+    recBtn?.classList.add('rec-on');
+    player.play();
+  }
+  /** What the player scheduled during the take: the count-in's clicks and each note, with their times. */
+  function onSched(e) {
+    if (!rec || rec.ending) return;
+    if (e.type === 'click') { if (e.counting) rec.sched.clicks.push(e.time); return; }
+    const st = e.step;
+    if (st.rest || st.silent || !st.notes?.length) return;
+    const n = st.notes[0];
+    rec.sched.notes.push({ t: e.time, midi: n.play ?? n.midi, name: n.n ? T.noteName(n.n, S.notation) : '', idx: e.idx });
+  }
+  function restoreRec(r) {
+    recBadge.hidden = true;
+    recBtn?.classList.remove('rec-on');
+    Object.assign(player, { loop: r.saved.loop, sound: r.saved.sound, metro: r.saved.metro, countIn: r.saved.countIn });
+    player.trainer.on = r.saved.trainer;
+    A.setAudioOptions({ recClick: false, clickVol: S.clickVol });
+    applyBacking();
+    syncToggles();
+  }
+  function cancelTake() {
+    if (!rec) return;
+    const r = rec;
+    rec = null;
+    player.stop();
+    r.take.stop({ keep: false });
+    restoreRec(r);
+    toast('Take stopped');
+  }
+  function endTake() {
+    const r = rec;
+    r.ending = true;
+    recBadge.querySelector('span').textContent = 'Listening back…';
+    // (the last note rings on a little)
+    setTimeout(() => {
+      if (rec !== r) return;
+      rec = null;
+      const take = r.take.stop();
+      restoreRec(r);
+      recCard(h('p', {}, 'Listening back…'));
+      setTimeout(() => {
+        if (!alive) return;
+        let res = null;
+        try { res = take && judge(take, r.sched, { inputLatency: r.take.inputLatency }); } catch (e) { console.error(e); }
+        showTake(res, r);
+      }, 30);
+    }, 700);
+  }
+  function showTake(res, r) {
+    const again = h('button', { class: 'btn', onClick: () => startRec() }, '● Again');
+    const s = res?.summary;
+    if (!s || s.missed === s.total) {
+      recCard(h('h3', { class: 'no' }, 'Nothing heard'),
+        h('p', { class: 'muted' }, 'The microphone heard no notes. Hold the phone near the bass or the amp, and play a little louder.'),
+        recBtns(again));
+      return;
+    }
+    updateProgress(tpl.id, { judged: { at: Date.now(), clean: res.clean, bpm: r.bpm, right: s.right, total: s.total, inTime: s.inTime, timing: res.timing } });
+    const parts = [`${s.right} of ${s.total} right`];
+    if (s.wrong) parts.push(`${s.wrong} wrong`);
+    if (s.missed) parts.push(`${s.missed} not heard`);
+    if (s.unclear) parts.push(`${s.unclear} unclear`);
+    if (s.extra) parts.push(`${s.extra} extra`);
+    const bias = s.bias == null ? '' : Math.abs(s.bias) < 10 ? ' · right on the click' : ` · on average ${Math.abs(s.bias)} ms ${s.bias > 0 ? 'late' : 'early'}`;
+    const timing = res.timing === 'click'
+      ? `${s.inTime} of ${s.timed} in time with the click${bias}${s.spread != null ? ` · spread ${s.spread} ms` : ''}`
+      : `${s.inTime} of ${s.timed} even with your own pulse${s.spread != null ? ` · spread ${s.spread} ms` : ''}`;
+    const how = res.timing === 'click' ? null
+      : h('p', { class: 'muted small' }, res.timing === 'estimated'
+        ? 'The click was not heard (headphones?), so the app judged how even you are, not how close to the click.'
+        : 'The click\'s delay could not be measured (Bluetooth?), so the app judged how even you are.');
+    const cells = res.notes.map((n, j) => {
+      const sn = r.sched.notes[j];
+      const off = n.dt != null && !n.inTime;
+      const cls = n.pitch === 'missed' ? 'missed' : n.pitch === 'wrong' ? 'wrong' : off ? 'off' : n.pitch === 'ok' ? 'ok' : 'unclear';
+      const ms = n.dt == null ? '–' : `${n.dt > 0 ? '+' : ''}${Math.round(n.dt * 1000)}`;
+      const what = n.pitch === 'missed' ? 'not heard' : n.pitch === 'wrong' ? `heard ${n.heard != null ? T.noteName(T.bestRoot(((n.heard % 12) + 12) % 12), S.notation) : 'another note'}`
+        : n.pitch === 'unclear' ? 'pitch unclear' : 'right note';
+      return h('button', { class: cls, title: `${sn.name}: ${what}${n.dt != null ? `, ${ms} ms` : ''}`, onClick: () => { if (!player.playing) player.stepTo(sn.idx, false); } },
+        sn.name, h('small', {}, n.pitch === 'wrong' ? '✗' : ms));
+    });
+    const listen = h('button', { class: 'btn', onClick: () => {
+      if (listening) { listening.stop(); listening = null; listen.textContent = '▶ Listen'; return; }
+      listening = playTake();
+      if (!listening) return;
+      listen.textContent = '■ Stop';
+      const me = listening;
+      me.onended = () => { if (listening === me) { listening = null; listen.textContent = '▶ Listen'; } };
+    } }, '▶ Listen');
+    recCard(
+      h('h3', { class: res.clean ? 'ok' : 'no' }, res.clean ? '✓ A clean take' : 'Not clean yet'),
+      h('p', { class: 'rec-line' }, `🎵 Notes: ${parts.join(' · ')}`),
+      h('p', { class: 'rec-line' }, `⏱ Timing: ${timing}`),
+      how,
+      h('div', { class: 'rec-notes' }, cells),
+      h('p', { class: 'muted small' }, `The app's ear, kept beside your own ✓${lesson && !demo ? ' Clean' : ' Mastered'}: tick that one yourself when it felt clean.`),
+      recBtns(listen, again));
   }
 
   // ------------------------------------------------------------ tip
@@ -720,12 +884,12 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   function onKey(e) {
     if (!tipEl.hidden) hideTip();
     if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
-    if (e.code === 'Space') { e.preventDefault(); player.toggle(); }
+    if (e.code === 'Space') { e.preventDefault(); if (rec) cancelTake(); else player.toggle(); }
     else if (e.code === 'ArrowRight') manual(1);
     else if (e.code === 'ArrowLeft') manual(-1);
     else if (e.key === '+' || e.key === '=') setBpm(player.bpm + 2);
     else if (e.key === '-') setBpm(player.bpm - 2);
-    else if (e.key === 'Escape') { drawer.classList.remove('open'); closeOptions(); closeMore(); }
+    else if (e.key === 'Escape') { drawer.classList.remove('open'); closeOptions(); closeMore(); if (!rec) closeRec(); }
   }
   window.addEventListener('keydown', onKey);
 
@@ -733,6 +897,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
 
   function dispose() {
     alive = false;
+    if (rec) { const r = rec; rec = null; r.take.stop({ keep: false }); A.setAudioOptions({ recClick: false, clickVol: S.clickVol }); }
+    listening?.stop();
     document.removeEventListener('pointerdown', pressAnywhere, true);
     hideTip();
     player.stop(true);

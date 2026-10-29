@@ -10,7 +10,8 @@ export const MAX_BPM = 260;
 
 export class Player {
   constructor(cb = {}) {
-    this.cb = cb;               // { onStep(idx), onBeat(level, beatInBar), onState(playing), onLoop(n, bpm, done) }
+    this.cb = cb;               // { onStep(idx), onBeat(level, beatInBar), onState(playing), onLoop(n, bpm, done),
+                                //   onSched(event): each click and step as it is scheduled, with its time (a recorded take) }
     this.inst = null;
     this.bpm = 80;
     this.sub = 2;               // notes per beat for uniform exercises
@@ -202,7 +203,10 @@ export class Player {
         const muted = !counting && (
           (this.inst.clickBeats && (!onBeat || !this.inst.clickBeats.includes(Math.round(inBar) % bpb)))
           || (this.inst.clickEvery && ((bar % this.inst.clickEvery) + this.inst.clickEvery) % this.inst.clickEvery !== 0));
-        if (!muted) A.click(tClick, this.inst.clickBeats && !counting ? 1 : level);
+        if (!muted) {
+          A.click(tClick, this.inst.clickBeats && !counting ? 1 : level);
+          this.cb.onSched?.({ type: 'click', time: tClick, counting, level });
+        }
         if (onBeat) this._q({ time: tClick, type: 'beat', level, beat: Math.round(inBar) });
         this.nextClickAbs += clickInc;
         continue;
@@ -230,6 +234,7 @@ export class Player {
         }
       }
       this._q({ time: tStep, type: 'step', idx });
+      this.cb.onSched?.({ type: 'step', time: tStep, idx, step });
       this.si++;
       if (this.si >= steps.length) {
         if (this.loop) {

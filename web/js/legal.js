@@ -34,7 +34,7 @@ export function privacyPolicy(where = 'app') {
     ['h', 'What stays on your device'],
     ['ul', [
       ['Your progress. ', 'Your settings, progress, course, sessions, favourites, practice log and whether you own Pro are stored in the app on your phone. We cannot see them. Uninstalling the app deletes them.'],
-      ['The microphone ', 'is used only by the tuner, only while it is open. The sound is analysed on the phone to find the pitch and is never recorded, stored or sent.'],
+      ['The microphone ', 'is used only while you use it: by the tuner while it is open, and by 🎙 Record in an exercise during a take. The tuner\'s sound is analysed on the phone to find the pitch and is never kept. A take is analysed on the phone to judge your notes and timing; only your latest take is kept, in the app\'s memory so you can listen to it, until your next take or until the app closes. It is never saved to your phone\'s storage or sent. The app keeps only its verdict (how many notes were right and in time) with your progress.'],
       ['Backups. ', 'A backup is a file you save where you choose. We never receive it.'],
       ['Android\'s own backup, ', 'when it is on in your phone\'s settings, copies the app\'s data to your Google account so a new phone can restore it. That is a Google service, under Google\'s privacy policy; we never receive the copy.'],
     ]],

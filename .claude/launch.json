@@ -20,6 +20,12 @@
       "port": 8890
     },
     {
+      "name": "qatools",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["qa/tools/cors_serve.py", "qa/tools", "8882"],
+      "port": 8882
+    },
+    {
       "name": "design",
       "runtimeExecutable": "python",
       "runtimeArgs": ["tools/serve.py", "8899"],
