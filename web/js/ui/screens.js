@@ -1,7 +1,7 @@
 // Browsing screens: home (course, daily warm-up, favorites), learning path (topics), library (every exercise), module list, explorer, settings.
 import { VERSION, COMMIT } from '../version.js';
 import { h, icon, toast, rng, esc, infoBtn } from './dom.js';
-import { settings, saveSettings, getProgress, resetProgress, DEFAULT_SETTINGS, getFavorites } from '../store.js';
+import { settings, saveSettings, getProgress, resetProgress, DEFAULT_SETTINGS, getFavorites, isFavorite } from '../store.js';
 import { EXERCISES, MODULES, LEVELS, byModule, byLevel, moduleOf, byId, byNumber, defaultParams, topicRank as rank } from '../curriculum/index.js';
 import * as A from '../audio.js';
 import { paramOptions } from './exercise.js';
@@ -13,7 +13,7 @@ import { resetCourse, placed, anyProgress } from '../course/progress.js';
 import { replaceHash, goBack, canGoBack } from './nav.js';
 import { saveBackup, parseBackup, restoreBackup } from '../backup.js';
 import { resetLog } from '../practiceLog.js';
-import { hashLock, exerciseLock, lessonLock, levelLocked, gatesOn, newsIdOf } from '../pro.js';
+import { hashLock, exerciseLock, lessonLock, levelLocked, gatesOn, newsIdOf, isProContent } from '../pro.js';
 import { LESSONS } from '../course/data.js';
 import { openPro } from './proSheet.js';
 import { isNew, newCount, markUsed } from '../news.js';
@@ -243,9 +243,42 @@ const SYNONYMS = {
   fretboard: ['neck'], notes: ['note names'], thumb: ['slap', 'thumb'], popping: ['pop'], chords: ['chord', 'triad', 'arpeggio'],
   jazz: ['walking', 'ii-v', 'bebop'], solo: ['lick', 'soloing'], improvise: ['lick', 'solo', 'your own'], improvisation: ['lick', 'solo', 'your own'],
 };
+// status words filter the exercises instead of matching their texts, and mix with any other words ("scales not
+// mastered", "level 3 mastered"; user, 2026-10-29: "typing mastered would show all mastered exercises"): the phrases,
+// what the results say, and the test
+const played = (pr) => !!(pr.plays || pr.bestBpm || pr.done);
+const STATUS = [
+  [['not mastered', 'unmastered', 'not done', 'to master', 'to do', 'todo'], 'not mastered', (t, pr) => !pr.done],
+  [['goal reached', 'goal met'], '🎯 goal reached, not ticked yet', (t, pr) => !!pr.met && !pr.done],
+  [['mastered', 'cleared', 'done'], '✓ mastered', (t, pr) => !!pr.done],
+  [['not played', 'never played', 'not started', 'unplayed'], 'not played yet', (t, pr) => !played(pr)],
+  [['played', 'started'], 'played', (t, pr) => played(pr)],
+  [['favourites', 'favourite', 'favorites', 'favorite', 'starred', 'favs', 'fav'], '★ favourites', (t) => isFavorite(t.id)],
+  [['new'], 'new', (t) => isNew(`ex:${t.id}`)],
+  [['core'], '★ core', (t) => !!t.star],
+  [['pro'], 'Pro', (t) => isProContent(t)],
+  [['free'], 'free', (t) => !isProContent(t)],
+];
+// (the longest phrase first: "not mastered" before "mastered")
+const STATUS_PHRASES = STATUS.flatMap((s, i) => s[0].map((p) => [p, i])).sort((a, b) => b[0].length - a[0].length);
+/** The status words and a level ("level 3", "L3") taken out of a search: { filters, level, rest }. */
+function statusOf(q) {
+  const filters = new Set();
+  let level = null;
+  let rest = ` ${q} `;
+  for (const [p, i] of STATUS_PHRASES) {
+    const at = rest.indexOf(` ${p} `);
+    if (at < 0) continue;
+    filters.add(i);
+    rest = `${rest.slice(0, at)} ${rest.slice(at + p.length + 2)}`;
+  }
+  rest = rest.replace(/ (?:level|lvl|l) ?([1-6])(?= )/, (_, n) => { level = Number(n); return ' '; });
+  return { filters: [...filters].sort((a, b) => a - b), level, rest: rest.trim().replace(/\s+/g, ' ') };
+}
+
 export function libraryScreen(main, params = {}) {
   // the search text belongs to this history entry, so Back from an exercise finds it again
-  const search = h('input', { class: 'search', type: 'search', placeholder: 'Search: triad, ii-V, 305…', 'aria-label': 'Search exercises', value: history.state?.q || '' });
+  const search = h('input', { class: 'search', type: 'search', placeholder: 'Search: triad, ii-V, 305, mastered…', 'aria-label': 'Search exercises', value: history.state?.q || '' });
   const results = h('div');
   // jump to a level (opening it if it is folded)
   const jump = (n) => {
@@ -285,22 +318,30 @@ export function libraryScreen(main, params = {}) {
     // a number ("305" or "#305") finds that exercise; a lesson's number ("3.15", "lesson 3.15") that lesson
     const num = q.match(/^#?(\d+)$/);
     const lnum = q.match(/^(?:lesson\s*)?#?(\d\.\d{1,2})$/);
-    const words = q.split(/\s+/);
+    // status words and a level filter; the other words match the texts
+    const st = num || lnum ? { filters: [], level: null, rest: q } : statusOf(q);
+    const words = st.rest ? st.rest.split(' ') : [];
     const found = (hay) => words.every((w) => alts(w).some((a) => hay.includes(a)));
+    const keep = (t) => (!st.level || t.level === st.level) && st.filters.every((i) => STATUS[i][2](t, getProgress(t.id) || {}));
     // (a number with no exercise of its own, a year such as 1991, is searched as text)
     const list = lnum ? [] : num && byNumber.has(Number(num[1])) ? [byNumber.get(Number(num[1]))] : EXERCISES.filter((t) => {
+      if (!keep(t)) return false;
       const song = t.song ? `${t.song.name} ${t.song.artist} ${t.song.year}` : '';
       return found(norm(`${t.title} ${t.summary} ${t.about} ${t.module} ${moduleOf(t.module)?.name || ''} ${song} ${optionText(t)}`));
     }).sort((a, b) => a.order - b.order);
-    // the course's lessons too, by number or by their words (QA round 21: "do lesson 3.15" is how teachers say it)
-    const lessons = lnum ? LESSONS.filter((l) => l.num === lnum[1]) : num ? [] : LESSONS.filter((l) => l.kind === 'lesson' && found(lessonText(l))).slice(0, 12);
+    // the course's lessons too, by number or by their words (QA round 21: "do lesson 3.15" is how teachers say it);
+    // a status word is about exercises, so it lists none, and a level keeps its stage's
+    const lessons = lnum ? LESSONS.filter((l) => l.num === lnum[1]) : num || st.filters.length || !words.length ? []
+      : LESSONS.filter((l) => l.kind === 'lesson' && (!st.level || l.stage.level === st.level) && found(lessonText(l))).slice(0, 12);
+    // what the status words and the level asked for, said with the results ("✓ mastered · Level 3")
+    const asked = [...st.filters.map((i) => STATUS[i][1]), ...(st.level ? [`Level ${st.level}`] : [])].join(' · ');
     const lessonCard = (l) => h('div', { class: `card${lessonLock(l) ? ' locked' : ''}`, onClick: () => go(`#/course/${l.id}`) },
       h('h3', {}, h('span', { class: 'ex-num' }, l.num), l.title),
       h('div', { class: 'meta' }, proChip(lessonLock(l)), h('span', { class: `chip lv lv${l.stage.level}` }, `Stage ${l.stage.level}`), l.unit ? h('span', { class: 'chip' }, l.unit.title) : null));
     const parts = [];
     if (lessons.length) parts.push(h('p', { class: 'muted small' }, `${lessons.length} lesson${lessons.length > 1 ? 's' : ''}`), h('div', { class: 'grid' }, lessons.map(lessonCard)));
-    if (list.length) parts.push(h('p', { class: 'muted small' }, `${list.length} exercise${list.length > 1 ? 's' : ''} found`), h('div', { class: 'grid' }, list.map((t) => card(t))));
-    results.replaceChildren(parts.length ? h('div', {}, ...parts) : h('p', { class: 'muted' }, 'Nothing found.'));
+    if (list.length) parts.push(h('p', { class: 'muted small' }, `${list.length} exercise${list.length > 1 ? 's' : ''}${asked ? `: ${asked}` : ' found'}`), h('div', { class: 'grid' }, list.map((t) => card(t))));
+    results.replaceChildren(parts.length ? h('div', {}, ...parts) : h('p', { class: 'muted' }, asked ? `No exercises: ${asked}${words.length ? `, "${st.rest}"` : ''}.` : 'Nothing found.'));
   };
   search.addEventListener('input', () => {
     try { history.replaceState({ ...(history.state || {}), q: search.value }, ''); } catch { /* ignore */ }
@@ -309,7 +350,7 @@ export function libraryScreen(main, params = {}) {
   // (a level the player has just reached opens: the page scrolls to it once, when it is not the first)
   const reached = settings.libOpen != null && settings.libAt !== playerLevel() && !params.l ? playerLevel() : null;
   main.replaceChildren(
-    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '▸ Levels: tap a level to open or fold it', '🗂 Topics: one card per topic, its exercises Level 1 to 6', '🔎 Search by name, topic, song, artist or number (#305); lessons by name or number (3.15)', '🔢 An exercise\'s number is its level, then its own: 305 is Level 3', '★ core: a key exercise of its level', `🎯 Master an exercise: a full loop at its goal, then ✓ Mastered; it counts in the course too`, `📈 ${Math.round(LEVEL_PASS * 100)}% of a level mastered moves your level on`, 'ⓘ on a card: what it is'], 'About the Library'), views, h('div', { class: 'grow' }), search),
+    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '▸ Levels: tap a level to open or fold it', '🗂 Topics: one card per topic, its exercises Level 1 to 6', '🔎 Search by name, topic, song, artist or number (#305); lessons by name or number (3.15)', '🏷 Status words: mastered, not mastered, goal reached, played, not played, favourites, new, core, pro, free, level 3; mix them with any words ("scales not mastered")','🔢 An exercise\'s number is its level, then its own: 305 is Level 3', '★ core: a key exercise of its level', `🎯 Master an exercise: a full loop at its goal, then ✓ Mastered; it counts in the course too`, `📈 ${Math.round(LEVEL_PASS * 100)}% of a level mastered moves your level on`, 'ⓘ on a card: what it is'], 'About the Library'), views, h('div', { class: 'grow' }), search),
     jumps,
     results);
   render();

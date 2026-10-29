@@ -114,6 +114,11 @@ export function exerciseLock(t, ls = '') {
   const L = why && freeLessonOf(t);
   return L ? `${why}: play this one free in Lesson ${L.num}` : why;
 }
+/** Whether an exercise is Pro in the store's build, whatever the gates now (the Library search's "pro" and "free"). */
+export function isProContent(t) {
+  const m = marked(t);
+  return m ? m === 'pro' : t.level > FREE_LEVELS;
+}
 /** The first lesson open to a free player that plays this exercise. */
 const freeLessonOf = (t) => [...lessonById.values()].find((L) => L.kind === 'lesson' && L.steps.some((s) => s.ex === t.id) && !lessonLock(L)) || null;
 /** Why a lesson (checkpoint, test) is closed, or null. */
