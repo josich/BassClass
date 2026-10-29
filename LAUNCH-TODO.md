@@ -358,6 +358,62 @@ crashes) → send for review (usually hours to a few days).
   saying the app is in English; posture drawings in Unit 1; listening to the player (the strategic gap against the
   subscription apps; never promised in the listing).
 
+### ☐ Maybe: the app in other languages 👤 + 🤖 (decide after launch, once the texts stop changing)
+
+The user asked (2026-10-29) about Spanish, Catalan, French, German, Japanese, Basque and others. A maybe, not a plan:
+decide with Play Console's sales by country in hand.
+
+**Why after launch.** BassClass sells worldwide in English as it is, and Play already shows prices in each player's
+currency. The texts still change several times a week (QA rounds, new lessons), and every change would have to be made
+again in each language.
+
+**How much text.** About 63,000 words per language, plus a few thousand short labels:
+- exercise texts and options: about 28,700 words;
+- the course (lessons, mistakes, checkpoints, My level): about 25,400;
+- screens, ⓘ bubbles, buttons and messages: about 6,700;
+- the legal texts: about 1,000;
+- the store listing: about 1,400.
+
+**What it costs.**
+| Route | Per language | Quality |
+|---|---|---|
+| Professional translators (about €0.08–0.15 a word, Japanese more) | about €5–10k (six languages: €35–60k) | good, with a music glossary |
+| Claude translates, a native bassist reviews (30–40 hours) | about €1–1.5k for the reviewer, less with volunteers | good with a careful reviewer |
+| Claude translates, nobody reviews | only Claude usage | not good enough for a teaching app |
+
+- **Claude's part, once:** move every text out of the code (about 100 files, many sentences built from pieces) into
+  one file per language, with whole-sentence templates and plurals. Also: a language choice in Settings (the phone's
+  language by default), search words per language, and a self-test that every text exists in every language. It is a
+  refactor of nearly every file: several long sessions, before any translation.
+- **Then for good:** every new exercise, lesson and text fix is done again in each language. Six languages make each
+  round of changes about seven times the text work.
+
+**Risks.**
+- **Music terms**, where a wrong word costs a teacher's trust. Each language needs a glossary and a musician to check it:
+  - German names B as H and B♭ as B: a third note-name setting beside C D E and Do Re Mi.
+  - French jazz writes C7M for Cmaj7.
+  - Spanish and Catalan have their own names for note values (negra, corchea; corxera).
+  - Some words stay English in every language (slap, groove, walking bass): decide which.
+  - The Do Re Mi setting already helps Spanish, Catalan, French and Basque.
+- **Layouts**: German runs about 30% longer and French about 20%, and the phone screens at 800×380 are tight. Every
+  language needs its own visual check.
+- **Japanese** is the hardest: line breaking, its own conventions, high expectations of polish. Selling there may bring
+  seller-disclosure rules (the Specified Commercial Transactions Act): ask a lawyer first.
+- **Legal texts**: marketing a country in its language generally means the privacy policy and terms in that language too
+  (Spain and Catalonia have their own consumer-language rules). A professional translation of each, ideally with a
+  legal check.
+- **Return**: Spanish (Spain and Latin America), German, French and Japanese are large markets; Catalan and Basque
+  speakers almost all read Spanish, so those two are mostly a gesture (regional language programmes sometimes fund such
+  work: worth asking). Brazilian Portuguese is a larger bass market than some of the languages above.
+
+**If yes, in this order.**
+1. Freeze the English texts for a few weeks.
+2. Claude builds the language system once.
+3. **Spanish first, as the pilot**: Claude translates, a bassist reviews; the store listing and the legal texts in
+   Spanish too.
+4. After a few months, compare Spanish-speaking sales with before. Then German, French or Portuguese by demand;
+   Japanese last, with a professional translator.
+
 ---
 
 ## Keys (decided: Google Play's key)
