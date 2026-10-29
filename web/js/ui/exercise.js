@@ -142,7 +142,10 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const subtitle = L
     ? `${lessonName} · ${demo ? 'demo: listen and watch' : `step ${LI + 1}/${L.steps.length} · ${goalText()}`}`
     : `${mod?.name ?? ''}${tpl.song ? ' · our own line in its style, not the record\'s' : ''} · Level ${tpl.level} ${lvl ? lvl.name : ''}${preview ? ' · Pro preview' : ''}`;
-  const titleEl = h('div', { class: 'exv-title' }, h('b', { title: tpl.title }, h('span', { class: 'ex-num' }, tpl.num), tpl.short || tpl.title), h('span', { title: subtitle }, subtitle));
+  // a tap on the title shows the exercise in the Library, at its level, its card highlighted (user, 2026-10-29)
+  const toLibrary = () => { location.hash = `#/library?f=${encodeURIComponent(tpl.id)}`; };
+  const titleEl = h('div', { class: 'exv-title to-lib', role: 'link', tabindex: 0, 'aria-label': `${tpl.title}: show it in the Library`, onClick: toLibrary, onKeydown: (e) => { if (e.key === 'Enter') toLibrary(); } },
+    h('b', { title: `${tpl.title} · show it in the Library` }, h('span', { class: 'ex-num' }, tpl.num), tpl.short || tpl.title), h('span', { title: subtitle }, subtitle));
   let nextBtn = null;
   if (routine) {
     const last = routine.index + 1 >= routine.total;

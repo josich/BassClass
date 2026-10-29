@@ -44,9 +44,12 @@ export function gameScreen(root, tpl, { params = {}, onBack }) {
   const optsSum = h('span', { class: 'opts-sum' });
   const optsBtn = h('button', { class: 'opts-btn', title: 'Change the game', onClick: () => openOptions() },
     h('span', { class: 'opts-ico', html: icon('sliders') }), h('span', { class: 'opts-txt' }, h('small', {}, 'Game · tap to change'), optsSum));
+  const toLibrary = () => { location.hash = `#/library?f=${encodeURIComponent(tpl.id)}`; };
   const top = h('header', { class: 'exv-top' },
     btn('back', 'Back', () => close()),
-    h('div', { class: 'exv-title' }, h('b', { title: tpl.title }, h('span', { class: 'ex-num' }, tpl.num), tpl.title), h('span', {}, `${mod?.name ?? ''} · a game, no bass needed · Level ${tpl.level} ${lvl ? lvl.name : ''}`)),
+    // (a tap on the title shows the game in the Library, as in an exercise)
+    h('div', { class: 'exv-title to-lib', role: 'link', tabindex: 0, 'aria-label': `${tpl.title}: show it in the Library`, onClick: toLibrary, onKeydown: (e) => { if (e.key === 'Enter') toLibrary(); } },
+      h('b', { title: `${tpl.title} · show it in the Library` }, h('span', { class: 'ex-num' }, tpl.num), tpl.title), h('span', {}, `${mod?.name ?? ''} · a game, no bass needed · Level ${tpl.level} ${lvl ? lvl.name : ''}`)),
     optsBtn, h('div', { class: 'grow' }), scoreEl,
     infoBtn(tpl.about.split('\n\n'), `About ${tpl.title}`));
   const fbHost = h('div', { class: 'fb-host' });

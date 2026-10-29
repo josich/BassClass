@@ -1040,3 +1040,10 @@ input[type="range"] { touch-action: pan-y; }
 .tn-col b { font-size: 16px; }
 .tn-col small { font-size: 11px; color: var(--muted); min-height: 14px; }
 .tn-col .lbl-btn { min-width: 40px; min-height: 30px; }
+
+/* the exercise title shows it in the Library (#/library?f=<id>), its card glowing a moment */
+.exv-title.to-lib { cursor: pointer; border-radius: 8px; padding: 2px 6px; margin: -2px -6px; }
+.exv-title.to-lib:hover, .exv-title.to-lib:focus-visible { background: var(--panel-2); outline: none; }
+.exv-title.to-lib:active { background: var(--panel-3); }
+.card.focus { animation: card-focus 2.6s ease-out; }
+@keyframes card-focus { 0%, 45% { box-shadow: 0 0 0 3px var(--accent), 0 0 18px rgba(70, 201, 162, 0.45); } 100% { box-shadow: 0 0 0 0 transparent; } }

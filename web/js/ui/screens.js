@@ -41,7 +41,7 @@ function card(t, { level = true, topic = true } = {}) {
   const pr = getProgress(t.id) || {};
   const mod = moduleOf(t.module);
   const lock = exerciseLock(t);
-  return h('div', { class: `card${pr.done ? ' done' : ''}${lock ? ' locked' : ''}`, onClick: () => go(exHref(t.id)) },
+  return h('div', { class: `card${pr.done ? ' done' : ''}${lock ? ' locked' : ''}`, 'data-ex': t.id, onClick: () => go(exHref(t.id)) },
     starButton(t.id),
     h('h3', {}, h('span', { class: 'ex-num' }, t.num), t.title),
     // (a song study says on its card that the line is ours, not the record's: user, 2026-10-29, "make them honest")
@@ -295,10 +295,15 @@ export function libraryScreen(main, params = {}) {
     saveSettings({ libView: params.v });
     try { history.replaceState(history.state, '', '#/library'); } catch { /* ignore */ }
   }
+  // "#/library?f=<id>": an exercise's title tapped (user, 2026-10-29): its level opens and its card comes into view,
+  // highlighted, in the Levels view for this visit (the player's view stays as chosen); the address then loses it
+  const focus = params.f ? byId.get(params.f) : null;
+  if (params.f) { try { history.replaceState(history.state, '', '#/library'); } catch { /* ignore */ } }
+  let view = focus ? 'levels' : settings.libView;
   const views = h('div', { class: 'seg lib-views' });
   const drawViews = () => views.replaceChildren(...[['levels', 'Levels'], ['topics', 'Topics']].map(([v, l]) => h('button', {
-    class: settings.libView === v ? 'on' : '',
-    onClick: () => { if (settings.libView !== v) { saveSettings({ libView: v }); drawViews(); render(); main.scrollTop = 0; } },
+    class: view === v ? 'on' : '',
+    onClick: () => { if (view !== v) { view = v; saveSettings({ libView: v }); drawViews(); render(); main.scrollTop = 0; } },
   }, l)));
   drawViews();
   // "ii-V" must find "ii–V" (every kind of dash counts as a hyphen), "7#5" and "dorian b5" find
@@ -312,7 +317,7 @@ export function libraryScreen(main, params = {}) {
   const lessonText = (l) => norm(`${l.title} ${l.idea || ''} ${[].concat(l.concept || []).join(' ')} ${[].concat(l.mistakes || []).join(' ')} ${(l.steps || []).map((s) => s.do || '').join(' ')} ${l.unit?.title || ''}`);
   const render = () => {
     const q = norm(search.value.trim());
-    const topics = settings.libView === 'topics';
+    const topics = view === 'topics';
     jumps.hidden = !!q || topics;
     if (!q) { results.replaceChildren(...(topics ? [modulesGrid()] : levelSections())); return; }
     // a number ("305" or "#305") finds that exercise; a lesson's number ("3.15", "lesson 3.15") that lesson
@@ -348,14 +353,24 @@ export function libraryScreen(main, params = {}) {
     render();
   });
   // (a level the player has just reached opens: the page scrolls to it once, when it is not the first)
-  const reached = settings.libOpen != null && settings.libAt !== playerLevel() && !params.l ? playerLevel() : null;
+  const reached = settings.libOpen != null && settings.libAt !== playerLevel() && !params.l && !focus ? playerLevel() : null;
   main.replaceChildren(
-    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '▸ Levels: tap a level to open or fold it', '🗂 Topics: one card per topic, its exercises Level 1 to 6', '🔎 Search by name, topic, song, artist or number (#305); lessons by name or number (3.15)', '🏷 Status words: mastered, not mastered, goal reached, played, not played, favourites, new, core, pro, free, level 3; mix them with any words ("scales not mastered")','🔢 An exercise\'s number is its level, then its own: 305 is Level 3', '★ core: a key exercise of its level', `🎯 Master an exercise: a full loop at its goal, then ✓ Mastered; it counts in the course too`, `📈 ${Math.round(LEVEL_PASS * 100)}% of a level mastered moves your level on`, 'ⓘ on a card: what it is'], 'About the Library'), views, h('div', { class: 'grow' }), search),
+    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '▸ Levels: tap a level to open or fold it', '🗂 Topics: one card per topic, its exercises Level 1 to 6', '🔎 Search by name, topic, song, artist or number (#305); lessons by name or number (3.15)', '🏷 Status words: mastered, not mastered, goal reached, played, not played, favourites, new, core, pro, free, level 3; mix them with any words ("scales not mastered")', '🔢 An exercise\'s number is its level, then its own: 305 is Level 3', '★ core: a key exercise of its level', `🎯 Master an exercise: a full loop at its goal, then ✓ Mastered; it counts in the course too`, `📈 ${Math.round(LEVEL_PASS * 100)}% of a level mastered moves your level on`, 'ⓘ on a card: what it is'], 'About the Library'), views, h('div', { class: 'grow' }), search),
     jumps,
     results);
   render();
-  if (settings.libView === 'topics') return;
-  if (params.l) requestAnimationFrame(() => jump(Number(params.l)));
+  if (view === 'topics') return;
+  if (focus && !search.value) {
+    requestAnimationFrame(() => {
+      const fold = main.querySelector(`#lv-${focus.level}`);
+      if (fold && !fold.open) { fold.open = true; setLibOpen(focus.level, true); }
+      const el = main.querySelector(`.card[data-ex="${CSS.escape(focus.id)}"]`);
+      if (!el) return;
+      el.scrollIntoView({ block: 'center' });
+      el.classList.add('focus');
+      setTimeout(() => el.classList.remove('focus'), 2600);
+    });
+  } else if (params.l) requestAnimationFrame(() => jump(Number(params.l)));
   else if (reached && !search.value) requestAnimationFrame(() => jump(reached));
 }
 
