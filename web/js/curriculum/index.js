@@ -16,6 +16,7 @@ import ear from './ear.js';
 import songs from './songs.js';
 import { NUMBERS } from './numbers.js';
 import { EAR_GAMES, READ_GAMES } from './games.js';
+import rock from './rock.js';
 
 export const LEVELS = [
   { n: 1, name: 'Foundations', desc: 'Open strings, first notes, steady pulse, first shapes.' },
@@ -40,12 +41,12 @@ export const MODULES = [
   { id: 'harmony', name: 'Chords & Harmony', icon: '🎹', desc: 'How chords work, progressions, double stops, shells.' },
   { id: 'grooves', name: 'Grooves & Bass Lines', icon: '🥁', desc: 'Rock, blues, Motown, funk, soul, reggae, Latin, country, afrobeat, pick playing, odd metres.' },
   { id: 'walking', name: 'Walking Bass', icon: '🚶', desc: 'Two-feel to bebop: chord tones, approaches, enclosures.' },
-  { id: 'licks', name: 'Jazz Licks', icon: '🎷', desc: 'Advanced vocabulary: ii–V–I, minor, blues, bebop, modern, bass solos, motifs, implied changes.' },
+  { id: 'licks', name: 'Licks', icon: '🎷', desc: 'Rock and blues licks, then jazz vocabulary: ii–V–I, minor, blues, bebop, modern, bass solos, motifs, implied changes.' },
   { id: 'slap', name: 'Slap & Pop', icon: '👍', desc: 'Thumb, pop, hammer, ghost notes, double thumb.' },
   { id: 'music', name: 'Make Music', icon: '🎵', desc: 'Original lines in the style of famous songs, from the first riff to a whole bass solo.' },
 ];
 
-const ALL = [...fretboard, ...reading, ...READ_GAMES, ...technique, ...rhythm, ...intervals, ...ear, ...EAR_GAMES, ...scales, ...pentatonics, ...modes, ...triads, ...arpeggios, ...harmony, ...grooves, ...licks, ...songs];
+const ALL = [...fretboard, ...reading, ...READ_GAMES, ...technique, ...rhythm, ...intervals, ...ear, ...EAR_GAMES, ...scales, ...pentatonics, ...modes, ...triads, ...arpeggios, ...harmony, ...grooves, ...licks, ...rock, ...songs];
 {
   const seen = new Set();
   for (const t of ALL) {

@@ -13,6 +13,7 @@ import { STYLES, levelsOf, regroup, phraseHits } from './practice/styles.js';
 import { PIECES } from './drums.js';
 import { checkLicks, default as LICK_TEMPLATES } from './curriculum/licks.js';
 import { PENTATONIC_LICKS } from './curriculum/pentatonics.js';
+import { ROCK_LICKS } from './curriculum/rock.js';
 import { NUMBERS, RETIRED } from './curriculum/numbers.js';
 import { LESSON_NUMBERS, RETIRED_LESSONS } from './course/numbers.js';
 import * as T from './theory.js';
@@ -260,7 +261,7 @@ export function run({ strings = [4, 5, 6], verbose = false } = {}) {
   let builds = 0, notes = 0;
   checkCourse(problems, strings);
   // every written phrase (licks, pentatonic studies) fills its chords exactly
-  problems.push(...checkLicks([...LICK_TEMPLATES, ...PENTATONIC_LICKS]));
+  problems.push(...checkLicks([...LICK_TEMPLATES, ...PENTATONIC_LICKS, ...ROCK_LICKS]));
   checkDrums(problems);
   checkPro(problems);
   checkNumbers(problems);

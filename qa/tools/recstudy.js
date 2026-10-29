@@ -4,10 +4,15 @@
 // absolute URL. It renders "takes" from the app's own bass samples (web/audio/bass/, the same envelopes as playNote)
 // with KNOWN answers (timing errors, wrong / missed / extra notes, ringing strings, pitched ghosts, legato notes,
 // uneven fingers), through a model of a phone's microphone with the app's click and pad leaking in, then runs a
-// prototype analyser (spectral-flux onsets, score-informed alignment, the tuner's yin per note, Goertzel checks for
-// ringing) and scores it against the answers.
-//   await __rs.take({ id, params, strings, bpm, sub, perf, cond })   one take: { truth, found, eval }
-//   await __rs.suite()                                                the report's tables (window.__rsOut)
+// prototype analyser and scores it against the answers. The analyser: 48 -> 12 kHz, log spectral flux with a
+// frequency max filter (N 512, hop 2 ms, 40-2500 Hz), the flux peak interpolated, a noise gate from the count-in,
+// a monotonic alignment to the written notes that weighs timing AND each onset's pitch (yin), the tuner's yin per
+// note plus an informed check at the written note's period, Goertzel checks for ringing strings.
+//   await __rs.take({ id | line, params, strings, bpm, sub, perf, cond, notch, subtract, padNotch, bg, calibrate })
+//       one take: { truth, found, eval }   (perf and cond: see perform() and record())
+//   await __rs.suite()   the report's tables (window.__rsOut; about 1 minute)
+//   __rs.refine = 'peak' | 'energy' | 'hf', __rs.band = [lo, hi], __rs.frame = [N, hop], __rs.pitchCost = bool: the
+//   variants compared in the report
 (() => {
   const SR = 48000;   // a phone's AudioContext rate
   const AR = 12000;   // the analysis rate (the tuner's: 48 kHz / 4)
@@ -447,6 +452,19 @@
     return x;
   }
 
+  // the cumulative mean normalised difference (yin's d') at the period of `f` (+-50 cents): low = that pitch is there
+  function dipAt(buf, sr, f) {
+    const tMax = Math.ceil(sr / (f * 2 ** (-50 / 1200))) + 1, tMin = Math.floor(sr / (f * 2 ** (50 / 1200)));
+    const W = buf.length - tMax; if (W < tMax * 0.75) return null;
+    let run = 0, best = 1;
+    for (let tau = 1; tau <= tMax; tau++) {
+      let sum = 0; for (let j = 0; j < W; j++) { const v = buf[j] - buf[j + tau]; sum += v * v; }
+      run += sum; const cm = run > 0 ? sum * tau / run : 1;
+      if (tau >= tMin && cm < best) best = cm;
+    }
+    return best;
+  }
+
   let PITCH = null;
   async function analyse(take, { L = take.L, notch = true, informed = true, subtract = false, padNotes = null } = {}) {
     PITCH ||= await M('/js/pitch.js');
@@ -470,12 +488,20 @@
     const pairs = align(det.map((d) => ({ t: d.tr, s: d.s, f: d.f, clar: d.clar })), exp);
     const res = [];
     const onsets = det.map((d) => d.tr);
+    const medAll = median(det.map((d) => d.s));
+    const samePc = (f, m) => { const c = 1200 * Math.log2(f / midiF(m)); return Math.abs(((c % 1200) + 1800) % 1200 - 600) <= 50; };
     for (const [di, ej] of pairs) {
       const d = di >= 0 ? det[di] : null, e = ej >= 0 ? exp[ej] : null;
       const r = { exp: ej, det: di, t: d?.tr ?? null, s: d?.s ?? 0 };
       if (d) {
         // the note's sustained part: 35 ms after the onset, up to the next onset (at most 260 ms)
-        const nxt = onsets.find((x) => x > d.tr + 0.03) ?? d.tr + 1;
+        // (it ends at the next clear onset, or, informed, 30 ms before the next written note)
+        let nxt = onsets.find((x) => x > d.tr + 0.03) ?? d.tr + 1;
+        if (e && informed) {
+          const until = exp[ej + 1] ? exp[ej + 1].t - 0.03 : d.tr + 1;
+          const k = det.find((q) => q.tr > d.tr + 0.03 && (q.tr >= until || (q.s > 0.35 * medAll && q.f && !samePc(q.f, e.midi))));
+          nxt = k ? Math.min(k.tr, Math.max(until, d.tr + 0.1)) : until;
+        }
         const a = Math.round((d.tr + 0.035) * AR), b = Math.round(Math.min(d.tr + 0.26, nxt - 0.01) * AR);
         r.len = (b - a) / AR;
         let fmin = 26;
@@ -484,12 +510,16 @@
         const y = b - a > 0 ? PITCH.yin(seg, AR, { fmin, fmax: 520 }) : null;
         r.f = y?.freq ?? null; r.clarity = y?.clarity ?? 0;
         r.midiHeard = y ? 69 + 12 * Math.log2(y.freq / 440) : null;
+        // informed: is the written note's period there? (yin's normalised difference at that period, +-50 cents)
+        if (e && informed && b - a > 0) r.expDip = dipAt(seg, AR, midiF(e.midi));
         // level: the loudest 10 ms (RMS) in the first 60 ms, in the pitch band
         let lv = 0; const s0 = Math.round(d.tr * AR);
         for (let k = s0; k < s0 + Math.round(0.06 * AR); k += 12) { let s = 0; for (let q = 0; q < 120; q++) s += (zp[k + q] || 0) ** 2; lv = Math.max(lv, Math.sqrt(s / 120)); }
         r.levelDb = db(lv);
         if (e) {
           r.dt = d.tr - e.t;
+          // yin found nothing clear, but the written note's period is there: heard as written (informed)
+          if (r.midiHeard == null && r.expDip != null && r.expDip < 0.3) { r.pc = 'ok'; r.oct = 0; r.informedOnly = true; }
           if (r.midiHeard != null) {
             const c = (r.midiHeard - e.midi) * 100;
             const pcErr = ((c % 1200) + 1800) % 1200 - 600;   // -600..600 cents, octave folded
@@ -506,7 +536,13 @@
     }
     // an onset left over is an extra NOTE only when it is about as strong as the notes and has a clear pitch
     const medS = median(res.filter((r) => r.exp >= 0 && r.det >= 0).map((r) => r.s));
-    for (const r of res) if (r.exp < 0) r.extraNote = r.s > 0.35 * medS && r.clarity > 0.8;
+    // (and not the pitch of the note already sounding: a low string's sustain swells and makes onsets of its own)
+    for (const r of res) {
+      if (r.exp >= 0) continue;
+      r.extraNote = r.s > 0.35 * medS && r.clarity > 0.8;
+      const prev = res.filter((q) => q.exp >= 0 && q.det >= 0 && q.t < r.t).pop();
+      if (r.extraNote && prev && r.f) { const c = 1200 * Math.log2(r.f / midiF(exp[prev.exp].midi)); if (Math.abs(((c % 1200) + 1800) % 1200 - 600) <= 50) r.extraNote = false; }
+    }
     // a weak onset matched to a note whose pitch was not heard: the note was most likely not played
     for (const r of res) if (r.exp >= 0 && r.det >= 0 && r.s < 0.35 * medS && r.pc !== 'ok') r.weak = true;
     const strong = res.filter((r) => r.det >= 0 && r.s > 0.35 * medS).map((r) => r.t).sort((a, b) => a - b);
@@ -603,6 +639,10 @@
   }
 
   async function take(o = {}) {
+    const keepBG = BG; if (o.bg !== undefined) BG = o.bg;
+    try { return await take1(o); } finally { BG = keepBG; }
+  }
+  async function take1(o) {
     const sc = await score(o.id || 'sc-one-octave', o);
     const tk = await record(sc, o.perf || {}, o.cond || {});
     let L = tk.L;
@@ -626,7 +666,7 @@
       const evs = [];
       for (const seed of seeds) {
         const t = await take({ ...base, perf: { seed, ...(base.perf || {}) } });
-        t.eval.onsetErr = t.found.filter((r) => r.exp >= 0 && r.det >= 0).map((r) => { const tr = t.truth.find((x) => x.i === r.exp); return tr && tr.played && !tr.ghost ? (r.t - tr.tRec) * 1000 : null; }).filter((x) => x != null);
+        t.eval.onsetErr = t.found.filter((r) => r.exp >= 0 && r.det >= 0 && !r.weak).map((r) => { const tr = t.truth.find((x) => x.i === r.exp); return tr && tr.played && !tr.ghost ? (r.t - tr.tRec) * 1000 : null; }).filter((x) => x != null);
         evs.push(t.eval);
       }
       const on = pool(evs);
@@ -648,7 +688,7 @@
       console.log(name, row);
       return row;
     };
-    const faults = { sd: 0, wrong: [[3, 1], [9, -1]], miss: [6], extra: [[11, 2]], ring: [1, 12] };
+    const faults = { sd: 8, wrong: [[3, 1], [9, -1]], miss: [6], extra: [[11, 2]], ring: [1, 12] };
     const S1 = { id: 'sc-one-octave', bpm: 100, sub: 2 };
     const LOWB = [[23, 1], [23, 0.5], [26, 0.5], [28, 1], [30, 1], [31, 1], [30, 0.5], [28, 0.5], [26, 1], [23, 1], [35, 1], [33, 1], [31, 1], [30, 1], [28, 1], [26, 1], [23, 2]];
     const amp = { mic: 'amp', noise: -60 }, unp = { mic: 'unplugged', noise: -40 };
@@ -663,14 +703,15 @@
     await run('amp, app click +10 dB, subtracted, 1 dB / 20 us wobble', { ...S1, subtract: true, cond: { ...amp, click: 10, clickVary: 1, clickJitter: 0.02 } });
     await run('amp, recording click +20 dB', { ...S1, notch: false, cond: { ...amp, click: 20, clickHigh: true, clickVary: 3, clickJitter: 0.1 } });
     await run('unplugged, recording click +30 dB, AGC', { ...S1, notch: false, cond: { ...unp, click: 30, clickHigh: true, agc: true } });
-    await run('amp, recording click +10, pad 0 dB', { ...S1, notch: false, cond: { ...amp, click: 10, clickHigh: true, pad: 0 } });
-    await run('amp, recording click +10, pad +6 dB', { ...S1, notch: false, cond: { ...amp, click: 10, clickHigh: true, pad: 6 } });
-    await run('unplugged, recording click +20, pad +10 dB', { ...S1, notch: false, cond: { ...unp, click: 20, clickHigh: true, pad: 10 } });
+    await run('amp, recording click +10, pad 0 dB, pad not handled', { ...S1, notch: false, cond: { ...amp, click: 10, clickHigh: true, pad: 0 } });
+    await run('amp, recording click +10, pad 0 dB, pad notched + steady-sound flux', { ...S1, bg: { tau: 0.4, margin: 0.7 }, padNotch: true, notch: false, cond: { ...amp, click: 10, clickHigh: true, pad: 0 } });
+    await run('amp, recording click +10, pad +6 dB, handled', { ...S1, bg: { tau: 0.4, margin: 0.7 }, padNotch: true, notch: false, cond: { ...amp, click: 10, clickHigh: true, pad: 6 } });
+    await run('unplugged, recording click +20, pad +10 dB, handled', { ...S1, bg: { tau: 0.4, margin: 0.7 }, padNotch: true, notch: false, cond: { ...unp, click: 20, clickHigh: true, pad: 10 } });
     // 2. faults: wrong, missed, extra notes and ringing strings
     await run('faults, amp, headphones', { ...S1, perf: faults, cond: amp });
-    await run('faults, amp, recording click +10, pad 0', { ...S1, notch: false, perf: faults, cond: { ...amp, click: 10, clickHigh: true, pad: 0 } });
+    await run('faults, amp, recording click +10, pad 0, handled', { ...S1, bg: { tau: 0.4, margin: 0.7 }, padNotch: true, notch: false, perf: faults, cond: { ...amp, click: 10, clickHigh: true, pad: 0 } });
     await run('faults, unplugged, headphones', { ...S1, perf: faults, cond: unp });
-    await run('faults, unplugged, recording click +20, pad +10', { ...S1, notch: false, perf: faults, cond: { ...unp, click: 20, clickHigh: true, pad: 10 } });
+    await run('faults, unplugged, recording click +20, pad +10, handled', { ...S1, bg: { tau: 0.4, margin: 0.7 }, padNotch: true, notch: false, perf: faults, cond: { ...unp, click: 20, clickHigh: true, pad: 10 } });
     // 3. fast notes, the low B, two octaves
     await run('16ths at 120, amp, headphones', { id: 'sc-one-octave', bpm: 120, sub: 4, perf: { wrong: [[5, 1]] }, cond: amp });
     await run('16ths at 140, amp, headphones', { id: 'sc-one-octave', bpm: 140, sub: 4, perf: { wrong: [[5, 1]] }, cond: amp });
