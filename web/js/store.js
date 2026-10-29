@@ -13,6 +13,7 @@ export const DEFAULT_SETTINGS = {
   a4: 440,                 // tuner reference
   tunerShift: 0,           // the tuner's tuning: standard moved this many semitones (ui/tuner.js TUNER_SHIFTS)
   tunerDrop: false,        // … with its lowest string dropped a whole step
+  tunerOffs: null,         // … then each string moved on its own (semitones per string, low to high), or null
   countIn: true,
   metro: true,
   clickSubs: false,
@@ -42,6 +43,7 @@ const SETTING_RULES = {
   lefty: isBool, countIn: isBool, metro: isBool, clickSubs: isBool, tapSounds: isBool,
   a4: numIn(425, 455),
   tunerShift: (v) => Number.isInteger(v) && v >= -6 && v <= 5, tunerDrop: isBool,
+  tunerOffs: (v) => v === null || (Array.isArray(v) && v.length >= 4 && v.length <= 6 && v.every((x) => Number.isInteger(x) && x >= -7 && x <= 7)),
   bassVol: numIn(0, 2), clickVol: numIn(0, 1.5),
   maxFret: oneOf([17, 20, 21, 24]),
   level: oneOf([1, 2, 3, 4, 5, 6]),

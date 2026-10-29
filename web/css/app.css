@@ -1014,3 +1014,29 @@ input[type="range"] { touch-action: pan-y; }
 .rec-badge i { width: 10px; height: 10px; border-radius: 50%; background: #e3876e; animation: listen 1.1s ease-in-out infinite; }
 .rec-badge .btn { min-height: 30px; padding: 4px 10px; }
 .icon-btn.rec-on { color: #e3876e; }
+
+/* the tuner's tuning: Standard | Drop, the lowest string's note, ✎ each string */
+.tuner { position: relative; }
+.tn-mode button { min-height: 32px; padding: 4px 11px; }
+.tn-key { display: inline-flex; align-items: center; gap: 2px; background: var(--panel-2); border-radius: 10px; padding: 3px; }
+.tn-key .lbl-btn { min-width: 32px; min-height: 32px; font-size: 18px; font-weight: 700; }
+.tn-key-n { min-width: 40px; text-align: center; font-weight: 800; font-size: 17px; }
+.tn-key-n small { font-size: 11px; color: var(--muted); margin-left: 1px; }
+.tn-key-l { font-size: 10.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; padding: 0 2px 0 6px; }
+.tn-each { min-height: 38px; padding: 4px 12px; font-weight: 700; }
+/* (a 5-string's six chips in one row at 800 px) */
+.tn-main { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); }
+.tn-strings { gap: 6px; }
+.tn-str { min-width: 48px; padding: 6px 6px; }
+.tn-str small { font-size: 10.5px; }
+.tn-each.custom { color: #e9bd73; border-color: #e9bd73; }
+.tn-each-layer { position: absolute; inset: 0; z-index: 6; display: flex; align-items: center; justify-content: center; padding: 8px; background: rgba(10, 14, 30, 0.72); border-radius: var(--radius); }
+.tn-each-layer[hidden] { display: none; }
+.tn-each-card { max-width: 100%; max-height: 100%; overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+.tn-each-card h3 { margin: 0; font-size: 17px; }
+.tn-each-card p { margin: 0; }
+.tn-cols { display: flex; gap: 8px; justify-content: center; }
+.tn-col { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 52px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 4px; }
+.tn-col b { font-size: 16px; }
+.tn-col small { font-size: 11px; color: var(--muted); min-height: 14px; }
+.tn-col .lbl-btn { min-width: 40px; min-height: 30px; }
