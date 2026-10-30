@@ -54,7 +54,7 @@ export class TabView {
 
   /**
    * inst: exercise instance; beatsOf(step) => beats; label(note) => string under the note
-   * mode: 'tab' | 'staff'
+   * mode: 'tab' | 'staff'; decorate(inner): called after each drawing (a tap game marks its notes)
    */
   render(inst, opts) {
     this.inst = inst;
@@ -105,6 +105,7 @@ export class TabView {
     this.curRect = this.inner.querySelector('.tcur');
     if (this.cur >= 0) this.placeCursor(this.cur, !keepScroll);
     this.markFuture();
+    this.opts?.decorate?.(this.inner);
   }
 
   /** Quiz mode (tab): the notes not played yet show "?" instead of their fret and name. */
@@ -218,5 +219,6 @@ export class TabView {
     if (c && this.win && (c.x < this.win[0] + 200 || c.x + c.w > this.win[1] - 600)) this.paint(i);
     this.placeCursor(i);
     this.markFuture();
+    this.opts?.decorate?.(this.inner);
   }
 }

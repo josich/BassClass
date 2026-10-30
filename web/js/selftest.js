@@ -22,7 +22,7 @@ import { HARMONY_PROGS, PROG_KEYS } from './practice/harmony.js';
 import { PAD_SOUNDS } from './audio.js';
 import { FREE_SOUNDS, FREE_LEVELS, FREE_TASTE, FREE_DRUMS, FREE_STYLE, PRO_SOUND_NOTES, isPro, gatesOn, exerciseLock, lessonLock, styleLock, progLock, droneLock } from './pro.js';
 import { DRONES, DRONE_GROUPS, droneMidis, droneName, droneFormula, droneIvs, droneNeeds } from './practice/drones.js';
-import { placesOf } from './curriculum/games.js';
+import { placesOf, tapSet } from './curriculum/games.js';
 
 function combos(params, limit = 400, strings = 4) {
   const keys = Object.keys(params);
@@ -185,6 +185,17 @@ function checkGames(problems) {
           if (r.refs.some((x) => ctx.tuning[x.s] + x.f !== x.midi || x.f < 0 || x.f > 12)) { problems.push(`${where}: a note shown off its place`); break; }
           if (r.play.some((x) => !Number.isInteger(x.midi) || x.midi < 18 || x.midi > 72)) { problems.push(`${where}: a sound out of range`); break; }
           if (!r.play.length && !r.staff) { problems.push(`${where}: a round with nothing to hear or read`); break; }
+        }
+        // (the reading game's sets, played in the exercise screen: ten notes, each with a place to tap)
+        if (t.game.kind === 'read') {
+          const S = { strings: st, notation: 'letters', maxFret: 20 };
+          for (let k = 0; k < 20; k++) {
+            const set = tapSet(t.game, p, ctx, S);
+            const where = `${t.id} set [${st}str] ${JSON.stringify(p)}`;
+            if (set.steps.length !== 10 || !set.tap || set.view !== 'staff') { problems.push(`${where}: ${set.steps.length} notes`); break; }
+            if (set.steps.some((x) => x.notes.length !== 1 || !placesOf(x.notes[0].midi, ctx, 12).length)) { problems.push(`${where}: a note with no place in frets 0–12`); break; }
+            if (set.steps.some((x, j) => j && x.notes[0].midi === set.steps[j - 1].notes[0].midi && new Set(set.steps.map((y) => y.notes[0].midi)).size > 1)) { problems.push(`${where}: the same note twice in a row`); break; }
+          }
         }
       }
     }

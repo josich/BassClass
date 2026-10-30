@@ -26,6 +26,22 @@ function sampleLine(game, p, ctx, S) {
   b.line(items, { place: { open: 'allow', center: 4 } });
   return b.build({ label: 'note' });
 }
+/**
+ * A reading game's set, played in the regular exercise screen (user, 2026-10-30: "keep the regular staff notation
+ * score sheet, reveal note by note"): `count` random rounds as quarter notes on the staff, never the same note twice
+ * in a row; `tap` says what the screen asks (every place or one).
+ */
+export function tapSet(game, p, ctx, S, count = 10) {
+  const items = [];
+  for (let k = 0; items.length < count && k < count * 20; k++) {
+    const a = game.round(p, ctx, Math.random).answer;
+    if (items.length && items[items.length - 1].midi === a.midi && k < count * 10) continue;
+    items.push({ midi: a.midi, n: a.n || spellMidi(a.midi), deg: '' });
+  }
+  const b = new Builder(ctx, S);
+  b.line(items, { place: { open: 'allow', center: 4 } });
+  return Object.assign(b.build({ label: 'none' }), { view: 'staff', reveal: 'quiz', noPrompt: true, tap: { all: p.places === 'all' } });
+}
 const OPEN = (ctx) => ctx.tuning.map((m, s) => ({ m, s, name: ctx.names[s] }));
 
 // ---------------------------------------------------------------- ear games

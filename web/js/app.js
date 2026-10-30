@@ -173,7 +173,8 @@ function route() {
       // (a lesson's step played from a session row or a link: the lesson is used too; QA round 20)
       if (lesson) markUsed(`lesson:${lesson.lesson.id}`);
       // (a Pro exercise opens for a free player as a preview: user, 2026-10-29)
-      active = tpl.game ? gameScreen(app, tpl, { params, onBack: back }) : renderExercise(app, tpl, { params, routine, lesson, onBack: back, preview: exerciseLock(tpl, ls) });
+      // (the ear games have a screen of their own; the reading game plays in the exercise screen: user, 2026-10-30)
+      active = tpl.game && tpl.game.kind !== 'read' ? gameScreen(app, tpl, { params, onBack: back }) : renderExercise(app, tpl, { params, routine, lesson, onBack: back, preview: exerciseLock(tpl, ls) });
     } catch (err) {
       console.error(err);
       logError(err);

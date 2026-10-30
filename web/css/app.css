@@ -1055,3 +1055,9 @@ input[type="range"] { touch-action: pan-y; }
 .rec-prev { align-self: flex-start; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); background: var(--panel-3); border-radius: 99px; padding: 2px 9px; }
 .rec-result { display: flex; flex-direction: column; gap: 8px; }
 .rec-card.prev .rec-result { filter: grayscale(1); opacity: 0.7; }
+/* the reading game in the exercise screen: notes not asked yet hidden, the answered ones green or red */
+.tabsvg.staff .sn.tap-hidden { visibility: hidden; }
+.tabsvg.staff .sn.tap-ok, .tabsvg.staff .sn.tap-ok * { fill: var(--good); stroke: var(--good); }
+.tabsvg.staff .sn.tap-no, .tabsvg.staff .sn.tap-no * { fill: var(--danger); stroke: var(--danger); }
+.exv-prompt .tap-ok { color: var(--good); }
+.exv-prompt .tap-no { color: var(--danger); }

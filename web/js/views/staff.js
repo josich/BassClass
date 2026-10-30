@@ -497,7 +497,8 @@ export function engraveStaff(inst, { beatsOf, label, beatsPerBar = 4, compact = 
         svg += `<path d="M${f2(x + 0.7 * s)} ${f2(y)}Q${f2((x + nx) / 2)} ${f2(y + (up ? 0.9 : -0.9) * s)} ${f2(nx - 0.7 * s)} ${f2(y)}" class="stie"/>`;
       });
     }
-    out(e.pos, svg);
+    // (each step's note in a group of its own: a tap game hides it until asked and colours it once answered)
+    out(e.pos, `<g class="sn" data-i="${e.i}">${svg}</g>`);
   });
 
   // beams: slanted with the contour (at most a quarter of a space per head), every stem at least 2.5 spaces

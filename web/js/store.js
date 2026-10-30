@@ -84,6 +84,7 @@ function cleanEntry(e) {
   if (!e || typeof e !== 'object' || Array.isArray(e)) return null;
   const out = {};
   if (numIn(0, 1e7)(e.plays)) out.plays = Math.floor(e.plays);
+  if (numIn(0, 100)(e.best)) out.best = Math.floor(e.best);   // a tap game's best score
   if (numIn(30, 260)(e.bestBpm)) out.bestBpm = e.bestBpm;
   if (numIn(30, 260)(e.lastBpm)) out.lastBpm = e.lastBpm;
   if (isBool(e.done)) out.done = e.done;
