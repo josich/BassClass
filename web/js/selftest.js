@@ -23,6 +23,8 @@ import { PAD_SOUNDS } from './audio.js';
 import { FREE_SOUNDS, FREE_LEVELS, FREE_TASTE, FREE_DRUMS, FREE_STYLE, PRO_SOUND_NOTES, isPro, gatesOn, exerciseLock, lessonLock, styleLock, progLock, droneLock } from './pro.js';
 import { DRONES, DRONE_GROUPS, droneMidis, droneName, droneFormula, droneIvs, droneNeeds } from './practice/drones.js';
 import { placesOf, tapSet } from './curriculum/games.js';
+import { tunerTuning, tunerFmin, TUNER_SHIFTS } from './ui/tuner.js';
+import { yin } from './pitch.js';
 
 function combos(params, limit = 400, strings = 4) {
   const keys = Object.keys(params);
@@ -169,6 +171,24 @@ function checkDrones(problems) {
  * on the neck within the frets the game shows (0–12), every note shown on the neck is where its pitch is, and
  * every sound is a real note.
  */
+/** The tuner reads every tuning's lowest string (QA round 22: nothing under 26 Hz): a synthetic string with a weak
+ * fundamental, as the tuner analyses it (2048 samples at 12 kHz), in tune and 30 cents flat, within 2 cents. */
+function checkTuner(problems) {
+  for (const st of [4, 5, 6]) {
+    for (const shift of TUNER_SHIFTS) for (const drop of [false, true]) {
+      const t = tunerTuning(st, shift, drop);
+      const m = Math.min(...t.midi), tf = 440 * 2 ** ((m - 69) / 12);
+      for (const cents of [0, -30]) {
+        const f0 = tf * 2 ** (cents / 1200), buf = new Float32Array(2048);
+        for (let i = 0; i < buf.length; i++) { let v = 0; for (let k = 1; k <= 8; k++) v += (k === 1 ? 0.3 : 1 / k) * Math.sin(2 * Math.PI * f0 * k * i / 12000 + k); buf[i] = v; }
+        const r = yin(buf, 12000, { fmin: tunerFmin(t) });
+        const got = r ? 1200 * Math.log2(r.freq * 2 ** Math.round(Math.log2(tf / r.freq)) / tf) : null;
+        if (got == null || Math.abs(got - cents) > 2) problems.push(`tuner ${st}str ${t.name}: its ${t.names[0]} string ${cents} cents reads ${got == null ? 'nothing' : got.toFixed(1)}`);
+      }
+    }
+  }
+}
+
 function checkGames(problems) {
   let seed = 11;
   const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
@@ -279,6 +299,7 @@ export function run({ strings = [4, 5, 6], verbose = false } = {}) {
   checkPlacement(problems);
   checkDrones(problems);
   checkGames(problems);
+  checkTuner(problems);
   for (const st of strings) {
     const S = { strings: st, notation: 'letters', maxFret: 20 };
     const ctx = makeCtx(S);

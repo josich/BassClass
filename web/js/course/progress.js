@@ -46,6 +46,9 @@ export const CHANGED_STEPS = [
   { rev: 6, steps: ['u-triads3-check.3', 's3-test.7', 's6-test.8'] },
   // launch review, e2519d5 (v1.0.142): Seven Nation Army's and Another One Bites the Dust's openings rewritten
   { rev: 7, at: 1793204207000, steps: ['u-scales-check.2', 'u-feel-check.3'] },
+  // QA round 22 (user, 2026-10-30): the pick and slap patterns an octave lower, on the open E; the gallop's string
+  // skip on real skips; the fill "Up to the octave" reaching it
+  { rev: 8, steps: ['pick.3', 'pick.4', 'fills.1', 'pick-gallop.0', 'pick-gallop.1', 'pick-gallop.2', 'pick-gallop.3', 'u-rock3-check.2', 'slap-grooves.2', 'slap-grooves.3', 'u-grooves4-check.3'] },
 ];
 const REV = CHANGED_STEPS.length;
 // a step whose notes changed after the player finished its lesson asks to be played again, but the

@@ -1061,3 +1061,13 @@ input[type="range"] { touch-action: pan-y; }
 .tabsvg.staff .sn.tap-no, .tabsvg.staff .sn.tap-no * { fill: var(--danger); stroke: var(--danger); }
 .exv-prompt .tap-ok { color: var(--good); }
 .exv-prompt .tap-no { color: var(--danger); }
+
+/* a Pro lesson's Get Pro: the Pro button's gold, not the dimmed look of what is locked (QA round 22) */
+.btn.pro-go { border: none; color: #2a1806; font-weight: 800; white-space: nowrap; background: linear-gradient(135deg, #f7d98f 0%, #ebb65e 55%, #e58f6c 100%); box-shadow: 0 2px 10px rgba(235, 182, 94, 0.3); }
+
+/* the tuner in portrait: the gauge over the reading, the A4 control on one line (QA round 22) */
+.tn-ref { flex-wrap: nowrap; white-space: nowrap; }
+@media (max-width: 600px) { .tn-main { grid-template-columns: minmax(0, 1fr); } .tn-gauge, .tn-svg { max-height: 26vh; } }
+/* a 6-string's seven chips (Auto and six strings) in one row: the reading's column takes more room */
+.tuner.tn-s6 .tn-main { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.5fr); }
+@media (max-width: 600px) { .tuner.tn-s6 .tn-main { grid-template-columns: minmax(0, 1fr); } }

@@ -47,6 +47,8 @@ const KEY_PCS = {
 // names of non-chord tones by semitones above the chord root (jazz usage: ♭9, ♯9, ♯11, ♭13…)
 const SEMI_NAME = ['R', '♭9', '9', '♯9', '3', '11', '♯11', '5', '♭13', '13', '♭7', '7'];
 const FAMILY_NAME = { maj: { 3: '♭3' } };
+// rock and blues phrases name their notes as scale degrees (QA round 22): the 4th is 4, the blue notes ♭3 and ♭5
+const SCALE_NAME = ['R', '♭2', '2', '♭3', '3', '4', '♭5', '5', '♭6', '6', '♭7', '7'];
 // natural tensions (9, 11, 13 of the chord's usual scale) are always named, never called approach notes
 const NATURAL = { maj: [2, 5, 9], dom: [2, 5, 9], min: [2, 5, 9], hdim: [2, 5, 8], dim: [2, 5, 8, 11] };
 
@@ -71,7 +73,7 @@ function plainSpelling(pcv, sign = -1) {
 const plain = (n) => (awkward(n) ? plainSpelling(T.pc(n), Math.sign(n.a) || -1) : n);
 
 /** Build one lick in key pc `k`: spelled notes with times, chord badges and jazz degree labels. */
-function lickItems(lick, k, S, ctx, swing, { keyPcs, blue }) {
+function lickItems(lick, k, S, ctx, swing, { keyPcs, blue, scale = false }) {
   const tonic = T.bestRoot(k, lick.minor ? T.SCALES.aeolian.iv : T.SCALES.ionian.iv);
   const { notes } = parseLick(lick.notes);
   // transpose from C by the smallest move (-6..+5 semitones), then keep the whole line on the neck
@@ -112,6 +114,8 @@ function lickItems(lick, k, S, ctx, swing, { keyPcs, blue }) {
     const b = info[i + 1];
     if (!a || a.ct || !b) return;
     if (b.ct) {
+      // (in scale-degree phrases the blue ♭3 and ♭5 are blue notes, never approaches)
+      if (scale && (a.s === 3 || a.s === 6)) return;
       if (Math.abs(b.midi - a.midi) === 1 && !a.inKey && !NATURAL[a.c.fam].includes(a.s) && !(a.c.fam === 'dom' && (a.s === 1 || a.s === 3))) appr[i] = true;
       return;
     }
@@ -157,19 +161,20 @@ function lickItems(lick, k, S, ctx, swing, { keyPcs, blue }) {
     let deg;
     if (a.ct) deg = T.fmtDeg(c.semis.get(a.s));
     else if (appr[i]) deg = '→';
+    else if (scale) deg = SCALE_NAME[a.s];
     else if (blue && a.c.fam === 'dom' && a.s === 3) deg = '♭3';
     else if (blue && a.c.fam === 'dom' && a.s === 6) deg = '♭5';
     else deg = FAMILY_NAME[c.fam]?.[a.s] || SEMI_NAME[a.s];
     // the tritone and the minor 6th are named the way they are spelled (D♭ over G7 is a ♭5, C♯ a ♯11);
     // a note respelled plainly keeps its jazz name (E♭7's ♭13 written B)
-    if (n === written && !a.ct && !appr[i] && (a.s === 6 || a.s === 8)) {
+    if (!scale && n === written && !a.ct && !appr[i] && (a.s === 6 || a.s === 8)) {
       const asWritten = T.ivBetween(c.root, n);
       if (asWritten === 'b5') deg = '♭5';
       else if (asWritten === '#5') deg = '♯5';
     }
     // for the loop-around check in the template: can this note approach the next chord tone?
     const canApproach = !a.ct && !a.inKey && !NATURAL[a.c.fam].includes(a.s) && !(a.c.fam === 'dom' && (a.s === 1 || a.s === 3));
-    return { ...item, midi: x.midi + d + shift, n, deg, tag: x.tag, ct: a.ct, canApproach };
+    return { ...item, midi: x.midi + d + shift, n, deg, tag: x.tag, ct: a.ct, canApproach, blue: scale && !a.ct && (a.s === 3 || a.s === 6) };
   });
 }
 
@@ -204,13 +209,15 @@ const feelP = sel('Feel', [['swing', 'Swing 8ths'], ['straight', 'Straight 8ths'
 
 /**
  * An exercise of written phrases (`licks`, each over its own chords). Other modules use it too (pentatonics.js):
- * `module` (licks by default), `defKey` (the key it opens in, C by default) and `pick` (its option's name, "Lick").
+ * `module` (licks by default), `defKey` (the key it opens in, C by default) and `pick` (its option's name, "Lick");
+ * `degrees: 'scale'` labels notes as scale degrees, `open: 'prefer'` plays the open strings.
  */
 export function lickTemplate(def) {
-  const { licks, minor = false, keys = minor ? 'minor' : 'major', blue = false, defKey = '0', pick = 'Lick', ...meta } = def;
+  const { licks, minor = false, keys = minor ? 'minor' : 'major', blue = false, defKey = '0', pick = 'Lick', degrees = 'jazz', open = 'avoid', ...meta } = def;
   const key = keyP(minor ? T.SCALES.aeolian.iv : T.SCALES.ionian.iv, { suffix: minor ? 'm' : '', def: defKey });
-  // the key chips name minor keys (C♯m, not D♭) when the chosen lick is over a minor chord
-  if (licks.some((l) => l.minor != null)) key.minorWhen = (p) => !!(licks[Number(p.lick)] || licks[0]).minor;
+  // the key chips name minor keys (C♯m, not D♭) when the chosen lick is over a minor chord, major ones (E, not Em)
+  // when a minor template's lick is major (QA round 22: "Key: Em" for E7 lines)
+  if (licks.some((l) => l.minor != null)) key.minorWhen = (p) => !!((licks[Number(p.lick)] || licks[0]).minor ?? minor);
   return ex({
     ...meta,
     module: meta.module || M,
@@ -227,22 +234,42 @@ export function lickTemplate(def) {
       const swingable = canSwing(lick);
       const swing = p.feel === 'swing' && swingable;
       const isMinor = lick.minor ?? minor;
-      const segs = keysFor(p.key).map((k) => lickItems({ ...lick, minor: isMinor }, k, S, ctx, swing, { keyPcs: KEY_PCS[lick.keys || keys], blue }));
+      const segs = keysFor(p.key).map((k) => lickItems({ ...lick, minor: isMinor }, k, S, ctx, swing, { keyPcs: KEY_PCS[lick.keys || keys], blue, scale: degrees === 'scale' }));
       // the last note of a lick leads into the first note of the next one (or of itself when it
       // loops): a half step into a chord tone makes it an approach note
       segs.forEach((seg, i) => {
         const last = [...seg].reverse().find((x) => !x.rest);
         const first = segs[(i + 1) % segs.length].find((x) => !x.rest);
         if (last && first && last.canApproach && first.ct && Math.abs(first.midi - last.midi) === 1 && last !== first) {
-          last.deg = '→';
+          if (!(degrees === 'scale' && last.blue)) last.deg = '→';
           // an approach note is written plainly, like every other approach (no C♭ or F♭)
           if (awkward(last.n)) last.n = plain(last.n);
         }
       });
       if (lick.boxes) segs.forEach((seg) => boxRegions(seg, lick.boxes, ctx));
+      // pick and slap patterns: one hand position from the root on its lowest string (the open position in E, the
+      // low B left out for a note the E string has), so an octave goes two strings up, not up the same string, and a
+      // riff stays under the hand (QA round 22)
+      // (open strings preferred only when every root is one: the open E chugged in E; in G the hand sits at the 3rd
+      // fret and the octave goes to D5, not to the open G three strings up)
+      let openMode = open;
+      if (open === 'prefer') {
+        const eS = Math.max(0, ctx.str('E'));
+        for (const seg of segs) {
+          const root = seg.find((x) => !x.rest)?.midi;
+          if (root == null) continue;
+          const fits = (s) => root - ctx.tuning[s] >= 0 && root - ctx.tuning[s] <= 7;
+          const rs = ctx.tuning.findIndex((o, s) => (s >= eS || !fits(eS)) && fits(s));
+          if (rs < 0) continue;
+          const rf = root - ctx.tuning[rs];
+          if (rf > 0) openMode = 'allow';
+          for (const x of seg) if (!x.rest && !x.region) x.region = { lo: Math.max(0, rf - 1), hi: rf + 4 };
+        }
+      }
       const items = segs.flat();
       // the phrase keeps its shape: it is moved as a whole, never note by note
-      emitMixed(b, items, { center: 6, open: 'avoid', fold: false });
+      // (a pick or slap pattern plays its open strings: the open E chugged and thumbed, user, 2026-10-30)
+      emitMixed(b, items, open === 'prefer' ? { center: 2, open: openMode, fold: false } : { center: 6, open: 'avoid', fold: false });
       const fixed = swingable ? {} : { feel: lick.feel === 'straight' ? 'Straight 8ths' : 'Triplets (swing does not apply)' };
       // swing is written as straight 8ths under "Swing" on the staff
       return b.build({ uniform: false, label: 'degree', fixed, swing });

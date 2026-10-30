@@ -739,6 +739,23 @@ export function emitMixed(b, items, popts = {}) {
         else tags[j] = 'T';
       }
     }
+    // the octave pop is two strings up: a thumb note whose next real note is its octave popped sits two strings
+    // under the pop, and its ghosts with it (A5 → G7, not E10 → G7; QA round 22)
+    for (let j = 0; j < notes.length; j++) {
+      if (!tags[j]?.startsWith('T')) continue;
+      let k = j + 1;
+      while (k < notes.length && tags[k] === 'x') k++;
+      if (k >= notes.length || tags[k] !== 'P' || midis[k] - midis[j] !== 12) continue;
+      const s2 = pos[k].s - 2, f = s2 >= 0 ? midis[j] - T0[s2] : -1;
+      if (s2 >= eStr && f >= 0 && f <= b.ctx.maxFret) {
+        if (pos[j].s !== s2 || pos[j].f !== f) for (let g = j; g < k; g++) if (g === j || midis[g] === midis[j]) pos[g] = { s: s2, f };
+        continue;
+      }
+      // (no string two under the pop for the thumb's note: the pop moves two strings above the thumb instead, G on
+      // the E string's 3rd fret popped at D5, not on the open G)
+      const s3 = pos[j].s + 2, f3 = s3 < T0.length ? midis[k] - T0[s3] : -1;
+      if (s3 >= popLo && f3 >= 0 && f3 <= b.ctx.maxFret) pos[k] = { s: s3, f: f3 };
+    }
   }
   let run = 0; // first note of the current hammer/pull-off run
   for (let j = 1; j < notes.length; j++) {

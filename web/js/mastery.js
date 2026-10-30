@@ -8,7 +8,7 @@
 // mastered counts as known in the course: the player's level moves on (course/progress.js).
 import { EXERCISES, byId } from './curriculum/index.js';
 import { STAGES, LESSONS } from './course/data.js';
-import { getProgress, updateProgress } from './store.js';
+import { getProgress, updateProgress, allProgress } from './store.js';
 
 /** The share of a level's exercises mastered that moves the player's level on. */
 export const LEVEL_PASS = 0.8;
@@ -92,15 +92,24 @@ function readPassed() {
   } catch { passedAt = {}; }
   return passedAt;
 }
+// the exercises added after the record shipped (2026-10-29): a player who had progress before them, and no record of
+// a level yet, is measured without the ones not mastered, as the record would have (QA round 22: 36 of 44 = 82%
+// became 36 of 47 = 77% on the first run of the record)
+const ADDED_AFTER = new Set(['game-ear-notes', 'game-read-notes', 'game-ear-intervals', 'gr-fills', 'tech-pick-alt', 'game-ear-chordtones', 'lk-rock-blues', 'tech-pick-gallop', 'sl-octaves-16']);
+const ADDED_AT = 1793285509000;
+let fromBefore = null;
+const playedBefore = () => (fromBefore ??= Object.values(allProgress()).some((e) => e?.last && e.last < ADDED_AT));
 /** Is a level mastered enough (80%) to count as known? */
 export function levelPassed(level) {
   const { total, done } = levelMastery(level);
   if (!total) return false;
   const was = readPassed()[level];
-  const count = Number.isInteger(was) && was > 0 && was < total ? was : total;
+  const recorded = Number.isInteger(was) && was > 0 && was < total;
+  const added = !recorded && was == null && playedBefore() ? EXERCISES.filter((t) => t.level === level && ADDED_AFTER.has(t.id) && !isMastered(t.id)).length : 0;
+  const count = recorded ? was : total - added;
   const ok = done / count >= LEVEL_PASS;
-  if (ok && count === total && was !== total) {
-    passedAt[level] = total;
+  if (ok && !recorded && was !== count) {
+    passedAt[level] = count;
     try { localStorage.setItem(LEVELS_KEY, JSON.stringify(passedAt)); } catch { /* storage unavailable */ }
   }
   return ok;

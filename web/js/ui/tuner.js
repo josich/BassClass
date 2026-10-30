@@ -22,33 +22,43 @@ const NAMES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B�
 const SHARPS = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
 const FLATS = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
 /**
- * A tuning on a bass of `strings` strings: { midi, names, name, base, low, custom }. The strings are spelled as its
- * lowest one is named (E♭ standard E♭ A♭ D♭ G♭, C♯ standard C♯ F♯ B E, F standard F B♭ E♭ A♭); `base` names the
- * Standard or Drop it comes from ("Standard", "D standard", "Drop A"), `name` is "Custom" once a string moved on its
- * own (`offs`, semitones per string); `low` is the pattern's lowest note (midi).
+ * A tuning on a bass of `strings` strings: { midi, names, name, base, low, lowName, set, custom }. The strings are
+ * spelled as its lowest one is named (E♭ standard E♭ A♭ D♭ G♭, C♯ standard C♯ F♯ B E, F standard F B♭ E♭ A♭); a
+ * drop's natural low note leaves its other strings spelled as the standard tuning they come from (Drop B: B F♯ B E,
+ * from C♯ standard; QA round 22). `base` names the Standard or Drop it comes from ("Standard", "D standard", "Drop
+ * A"), `name` is "Custom" once a string moved on its own (`offs`, semitones per string), or the name and spelling of
+ * the tuning the moved strings make; `low` is the pattern's lowest note (midi), `set` the spelling of its notes.
  */
 export function tunerTuning(strings, shift = 0, drop = false, offs = null) {
   const std = TUNINGS[strings] || TUNINGS[4];
   const low = std.midi[0] + shift - (drop ? 2 : 0);
-  const set = NAMES[T.mod(low, 12)].includes('♯') ? SHARPS : FLATS;
+  const lowNamed = NAMES[T.mod(low, 12)], stdNamed = NAMES[T.mod(std.midi[0] + shift, 12)];
+  const sharp = lowNamed.includes('♯') || (!lowNamed.includes('♭') && stdNamed.includes('♯'));
+  const set = sharp ? SHARPS : FLATS;
   const pattern = std.midi.map((m, i) => m + shift - (drop && i === 0 ? 2 : 0));
   const custom = !!(offs && offs.length === pattern.length && offs.some(Boolean));
   const midi = custom ? pattern.map((m, i) => m + offs[i]) : pattern;
   const lowName = set[T.mod(low, 12)];
   const base = drop ? `Drop ${lowName}` : shift ? `${lowName} standard` : 'Standard';
+  if (custom) {
+    // strings moved into a tuning that has a name (E down to D from Standard: Drop D) take its name and spelling
+    const named = namedTuning(strings, midi);
+    if (named) return { ...named, base, low, lowName, custom };
+  }
   // (a string moved on its own is spelled as the app spells a chromatic move: sharps going up, flats going down)
   const names = midi.map((m, i) => (custom && offs[i] ? (offs[i] > 0 ? SHARPS : FLATS) : set)[T.mod(m, 12)]);
-  // strings moved into a tuning that has a name (E down to D from Standard: Drop D) take that name
-  let name = base;
-  if (custom) {
-    name = 'Custom';
-    for (const sh of TUNER_SHIFTS) for (const dr of [false, true]) {
-      const t = tunerTuning(strings, sh, dr);
-      if (t.midi.every((m, i) => m === midi[i])) name = t.name;
-    }
-  }
-  return { midi, names, name, base, low, lowName, custom };
+  return { midi, names, name: custom ? 'Custom' : base, base, low, lowName, set, custom };
 }
+/** The Standard or Drop tuning these strings make, if any: { midi, names, name, set, shift, drop }. */
+export function namedTuning(strings, midi) {
+  for (const shift of TUNER_SHIFTS) for (const drop of [false, true]) {
+    const t = tunerTuning(strings, shift, drop);
+    if (t.midi.every((m, i) => m === midi[i])) return { midi: t.midi, names: t.names, name: t.name, set: t.set, shift, drop };
+  }
+  return null;
+}
+/** The lowest pitch the tuner must read for a tuning: 20% under its lowest string, never above 26 Hz (QA round 22). */
+export const tunerFmin = (tuning, a4 = 440) => Math.min(26, 0.8 * midiFreq(Math.min(...tuning.midi), a4));
 
 export function tunerScreen(main) {
   const S = settings;
@@ -98,8 +108,9 @@ export function tunerScreen(main) {
   function drawTuning() {
     modeSeg.replaceChildren(...[[false, 'Standard'], [true, 'Drop']].map(([drop, label]) =>
       h('button', { class: drop === S.tunerDrop ? 'on' : '', 'aria-pressed': String(drop === S.tunerDrop), onClick: () => setTuning({ drop }) }, label)));
-    keyName.textContent = say(tuning.lowName);
-    keyOct.textContent = String(Math.floor(tuning.low / 12) - 1);
+    // (a custom tuning's lowest string as it now is)
+    keyName.textContent = say(tuning.custom ? tuning.names[0] : tuning.lowName);
+    keyOct.textContent = String(Math.floor((tuning.custom ? tuning.midi[0] : tuning.low) / 12) - 1);
     keyDown.disabled = S.tunerShift <= TUNER_SHIFTS[TUNER_SHIFTS.length - 1];
     keyUp.disabled = S.tunerShift >= TUNER_SHIFTS[0];
     keyBox.setAttribute('aria-label', `Lowest string: ${say(tuning.lowName)} (${tuning.base})`);
@@ -130,7 +141,11 @@ export function tunerScreen(main) {
     const move = (i, d) => {
       const next = offs.map((o, k) => (k === i ? Math.max(-OFF_MAX, Math.min(OFF_MAX, o + d)) : o));
       if (next[i] === offs[i]) return;
-      saveSettings({ tunerOffs: next.some(Boolean) ? next : null });
+      // (strings that make a named tuning make it the base: Drop D from Standard's E down two, F standard from all up
+      // one; the header, the name and the spelling then agree, QA round 22)
+      const named = namedTuning(S.strings, tunerTuning(S.strings, S.tunerShift, S.tunerDrop, next).midi);
+      if (named && next.some(Boolean)) { saveSettings({ tunerShift: named.shift, tunerDrop: named.drop, tunerOffs: null }); toast(`${named.name}: ${named.names.map(say).join(' ')}`); }
+      else saveSettings({ tunerOffs: next.some(Boolean) ? next : null });
       tuning = tunerTuning(S.strings, S.tunerShift, S.tunerDrop, ownOffs());
       target = tuning.midi[i];
       A.playNote(target, A.now() + 0.02, 1.6, 0.9);
@@ -153,10 +168,10 @@ export function tunerScreen(main) {
         h('button', { class: 'btn primary', onClick: closeEach }, 'Done'))));
   }
 
-  main.replaceChildren(h('div', { class: 'tuner' },
+  main.replaceChildren(h('div', { class: `tuner tn-s${tuning.midi.length}` },
     h('div', { class: 'page-head' },
       h('h1', {}, 'Tuner'),
-      infoBtn(['🎤 Uses the microphone', 'Pluck one string at a time, near the neck, and let it ring', 'Tap a string to tune it even when it is far off; tap it again to hear its note', '🎚 Standard or Drop (the lowest string a whole step down), then ‹ › the lowest string\'s note', '✎ Each string: tune any string on its own for other tunings', 'The lessons and the neck stay in standard tuning'], 'About the tuner'),
+      infoBtn(['🎤 Uses the microphone', '🎸 Pluck one string at a time, near the neck, and let it ring', '👆 Tap a string to tune it even when it is far off; tap it again to hear its note','🎚 Standard or Drop (the lowest string a whole step down), then ‹ › the lowest string\'s note', '✎ Each string: tune any string on its own for other tunings', '📖 The lessons and the neck stay in standard tuning'], 'About the tuner'),
       modeSeg, keyBox, eachBtn),
     h('div', { class: 'tn-main' },
       gauge,
@@ -203,7 +218,7 @@ export function tunerScreen(main) {
     const lp2 = mic.ctx.createBiquadFilter();
     lp2.type = 'lowpass'; lp2.frequency.value = 1100;
     const hp = mic.ctx.createBiquadFilter();
-    hp.type = 'highpass'; hp.frequency.value = 22;
+    hp.type = 'highpass'; hp.frequency.value = 15;   // (a drop's lowest string, E♭0, is 19.4 Hz)
     analyser = mic.ctx.createAnalyser();
     analyser.fftSize = 8192;
     mic.source.connect(hp).connect(lp1).connect(lp2).connect(analyser);
@@ -236,7 +251,7 @@ export function tunerScreen(main) {
     for (let i = 0; i < dec.length; i++) dec[i] = raw[i * DECIM];
     const level = rms(dec);
     const sr = mic.ctx.sampleRate / DECIM;
-    const res = level > GATE ? yin(dec, sr) : null;
+    const res = level > GATE ? yin(dec, sr, { fmin: tunerFmin(tuning, S.a4) }) : null;
     if (!res || res.clarity < 0.75) {
       if (performance.now() - lastSeen > 900) { hist = []; noteEl.classList.add('idle'); }
       return;
@@ -259,7 +274,11 @@ export function tunerScreen(main) {
   function show(f) {
     const ref = target != null ? { midi: target, cents: 1200 * Math.log2(f / midiFreq(target, S.a4)) } : freqToNote(f, S.a4);
     // (a chosen string is named as its tuning spells it: E♭, not D♯)
-    const name = T.noteName(T.N(target != null && tuning.midi.includes(ref.midi) ? tuning.names[tuning.midi.indexOf(ref.midi)] : SHARP[T.mod(ref.midi, 12)]), S.notation);
+    // (a note is named as the tuning spells it: a string's own name, else its tuning's sharps or flats; E♭ standard's
+    // open E♭ is not D♯, QA round 22)
+    const pcs = tuning.midi.map((m) => T.mod(m, 12));
+    const own = pcs.indexOf(T.mod(ref.midi, 12));
+    const name = T.noteName(T.N(own >= 0 ? tuning.names[own] : (tuning.set || SHARP)[T.mod(ref.midi, 12)]), S.notation);
     noteEl.textContent = name;
     octEl.textContent = Math.floor(ref.midi / 12) - 1;
     hzEl.textContent = `${f.toFixed(1)} Hz · ${ref.cents >= 0 ? '+' : ''}${ref.cents.toFixed(0)} cents`;

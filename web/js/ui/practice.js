@@ -468,7 +468,9 @@ export function practiceScreen(main, params = {}) {
     for (const t of previewTimers) clearTimeout(t);
     previewNodes = []; previewTimers = [];
   };
-  const canPreview = () => !engine.playing && !engine.starting;
+  // (and the room still open: a kit or piano still loading when the player left plays nothing, QA round 22)
+  let roomOpen = true;
+  const canPreview = () => roomOpen && !engine.playing && !engine.starting;
   /** Two bars of a drum pattern at its own tempo. */
   const previewStyle = (key) => {
     if (!canPreview()) return;
@@ -886,6 +888,7 @@ export function practiceScreen(main, params = {}) {
     // (Pro bought or taken back: the blocks redraw in place, so what was playing goes on)
     proChanged: () => { const free = freeRoom(room); if (free) set(free); redraw(); },
     dispose: () => {
+      roomOpen = false;
       engine.stop();
       stopPreview();
       for (const b of [slower, faster, slower5, faster5]) b.stopHold();

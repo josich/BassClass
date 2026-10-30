@@ -88,7 +88,7 @@ _Core shapes in every key, simple grooves, 8ths and triplets._
 | 244 | Blitzkrieg Bop style | Make Music | Fast root 8ths through A, D and E, every note a down-stroke (Π) with a pick or one finger. | Original line in the style of “Blitzkrieg Bop” (Ramones, 1976): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 245 | Hear it, tap it: intervals | Ear training | A game, no bass needed: the root sounds and shows, then a second note. Tap it on the neck. | Original game. Interval recognition is part of the aural tests in graded exams. |
 | 246 | Fills into the next bar: rock and blues | Grooves & Bass Lines | A bar of groove, then a short fill that leads back to beat 1: down the box, up to the octave, triplets, a walk-up, octaves, the blues scale. | Original fills. Fills into the next bar are part of graded rock and blues bass exams and of every band player's vocabulary. |
-| 247 | Pick: down-strokes and alternate picking | Technique & Rudiments | Steady down-strokes, then down and up: 8ths, 16ths, the octave and a root–5th–♭7 riff, palm muted. | Original patterns. Pick technique is part of graded rock bass exams. |
+| 247 | Pick: alternate 16ths and crossing strings | Technique & Rudiments | After Playing with a pick: steady strokes to warm up, then alternate 16ths, the octave across the strings and a root–5th–♭7 riff, palm muted. | Original patterns. Pick technique is part of graded rock bass exams. |
 
 ### Level 3: Intermediate
 
@@ -144,7 +144,7 @@ _Harmony on the neck: diatonic chords, sequences, positions._
 | 346 | The Chain style | Make Music | A low E pedal that builds tension, then a solo bass break up the E minor pentatonic. | Original line in the style of “The Chain” (Fleetwood Mac, 1977): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 347 | Hear it, tap it: chord tones | Ear training | A game, no bass needed: a chord sounds over its root, then one of its notes. Tap it: the 3rd, the 5th, the 7th. | Original game. Hearing chord tones is part of aural training for bassists and of jazz ear training. |
 | 348 | Rock and blues licks | Licks | Eight phrases for rock and blues: the minor pentatonic, the blue note into the 3rd, the major pentatonic, Mixolydian riffs, hammer-ons, triplets and a turnaround. | Original licks in standard rock and blues vocabulary (minor and major pentatonics, the blues scale, Mixolydian riffs). |
-| 349 | Pick: gallops and string skips | Technique & Rudiments | The gallop of metal and rock (an 8th and two 16ths), its reverse, a moving gallop riff and string skips with the pick. | Original patterns. Gallops and string skipping with a pick are part of graded rock and metal bass playing. |
+| 349 | Pick: gallops and string skips | Technique & Rudiments | The gallop of Playing with a pick, faster: its reverse, a moving gallop riff and string skips with the pick. | Original patterns. Gallops and string skipping with a pick are part of graded rock and metal bass playing. |
 
 ### Level 4: Upper-intermediate
 
@@ -198,7 +198,7 @@ _Inversions, voice leading, modes, walking, two octaves._
 | 444 | Smooth Criminal style | Make Music | A driving 16th-note octave pedal through Am – F – G – E7, then a half-time groove with ghost notes. | Original line in the style of “Smooth Criminal” (Michael Jackson, 1987): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 445 | Good Times style | Make Music | Em7 – A7: a syncopated 16th-note disco line with octave flicks and ghost notes, then an octave break. | Original line in the style of “Good Times” (Chic, 1979): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 446 | Fly Away style | Make Music | A – C – G – D: an octave-kicking rock riff with a ghost-note push, then a driving chorus. | Original line in the style of “Fly Away” (Lenny Kravitz, 1998): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
-| 447 | Slap: 16th-note octaves, ghosts and hammer-ons | Slap & Pop | Funk slap in 16ths: octaves, thumb–ghost–pop cells, thumb–pop–hammer triplets and a moving octave line. | Original patterns in the style of funk slap bass (in the style of Larry Graham, Louis Johnson, Marcus Miller). |
+| 447 | Slap: 16th-note octaves, ghosts and hammer-ons | Slap & Pop | Funk slap in 16ths: octaves, thumb–ghost–pop cells, thumb–pop–hammer triplets and a moving octave line. | Original patterns in the style of funk slap bass (Larry Graham, Louis Johnson, Marcus Miller). |
 
 ### Level 5: Advanced
 
@@ -319,7 +319,7 @@ _All keys, all inversions, Coltrane changes, pro-level stamina._
 - **207 · Finger pairs (1-2, 1-3, 1-4, 2-3, 2-4, 3-4)** (L2, `tech-finger-pairs`): Pair: 1-2 / 1-3 / 1-4 / 2-3 / 2-4 / 3-4 · Position: Fret 1 / Fret 3 / Fret 5 / Fret 7 / Fret 9 / Fret 12
 - **208 · Octave jumps (disco octaves)** (L2, `tech-octaves`): Strings: B → A (5-string) / E → D / A → G / D → C (6-string)
 - **209 · Dynamics ladder (pp → ff → pp)** (L2, `tech-dynamics`): Position: Fret 1 / Fret 3 / Fret 5 / Fret 7 / Fret 9 / Fret 12
-- **247 · Pick: down-strokes and alternate picking** (L2, `tech-pick-alt`): Pattern: Down-strokes, steady 8ths / Alternate picking, 8ths / Alternate picking, 16ths / Root and octave across the strings / Root, 5th and ♭7 riff · Key: 12 keys + all-keys cycles · Feel: Swing 8ths / Straight 8ths
+- **247 · Pick: alternate 16ths and crossing strings** (L2, `tech-pick-alt`): Pattern: Down-strokes, steady 8ths / Alternate picking, 8ths / Alternate picking, 16ths / Root and octave across the strings / Root, 5th and ♭7 riff · Key: 12 keys + all-keys cycles · Feel: Swing 8ths / Straight 8ths
 - **301 · Hammer-on & pull-off trills** (L3, `tech-trills`): Fingers: 1-2 / 1-3 / 1-4 / 2-3 / 2-4 / 3-4 · Position: Fret 1 / Fret 3 / Fret 5 / Fret 7 / Fret 9 / Fret 12
 - **302 · Legato chromatic (one pluck per string)** (L3, `tech-legato`): Position: Fret 1 / Fret 3 / Fret 5 / Fret 7 / Fret 9 / Fret 12
 - **303 · String skipping** (L3, `tech-string-skip`): Style: Blocks (4 per string) / Zig-zag (alternate strings) · Position: Fret 1 / Fret 3 / Fret 5 / Fret 7 / Fret 9 / Fret 12
@@ -327,7 +327,7 @@ _All keys, all inversions, Coltrane changes, pro-level stamina._
 - **305 · Simandl 1-2-4 fingering** (L3, `tech-simandl`): Start position: Half position (fret 1) / First position (fret 2) / Second position (fret 3)
 - **306 · Accent shifting: groups of 3, 5 and 7 over 4/4** (L3, `tech-accents`): Accent every: 3 notes / 5 notes / 7 notes / 3+3+2 · Position: Fret 1 / Fret 3 / Fret 5 / Fret 7 / Fret 9 / Fret 12
 - **307 · Ghost-note 16ths** (L3, `tech-ghost-16ths`): Pattern: Note on every beat / Notes on 1 and the "a" / Octave funk
-- **349 · Pick: gallops and string skips** (L3, `tech-pick-gallop`): Pattern: The gallop / The reverse gallop / A moving gallop riff / String skips: root, 5th, octave · Key: 12 keys + all-keys cycles · Feel: Swing 8ths / Straight 8ths
+- **349 · Pick: gallops and string skips** (L3, `tech-pick-gallop`): Pattern: The gallop / The reverse gallop / A moving gallop riff / String skips: root, ♭7, octave · Key: 12 keys + all-keys cycles · Feel: Swing 8ths / Straight 8ths
 - **401 · Stretch builder: one finger per fret towards the nut** (L4, `tech-stretch`): Start at: Fret 9 / Fret 7 / Fret 12 · Down to: Fret 1 / Fret 3 / Fret 5
 - **402 · Natural harmonics map** (L4, `tech-harmonics`): Harmonics: The main four: 12, 7, 5, 3.9 / All up to the 12th: 12, 8.8, 7, 5, 3.9, 3.2, 2.7, 2.3 · Order: Fret by fret / String by string
 - **403 · Endurance 16ths on the roots** (L4, `tech-endurance`): Key: 12 keys + all-keys cycles · Progression: I – IV – V – I / I – V – vi – IV (pop) / i – iv – v – i (minor)

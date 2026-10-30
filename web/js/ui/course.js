@@ -531,8 +531,9 @@ export function lessonScreen(main, id) {
       st === 'known' ? h('span', { class: 'chip' }, 'known (My level)') : null,
       prev ? h('button', { class: 'icon-btn', title: `Previous: ${lessonName(prev)}`, 'aria-label': 'Previous lesson', html: icon('prev'), onClick: () => go(lessonHref(prev)) }) : null,
       nextL ? h('button', { class: 'icon-btn', title: `Next: ${lessonName(nextL)}`, 'aria-label': 'Next lesson', html: icon('next'), onClick: () => go(lessonHref(nextL)) }) : null),
-    preview ? h('div', { class: 'pro-preview-bar' }, h('span', {}, '⭐ A Pro lesson: read it, hear it and try its steps once'),
-      h('button', { class: 'btn small locked', onClick: () => openPro(preview, { then: rerender }) }, 'Get Pro', proChip(preview))) : null,
+    // (a Pro lesson's gold bar, and its Get Pro in the gold of the Pro button: QA round 22)
+    ...(preview ? [h('div', { class: 'pro-preview-bar' }, h('span', {}, '⭐ A Pro lesson: read it, hear it and try its steps once'),
+      h('button', { class: 'btn small pro-go', onClick: () => openPro(preview, { then: rerender }) }, '⭐ Get Pro'))] : []),
     h('div', { class: 'les-cols' },
       h('div', { class: 'les-main' },
         l.idea ? h('div', { class: 'idea-box' }, l.idea) : null,

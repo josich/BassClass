@@ -44,8 +44,9 @@ function card(t, { level = true, topic = true } = {}) {
   return h('div', { class: `card${pr.done ? ' done' : ''}${lock ? ' locked' : ''}`, 'data-ex': t.id, onClick: () => go(exHref(t.id)) },
     starButton(t.id),
     h('h3', {}, h('span', { class: 'ex-num' }, t.num), t.title),
-    // (a song study says on its card that the line is ours, not the record's: user, 2026-10-29, "make them honest")
-    t.song ? h('div', { class: 'card-note' }, 'Our own line in this style, not the record\'s part') : null,
+    // (a song study names its inspiration on its card, and says behind ⓘ that the line is ours: user, 2026-10-29, "make
+    // them honest"; 2026-10-30, "Inspired by" on the card, the longer explanation in ⓘ)
+    t.song ? h('div', { class: 'card-note' }, `Inspired by: “${t.song.name}” (${t.song.artist})`) : null,
     // the title says what it is; the description opens on request
     h('div', { class: 'meta' },
       newChip(isNew(`ex:${t.id}`)),
@@ -57,7 +58,7 @@ function card(t, { level = true, topic = true } = {}) {
       pr.bestBpm ? h('span', { class: 'chip' }, `${pr.bestBpm} BPM`) : null,
       // (the goal that masters it, until it is mastered)
       !pr.done && goalOf(t.id) ? h('span', { class: 'chip goal', title: `To master it: ${goalText(t.id)}, then ✓ Mastered` }, `🎯 ${goalOf(t.id).bpm}`) : null,
-      t.summary ? infoBtn(t.summary, `About ${t.title}`) : null));
+      t.summary ? infoBtn(t.song ? ['🎵 An original bass line in this song\'s style: our own notes, not a transcription and not the record\'s part', t.summary] : t.summary, `About ${t.title}`) : null));
 }
 
 function moduleStats(id) {
@@ -314,7 +315,8 @@ export function libraryScreen(main, params = {}) {
   const optionText = (t) => Object.values(t.params || {}).flatMap((d) => (d.kind === 'select' ? d.options.map((o) => o[1]) : [])).join(' ');
   // a word also finds its everyday names: a teacher searches by the student's problem (QA round 21, user's choice)
   const alts = (w) => [w, ...(SYNONYMS[w] || [])];
-  const lessonText = (l) => norm(`${l.title} ${l.idea || ''} ${[].concat(l.concept || []).join(' ')} ${[].concat(l.mistakes || []).join(' ')} ${(l.steps || []).map((s) => s.do || '').join(' ')} ${l.unit?.title || ''}`);
+  // (a lesson's own words, not its unit's title: "slap" found every lesson of a unit with slap in its name, QA round 22)
+  const lessonText = (l) => norm(`${l.title} ${l.idea || ''} ${[].concat(l.concept || []).join(' ')} ${[].concat(l.mistakes || []).join(' ')} ${(l.steps || []).map((s) => s.do || '').join(' ')}`);
   const render = () => {
     const q = norm(search.value.trim());
     const topics = view === 'topics';
@@ -327,17 +329,21 @@ export function libraryScreen(main, params = {}) {
     const st = num || lnum ? { filters: [], level: null, rest: q } : statusOf(q);
     const words = st.rest ? st.rest.split(' ') : [];
     const found = (hay) => words.every((w) => alts(w).some((a) => hay.includes(a)));
+    // (what the title says comes first, then the line under it, then the texts: QA round 22, "plectrum" listed
+    // Plucking with two fingers before Playing with a pick)
+    const hit = (title, sub) => (words.length && found(norm(title || '')) ? 0 : words.length && found(norm(`${title || ''} ${sub || ''}`)) ? 1 : 2);
     const keep = (t) => (!st.level || t.level === st.level) && st.filters.every((i) => STATUS[i][2](t, getProgress(t.id) || {}));
     // (a number with no exercise of its own, a year such as 1991, is searched as text)
     const list = lnum ? [] : num && byNumber.has(Number(num[1])) ? [byNumber.get(Number(num[1]))] : EXERCISES.filter((t) => {
       if (!keep(t)) return false;
       const song = t.song ? `${t.song.name} ${t.song.artist} ${t.song.year}` : '';
       return found(norm(`${t.title} ${t.summary} ${t.about} ${t.module} ${moduleOf(t.module)?.name || ''} ${song} ${optionText(t)}`));
-    }).sort((a, b) => a.order - b.order);
+    }).sort((a, b) => hit(a.title, a.summary) - hit(b.title, b.summary) || a.order - b.order);
     // the course's lessons too, by number or by their words (QA round 21: "do lesson 3.15" is how teachers say it);
     // a status word is about exercises, so it lists none, and a level keeps its stage's
     const lessons = lnum ? LESSONS.filter((l) => l.num === lnum[1]) : num || st.filters.length || !words.length ? []
-      : LESSONS.filter((l) => l.kind === 'lesson' && (!st.level || l.stage.level === st.level) && found(lessonText(l))).slice(0, 12);
+      : LESSONS.filter((l) => l.kind === 'lesson' && (!st.level || l.stage.level === st.level) && found(lessonText(l)))
+        .map((l, i) => [l, i]).sort(([a, i], [b, j]) => hit(a.title, a.idea) - hit(b.title, b.idea) || i - j).map(([l]) => l).slice(0, 12);
     // what the status words and the level asked for, said with the results ("✓ mastered · Level 3")
     const asked = [...st.filters.map((i) => STATUS[i][1]), ...(st.level ? [`Level ${st.level}`] : [])].join(' · ');
     const lessonCard = (l) => h('div', { class: `card${lessonLock(l) ? ' locked' : ''}`, onClick: () => go(`#/course/${l.id}`) },

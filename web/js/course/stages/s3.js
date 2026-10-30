@@ -192,16 +192,16 @@ export default {
         },
         {
           id: 'pick-gallop', title: 'Gallops and string skips',
-          idea: 'An 8th and two 16ths, down, down-up: the rhythm of metal.',
+          idea: 'The gallop of Playing with a pick, faster, reversed, moving and across the strings.',
           concept: [
-            'The gallop is an 8th note and two 16ths, again and again. Pick it down, down-up, so every beat starts with a down-stroke; the reverse gallop (two 16ths and an 8th) is down-up, down. Then skip strings with the pick: root, 5th and octave, with nothing ringing in between.',
+            'You met the gallop in Playing with a pick: an 8th note and two 16ths, picked down, down-up, so every beat starts with a down-stroke. Now take it faster, reverse it (two 16ths and an 8th: down-up, down) and move it around a riff. Then skip strings with the pick: the root on the open E string, the ♭7 and the octave on the D string, with the A string in between left silent.',
             'Palm mute lightly for the classic chug, and keep the 16ths even: the second one is the one that rushes.',
           ],
           steps: [
-            { ex: 'tech-pick-gallop', p: { lick: '0' }, from: 72, goal: 104, do: 'The gallop on one note.' },
-            { ex: 'tech-pick-gallop', p: { lick: '1' }, from: 72, goal: 104, do: 'The reverse gallop.' },
+            { ex: 'tech-pick-gallop', p: { lick: '0' }, from: 100, goal: 132, do: 'The gallop on one note, faster than in Playing with a pick.' },
+            { ex: 'tech-pick-gallop', p: { lick: '1' }, from: 90, goal: 120, do: 'The reverse gallop.' },
             { ex: 'tech-pick-gallop', p: { lick: '2' }, from: 72, goal: 100, do: 'A gallop riff moving between the notes of the box.' },
-            { ex: 'tech-pick-gallop', p: { lick: '3' }, from: 80, goal: 110, do: 'String skips with the pick: root, 5th, octave.' },
+            { ex: 'tech-pick-gallop', p: { lick: '3' }, from: 80, goal: 110, do: 'String skips with the pick: root, ♭7, octave, the A string silent.' },
           ],
           mistakes: [
             'An up-stroke on the beat. The gallop is down, down-up.',

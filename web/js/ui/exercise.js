@@ -49,6 +49,8 @@ export function noteLabel(n, mode, notation) {
  */
 function keySpelling(def, p) {
   if (PROGS[p.prog]?.minor || p.type === 'minor' || p.mode === 'minor' || def.minorWhen?.(p)) return { ivs: T.SCALES.aeolian.iv, suffix: def.suffix || 'm' };
+  // (a lick exercise whose chosen lick is major: major keys, whatever the template's)
+  if (def.minorWhen) return { ivs: T.SCALES.ionian.iv, suffix: '' };
   if (PROGS[p.prog]) return { ivs: T.SCALES.ionian.iv, suffix: def.suffix || '' };
   const sc = T.SCALES[p.scale] || T.SCALES[p.type];
   return { ivs: sc?.iv || T.CHORDS[p.quality]?.iv || def.ivs, suffix: def.suffix || '', type: T.SCALES[p.scale] ? p.scale : T.SCALES[p.type] ? p.type : null };
@@ -168,7 +170,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   // the step's pass mark: its goal tempo (recorded by the app), then the player's own "clean" tick
   const goalBtn = lesson && !demo && !preview ? h('button', { class: 'btn goal-btn', onClick: () => onGoal() }) : null;
   // (in a preview, the Pro offer in its place)
-  const previewBtn = preview ? h('button', { class: 'btn small locked pro-try', title: preview, onClick: offerPro }, '⭐ Preview', h('span', { class: 'chip pro' }, 'Pro')) : null;
+  // (the Pro offer itself, in the Pro button's gold: "⭐ Preview" read like an action, QA round 22)
+  const previewBtn = preview ? h('button', { class: 'btn small pro-go pro-try', title: preview, onClick: offerPro }, '⭐ Get Pro') : null;
   let lessonDone = false; // the lesson was completed in this visit: Next goes back to its page
   // 🎙 a recorded take, judged by the app (a prototype on a few single-note exercises: judge.js)
   const recBtn = JUDGED.has(tpl.id) && !preview && !demo ? btn('mic', 'Record a take: the app listens and judges it', () => openRec()) : null;
@@ -304,7 +307,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   if (demo) { player.loop = false; player.sound = true; }
   if (preview) player.loop = false;
   function previewEnd() {
-    tip(h('span', {}, 'That was a preview. BassClass Pro opens the whole exercise, every option, the loop and the speed trainer. ', h('button', { class: 'btn small locked', onClick: offerPro }, '⭐ Get Pro')), { title: 'Pro preview' });
+    tip(h('span', {}, 'That was a preview: its first bars, once. BassClass Pro opens the whole exercise, the loop, the speed trainer and your progress. ', h('button', { class: 'btn small pro-go', onClick: offerPro }, '⭐ Get Pro')), { title: 'Pro preview' });
   }
   player.metro = S.metro;
   player.countIn = S.countIn;
@@ -628,7 +631,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   function cycleLabel() {
     const i = LABELS.findIndex((r) => r[0] === labelMode);
     labelMode = LABELS[(i + 1) % LABELS.length][0];
-    updateProgress(tpl.id, { label: labelMode });
+    if (!preview) updateProgress(tpl.id, { label: labelMode });
     toast(`Dot labels: ${LABELS[(i + 1) % LABELS.length][1].toLowerCase()}`);
     syncToggles();
     renderTab();

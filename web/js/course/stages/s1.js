@@ -45,7 +45,7 @@ export default {
           id: 'open-strings', title: 'The open strings',
           idea: 'E-A-D-G, each string a 4th above the one below.',
           concept: [
-            'From the thickest string to the thinnest, a 4-string bass is tuned E-A-D-G (a 5-string adds a low B, a 6-string a low B and a high C). Each string is five frets above the one below it: fret 5 of a string gives the next open string. That distance is called a 4th (you will meet intervals in Unit 11), and it is why the same shapes work all over the neck.',
+            'From the thickest string to the thinnest, a 4-string bass is tuned E-A-D-G (a 5-string adds a low B, a 6-string a low B and a high C). Each string is five frets above the one below it: fret 5 of a string gives the next open string. That distance is called a 4th (you will meet intervals in Stage 2, in the unit Intervals), and it is why the same shapes work all over the neck.',
             'A phrase to remember them: Eat All Day, Grandma. Tune up first, as in the last lesson: the tuner button sits at the top of every exercise.',
           ],
           steps: [
@@ -247,7 +247,7 @@ export default {
           idea: 'Every chord has a root: playing it steadily is the bass player\'s first job.',
           concept: [
             'Every chord has a root, the note that names it: A for A major, D for D major. Playing just the roots, in steady 8ths, is the foundation of countless rock and pop songs.',
-            'Roman numerals name chords by their place in the key: count up the key\'s scale from its first note (the scale itself comes in Unit 5). In A major, I is A, IV is D and V is E; a lowercase numeral is a minor chord (vi in A is F♯m). So I–IV–V–I means the same moves in every key. The chord names appear above the neck as you play.',
+            'Roman numerals name chords by their place in the key: count up the key\'s scale from its first note (the scale itself comes in the unit Your first scales). In A major, I is A, IV is D and V is E; a lowercase numeral is a minor chord (vi in A is F♯m). So I–IV–V–I means the same moves in every key. The chord names appear above the neck as you play.',
           ],
           steps: [
             { ex: 'gr-roots', p: { style: 'rock8', prog: 'I-IV-V-I', key: '9' }, from: 80, goal: 110, backing: 'chords', do: 'Rock 8ths through I–IV–V–I in A. Keep every note the same length and volume.' },
