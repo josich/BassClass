@@ -261,31 +261,52 @@ function checkMain(problems) {
 function checkGames(problems) {
   let seed = 11;
   const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
-  for (const t of EXERCISES.filter((x) => x.game)) {
+  // every game and every tap drill (a note-finding drill's rounds; a reading drill asks its own line's notes)
+  const rounded = EXERCISES.filter((x) => x.game || x.tap?.round);
+  for (const t of rounded) {
+    const g = t.game || t.tap;
     for (const st of [4, 5, 6]) {
       const ctx = makeCtx({ strings: st, maxFret: 20 });
+      const S = { strings: st, notation: 'letters', maxFret: 20 };
       for (const p of combos(t.params || {}, 50, st)) {
         for (let i = 0; i < 200; i++) {
-          const r = t.game.round(p, ctx, rand);
+          const r = g.round(p, ctx, rand, S, i);
+          const a = r.answer || {};
           const where = `${t.id} [${st}str] ${JSON.stringify(p)}`;
-          if (!Number.isInteger(r.answer?.midi) || !r.answer.n) { problems.push(`${where}: an answer without a note`); break; }
-          if (!placesOf(r.answer.midi, ctx, 12).length) { problems.push(`${where}: ${r.answer.midi} has no place in frets 0–12`); break; }
-          if (T.mod(T.pc(r.answer.n), 12) !== T.mod(r.answer.midi, 12)) { problems.push(`${where}: answer ${r.answer.midi} spelled ${r.answer.n.l}/${r.answer.n.a}`); break; }
+          const m = a.midi ?? a.show;
+          if (!Number.isInteger(m) || !a.n) { problems.push(`${where}: an answer without a note`); break; }
+          if (T.mod(T.pc(a.n), 12) !== T.mod(a.midi ?? a.pc, 12)) { problems.push(`${where}: answer ${a.midi ?? a.pc} spelled ${a.n.l}/${a.n.a}`); break; }
+          // the places that answer it, as the screen works them out (ui/exercise.js tapPlaces)
+          const hi = a.hi ?? 12;
+          let pl = a.midi != null ? placesOf(a.midi, ctx, hi) : ctx.tuning.flatMap((o, s) => Array.from({ length: hi + 1 }, (_, f) => ({ s, f })).filter((q) => T.mod(o + q.f - a.pc, 12) === 0));
+          if (a.strings) pl = pl.filter((q) => a.strings.includes(q.s));
+          if (a.not) pl = pl.filter((q) => !a.not.some((x) => x.s === q.s && x.f === q.f));
+          if (!pl.length) { problems.push(`${where}: ${a.midi ?? a.pc} has no place to tap in frets 0–${hi}`); break; }
           if (r.refs.some((x) => ctx.tuning[x.s] + x.f !== x.midi || x.f < 0 || x.f > 12)) { problems.push(`${where}: a note shown off its place`); break; }
-          if (r.play.some((x) => !Number.isInteger(x.midi) || x.midi < 18 || x.midi > 72)) { problems.push(`${where}: a sound out of range`); break; }
-          if (!r.play.length && !r.staff) { problems.push(`${where}: a round with nothing to hear or read`); break; }
+          if ((r.play || []).some((x) => !Number.isInteger(x.midi) || x.midi < 18 || x.midi > 72)) { problems.push(`${where}: a sound out of range`); break; }
+          if (g.kind === 'ear' && !r.play.length) { problems.push(`${where}: an ear round with nothing to hear`); break; }
         }
-        // (the reading game's sets, played in the exercise screen: ten notes, each with a place to tap)
-        if (t.game.kind === 'read') {
-          const S = { strings: st, notation: 'letters', maxFret: 20 };
-          for (let k = 0; k < 20; k++) {
-            const set = tapSet(t.game, p, ctx, S);
-            const where = `${t.id} set [${st}str] ${JSON.stringify(p)}`;
-            if (set.steps.length !== 10 || !set.tap || set.view !== 'staff') { problems.push(`${where}: ${set.steps.length} notes`); break; }
-            if (set.steps.some((x) => x.notes.length !== 1 || !placesOf(x.notes[0].midi, ctx, 12).length)) { problems.push(`${where}: a note with no place in frets 0–12`); break; }
-            if (set.steps.some((x, j) => j && x.notes[0].midi === set.steps[j - 1].notes[0].midi && new Set(set.steps.map((y) => y.notes[0].midi)).size > 1)) { problems.push(`${where}: the same note twice in a row`); break; }
-          }
+        // the sets played in the exercise screen: ten questions, each with its note on the staff
+        for (let k = 0; k < 20; k++) {
+          const set = tapSet(g, p, ctx, S);
+          const where = `${t.id} set [${st}str] ${JSON.stringify(p)}`;
+          if (set.steps.length !== 10 || set.tap?.asks?.length !== 10 || set.view !== 'staff') { problems.push(`${where}: ${set.steps.length} notes`); break; }
+          if (set.tap.asks.some((x, j) => x.i !== j || set.steps[j].notes.length !== 1)) { problems.push(`${where}: a question off its note`); break; }
+          if (set.steps.some((x, j) => j && x.notes[0].midi === set.steps[j - 1].notes[0].midi && new Set(set.steps.map((y) => y.notes[0].midi)).size > 1)) { problems.push(`${where}: the same note twice in a row`); break; }
         }
+      }
+    }
+  }
+  // a reading drill's tap mode asks its own line's notes: every one has a place on the neck
+  for (const t of EXERCISES.filter((x) => x.tap && !x.tap.round)) {
+    for (const st of [4, 5, 6]) {
+      const ctx = makeCtx({ strings: st, maxFret: 20 });
+      const S = { strings: st, notation: 'letters', maxFret: 20 };
+      for (const p of combos(t.params || {}, 20, st)) {
+        const inst = t.build(p, ctx, S);
+        const notes = inst.steps.filter((x) => !x.rest && !x.silent && x.notes?.length);
+        if (!notes.length) { problems.push(`${t.id} [${st}str] ${JSON.stringify(p)}: nothing to tap`); continue; }
+        if (notes.some((x) => !placesOf(x.notes[0].play ?? x.notes[0].midi, ctx, 20).length)) problems.push(`${t.id} [${st}str] ${JSON.stringify(p)}: a note with no place on the neck`);
       }
     }
   }

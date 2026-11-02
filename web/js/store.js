@@ -95,6 +95,7 @@ function cleanEntry(e) {
   if (numIn(30, 260)(e.bestBpm)) out.bestBpm = e.bestBpm;
   if (numIn(30, 260)(e.lastBpm)) out.lastBpm = e.lastBpm;
   if (isBool(e.done)) out.done = e.done;
+  if (isBool(e.tapOn)) out.tapOn = e.tapOn;   // a tap drill opens in tap mode (ui/exercise.js)
   if (isBool(e.met)) out.met = e.met;   // (before 2026-11-02: a full loop reached the exercise's goal)
   // its main option's choices (mastery.js): cleared by the player's tick, the goal reached on them, a game's best
   // score of 10 on each mode

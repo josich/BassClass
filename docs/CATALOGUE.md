@@ -376,7 +376,7 @@ _All keys, all inversions, Coltrane changes, pro-level stamina._
 
 ### Ear training
 
-- **113 · Hear it, tap it: notes on a string** (L1, `game-ear-notes`): String: Any string / The lowest string / The second string / The third string / The fourth string · Frets: Up to fret 5 / Up to fret 7 / Up to fret 12
+- **113 · Hear it, tap it: notes on a string** (L1, `game-ear-notes`): Frets: Up to fret 5 / Up to fret 7 / Up to fret 12 · String: Any string / Low B string (5-string) / E string / A string / D string / G string / High C string (6-string)
 - **226 · Hear the chord: major, minor, diminished, augmented** (L2, `ear-triads`): Chords: Major and minor / Major, minor, diminished, augmented
 - **227 · Hear it, tap it: intervals** (L2, `game-ear-intervals`): Intervals: The octave and the 5th / Major and minor 3rds / 3rds, 4th, 5th and octave / Every interval to the octave · Direction: Up from the root / Up and down
 - **315 · Hear the 7th chord: maj7, 7, m7, m7♭5, °7** (L3, `ear-sevenths`): Chords: maj7, 7, m7 / maj7, 7, m7, m7♭5, °7 / …plus m(maj7), 6 and m6

@@ -3,7 +3,6 @@ import { watchErrors, logError } from './errors.js';
 import { h, icon, toast, guardSliders } from './ui/dom.js';
 import { byId, byNumber } from './curriculum/index.js';
 import { renderExercise } from './ui/exercise.js';
-import { gameScreen } from './ui/game.js';
 import { loadBank, setAudioOptions, tapTick } from './audio.js';
 import { settings } from './store.js';
 import { tunerScreen } from './ui/tuner.js';
@@ -174,7 +173,8 @@ function route() {
       if (lesson) markUsed(`lesson:${lesson.lesson.id}`);
       // (a Pro exercise opens for a free player as a preview: user, 2026-10-29)
       // (the ear games have a screen of their own; the reading game plays in the exercise screen: user, 2026-10-30)
-      active = tpl.game && tpl.game.kind !== 'read' ? gameScreen(app, tpl, { params, onBack: back }) : renderExercise(app, tpl, { params, routine, lesson, onBack: back, preview: exerciseLock(tpl, ls) });
+      // (the games play in the exercise screen too, in its tap mode: user, 2026-10-30 and 2026-11-02)
+      active = renderExercise(app, tpl, { params, routine, lesson, onBack: back, preview: exerciseLock(tpl, ls) });
     } catch (err) {
       console.error(err);
       logError(err);

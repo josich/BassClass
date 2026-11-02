@@ -125,6 +125,21 @@ const unison = ex({
   source: 'Standard fretboard practice',
   params: { string: stringP('E') },
   bpm: 66, sub: 2, label: 'note',
+  // 👆 tap mode (user, 2026-11-02): a natural note shown on the string chosen (frets 5–12): tap the same pitch on
+  // another string
+  tap: {
+    kind: 'find',
+    round(p, ctx, rand, S = {}) {
+      const s = Math.min(strIdx(ctx, p.string), ctx.tuning.length - 2);
+      const frets = [];
+      for (let f = 5; f <= 12; f++) if (NAT.has(T.mod(ctx.tuning[s] + f, 12))) frets.push(f);
+      const f = frets[Math.floor(rand() * frets.length)];
+      const midi = ctx.tuning[s] + f, n = spellMidi(midi), name = nm(n, S);
+      const str = T.noteName(T.N(ctx.names[s]), S.notation);
+      return { play: [], refs: [{ midi, s, f, label: name }], ask: `${name} on the ${str} string: tap it on another string`,
+        answer: { midi, n, label: '', say: 'the same pitch on another string', not: [{ s, f }] } };
+    },
+  },
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     const s = Math.min(strIdx(ctx, p.string), ctx.tuning.length - 2);
@@ -147,6 +162,20 @@ const findNote = ex({
   source: 'Gary Willis "Fingerboard Harmony for Bass"',
   params: { key: keyP(['1'], { def: '0' }), range: sel('Range', [['12', 'Frets 0–12'], ['17', 'Frets 0–17'], ['24', 'Whole neck']]) },
   bpm: 66, sub: 1, label: 'note',
+  // 👆 tap mode (user, 2026-11-02): every place of a note, then the next round the cycle of 4ths from the one chosen
+  // (or the keys the option lists)
+  tap: {
+    kind: 'find',
+    round(p, ctx, rand, S = {}, k = 0) {
+      const keys = keysFor(p.key);
+      const list = keys.length > 1 ? keys : Array.from({ length: 12 }, (_, i) => T.mod(keys[0] + 5 * i, 12));
+      const pcv = list[k % list.length];
+      const n = T.bestRoot(pcv, ['1', '3', '5']);
+      const hi = Math.min(Number(p.range), ctx.maxFret);
+      const show = Math.min(...ctx.tuning.map((o) => o + T.mod(pcv - o, 12)));
+      return { play: [], refs: [], ask: `Every ${nm(n, S)}, frets 0–${hi}`, answer: { pc: pcv, n, show, hi, all: true, label: '', say: '' } };
+    },
+  },
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     const hi = Math.min(Number(p.range), ctx.maxFret);
@@ -273,6 +302,25 @@ const quiz = ex({
     notes: sel('Notes', [['nat', 'Natural notes'], ['all', 'All 12 (♯/♭)']]),
   },
   bpm: 50, sub: 0.5, label: 'note', reveal: 'quiz',
+  // 👆 tap mode (user, 2026-11-02): a note's name, tap it in the frets and on the strings chosen
+  tap: {
+    kind: 'find',
+    round(p, ctx, rand, S = {}) {
+      const strs = p.strings === 'EA' ? [ctx.str('E'), ctx.str('A')] : [...ctx.tuning.keys()];
+      const hi = Math.min(Number(p.range), ctx.maxFret);
+      const pcs = new Set();
+      for (const s of strs) for (let f = 0; f <= hi; f++) {
+        const pcv = T.mod(ctx.tuning[s] + f, 12);
+        if (p.notes !== 'nat' || NAT.has(pcv)) pcs.add(pcv);
+      }
+      const list = [...pcs];
+      const pcv = list[Math.floor(rand() * list.length)];
+      const n = spellMidi(pcv + 48, rand() < 0.5);
+      const show = Math.min(...strs.map((s) => ctx.tuning[s] + T.mod(pcv - ctx.tuning[s], 12)));
+      return { play: [], refs: [], ask: `${nm(n, S)}${p.strings === 'EA' ? ' on the E or A string' : ''}, frets 0–${hi}`,
+        answer: { pc: pcv, n, show, hi, strings: strs, label: '', say: '' } };
+    },
+  },
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     const strs = p.strings === 'EA' ? [ctx.str('E'), ctx.str('A')] : [...ctx.tuning.keys()];

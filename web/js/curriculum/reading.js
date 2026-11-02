@@ -77,6 +77,9 @@ export function keySignature(tonic, minor = false) {
 // no note names on screen: the staff is the only clue (the dot shows its name once it sounds)
 const common = {
   module: M, reveal: 'quiz', view: 'staff', label: 'none', sub: 1,
+  // 👆 tap mode (user, 2026-11-02, the reading game's way for its drills): the line's notes one by one on the staff,
+  // tapped on the neck (ui/exercise.js)
+  tap: { kind: 'read' },
 };
 
 const naturals = ex({

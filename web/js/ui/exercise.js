@@ -113,7 +113,10 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   // a step without a tempo goal is an ear or note-finding round: one full round, then "got them all?"
   const earStep = !!(LS && !LS.goal);
   // the reading game, played here (see "read it, tap it" below)
-  const TAP = tpl.game?.kind === 'read';
+  // tap mode (see "tap mode" below): every game, and a tap drill (a reading or note-finding exercise with a `tap`)
+  // when the player turned it on there (user, 2026-11-02)
+  const TAP_DRILL = !tpl.game && tpl.tap ? tpl.tap : null;
+  let TAP = !!tpl.game || (!!TAP_DRILL && !lesson && !demo && !!prog.tapOn);
   let visitPassed = false, passShown = false;
   let alive = true;
   // "Continue" on Home reopens the last exercise opened
@@ -154,7 +157,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const silent = (el) => { el.dataset.silent = ''; return el; };
   const playBtn = silent(btn('play', 'Play / pause (space)', () => playPress(), 'big'));
   // (Play is the red ● of a take that is ready, and its ■ while it runs)
-  const playPress = () => (TAP ? tapStart() : rec?.phase === 'armed' ? startRec() : rec ? cancelTake() : player.toggle());
+  const playPress = () => (TAP ? tapPlay() : rec?.phase === 'armed' ? startRec() : rec ? cancelTake() : player.toggle());
   // all exercise options live behind one clear button (a strip of selects gets cut off on phones)
   const optsSum = h('span', { class: 'opts-sum' });
   const hasParams = Object.keys(tpl.params || {}).length > 0;
@@ -265,9 +268,11 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     item(backingBtn, 'Backing'), BANDS ? item(bandBtn, 'Band') : null,
     h('div', { class: 'sep' }), item(revealBtn, 'Reveal'), item(labelBtn, 'Dot labels'), item(scoreBtn, 'Tab / staff'), h('div', { class: 'grow' }), item(doneBtn, 'Cleared'), item(masteredBtn, 'Mastered'));
   const moreBtn = btn('more', 'More controls', () => toggleMore(), 'more-btn');
+  // 👆 a tap drill's tap mode on or off (it stays in view in both)
+  const tapBtn = btn('lblFinger', 'Tap mode', () => setTap(!TAP));
   const ctrl = h('footer', { class: 'exv-ctrl' },
     btn('restart', 'Back to start', () => restart()), silent(btn('prev', 'Previous note (←)', () => manual(-1))), playBtn,
-    silent(btn('next', 'Next note (→)', () => manual(1))), h('div', { class: 'sep' }), tempo, subSel, rhythmBtn, h('div', { class: 'sep' }),
+    silent(btn('next', 'Next note (→)', () => manual(1))), tapBtn, h('div', { class: 'sep' }), tempo, subSel, rhythmBtn, h('div', { class: 'sep' }),
     loopBtn, morePop, moreBtn);
 
   const drawer = h('aside', { class: 'drawer' });
@@ -276,11 +281,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
 
   const fb = new FretboardView(fbHost, { onTap: (s, f) => tapNote(s, f) });
   const tab = new TabView(tabEl, { onSeek: (i) => { if (TAP) { tapSeek(i); return; } if (player.playing) player.pause(); player.stepTo(i); } });
-  // the reading game needs no tempo, beats, loop or playback toggles: only ✓ Mastered stays under ⋯
-  if (TAP) {
-    for (const el of [tempo, subSel, rhythmBtn, loopBtn, beatRow, ...ctrl.querySelectorAll(':scope > .sep')]) el.hidden = true;
-    for (const el of morePop.children) if (!el.contains(doneBtn) && !el.contains(masteredBtn)) el.hidden = true;
-  }
+  // tap mode needs no tempo, beats, loop or playback toggles: only ✓ Cleared and 🏅 stay under ⋯
+  applyTapUi();
 
   const player = new Player({
     onStep: (i) => {
@@ -425,7 +427,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     ctx = makeCtx(S);
     let next;
     try {
-      next = TAP ? tapSet(tpl.game, p, ctx, S) : tpl.build(p, ctx, S);
+      next = TAP ? tapBuild() : tpl.build(p, ctx, S);
     } catch (e) {
       console.error(e);
       toast('Could not build this variation');
@@ -459,13 +461,13 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     rhythmBtn.hidden = !!inst.uniform || TAP;
     // (the reading game: quarter notes, a set not started)
     if (TAP) { player.sub = 1; tapReset(); }
-    if (!labelMode) labelMode = inst.label || tpl.label || S.label;
+    if (!labelMode && !TAP) labelMode = inst.label || tpl.label || S.label;
     if (inst.reveal) reveal = inst.reveal;
-    if (!score) score = inst.view || S.score;
+    if (!score && !TAP) score = inst.view || S.score;
     player.load(inst);
     applyBacking();
     fb.configure({ strings: ctx.tuning.length, names: ctx.names, tuning: ctx.tuning, lefty: S.lefty, zone: inst.zone || null });
-    if (TAP) fb.fit(0, TAP_HI, 12); else fb.fit(inst.range[0], inst.range[1], 9);
+    if (TAP) fb.fit(0, inst.tap?.hi ?? TAP_HI, 12); else fb.fit(inst.range[0], inst.range[1], 9);
     beatsEl.replaceChildren(...Array.from({ length: inst.beatsPerBar || 4 }, () => h('i')));
     renderTab();
     showStep(-1);
@@ -481,7 +483,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     // Quiz mode: the strip gives no answers away (tab: "?" until a note is played; staff: no names)
     const quiz = reveal === 'quiz';
     tab.render(inst, {
-      strings: ctx.tuning.length, beatsOf: (st) => player.beatsOf(st), beatsPerBar: inst.beatsPerBar || 4, sub: player.sub, mode: score, quiz,
+      strings: ctx.tuning.length, beatsOf: (st) => player.beatsOf(st), beatsPerBar: inst.beatsPerBar || 4, sub: player.sub, mode: TAP ? 'staff' : score, quiz,
       label: (n) => (labelMode === 'none' || (quiz && score === 'staff') ? '' : noteLabel(n, labelMode === 'finger' ? 'note' : labelMode, S.notation)),
       decorate: TAP ? (el) => decorateStaff(el) : null,
     });
@@ -496,7 +498,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   }
 
   function showStep(i) {
-    if (TAP) { tapShow(i); return; }
+    if (TAP) { tapShow(i < 0 ? -1 : askOf(i)); return; }
     cur = i;
     const steps = inst.steps;
     const map = new Map();
@@ -987,7 +989,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     playBtn.classList.toggle('rec-arm', armed);
     playBtn.classList.toggle('rec-run', running);
     playBtn.innerHTML = icon(armed ? 'recDot' : running ? 'stopSq' : player.playing ? 'pause' : 'play');
-    playBtn.setAttribute('aria-label', armed ? 'Record the take' : running ? 'Stop the take' : TAP ? 'Start a new set (space)' : 'Play / pause (space)');
+    playBtn.setAttribute('aria-label', armed ? 'Record the take' : running ? 'Stop the take' : TAP ? (inst?.tap?.kind === 'ear' && tapAt >= 0 && tapAt < asks().length ? 'Hear it again (space)' : 'Start a new set (space)') : 'Play / pause (space)');
   }
   function recBadgeShow(text, button) {
     recBadge.querySelector('span').textContent = text;
@@ -1194,44 +1196,119 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     recLayer.firstChild.classList.add('prev');
   }
 
-  // ------------------------------------------------------------ read it, tap it (the reading game)
-  // In the regular exercise screen (user, 2026-10-30: "keep the regular staff notation score sheet, reveal note by
-  // note, green success, red failed match… start with the regular play button and navigate step by step… to go
-  // backwards, what will reveal the positions of previous notes; BPMs, beats… hidden"): ▶ draws a new random set
-  // (curriculum/games.js `tapSet`), its notes appear on the staff one at a time, a tap on the neck answers (the exact
-  // pitch; every place when the game asks it), the note turns green or red and the next one comes by itself; ‹ ›
-  // go back over the notes answered, showing where each one is on the neck. The end card is the games'.
-  const TAP_HI = 12;      // the neck asked: frets 0–12
-  let tapAt = -1;         // the note asked (-1 before ▶; the set's length once all are answered)
-  let tapRes = [];        // per note answered: { ok, wrong: { s, f, midi } | null }
+  // ------------------------------------------------------------ tap mode (the games and the tap drills)
+  // In the regular exercise screen (user, 2026-10-30, the reading game: "keep the regular staff notation score sheet,
+  // reveal note by note, green success, red failed match… start with the regular play button and navigate step by
+  // step… to go backwards, what will reveal the positions of previous notes; BPMs, beats… hidden"; 2026-11-02: "make
+  // it extensive to other similar exercises", the ear games, the reading drills and the note-finding drills). ▶ starts
+  // a set: a game's or a note-finding drill's rounds (curriculum/games.js `tapSet`), a reading drill's own line (`tapBuild`).
+  // Each question in turn: 'read' shows its note on the staff, 'ear' plays it (▶ again: hear it again) with its root or
+  // open string on the neck, 'find' names it. A tap on the neck answers (the pitch, or the note in any octave for a
+  // name, within its frets and strings; every place when asked), the note on the staff shows green or red and the next
+  // comes by itself; ‹ › go back over the questions answered, showing where each one is. The end card is the games'.
+  const TAP_HI = 12;      // the neck shown: frets 0–12 (a drill asking higher shows more)
+  let tapAt = -1;         // the question asked (in inst.tap.asks; -1 before ▶, their number once all are answered)
+  let tapView = -1;       // the question in view (‹ › go back over the ones answered)
+  let tapRes = [];        // per question answered: { ok, wrong: { s, f, midi } | null }
   let tapHits = new Set();// the places of the note asked found so far ("s:f"), when every place is asked
   let tapBusy = false;    // an answer's feedback is showing
   let tapTimer = null;
-  const tapNote0 = (j) => inst.steps[j].notes[0];
-  const tapPlaces = (j) => placesOf(tapNote0(j).midi, ctx, TAP_HI);
+  let tapSounds = [];     // the question's notes still to sound (a new question, a new set or leaving stops them)
+  let tapListening = false;
+  const asks = () => inst?.tap?.asks || [];
+  const askOf = (step) => asks().findIndex((a) => a.i === step);
   const tapName = (n) => T.noteName(n, S.notation);
   const tapScore = () => tapRes.filter((r) => r?.ok).length;
+  /** A tap set: a game's rounds, a note-finding drill's, or a reading drill's own line (its notes asked one by one). */
+  function tapBuild() {
+    if (tpl.game) return tapSet(tpl.game, p, ctx, S);
+    if (TAP_DRILL.kind === 'find') return tapSet(TAP_DRILL, p, ctx, S);
+    const b = tpl.build(p, ctx, S);
+    const list = [];
+    b.steps.forEach((st, i) => {
+      const n = st.notes?.[0];
+      if (n && !st.rest && !st.silent) list.push({ i, answer: { midi: n.play ?? n.midi, n: n.n, label: '', say: '' } });
+    });
+    const hi = Math.max(TAP_HI, ...b.steps.flatMap((st) => (st.notes || []).map((n) => n.f ?? 0)));
+    return Object.assign(b, { view: 'staff', reveal: 'quiz', noPrompt: true, tap: { kind: 'read', hi, asks: list } });
+  }
+  /** The places that answer question j: its pitch (or its note in any octave) within its frets and strings. */
+  function tapPlaces(j) {
+    const a = asks()[j]?.answer;
+    if (!a) return [];
+    const hi = a.hi ?? inst.tap.hi ?? TAP_HI, lo = a.lo ?? 0;
+    let pl = a.midi != null ? placesOf(a.midi, ctx, hi)
+      : ctx.tuning.flatMap((o, s) => Array.from({ length: hi + 1 }, (_, f) => ({ s, f })).filter((q) => T.mod(o + q.f - a.pc, 12) === 0));
+    pl = pl.filter((q) => q.f >= lo);
+    if (a.strings) pl = pl.filter((q) => a.strings.includes(q.s));
+    if (a.not) pl = pl.filter((q) => !a.not.some((x) => x.s === q.s && x.f === q.f));
+    return pl;
+  }
+  function tapHush() {
+    for (const t of tapSounds) clearTimeout(t);
+    tapSounds = [];
+    tapListening = false;
+  }
   function tapReset() {
     clearTimeout(tapTimer);
+    tapHush();
     tapAt = -1;
+    tapView = -1;
     tapRes = [];
     tapHits = new Set();
     tapBusy = false;
     tapEndEl.hidden = true;
   }
-  /** ▶: a new random set, its first note asked. */
+  /** ▶: a new set, its first question asked; in an ear set under way, the question in view heard again. */
+  function tapPlay() {
+    if (inst.tap?.kind === 'ear' && tapAt >= 0 && tapAt < asks().length) { tapListen(tapView >= 0 ? tapView : tapAt); return; }
+    tapStart();
+  }
   function tapStart() {
     rebuild();
     A.audioCtx();
     logPlaying(true, { idleMin: 5 });
-    tapAt = 0;
-    showStep(0);
+    tapAsk(0);
   }
-  /** The staff: the notes not asked yet hidden, the ones answered green or red. */
+  function tapAsk(j) {
+    tapAt = j;
+    tapHits = new Set();
+    tapShow(j);
+    syncPlayBtn();
+    if (inst.tap.kind === 'ear') tapListen(j);
+  }
+  /** An ear question sounds (its notes one after another), then asks for the tap. */
+  function tapListen(j) {
+    tapHush();
+    const ask = asks()[j];
+    if (!ask?.play?.length) return;
+    tapListening = true;
+    if (j === tapAt && !tapRes[j]) promptEl.innerHTML = '🎧 Listen…';
+    let last = 0;
+    for (const n of ask.play) {
+      tapSounds.push(setTimeout(() => A.playNote(n.midi, A.now() + 0.01, n.dur, 0.85), n.at * 1000));
+      last = Math.max(last, n.at);
+    }
+    tapSounds.push(setTimeout(() => {
+      tapListening = false;
+      if (tapAt === j && tapView === j && !tapRes[j]) promptEl.innerHTML = tapAskText(ask);
+    }, last * 1000 + 250));
+  }
+  /** What the screen asks: tap the note read, heard or named (its name, big, for a note-finding drill). */
+  function tapAskText(ask) {
+    const kind = inst.tap.kind, all = ask.answer.all;
+    if (kind === 'ear') return tapListening ? '🎧 Listen…' : '👆 tap it <small>· ▶ hear it again</small>';
+    if (kind === 'find') return `find <b>${esc(tapName(ask.answer.n))}</b>${all ? ' · every place' : ''}`;
+    return all ? 'tap <b>every place</b>, to the 12th fret' : 'tap it on the neck';
+  }
+  /** The staff: the notes not asked yet hidden (the one asked too, when it is heard or named), the ones answered green or red. */
   function decorateStaff(root = tabEl) {
+    const list = asks(), kind = inst?.tap?.kind;
+    const at = tapAt < 0 ? -1 : tapAt >= list.length ? Infinity : list[tapAt].i;
+    const index = new Map(list.map((a, j) => [a.i, j]));
     for (const g of root.querySelectorAll('.sn[data-i]')) {
-      const i = Number(g.dataset.i), r = tapRes[i];
-      g.classList.toggle('tap-hidden', i > tapAt);
+      const i = Number(g.dataset.i), j = index.get(i), r = j != null ? tapRes[j] : null;
+      g.classList.toggle('tap-hidden', tapAt < 0 || i > at || (kind !== 'read' && j === tapAt && !r));
       g.classList.toggle('tap-ok', !!r?.ok);
       g.classList.toggle('tap-no', !!r && !r.ok);
     }
@@ -1240,111 +1317,156 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     const [s, f] = k.split(':').map(Number);
     return { s, f, label: name, color: 'none', state: 'current', ...(fx ? { fx } : {}) };
   });
-  /** Note i in view: the one asked (only the places found), or one answered (its places, and a wrong tap). */
-  function tapShow(i) {
-    cur = i;
-    tab.setCurrent(i);
-    const n = inst.steps.length;
-    if (i < 0) {
+  /** What the neck shows with a question: its root, its open string, the note given (a unison's). */
+  const refDots = (ask) => (ask.refs || []).map((x) => ({ s: x.s, f: x.f, label: x.label, color: x.root ? 'root' : 'none', state: 'static' }));
+  const tapCount = (j) => `${j + 1}/${asks().length} · ✓ ${tapScore()}`;
+  /** Question j in view: the one asked (its references and the places found), or one answered (its places, and a wrong tap). */
+  function tapShow(j) {
+    tapView = j;
+    const list = asks();
+    cur = j < 0 ? -1 : list[j].i;
+    tab.setCurrent(cur);
+    if (j < 0) {
       fb.setDots([]);
-      nowEl.innerHTML = `<span class="cnt">ready · ${n} notes · ▶ to start</span>`;
+      nowEl.innerHTML = `<span class="cnt">ready · ${list.length} ${inst.tap?.kind === 'read' ? 'notes' : 'questions'} · ▶ to start</span>`;
       promptEl.innerHTML = '';
       decorateStaff();
       return;
     }
-    const note = tapNote0(i), r = tapRes[i], name = tapName(note.n);
+    const ask = list[j], r = tapRes[j], name = tapName(ask.answer.n);
+    const what = ask.ask ? ` · ${esc(ask.ask)}` : '';
     if (!r) {
-      fb.setDots(foundDots(name));
-      nowEl.innerHTML = `<span class="cnt">${i + 1}/${n} · ✓ ${tapScore()}</span>`;
-      promptEl.innerHTML = inst.tap.all ? 'tap <b>every place</b>, to the 12th fret' : 'tap it on the neck';
+      fb.setDots([...refDots(ask), ...foundDots(name)]);
+      nowEl.innerHTML = `<span class="cnt">${tapCount(j)}${what}</span>`;
+      promptEl.innerHTML = tapAskText(ask);
     } else {
       fb.setDots([
+        ...refDots(ask),
         ...(r.wrong ? [{ s: r.wrong.s, f: r.wrong.f, label: tapName(spellMidi(r.wrong.midi)), color: 'sixth', state: 'static' }] : []),
-        ...tapPlaces(i).map((q) => ({ s: q.s, f: q.f, label: name, color: 'none', state: 'current' })),
+        ...tapPlaces(j).map((q) => ({ s: q.s, f: q.f, label: name, color: 'none', state: 'current' })),
       ]);
-      nowEl.innerHTML = `<span class="cnt">${i + 1}/${n} · ${r.ok ? '✓' : '✗'} ${esc(name)}</span>`;
-      promptEl.innerHTML = r.ok ? `<b class="tap-ok">✓ ${esc(name)}</b>` : `<b class="tap-no">✗ ${esc(name)}</b>${r.wrong ? `, not ${esc(tapName(spellMidi(r.wrong.midi)))}` : ''}`;
+      nowEl.innerHTML = `<span class="cnt">${j + 1}/${list.length} · ${r.ok ? '✓' : '✗'} ${esc(name)}${what}</span>`;
+      promptEl.innerHTML = tapVerdict(ask, r);
     }
     decorateStaff();
   }
-  /** A tap on the neck: the note sounds; on the note asked, it answers. */
+  function tapVerdict(ask, r) {
+    const name = tapName(ask.answer.n), say = ask.answer.say ? ` · ${esc(ask.answer.say)}` : '';
+    return r.ok ? `<b class="tap-ok">✓ ${esc(name)}</b>${say}`
+      : `<b class="tap-no">✗ ${esc(name)}</b>${r.wrong ? `, not ${esc(tapName(spellMidi(r.wrong.midi)))}` : ''}${say}`;
+  }
+  /** A tap on the neck: the note sounds; on the question asked, it answers. */
   function tapAnswer(s, f) {
     const midi = ctx.tuning[s] + f;
     A.playNote(midi, A.now() + 0.01, 0.7, 0.7);
     fb.pluck(s, 'none');
-    if (tapAt < 0 || tapAt >= inst.steps.length || tapBusy || cur !== tapAt) return;
-    const note = tapNote0(tapAt), name = tapName(note.n), places = tapPlaces(tapAt);
-    if (midi === note.midi) {
+    const list = asks();
+    if (tapAt < 0 || tapAt >= list.length || tapBusy || tapView !== tapAt || tapListening) return;
+    const ask = list[tapAt], a = ask.answer, name = tapName(a.n), places = tapPlaces(tapAt);
+    if (a.not?.some((x) => x.s === s && x.f === f)) { promptEl.innerHTML = 'That is the note shown: tap it on another string'; return; }
+    // (the pitch asked anywhere on the neck counts, a fret higher than the ones shown too)
+    const ok = places.some((q) => q.s === s && q.f === f) || (a.midi != null && midi === a.midi && !a.strings && !a.all);
+    if (ok) {
       tapHits.add(`${s}:${f}`);
-      if (inst.tap.all && tapHits.size < places.length) {
-        fb.setDots(foundDots(name));
+      if (a.all && tapHits.size < places.length) {
+        fb.setDots([...refDots(ask), ...foundDots(name)]);
         promptEl.innerHTML = `✓ ${tapHits.size} of ${places.length}: find the other${places.length - tapHits.size > 1 ? 's' : ''}`;
         return;
       }
       tapRes[tapAt] = { ok: true, wrong: null };
-      fb.setDots(foundDots(name, 'win'));
-      promptEl.innerHTML = `<b class="tap-ok">✓ ${esc(name)}</b>`;
-      tapNext(900);
+      fb.setDots([...refDots(ask), ...foundDots(name, 'win')]);
+      promptEl.innerHTML = tapVerdict(ask, tapRes[tapAt]);
+      tapNext(inst.tap.kind === 'ear' ? 1300 : 900);
     } else {
       tapRes[tapAt] = { ok: false, wrong: { s, f, midi } };
       fb.setDots([
+        ...refDots(ask),
         { s, f, label: tapName(spellMidi(midi)), color: 'sixth', state: 'static', fx: 'miss' },
         ...places.map((q) => ({ s: q.s, f: q.f, label: name, color: 'none', state: 'current' })),
       ]);
-      promptEl.innerHTML = `<b class="tap-no">✗ ${esc(name)}</b>, not ${esc(tapName(spellMidi(midi)))}${places.length > 1 ? `: here on ${places.length} strings` : ''}`;
-      A.playNote(note.midi, A.now() + 0.45, 1.1, 0.85);
+      promptEl.innerHTML = `${tapVerdict(ask, tapRes[tapAt])}${places.length > 1 && !a.all ? ` · here on ${places.length} strings` : ''}`;
+      // (the right note sounds: a name's lowest place)
+      const right = a.midi ?? (places[0] ? ctx.tuning[places[0].s] + places[0].f : a.show);
+      tapSounds.push(setTimeout(() => A.playNote(right, A.now() + 0.01, 1.1, 0.85), 450));
       tapNext(2400);
     }
-    nowEl.innerHTML = `<span class="cnt">${tapAt + 1}/${inst.steps.length} · ✓ ${tapScore()}</span>`;
+    nowEl.innerHTML = `<span class="cnt">${tapCount(tapAt)}${ask.ask ? ` · ${esc(ask.ask)}` : ''}</span>`;
     decorateStaff();
   }
   function tapNext(ms) {
     tapBusy = true;
     tapTimer = setTimeout(() => {
       tapBusy = false;
-      tapHits = new Set();
-      tapAt++;
-      if (tapAt >= inst.steps.length) { decorateStaff(); tapEnd(); return; }
-      showStep(tapAt);
+      const j = tapAt + 1;
+      if (j >= asks().length) { tapAt = j; tapHush(); decorateStaff(); tapEnd(); return; }
+      tapAsk(j);
     }, ms);
   }
-  /** ‹ ›: back over the notes answered, and forward to the one asked. */
+  /** ‹ ›: back over the questions answered, and forward to the one asked. */
   function tapNav(d) {
     if (tapAt < 0) return;
-    const last = Math.min(tapAt, inst.steps.length - 1);
-    const j = Math.max(0, Math.min(last, (cur < 0 ? 0 : cur) + d));
-    if (j !== cur) showStep(j);
+    const last = Math.min(tapAt, asks().length - 1);
+    const j = Math.max(0, Math.min(last, (tapView < 0 ? 0 : tapView) + d));
+    if (j !== tapView) tapShow(j);
   }
-  function tapSeek(i) { if (tapAt >= 0 && i <= Math.min(tapAt, inst.steps.length - 1)) showStep(i); }
-  /** The set's end: the games' card (stars, Again, Harder; 8 of 10 clears the mode, every mode cleared masters it). */
+  function tapSeek(step) {
+    const j = askOf(step);
+    if (tapAt >= 0 && j >= 0 && j <= Math.min(tapAt, asks().length - 1)) tapShow(j);
+  }
+  /** The set's end: the games' card (stars, Again, Harder; a game's 8 of 10 clears the mode, every mode masters it). */
   function tapEnd() {
     logPlaying(false);
-    const total = inst.steps.length, score = tapScore();
+    const total = asks().length, score = tapScore();
     const pr = getProgress(tpl.id) || {};
-    const record = pr.best == null || score > pr.best;
-    updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, best: Math.max(pr.best ?? 0, score), ...keep() });
+    const game = !!tpl.game;
+    const record = game && (pr.best == null || score > pr.best);
+    if (!preview) updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, ...(game ? { best: Math.max(pr.best ?? 0, score) } : {}), ...keep() });
     const v = choiceOf(tpl.id, p), was = isCleared(tpl.id, v), wasM = isMastered(tpl.id);
-    if (!lesson && !preview) recordGame(tpl.id, v, score, total);
+    if (game && !lesson && !preview) recordGame(tpl.id, v, score, total);
     const c = clearedCount(tpl.id);
-    const news = !wasM && isMastered(tpl.id) ? '🏅 Mastered: every mode cleared'
+    const news = !game ? null : !wasM && isMastered(tpl.id) ? '🏅 Mastered: every mode cleared'
       : !was && isCleared(tpl.id, v) ? `✓ ${choiceName(tpl.id, v)} cleared · ${c.done} of ${c.need} modes`
         : isCleared(tpl.id, v) ? null : `8 of 10 clears ${choiceName(tpl.id, v)}`;
     const stars = score >= total ? '★★★' : score >= total - 2 ? '★★☆' : score >= total / 2 ? '★☆☆' : '☆☆☆';
-    // (the next choice of the first option: a harder set, when there is one)
+    // (a game: the next choice of the first option, a harder set, when there is one)
     const [k0, def0] = Object.entries(tpl.params || {})[0] || [];
-    const opts0 = def0 ? paramOptions(def0, S, p) : [];
+    const opts0 = game && def0 ? paramOptions(def0, S, p) : [];
     const harder = opts0[opts0.findIndex((o) => o[0] === p[k0]) + 1];
     syncToggles();
     tapEndEl.replaceChildren(h('div', { class: 'game-card' },
       h('div', { class: 'game-stars' }, stars),
       h('h2', {}, `${score} of ${total}`),
-      pr.best != null ? h('p', { class: 'muted' }, record ? 'A new best score' : `Best ${pr.best} of ${total}`) : null,
+      game && pr.best != null ? h('p', { class: 'muted' }, record ? 'A new best score' : `Best ${pr.best} of ${total}`) : null,
       news ? h('p', { class: 'game-news' }, news) : null,
       h('div', { class: 'row' },
         h('button', { class: 'btn primary', onClick: () => tapStart() }, '↻ Again'),
         harder && score >= total - 2 ? h('button', { class: 'btn', onClick: () => { p[k0] = harder[0]; renderParams(); if (!lesson && !preview) updateProgress(tpl.id, keep()); tapStart(); } }, `Harder: ${harder[1]}`) : null,
-        h('button', { class: 'btn', onClick: () => { tapEndEl.hidden = true; showStep(total - 1); } }, '‹ Look back'))));
+        h('button', { class: 'btn', onClick: () => { tapEndEl.hidden = true; tapShow(total - 1); } }, '‹ Look back'))));
     tapEndEl.hidden = false;
+  }
+  /** 👆 on a tap drill: tap mode on or off (kept per exercise; never in a lesson or a demo). */
+  function setTap(on) {
+    if (!TAP_DRILL || lesson || demo || on === TAP) return;
+    player.stop(true);
+    tapReset();
+    TAP = on;
+    if (!preview) updateProgress(tpl.id, { tapOn: on });
+    // (play mode gets the player's own reveal back; the drill's own, if it has one, comes with its line)
+    if (!on) reveal = S.reveal;
+    applyTapUi();
+    rebuild();
+    renderParams();
+    syncToggles();
+    toast(on ? '👆 Tap mode: ▶ asks the notes one by one, tap each on the neck' : '▶ Play mode: play along on your bass');
+  }
+  /** The controls tap mode has no use for (tempo, beats, loop, the ⋯ items but ✓ Cleared and 🏅) hide in it. */
+  function applyTapUi() {
+    for (const el of [tempo, loopBtn, beatRow, ...ctrl.querySelectorAll(':scope > .sep')]) el.hidden = TAP;
+    for (const el of morePop.children) if (!el.contains(doneBtn) && !el.contains(masteredBtn)) el.hidden = TAP;
+    tapBtn.hidden = !TAP_DRILL || !!lesson || demo;
+    tapBtn.classList.toggle('on', TAP);
+    tapBtn.title = TAP ? '▶ Play mode: play along on your bass' : '👆 Tap mode: the notes one by one, tap them on the neck';
+    tapBtn.setAttribute('aria-label', tapBtn.title);
   }
 
   /** The drawer's mastery: 🏅, or how many choices are cleared and what clears one. */
@@ -1386,7 +1508,9 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
 
   function dispose() {
     alive = false;
-    if (TAP) { clearTimeout(tapTimer); logPlaying(false); }
+    clearTimeout(tapTimer);
+    tapHush();
+    if (TAP) logPlaying(false);
     if (rec) { const r = rec; rec = null; r.take?.stop({ keep: false }); A.setAudioOptions({ recClick: false, clickVol: S.clickVol }); }
     listening?.stop();
     closePicker?.();
