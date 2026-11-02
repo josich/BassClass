@@ -529,6 +529,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     return { s: n.s, f: n.f, at: n.at, label: n.tag === 'x' ? 'x' : label, color, state, tag: n.tag && n.tag !== 'x' ? n.tag : null };
   }
 
+  // the exercise's whole count of notes (a preview plays its first bar, but says how long the exercise is)
+  const total = () => (stripInst || inst).steps.length;
   function showStep(i) {
     if (TAP) { tapShow(i < 0 ? -1 : askOf(i)); return; }
     cur = i;
@@ -543,7 +545,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     if (i < 0) {
       if (reveal === 'full') for (let j = 0; j <= (segEnd[0] ?? 0); j++) if (!steps[j].silent) for (const n of steps[j].notes) put(n, 'future');
       if (reveal !== 'quiz') for (const n of steps[0].notes) put(n, 'next');
-      nowEl.innerHTML = chordAt[0] ? `<span class="chord">${esc(chordAt[0])}</span>${textAt[0] ? `<span class="txt">${esc(textAt[0])}</span>` : ''}<span class="cnt">ready · ${steps.length} notes</span>` : `<span class="cnt">ready · ${steps.length} notes</span>`;
+      nowEl.innerHTML = chordAt[0] ? `<span class="chord">${esc(chordAt[0])}</span>${textAt[0] ? `<span class="txt">${esc(textAt[0])}</span>` : ''}<span class="cnt">ready · ${total()} notes</span>` : `<span class="cnt">ready · ${total()} notes</span>`;
       promptEl.innerHTML = reveal === 'quiz' ? promptHtml(0) : '';
       fb.setDots([...map.values()]);
       tab.setCurrent(-1);
@@ -560,7 +562,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     fb.setDots([...map.values()]);
     if (!steps[i].hide && !steps[i].silent) for (const n of steps[i].notes) fb.pluck(n.s, n.tag === 'x' ? 'ghost' : degKey(n.deg));
     tab.setCurrent(i);
-    nowEl.innerHTML = `${chordAt[i] ? `<span class="chord">${esc(chordAt[i])}</span>` : ''}${textAt[i] ? `<span class="txt">${esc(textAt[i])}</span>` : ''}<span class="cnt">${i + 1}/${steps.length}</span>`;
+    nowEl.innerHTML = `${chordAt[i] ? `<span class="chord">${esc(chordAt[i])}</span>` : ''}${textAt[i] ? `<span class="txt">${esc(textAt[i])}</span>` : ''}<span class="cnt">${i + 1}/${total()}</span>`;
     promptEl.innerHTML = reveal === 'quiz' && nx >= 0 ? promptHtml(nx) : '';
   }
 
