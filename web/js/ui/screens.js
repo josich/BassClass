@@ -36,8 +36,8 @@ export const exHref = (id, params) => {
   return `#/ex/${id}${q ? `?${q}` : ''}`;
 };
 
-/** An exercise card; `level`/`topic` false leave out a chip the section already shows. */
-function card(t, { level = true, topic = true } = {}) {
+/** An exercise card; `level`/`topic`/`core` false leave out a chip the section already shows. */
+function card(t, { level = true, topic = true, core = true } = {}) {
   const pr = getProgress(t.id) || {};
   const mod = moduleOf(t.module);
   const lock = exerciseLock(t);
@@ -53,7 +53,7 @@ function card(t, { level = true, topic = true } = {}) {
       proChip(lock),
       level ? h('span', { class: `chip lv lv${t.level}` }, `L${t.level}`) : null,
       topic ? h('span', { class: 'chip' }, `${mod?.icon ?? ''} ${mod?.name ?? ''}`) : null,
-      t.star ? h('span', { class: 'chip core' }, '★ core') : null,
+      t.star && core ? h('span', { class: 'chip core' }, '★ core') : null,
       // 🏅 the Library's own mark, and a green edge (user, 2026-11-02); until then the choices cleared and the goal
       pr.done ? h('span', { class: 'chip mastered' }, '🏅 Mastered') : null,
       !pr.done ? clearedChip(t) : null,
@@ -69,8 +69,14 @@ function clearedChip(t) {
   return h('span', { class: 'chip cleared', title: `${c.done} of ${c.need} choices cleared: 🏅 at ${c.need}` }, `✓ ${c.done}/${c.need}`);
 }
 
+// The Core topic (user, 2026-11-02: "a place with those essential exercises to be found fast"): every ★ core exercise,
+// whatever its own topic (it stays there too), first in the Topics view.
+const CORE = { id: 'core', name: 'Core essentials', icon: '★', desc: ['★ The essentials of every level in one place: scales, pentatonics, chords, arpeggios, harmony and the notes on the neck', '🧭 Each one also sits in its own topic'] };
+const topicOf = (id) => (id === CORE.id ? CORE : moduleOf(id));
+const topicList = (id) => (id === CORE.id ? EXERCISES.filter((t) => t.star).sort((a, b) => a.order - b.order) : byModule(id));
+
 function moduleStats(id) {
-  const list = byModule(id);
+  const list = topicList(id);
   const done = list.filter((t) => (getProgress(t.id) || {}).done).length;
   return { total: list.length, done };
 }
@@ -180,10 +186,10 @@ function favRow(t, rerender) {
 // each topic from level 1 to 6: hands and time first, then the neck, then theory and music
 
 function modulesGrid() {
-  const mods = MODULES.filter((m) => byModule(m.id).length).sort((a, b) => rank(a.id) - rank(b.id));
+  const mods = [CORE, ...MODULES.filter((m) => byModule(m.id).length).sort((a, b) => rank(a.id) - rank(b.id))];
   return h('div', { class: 'grid' }, mods.map((m) => {
     const st = moduleStats(m.id);
-    return h('div', { class: 'card mod-card', onClick: () => go(`#/m/${m.id}`) },
+    return h('div', { class: `card mod-card${m === CORE ? ' core' : ''}`, onClick: () => go(`#/m/${m.id}`) },
       h('div', { class: 'ico' }, m.icon), h('h3', {}, m.name),
       h('div', { class: 'meta' }, h('span', { class: 'chip' }, `${st.total} exercises`), st.done ? h('span', { class: 'chip' }, `${st.done} mastered`) : null, infoBtn(m.desc, `About ${m.name}`)),
       h('div', { class: 'bar' }, h('i', { style: { width: `${st.total ? (st.done / st.total) * 100 : 0}%` } })));
@@ -191,15 +197,17 @@ function modulesGrid() {
 }
 
 export function moduleScreen(main, id) {
-  const m = moduleOf(id);
+  const m = topicOf(id);
   if (!m) { replaceHash('#/library'); return; }
   let level = 0;
   const tabs = h('div', { class: 'tabs' });
   const list = h('div');
   const render = () => {
     tabs.replaceChildren(...[0, 1, 2, 3, 4, 5, 6].map((n) => h('button', { class: level === n ? 'on' : '', onClick: () => { level = n; render(); } }, n ? `L${n}` : 'All')));
-    const items = byModule(id).filter((t) => !level || t.level === level);
-    list.replaceChildren(items.length ? h('div', { class: 'grid' }, items.map((t) => card(t, { topic: false }))) : h('p', { class: 'muted' }, 'No exercises at this level yet.'));
+    const items = topicList(id).filter((t) => !level || t.level === level);
+    // (on Core each card names its own topic instead of the ★ chip every one would carry)
+    const core = m === CORE;
+    list.replaceChildren(items.length ? h('div', { class: 'grid' }, items.map((t) => card(t, { topic: core, core: !core }))) : h('p', { class: 'muted' }, 'No exercises at this level yet.'));
   };
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('button', { class: 'icon-btn', 'aria-label': 'Back', html: icon('back'), onClick: () => back('#/library') }), h('h1', {}, `${m.icon} ${m.name}`), h('div', { class: 'grow' }), tabs),
