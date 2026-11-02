@@ -401,7 +401,7 @@ const symmetric = ex({
   about: 'The half-whole diminished scale alternates half and whole steps and fits dominant 7♭9 chords. The whole-half version fits diminished chords. The whole-tone scale is all whole steps, the sound of augmented chords and dream sequences. The augmented scale (1 ♭3 3 5 ♯5 7) alternates minor 3rds and half steps: two augmented triads a half step apart, loved by Coltrane and Oliver Nelson. Because they are symmetric, their shapes repeat along the neck.',
   tips: ['Find the repeating 2-string shape and move it along the neck: every 3 frets for the diminished scales, 2 for whole tone, 4 for the augmented scale.', 'Sequences that skip one or two notes sound very modern on these scales.'],
   source: 'Advanced graded exams (RSL, LCM); conservatory programmes',
-  params: { type: typeP(['dimHW', 'dimWH', 'wholeTone', 'augmented']), key: plainKeyP(T.SCALES.dimHW.iv), pattern: patP(['straight', 'skip', 'g3', 'g4', 'skip2'], 'straight'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]) },
+  params: { type: typeP(['dimHW', 'dimWH', 'wholeTone', 'augmented']), key: plainKeyP(T.SCALES.dimHW.iv), pattern: patP(['straight', 'skip', 'g3', 'g4', 'g5', 'skip2'], 'straight'), oct: sel('Range', [['1', '1 octave'], ['2', '2 octaves']]) },
   bpm: 72, sub: 4, label: 'degree',
   // symmetric scales do not have one note per letter, so they are spelled plainly (D♭ half-whole: D, not E𝄫)
   build(p, ctx, S) { return scaleBuild({ ...p, root: 'E' }, ctx, S, { plain: true }).build({ label: 'degree' }); },

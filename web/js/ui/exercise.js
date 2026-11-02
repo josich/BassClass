@@ -513,7 +513,9 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   function renderTab() {
     // Quiz mode: the strip gives no answers away (tab: "?" until a note is played; staff: no names)
     const quiz = reveal === 'quiz';
-    tab.render(preview && !TAP && stripInst ? stripInst : inst, {
+    // (a false harmonic's fretted finger, `held`, is on the neck only: the strip writes the harmonic)
+    const shown = preview && !TAP && stripInst ? stripInst : inst;
+    tab.render(shown.steps.some((st) => st.notes.some((n) => n.held)) ? { ...shown, steps: shown.steps.map((st) => (st.notes.some((n) => n.held) ? { ...st, notes: st.notes.filter((n) => !n.held) } : st)) } : shown, {
       strings: ctx.tuning.length, beatsOf: (st) => player.beatsOf(st), beatsPerBar: inst.beatsPerBar || 4, sub: player.sub, mode: TAP ? 'staff' : score, quiz,
       label: (n) => (labelMode === 'none' || (quiz && score === 'staff') ? '' : noteLabel(n, labelMode === 'finger' ? 'note' : labelMode, S.notation)),
       decorate: TAP ? (el) => decorateStaff(el) : null,

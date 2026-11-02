@@ -515,6 +515,53 @@ const harmonicChords = ex({
   },
 });
 
+// False (artificial) harmonics (user, 2026-11-02, from Jaco Pastorius's technique: concepts only, every line our
+// own): fret a note, touch the string lightly 12 frets higher with the plucking hand's thumb and pluck behind the thumb
+// with the index; the note sounds an octave up, as a harmonic. The neck shows the fretted note (`held`: fretted, not
+// plucked) and the touch point (its triangle); the strip writes the harmonic.
+const FALSE_LINES = {
+  scale: { name: 'Major scale', ivs: () => T.SCALES.ionian.iv },
+  pent: { name: 'Major pentatonic', ivs: () => T.SCALES.majorPent.iv },
+  arp: { name: 'Major 7th arpeggio', ivs: () => ['1', '3', '5', '7'] },
+};
+const falseHarmonics = ex({
+  id: 'tech-false-harmonics', module: M, level: 5,
+  title: 'False harmonics: fret, touch 12 frets higher, pluck',
+  summary: 'Artificial harmonics on fretted notes: the thumb touches the string 12 frets above the fretted note, the index plucks behind it.',
+  about: 'A natural harmonic needs an open string; a false (artificial) harmonic works on any fretted note. Fret the note, lay the side of the plucking hand\'s thumb lightly on the same string 12 frets higher (where the octave\'s node now lies), and pluck behind the thumb with the index finger: the note sounds an octave up with a bell-like tone. Move the thumb with the fretting hand: it is always 12 frets above it.\n\nThe neck shows both places: the fretted note, and the triangle where the thumb touches. Play a scale, a pentatonic and an arpeggio this way, slowly, until every note rings clearly.',
+  tips: ['The thumb only touches: no pressure, exactly over the node 12 frets up.', 'Pluck close behind the thumb, towards the bridge, and lift the thumb as soon as the note sounds.', 'Keep the fretting finger pressed right behind its fret: a weak fret kills the harmonic.'],
+  source: 'Artificial harmonics in the style of Jaco Pastorius',
+  params: { line: sel('Line', Object.entries(FALSE_LINES).map(([k, v]) => [k, v.name])), key: keyP(T.SCALES.ionian.iv) },
+  bpm: 60, label: 'note',
+  build(p, ctx, S) {
+    const b = new Builder(ctx, S);
+    const L = FALSE_LINES[p.line] || FALSE_LINES.scale;
+    for (const key of keysFor(p.key)) {
+      const tonic = T.bestRoot(key, T.SCALES.ionian.iv);
+      // the root low on the neck (frets 0–5 of the lowest string that has it), the line one octave up and back in
+      // that position, so the touch points stay on the neck (fretted 12 frets under the highest fret at most)
+      const hi = ctx.maxFret - 12;
+      let root = null;
+      for (let s = 0; s < ctx.tuning.length - 1 && root == null; s++) { const f = T.mod(key - ctx.tuning[s], 12); if (f <= 5) root = { s, f }; }
+      const rootMidi = ctx.tuning[root.s] + root.f;
+      const up = [...L.ivs().map((iv) => ({ midi: rootMidi + T.semis(iv), n: T.up(tonic, iv), deg: T.fmtDeg(iv) })), { midi: rootMidi + 12, n: tonic, deg: 'R' }];
+      const line = [...up, ...up.slice(0, -1).reverse()];
+      b.chord(`${nm(tonic, S)} ${L.name.toLowerCase()}`);
+      for (const q of line) {
+        // the lowest string from the root's on which the note sits within the hand (one fret behind the root to four ahead)
+        let at = null;
+        for (let s = root.s; s < ctx.tuning.length && !at; s++) { const f = q.midi - ctx.tuning[s]; if (f >= Math.max(0, root.f - 1) && f <= Math.min(root.f + 4, hi)) at = { s, f }; }
+        for (let s = root.s; s < ctx.tuning.length && !at; s++) { const f = q.midi - ctx.tuning[s]; if (f >= 0 && f <= hi) at = { s, f }; }
+        for (let s = ctx.tuning.length - 1; s >= 0 && !at; s--) { const f = q.midi - ctx.tuning[s]; if (f >= 0) at = { s, f }; }
+        // (one finger per fret from the one behind the root; the thumb, T, at the touch point)
+        const finger = at.f === 0 ? 0 : Math.max(1, Math.min(4, at.f - Math.max(0, root.f - 1) + (root.f === 0 ? 0 : 1)));
+        b.stack([{ s: at.s, f: at.f, n: q.n, deg: q.deg, held: true, finger }, { s: at.s, f: at.f + 12, at: at.f + 12, tag: '◊', play: q.midi + 12, n: q.n, deg: q.deg, finger: 'T' }], { dur: 1 });
+      }
+    }
+    return b.build({ uniform: false, label: 'note' });
+  },
+});
+
 const ghost16 = ex({
   id: 'tech-ghost-16ths', module: M, level: 3,
   title: 'Ghost-note 16ths',
@@ -856,4 +903,4 @@ const tapping = ex({
   },
 });
 
-export default [permStrings, altPluck, c1234, raking, muting, climb, perms, spider, diagonal, fingerPairs, octaveRun, dynamics, trills, legato, stringSkip, shifting, simandl, accents, ghost16, stretch, harmonics, endurance, pim, sweep, harmonicChords, tapping];
+export default [permStrings, altPluck, c1234, raking, muting, climb, perms, spider, diagonal, fingerPairs, octaveRun, dynamics, trills, legato, stringSkip, shifting, simandl, accents, ghost16, stretch, harmonics, endurance, pim, sweep, harmonicChords, falseHarmonics, tapping];

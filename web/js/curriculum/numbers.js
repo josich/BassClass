@@ -57,6 +57,7 @@ export const NUMBERS = {
   'wk-minor': 536, 'wk-triplet-skips': 537, 'lk-ii-v-i': 538, 'lk-minor-ii-v-i': 539, 'lk-blues': 540,
   'lk-turnarounds': 541, 'lk-bass-solo': 542, 'lk-motif': 543, 'lk-implied': 544, 'sl-advanced': 545,
   'mm-schism': 546, 'mm-cantstop': 547, 'mm-hysteria': 548, 'mm-duke': 549, 'mm-whatsgoingon': 550,
+  'tech-false-harmonics': 551,
   // Level 6
   'tech-tapping': 601, 'sc-odd-groupings': 602, 'sc-alternating-all-keys': 603, 'sc-messiaen': 604, 'md-harmonic-major-modes': 605,
   'md-altered-chord-scale': 606, 'tri-major-thirds': 607, 'tri-cycle-all-inversions': 608, 'tri-diatonic-all-keys': 609, 'tri-rudiments-all-keys': 610,

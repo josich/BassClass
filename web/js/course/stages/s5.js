@@ -845,6 +845,24 @@ export default {
             'Lifting the bass note too early. Let the whole chord ring.',
           ],
         },
+        {
+          // (added 2026-11-02, user: Jaco Pastorius's techniques; optional, like double thumbing and tapping)
+          id: 'false-harmonics', title: 'False harmonics', optional: true, added: 1793628000000,
+          idea: 'A harmonic on any fretted note: the thumb touches the string 12 frets higher.',
+          concept: [
+            'A natural harmonic needs an open string; a false (artificial) harmonic works on any fretted note. Fret the note, lay the side of the plucking hand\'s thumb lightly on the string 12 frets higher, and pluck behind the thumb with the index: the note sounds an octave up, with a bell-like tone.',
+            'The neck shows both places, the fretted note and the triangle where the thumb touches. The thumb moves with the fretting hand, always 12 frets above it.',
+          ],
+          steps: [
+            { ex: 'tech-false-harmonics', p: { line: 'scale' }, from: 40, goal: 60, do: 'A major scale, every note a false harmonic.' },
+            { ex: 'tech-false-harmonics', p: { line: 'pent' }, from: 40, goal: 60, do: 'The major pentatonic: bigger moves for the thumb.' },
+            { ex: 'tech-false-harmonics', p: { line: 'arp' }, from: 40, goal: 60, do: 'A major 7th arpeggio, up and down.' },
+          ],
+          mistakes: [
+            'Pressing with the thumb. It only touches, over the node.',
+            'The thumb left behind when the fretting hand moves. Always 12 frets above.',
+          ],
+        },
       ],
       check: {
         can: [

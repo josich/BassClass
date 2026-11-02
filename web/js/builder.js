@@ -174,7 +174,10 @@ export class Builder {
   stack(pitches, opts = {}) {
     const { dur = 1 } = opts;
     if (pitches.every((p) => p.s != null)) {
-      const notes = pitches.map((p) => ({ midi: this.ctx.tuning[p.s] + p.f, n: p.n || spellMidi(this.ctx.tuning[p.s] + p.f), deg: p.deg, s: p.s, f: p.f, tag: p.tag, ...(p.at != null ? { at: p.at } : {}), ...(p.play != null ? { play: p.play } : {}) }));
+      // (`held`: a note fretted but not plucked, shown on the neck only: a false harmonic's fretted finger)
+      const notes = pitches.map((p) => ({ midi: this.ctx.tuning[p.s] + p.f, n: p.n || spellMidi(this.ctx.tuning[p.s] + p.f), deg: p.deg, s: p.s, f: p.f, tag: p.tag, ...(p.at != null ? { at: p.at } : {}), ...(p.play != null ? { play: p.play } : {}), ...(p.held ? { held: true } : {}), ...(p.finger != null ? { finger: p.finger } : {}) }));
+      // (fingers the exercise sets itself stay, as in frets())
+      for (const n of notes) if (n.finger != null) this.fixedFingers.add(n);
       const step = { notes, dur: opts.dur ?? dur };
       if (opts.accent) step.accent = true;
       if (opts.fill) step.fill = true;

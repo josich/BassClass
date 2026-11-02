@@ -48,7 +48,7 @@ export const MAIN = {
   'gr-soul': 'style', 'gr-odd-meters': 'meter', 'wk-approach': P80('prog'), 'wk-scalar': P80('prog'), 'wk-mixed': P80('prog'),
   'sl-grooves': 'style', 'sl-octaves-16': 'lick', 'gr-latin': 'style', 'gr-electronic': 'style', 'gr-gospel': 'style', 'mm-money': SONG, 'mm-criminal': SONG, 'mm-goodtimes': SONG, 'mm-flyaway': SONG,
   // Level 5
-  'tech-permutations-across': ALL('perm', { pct: 0.8 }), 'tech-sweep': 'shape', 'rh-polyrhythm': 'ratio', 'iv-cycles': 'iv',
+  'tech-permutations-across': ALL('perm', { pct: 0.8 }), 'tech-false-harmonics': 'line', 'tech-sweep': 'shape', 'rh-polyrhythm': 'ratio', 'iv-cycles': 'iv',
   'sc-bebop': 'type', 'sc-symmetric': 'type', 'sc-exotic': 'type', 'sc-pent-sidestep': 'side', 'sc-pent-double-stops': 'pattern',
   'md-pitch-axis': 'set', 'md-pentatonic-superimposition': ALL('choice'), 'md-melodic-superimposition': 'set', 'tri-approach': 'approach',
   'tri-permutations': { by: 'perm', all: 'rotate' }, 'tri-rudiments': 'rudiment', 'tri-pairs': 'pair', 'tri-diatonic-modes': 'scale',

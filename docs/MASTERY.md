@@ -22,7 +22,7 @@ exercises were renumbered in the Library's order (`curriculum/numbers.js`).
 - **Course and Library.** A lesson step passed and ticked ✓ Clean at the goal clears its choice in the Library. A mastered exercise still passes the steps on it.
 - **No migration.** Mastery records from earlier builds need no care: there are no users yet (user, 2026-11-02).
 
-In all, 202 exercises have a main option and 45 have none (the seven groove exercises added on 2026-11-02 included).
+In all, 203 exercises have a main option and 45 have none (the eight exercises added on 2026-11-02 included).
 
 ## Level 1
 
@@ -237,6 +237,7 @@ In all, 202 exercises have a main option and 45 have none (the seven groove exer
 | 545 | Advanced slap | Pattern (2) | both |
 | 546 | Schism study | Part: 5/8, 7/8 | both |
 | 547–550 | Song studies | Part | Whole tune |
+| 551 | False harmonics | Line: major scale, major pentatonic, major 7th arpeggio | all 3 |
 
 ## Level 6
 

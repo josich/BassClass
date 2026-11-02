@@ -33,7 +33,7 @@ export const LESSON_NUMBERS = {
   'melodic-super': 17, 'triad-perms': 18, 'triad-rudiments': 19, 'triad-pairs': 20, 'modal-triads': 21, 'quartal': 22, 'upper-structures': 23, 'extended': 24,
   'upper-arps': 25, 'arp-perms': 26, 'altered-dominants': 27, 'colour-chords': 28, 'funk-changes': 29, 'walk-enclosures': 30, 'walk-two-per-bar': 31, 'walk-minor': 32,
   'walk-skips': 33, 'licks-251': 34, 'licks-minor': 35, 'licks-blues': 36, 'solo-devices': 37, 'motif': 38, 'implied': 39, 'slap-advanced': 40,
-  'pent-double-stops': 41, 'harmonic-chords': 42,
+  'pent-double-stops': 41, 'harmonic-chords': 42, 'false-harmonics': 43,
   // Stage 6
   'odd-groupings': 1, 'alternating-3rds': 2, 'cycle-inversions': 3, 'triads-all-keys': 4, 'rudiments-all-keys': 5, 'sevenths-all-keys': 6, 'messiaen': 7, 'harmonic-major': 8,
   'altered-chord-scale': 9, 'major-thirds': 10, 'giant-steps-arps': 11, 'giant-steps-walk': 12, 'rhythm-changes-arps': 13, 'chordal': 14, 'double-thumb': 15, 'tapping': 16,

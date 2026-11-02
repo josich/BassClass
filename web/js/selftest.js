@@ -409,7 +409,9 @@ export function run({ strings = [4, 5, 6], verbose = false } = {}) {
         inst.steps.forEach((step, i) => {
           if (!(step.dur > 0)) problems.push(`${t.id} step ${i} bad dur ${step.dur}`);
           // a chord can only be played with one note per string
-          if (step.notes.length > 1 && new Set(step.notes.map((n) => n.s)).size < step.notes.length) problems.push(`${t.id} [${st}str] ${JSON.stringify(p)} step ${i}: two notes on one string`);
+          // (a false harmonic's fretted finger, `held`, shares its string with the harmonic it makes)
+          const played = step.notes.filter((n) => !n.held);
+          if (played.length > 1 && new Set(played.map((n) => n.s)).size < played.length) problems.push(`${t.id} [${st}str] ${JSON.stringify(p)} step ${i}: two notes on one string`);
           for (const n of step.notes) {
             notes++;
             const where = `${t.id} [${st}str] ${JSON.stringify(p)} step ${i}`;

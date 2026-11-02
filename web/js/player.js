@@ -224,7 +224,7 @@ export class Player {
     if (sound && this.sound) {
       A.audioCtx();
       const t = A.now() + 0.01;
-      for (const note of st.notes) A.playNote(note.play ?? note.midi, t, 0.9, st.vel ?? 1, note.tag === 'x', note.tag === '◊');
+      for (const note of st.notes) if (!note.held) A.playNote(note.play ?? note.midi, t, 0.9, st.vel ?? 1, note.tag === 'x', note.tag === '◊');
     }
     this.cb.onStep?.(this.cur);
   }
@@ -297,6 +297,7 @@ export class Player {
         const onBeat = Math.abs(rel - Math.round(rel)) < 1e-6;
         const vel = step.vel ?? (step.accent ? 1 : onBeat ? 0.88 : 0.74);
         for (const n of step.notes) {
+          if (n.held) continue;   // (a false harmonic's fretted finger: shown, not plucked)
           const tag = n.tag;
           const v = tag === 'H' || tag === 'PO' || tag === 'sl' ? vel * 0.7 : tag === 'RH' || tag === 'LH' ? vel * 0.8 : vel;
           A.playNote(n.play ?? n.midi, tStep, secs * 0.94, v, tag === 'x', tag === '◊');

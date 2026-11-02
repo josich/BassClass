@@ -1,6 +1,6 @@
 # BassClass exercise catalogue
 
-247 exercise families. Each runs in any key (or all 12 keys in a row) and has its own variations (patterns, inversions, scales, positions, rhythms), so the number of distinct drills runs into the thousands.
+248 exercise families. Each runs in any key (or all 12 keys in a row) and has its own variations (patterns, inversions, scales, positions, rhythms), so the number of distinct drills runs into the thousands.
 
 Generated from `web/js/curriculum/` (run `saveCatalogue()` from `js/selftest.js` to refresh). # = the exercise number shown in the app: its level, then two digits (305 = Level 3), kept for good (`curriculum/numbers.js`). ★ = core exercise.
 
@@ -263,6 +263,7 @@ _Approach notes, triad pairs, melodic minor, odd groupings._
 | 548 | Hysteria style | Make Music | Non-stop 16th-note arpeggios through Am – G – F – E, then an octave chorus in 8ths. | Original line in the style of “Hysteria” (Muse, 2003): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 549 | Sir Duke style | Make Music | A fast 8th-note line in B major with chromatic passing notes, played like a horn section, plus a groove part. | Original line in the style of “Sir Duke” (Stevie Wonder, 1976): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 550 | What's Going On style | Make Music | A syncopated, chromatic line through Emaj7 – C♯m7 – F♯m7 – B7, then the same chords with ghosted triplets. | Original line in the style of “What's Going On” (Marvin Gaye, 1971): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
+| 551 | False harmonics: fret, touch 12 frets higher, pluck | Technique & Rudiments | Artificial harmonics on fretted notes: the thumb touches the string 12 frets above the fretted note, the index plucks behind it. | Artificial harmonics in the style of Jaco Pastorius |
 
 ### Level 6: Mastery
 
@@ -342,6 +343,7 @@ _All keys, all inversions, Coltrane changes, pro-level stamina._
 - **502 · Thumb-index-middle (p-i-m) arpeggios** (L5, `tech-pim`): Key: 12 keys + all-keys cycles · Progression: I – vi – IV – V (50s) / I – V – vi – IV (pop) / ii – V – I / Canon (I – V – vi – iii – IV – I – IV – V)
 - **503 · Sweep picking: arpeggios across the strings** (L5, `tech-sweep`): Shape: R-5-8-10 triad (four strings) / R-3-5-8 triad (four strings) / R-5-7-10 7th chord (four strings) / R-5-8-10-12 (five strings, from the low B) (5-string) · Right hand: Pick (Π up the strings, V down) / Fingers (alternate up, rake down) · Progression: i – ♭VI – ♭III – ♭VII (epic minor) / I – V – vi – IV (pop) / i – iv – v – i (minor) / I – vi – IV – V (50s) / ii – V – I · Key: 12 keys + all-keys cycles
 - **504 · Harmonic chords** (L5, `tech-harmonic-chords`): Style: One by one, then together / Together
+- **551 · False harmonics: fret, touch 12 frets higher, pluck** (L5, `tech-false-harmonics`): Line: Major scale / Major pentatonic / Major 7th arpeggio · Key: 12 keys + all-keys cycles
 - **601 · Two-hand tapping** (L6, `tech-tapping`): Pattern: Tap, pull-off, hammer (triplets on one string) / Two-hand arpeggios (left hand R and 5) / Tapped melody over a pedal · Progression: i – ♭VI – ♭III – ♭VII (epic minor) / I – V – vi – IV (pop) / i – iv – v – i (minor) / I – vi – IV – V (50s) / ii – V – I · Key: 12 keys + all-keys cycles
 
 ### Rhythm & Time
@@ -411,7 +413,7 @@ _All keys, all inversions, Coltrane changes, pro-level stamina._
 - **417 · Minor pentatonics on a major chord** (L4, `sc-pent-major-chord`): Study: E minor pentatonic (on the 3rd) / A minor pentatonic (on the 6th) / B minor pentatonic (on the 7th: Lydian ♯4) / All three, one after another · Key: 12 keys + all-keys cycles · Feel: Swing 8ths / Straight 8ths
 - **418 · Groove bar, fill bar** (L4, `sc-pent-groove-fill`): Study: Fill over Cm7 / Fill over D♭maj7 (Lydian colours) / Fill over B♭7sus4 / Fill over A♭maj7 / All four in a row · Key: 12 keys + all-keys cycles · Feel: Swing 8ths / Straight 8ths
 - **507 · Bebop scales** (L5, `sc-bebop`): Scale: Bebop dominant / Bebop major / Bebop Dorian · Key: 12 keys + all-keys cycles · Range: 1 octave / 2 octaves
-- **508 · Symmetric scales: diminished & whole tone** (L5, `sc-symmetric`): Scale: Diminished half-whole / Diminished whole-half / Whole tone / Augmented · Key: 12 keys + all-keys cycles · Sequence: Straight / Skip one note / Groups of 3 / Groups of 4 / Skip two notes · Range: 1 octave / 2 octaves
+- **508 · Symmetric scales: diminished & whole tone** (L5, `sc-symmetric`): Scale: Diminished half-whole / Diminished whole-half / Whole tone / Augmented · Key: 12 keys + all-keys cycles · Sequence: Straight / Skip one note / Groups of 3 / Groups of 4 / Groups of 5 / Skip two notes · Range: 1 octave / 2 octaves
 - **509 · World scales: double harmonic, Hungarian & more** (L5, `sc-exotic`): Scale: Double harmonic major / Hungarian minor / Hungarian major / Ukrainian Dorian (Dorian ♯4) / Phrygian dominant (Spanish) / Augmented scale (1 ♭3 3 5 ♯5 7) · Key: 12 keys + all-keys cycles · Sequence: Straight / Skip one note / Groups of 3 / Groups of 4 · Range: 1 octave / 2 octaves
 - **510 · Barry Harris: the 6th-diminished scale** (L5, `sc-sixth-diminished`): Key: 12 keys + all-keys cycles · Sequence: Straight / Skip one note / Every other note: C6 and dim7 chords / Groups of 4 · Range: 1 octave / 2 octaves
 - **511 · Pentatonic side-stepping** (L5, `sc-pent-sidestep`): Key: 12 keys · Side-step: Half step up / Half step down / Tritone away · Range: 1 octave / 2 octaves
