@@ -283,7 +283,7 @@ const V_I = [['5', 'dom7', 4], ['1', 'maj7', 4]];
 const TURN = [['1', 'maj7', 2], ['6', 'dom7', 2], ['2', 'min7', 2], ['5', 'dom7', 2]];
 
 const majorIIVI = lickTemplate({
-  id: 'lk-ii-v-i', level: 5, star: true,
+  id: 'lk-ii-v-i', level: 5,
   title: 'Jazz licks: major ii–V–I',
   summary: 'Six phrases over Dm7 – G7 – Cmaj7: arpeggios, enclosures, guide tones, ♭9s and tritone subs.',
   about: 'The ii–V–I is the sentence jazz is written in. These licks show the main ways to say it: run up the ii chord and resolve through the V\'s ♭9, enclose the target 3rd, follow the guide tones (the ♭7 of one chord falling a half step to the 3rd of the next), play Coltrane\'s 1-2-3-5 cells, descend the bebop scale so chord tones land on the beats (with a chromatic passing note), and alternate triads for a modern, altered colour.\n\nLearn one lick slowly in C, sing it, then move it through all 12 keys. Finally, slip it into your walking lines and solos.',
@@ -349,7 +349,7 @@ const turnarounds = lickTemplate({
 });
 
 const bebop = lickTemplate({
-  id: 'lk-bebop', level: 6, star: true,
+  id: 'lk-bebop', level: 6,
   title: 'Jazz licks: bebop vocabulary',
   summary: '"The Lick", enclosure chains, the bebop dominant scale, upper structures and tritone-sub lines.',
   about: 'Bebop players built a shared vocabulary: enclosures (surround the target note from above and below), the bebop dominant scale (an added major 7th so chord tones fall on the beats), upper-structure arpeggios and the ♭9 resolution. "The Lick" is the most famous (and most joked-about) cliché in jazz. Every player knows it, so it is worth knowing too.',

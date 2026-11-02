@@ -15,7 +15,7 @@ const ROOT_PROGS = ALL_PROGS.filter((k, i) => {
 });
 
 const buildChord = ex({
-  id: 'hm-build-a-chord', module: M, level: 1,
+  id: 'hm-build-a-chord', module: M, level: 1, star: true,
   title: 'How a chord is built',
   summary: 'Play the scale, then pick notes 1-3-5 (triad) and 1-3-5-7 (7th chord).',
   about: 'Chords come from scales. Play the major scale, then take every other note: 1, 3, 5 is the triad; add 7 for the 7th chord. Seeing the chord inside the scale shape is the key to understanding everything that follows.',
@@ -71,7 +71,7 @@ const thirdQuality = ex({
 });
 
 const progRoots = ex({
-  id: 'hm-progression-roots', module: M, level: 2,
+  id: 'hm-progression-roots', module: M, level: 2, star: true,
   title: 'Common progressions: root notes',
   summary: 'I–IV–V, I–V–vi–IV, ii–V–I, 12-bar blues, Andalusian… play the roots and learn the sound.',
   about: 'Most songs use a handful of progressions. Play only the roots, in whole notes, halves, quarters or 8ths, and learn to recognise each progression by ear and by shape. The Roman numerals tell you the function: I is home, V is tension, IV is the "going away" chord.',
@@ -211,7 +211,7 @@ const shells = ex({
 });
 
 const minorHarmony = ex({
-  id: 'hm-minor-keys', module: M, level: 4,
+  id: 'hm-minor-keys', module: M, level: 4, star: true,
   title: 'Minor-key harmony',
   summary: 'i–iv–V–i, the Andalusian cadence, minor ii–V–i: where harmonic minor\'s V7 comes from.',
   about: 'In a minor key the V chord is usually made major (V7) by raising the 7th: that is harmonic minor. Play the chord tones of the most common minor progressions and hear the leading tone pull back to the root. The Andalusian cadence (i–♭VII–♭VI–V) is the sound of flamenco and countless rock songs.',
@@ -229,7 +229,7 @@ const minorHarmony = ex({
 });
 
 const colour = ex({
-  id: 'hm-colour-chords', module: M, level: 5,
+  id: 'hm-colour-chords', module: M, level: 5, star: true,
   title: 'Secondary dominants, borrowed chords, tritone subs',
   summary: 'The "spice" chords: VI7, III7, ♭VI, ♭VII, iv, ♭II7, each outlined in context.',
   about: 'Real songs leave the key for a moment. A secondary dominant (VI7, III7) points strongly to the next chord; a borrowed chord (♭VI, ♭VII, iv) takes a colour from the parallel minor; a tritone substitution (♭II7) replaces V7 with a chord a tritone away that shares its guide tones. Outline each progression and listen for the chord that is "not in the key".',
@@ -247,7 +247,7 @@ const colour = ex({
 });
 
 const blues = ex({
-  id: 'hm-12-bar-blues', module: M, level: 2,
+  id: 'hm-12-bar-blues', module: M, level: 2, star: true,
   title: '12-bar blues: dominant 7th chord tones',
   summary: 'I7–IV7–V7 over the 12-bar form, outlined R-3-5-♭7.',
   about: 'The 12-bar blues is the most played form in popular music. All three chords are dominant 7ths. Outline each with its chord tones and learn the form by heart: 4 bars of I, 2 of IV, 2 of I, then V, IV, I, V (the turnaround).',

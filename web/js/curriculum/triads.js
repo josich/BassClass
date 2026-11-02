@@ -134,7 +134,7 @@ export function diatonicBuild(p, ctx, S, { offsets, order, inversion = 0, sizeLa
 // ---------------------------------------------------------------- shapes & basics
 
 const triadQualities = ex({
-  id: 'tri-qualities', module: M, level: 2,
+  id: 'tri-qualities', module: M, level: 2, star: true,
   title: 'Triad qualities: major, minor, dim, aug, sus',
   summary: 'Every triad type as a movable shape, in any key or all 12.',
   about: 'A triad stacks two thirds: root (R), 3rd and 5th. Major = R-3-5, minor = R-♭3-5, diminished = R-♭3-♭5, augmented = R-3-♯5. Sus chords replace the 3rd with a 2nd or 4th. Each quality has its own shape on the neck; learn the shape and the sound together and say the degrees aloud.',
@@ -150,7 +150,7 @@ const triadQualities = ex({
 });
 
 const triadShape = variant(triadQualities, {
-  id: 'tri-shape', level: 1,
+  id: 'tri-shape', level: 1, star: true,
   title: 'Your first triads: major & minor',
   summary: 'Root, 3rd and 5th: the building block of every bass line.',
   about: 'A triad stacks two thirds: root (R), 3rd and 5th. Major = R-3-5, minor = R-♭3-5. The two shapes differ by one note, the 3rd, which is what makes a chord sound happy or sad. Learn each shape and its sound together, and say the degrees out loud.',
@@ -222,7 +222,7 @@ const majVsMin = ex({
 // ---------------------------------------------------------------- zones (position warm-ups)
 
 const zoneCycle = ex({
-  id: 'tri-zone-cycle', module: M, level: 2, star: true,
+  id: 'tri-zone-cycle', module: M, level: 2,
   title: 'Triads around the cycle in one zone',
   summary: 'All 12 triads without leaving a 5-fret zone. The zone decides the shape.',
   about: 'This is the "Circle of 5ths + Zones" warm-up. The neck is split into zones (frets 1–5, 5–9, 8–12). Play the triad of every key around the cycle of 4ths (C F B♭ E♭ A♭ D♭ G♭ B E A D G) and never leave the zone. A minor or diminished chord whose cycle name would need a double flat takes its simpler name (F♯m, not G♭m; D♯°, not E♭°). To stay inside the zone you have to use different fingerings, so you learn where every chord lives in that area of the neck. Spend a couple of weeks on Zone 1 before moving to Zone 2, then Zone 3.',
@@ -269,7 +269,7 @@ function neckShapes(k, ivs, ctx, maxFret = 15) {
 }
 
 const threeForms = ex({
-  id: 'tri-three-forms', module: M, level: 3, star: true,
+  id: 'tri-three-forms', module: M, level: 3,
   title: 'The 3 triad fingerings (three hand positions per triad)',
   summary: 'Every triad can be fingered three ways. Learn all three and the neck connects.',
   about: 'A triad shape is defined by which finger plays the root. With the root under finger 2, the 3rd and 5th are on the next string. With the root under finger 1, the 3rd is on the same string and the 5th is on the next string. With the root under finger 4, the shape crosses three strings going back toward the nut. Those are the major forms; in minor the root falls under fingers 3, 1 and 4. Knowing all three means there are no "dead areas" on the neck: wherever your hand is, one of the shapes fits.',
@@ -424,7 +424,7 @@ const neckChain = ex({
 // ---------------------------------------------------------------- inversions
 
 const inversions = ex({
-  id: 'tri-inversions', module: M, level: 3,
+  id: 'tri-inversions', module: M, level: 3, star: true,
   title: 'Triad inversions: root, 1st, 2nd',
   summary: 'R-3-5, 3-5-R, 5-R-3: same chord, different bottom note.',
   about: 'An inversion starts a chord on a note other than the root. 1st inversion starts on the 3rd (3-5-R), 2nd inversion starts on the 5th (5-R-3). "Climbing" stacks the inversions up the neck. "In position" keeps all three around the root, the way you use them in real bass lines to move smoothly between chords.',
@@ -606,7 +606,7 @@ const REGISTERS = { low: [28, 50], mid: [33, 57], high: [40, 64] };
 const registerP = sel('Register', [['mid', 'Middle'], ['low', 'Low'], ['high', 'High']]);
 
 const voiceLedCycle = ex({
-  id: 'tri-voice-led-cycle', module: M, level: 4, star: true,
+  id: 'tri-voice-led-cycle', module: M, level: 4,
   title: 'Voice-led triads through all 12 keys',
   summary: 'Each chord starts on the nearest chord tone. Musical inversions, no jumping.',
   about: 'Instead of always starting on the root, start each new triad on the chord tone closest to where you are. This automatically picks the right inversion. It is how bass players, pianists and arrangers connect chords, and the cycle of 4ths becomes one continuous melodic line.',
@@ -759,7 +759,7 @@ const RUDIMENTS = {
 };
 
 const rudiments = ex({
-  id: 'tri-rudiments', module: M, level: 5, star: true,
+  id: 'tri-rudiments', module: M, level: 5,
   title: 'Triad rudiments (drum stickings on chords)',
   summary: 'Paradiddles, double strokes and rolls applied to triads: technique and harmony at once.',
   about: 'Drummers build their vocabulary from rudiments. Here every rudiment is mapped onto a chord: an "R" stroke plays the next chord tone going up (3rd, 5th, octave…) and an "L" stroke plays the root as a pedal. The result is a set of melodic, rhythmic patterns that outline each chord of the key. They are great for warm-ups and turn straight into grooves and fills.',
@@ -801,7 +801,7 @@ const PAIRS = {
 };
 
 const triadPairs = ex({
-  id: 'tri-pairs', module: M, level: 5, star: true,
+  id: 'tri-pairs', module: M, level: 5,
   title: 'Triad pairs',
   summary: 'Two triads that share no notes, alternated through inversions: a modern, hexatonic sound.',
   about: 'A triad pair is two triads with no common notes, for example F and G over C. Together they make a 6-note scale. Alternating them, in climbing inversions, creates angular modern lines heard in players from Coltrane to modern fusion. Each pair suggests a mode over the root of the key: F and G over C sound Ionian (major), C and D sound Lydian, A♭ and B♭ over C minor sound Aeolian, D♭ and C sound Phrygian dominant.',

@@ -50,7 +50,7 @@ function chordRound(b, ctx, S, type, i) {
 
 const TRIADS = { mm: ['maj', 'min'], all: ['maj', 'min', 'dim', 'aug'] };
 const triads = ex({
-  id: 'ear-triads', module: M, level: 2, star: true,
+  id: 'ear-triads', module: M, level: 2,
   title: 'Hear the chord: major, minor, diminished, augmented',
   summary: 'A triad plays (broken, then together): name its quality before the answer appears.',
   about: 'Each round plays a triad on a random root, first broken (R-3-5-3) and then all together, with the notes hidden. Name it before the answer appears, right after the chord. Major sounds bright and stable, minor darker, diminished tense and narrow, augmented open and unresolved. Start with major and minor only.',

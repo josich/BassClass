@@ -30,7 +30,7 @@ const openStrings = ex({
 });
 
 const naturals = ex({
-  id: 'fb-naturals', module: M, level: 1,
+  id: 'fb-naturals', module: M, level: 1, star: true,
   title: 'Natural notes on one string',
   summary: 'E F G A B C D E: the musical alphabet along a string, fret 0 to 12.',
   about: 'Natural notes are the white keys of the piano: A B C D E F G. Between most of them there are two frets (a whole step), except B–C and E–F, which sit next to each other (a half step). Walk up one string to the 12th fret (the octave, marked with two dots) and back, naming every note.',

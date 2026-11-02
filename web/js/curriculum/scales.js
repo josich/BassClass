@@ -129,7 +129,7 @@ const chromatic = ex({
 });
 
 const twoOctaves = ex({
-  id: 'sc-two-octaves', module: M, level: 3,
+  id: 'sc-two-octaves', module: M, level: 3, star: true,
   title: 'Two-octave scales',
   summary: 'Major, minor, harmonic & melodic minor, pentatonics over two octaves with planned shifts.',
   about: 'Two octaves cover most of the useful range of the bass. You need at least one shift. The app chooses fingerings that shift as little as possible and uses the same fingering going up and coming down. Watch where the hand moves and practise those shifts slowly.',
@@ -142,7 +142,7 @@ const twoOctaves = ex({
 
 const SEQ = ['g3', 'g4', 'g4rev', 'turn', 'up3down1', 'r1235', 'thirds', 'thirdsAlt', 'fourths', 'triads', 'sevenths', 'g5'];
 const sequences = ex({
-  id: 'sc-sequences', module: M, level: 3, star: true,
+  id: 'sc-sequences', module: M, level: 3,
   title: 'Scale sequences',
   summary: 'Groups of 3 and 4, 1-2-3-1 turns, 3rds, diatonic triads and 7ths… through any scale.',
   about: 'Playing a scale straight up and down is only the start. Sequences break it into repeating melodic cells (1-2-3, 2-3-4, 3-4-5…) that sound like music and stop you running scales on autopilot. Every sequence works in every scale and key. Combine them with the subdivision selector: groups of 3 in 16ths shift across the beat.',
@@ -182,7 +182,7 @@ const oneString = ex({
 });
 
 const allKeysPosition = ex({
-  id: 'sc-keys-one-position', module: M, level: 3, star: true,
+  id: 'sc-keys-one-position', module: M, level: 3,
   title: 'All 12 keys in one position',
   summary: 'Cycle of 4ths without moving the hand: the root goes where the zone allows.',
   about: 'Stay inside one 5-fret zone and play the scale of every key around the cycle. The root sometimes starts on the E string and sometimes on the A string, and the fingering changes, but the hand stays still. This is how sight-readers and jazz players learn to see every key under their hand.',
@@ -281,7 +281,7 @@ const threeNps = ex({
 });
 
 const positions = ex({
-  id: 'sc-positions', module: M, level: 4,
+  id: 'sc-positions', module: M, level: 4, star: true,
   title: 'The 7 scale positions across the neck (major and minor)',
   summary: 'Box positions that start on each degree on the E string. Link them and own the neck.',
   about: 'Each position starts on a different scale degree on the E string and covers every note of the key within one hand span. They are numbered from the root: Position 1 starts on the root, Position 2 on the next note of the scale, and so on (a position that would start above fret 12 is played an octave lower). Play each box from its lowest note to its highest and back. "All positions" climbs through them from the lowest fret up the neck. Together they connect the whole fretboard in one key.',
@@ -364,7 +364,7 @@ const positions = ex({
 });
 
 const minorFamily = variant(sequences, {
-  id: 'sc-minor-family', level: 4,
+  id: 'sc-minor-family', level: 4, star: true,
   title: 'Harmonic & melodic minor',
   summary: 'The two minor scales of jazz and classical music, straight and in sequences.',
   about: 'Harmonic minor raises the 7th of natural minor, creating the exotic augmented 2nd (♭6 → 7) and a strong pull to the root. Melodic minor (jazz minor) also raises the 6th: it sounds like major with a ♭3 and is the parent of the altered and Lydian dominant scales. Both appear in RSL, LCM and conservatory programmes from the intermediate grades.',
@@ -374,7 +374,7 @@ const minorFamily = variant(sequences, {
 });
 
 const pentPositions = variant(positions, {
-  id: 'sc-pent-positions', level: 4,
+  id: 'sc-pent-positions', level: 4, star: true,
   title: 'Pentatonic: the 5 positions',
   summary: 'The five pentatonic boxes, linked up the neck in one key.',
   about: 'The pentatonic scale has five shapes that tile the neck. Each one starts on a different note of the scale, numbered from the root: Position 1 is the box with the root under your first finger on the E string. Knowing all five lets you play riffs and fills anywhere on the neck.',
@@ -395,7 +395,7 @@ const bebop = ex({
 });
 
 const symmetric = ex({
-  id: 'sc-symmetric', module: M, level: 5,
+  id: 'sc-symmetric', module: M, level: 5, star: true,
   title: 'Symmetric scales: diminished & whole tone',
   summary: 'Scales built from repeating cells: the shape repeats every 3 frets (diminished) or 2 frets (whole tone).',
   about: 'The half-whole diminished scale alternates half and whole steps and fits dominant 7♭9 chords. The whole-half version fits diminished chords. The whole-tone scale is all whole steps, the sound of augmented chords and dream sequences. The augmented scale (1 ♭3 3 5 ♯5 7) alternates minor 3rds and half steps: two augmented triads a half step apart, loved by Coltrane and Oliver Nelson. Because they are symmetric, their shapes repeat along the neck.',

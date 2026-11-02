@@ -121,7 +121,7 @@ const PERMS = (() => {
 })();
 
 const perms = ex({
-  id: 'tech-permutations', module: M, level: 2, star: true,
+  id: 'tech-permutations', module: M, level: 2,
   title: 'Finger permutations (all 24)',
   summary: '1234, 1243, 1324 … 4321: every finger order for complete independence.',
   about: 'There are 24 ways to order four fingers. Each one trains a different finger combination, especially the weak 3-4 pair. Choose one permutation and play it on every string up and down, or chain all 24. This is the most famous independence drill for bass.',

@@ -36,7 +36,7 @@ const shapes = ex({
 });
 
 const allFromRoot = ex({
-  id: 'iv-all-from-root', module: M, level: 2,
+  id: 'iv-all-from-root', module: M, level: 2, star: true,
   title: 'Every interval from one root',
   summary: 'R-♭2, R-2, R-♭3 … R-8: the whole interval family in one position.',
   about: 'Play the root, then each interval above it in turn, from the minor 2nd up to the octave. You will see the 12 shapes around one hand position (the index reaches back a fret for some) and hear the character of each: tense (♭2, 7), open (4, 5), sweet (3, 6), dark (♭3, ♭6).',
@@ -64,7 +64,7 @@ const DIA = {
   thirdsAlt: '3rds alternating', fourthsAlt: '4ths alternating', sixthsAlt: '6ths alternating',
 };
 const diatonic = ex({
-  id: 'iv-diatonic', module: M, level: 3, star: true,
+  id: 'iv-diatonic', module: M, level: 3,
   title: 'Diatonic intervals through the scale',
   summary: 'The scale in 3rds, 4ths, 5ths, 6ths and 7ths: classic melodic sequences.',
   about: 'Move through the scale in pairs of notes a fixed number of scale steps apart: 1-3, 2-4, 3-5… (3rds), or 1-4, 2-5… (4ths), and so on. The alternating versions flip the direction of every second pair (1-3, 4-2, 3-5, 6-4), which is more melodic and great for fills. These sequences are a standard part of conservatory scale work.',

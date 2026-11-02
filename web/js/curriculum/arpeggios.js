@@ -15,7 +15,7 @@ const REG = { low: [28, 52], mid: [33, 57], high: [40, 64] };
 const regP = sel('Register', [['mid', 'Middle'], ['low', 'Low'], ['high', 'High']]);
 
 const qualities = ex({
-  id: 'arp-7th-qualities', module: M, level: 2,
+  id: 'arp-7th-qualities', module: M, level: 2, star: true,
   title: 'The five 7th chords from one root',
   summary: 'maj7 → 7 → m7 → m7♭5 → °7: lower one note at a time.',
   about: 'Seventh chords add a 4th note to the triad. From one root, each chord lowers a single note of the previous one: maj7 (R 3 5 7) → dominant 7 (♭7) → minor 7 (♭3) → half-diminished (♭5) → diminished 7 (♭♭7). Hearing and seeing that progression is the best way to learn them all.',
@@ -56,7 +56,7 @@ const study = ex({
 });
 
 const twoOct = variant(study, {
-  id: 'arp-two-octaves', level: 4,
+  id: 'arp-two-octaves', level: 4, star: true,
   title: 'Two-octave 7th arpeggios',
   summary: 'Spread each 7th chord over two octaves with clean position shifts.',
   about: 'Two-octave arpeggios are typical of the intermediate grades of graded exams (RSL, LCM). Play the first octave in position, shift at the octave and repeat the shape. Plan the shift and keep it identical on the way down.',
@@ -176,7 +176,7 @@ const iiVI = ex({
 
 const PROGS7 = ['cycle-dom7', 'cycle-251', 'I-vi-ii-V', 'iii-vi-ii-V', 'autumn', 'jazz-blues', 'rhythm-A', 'I-VI7-ii-V', 'I-III7-vi', 'minor-blues', 'giant-steps'];
 const voiceLed = ex({
-  id: 'arp-voice-led', module: M, level: 4, star: true,
+  id: 'arp-voice-led', module: M, level: 4,
   title: 'Voice-led 7th arpeggios over progressions',
   summary: 'One continuous line through real changes: each chord starts on the nearest chord tone.',
   about: 'This is how great jazz bassists and soloists connect chords. Every chord is arpeggiated, but instead of jumping back to each root, the line continues from the closest chord tone. You get smooth, melodic lines that outline the harmony perfectly, through the cycle, standards progressions, blues and rhythm changes.',
@@ -317,7 +317,7 @@ const dimToMinor = ex({
 const EXT = { 9: [0, 2, 4, 6, 8], 11: [0, 2, 4, 6, 8, 10], 13: [0, 2, 4, 6, 8, 10, 12] };
 const COMPOUND = { '2': '9', 'b2': '♭9', '#2': '♯9', '4': '11', '#4': '♯11', '6': '13', 'b6': '♭13' };
 const extended = ex({
-  id: 'arp-extended', module: M, level: 5,
+  id: 'arp-extended', module: M, level: 5, star: true,
   title: 'Extended arpeggios: 9ths, 11ths, 13ths',
   summary: 'Keep stacking 3rds past the 7th, through the harmonised scale.',
   about: 'Above the 7th the stack continues: 9, 11, 13. Through the harmonised scale this gives maj9, m9, m11, dominant 13 and other colours. These arpeggios reach well beyond the octave (a 13th almost two octaves) and are a great reach and shifting workout, and they reveal the tensions behind jazz and neo-soul chords.',
@@ -455,7 +455,7 @@ const altered = ex({
 });
 
 const diatonic7AllKeys = variant(diatonic7, {
-  id: 'arp-diatonic-all-keys', level: 6,
+  id: 'arp-diatonic-all-keys', level: 6, star: true,
   title: 'Diatonic 7ths in all 12 keys (up one, down the next)',
   summary: 'The harmonised scale in 7th chords through the whole cycle, alternating directions.',
   about: 'Every diatonic 7th chord of every key, without stopping: Imaj7 up, iim7 down, iiim7 up… then the next key in the cycle. Switch inversions and scales (harmonic and melodic minor) for a complete conservatory-level workout.',

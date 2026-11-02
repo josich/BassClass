@@ -84,7 +84,7 @@ const common = {
 
 const naturals = ex({
   ...common,
-  id: 'rd-naturals', level: 1, star: true,
+  id: 'rd-naturals', level: 1,
   title: 'Reading bass clef: the natural notes in first position',
   summary: 'One note at a time on the staff: find it on the neck before its dot appears.',
   about: 'Bass is written in the bass clef, an octave above the sound: the open E string sits on the first ledger line below the staff, the open A on the bottom space, the open D on the middle line and the open G on the top space. This drill shows natural notes from the first position (frets 0–3) on the staff. In Quiz mode the dot only appears when the note sounds: read the staff, find the note, play it on time.',
@@ -138,7 +138,7 @@ function keyMelody(ctx, S, tonicPc, lo, hi, { minor = false } = {}) {
 
 const melodies = ex({
   ...common,
-  id: 'rd-melodies', level: 2, star: true,
+  id: 'rd-melodies', level: 2,
   title: 'Reading melodies in C, G, F, D and B♭',
   summary: 'Four-bar lines with a key signature: steps, small leaps, quarters, halves and 8ths.',
   about: 'Real reading means lines, not single notes. Each melody is four bars long, moves mostly by step with a few leaps, uses quarters, halves, dotted quarters and 8ths, and ends on the tonic. The key signature at the start of the staff tells you which notes are sharp or flat all the way through. Read ahead: your eyes should be one beat in front of your hands.',

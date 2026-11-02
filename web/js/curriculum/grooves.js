@@ -352,7 +352,7 @@ const mixedWalk = walkEx('wk-mixed', 4, 'mixed', 'jazz-blues', {
   summary: 'Chord tones, scale steps, chromatic and dominant approaches combined.',
   about: 'Real walking bass mixes all the devices: arpeggios, scale runs, chromatic approaches and dominant (5th) approaches, chosen bar by bar. These lines rotate between them over standard progressions like the jazz blues and the ii–V–I.',
   tips: ['Follow the contour: lines that go up should come back down.', 'Then improvise your own line with the Neck in the Practice room as a map.'],
-  source: 'Ed Friedland "Building Walking Bass Lines"; Rufus Reid "The Evolving Bassist"', bpm: 116, star: true,
+  source: 'Ed Friedland "Building Walking Bass Lines"; Rufus Reid "The Evolving Bassist"', bpm: 116,
 });
 
 const enclosureWalk = walkEx('wk-enclosures', 5, 'enclosure', 'ii-V-I', {

@@ -166,7 +166,7 @@ const chordScale = ex({
 });
 
 const melodicModes = ex({
-  id: 'md-melodic-modes', module: M, level: 5,
+  id: 'md-melodic-modes', module: M, level: 5, star: true,
   title: 'Modes of melodic minor',
   summary: 'Dorian ♭2, Lydian augmented, Lydian dominant, Mixolydian ♭6, Locrian ♮2, altered.',
   about: 'Melodic minor produces the most important scales of modern jazz: Lydian dominant (4th mode) over 7♯11 chords, Locrian ♮2 (6th mode) over m7♭5, and the altered scale (7th mode) over altered dominants. Play all seven from the same parent and hear how one set of notes creates seven colours.',
@@ -214,7 +214,7 @@ const pitchAxis = ex({
 });
 
 const alteredChordScale = variant(chordScale, {
-  id: 'md-altered-chord-scale', level: 6,
+  id: 'md-altered-chord-scale', level: 6, star: true,
   title: 'Chord-scale with altered dominants',
   summary: 'ii – V7alt – I: altered, half-whole diminished and whole-tone scales over the V.',
   about: 'Modern jazz colours the dominant chord with altered scales: the altered scale over 7alt (♭9 ♯9 ♭5 ♭13), half-whole diminished over 7♭9, and the whole-tone scale over 7♯5 and 7♭5. Each progression puts a different altered dominant between ii and I so you hear the tension and the resolution. The notes over the V are named as tensions (♭9, ♯9, ♯11 or ♭5, ♭13), the way jazz players say them.',
