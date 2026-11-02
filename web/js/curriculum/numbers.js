@@ -3,35 +3,37 @@
 // number. A new exercise takes the next free number of its level (the self-test names it); the Library still
 // orders exercises by level, topic and its module's list, so numbers need not be consecutive on the shelf. A
 // removed exercise's number goes to RETIRED and is never given again. Everything stored uses ids, never numbers.
-// (Renumbered once in course order before the launch, then frozen: LAUNCH-TODO.md.)
+// Renumbered on 2026-11-02 in the Library's order (user: "renumber"), so the shelf reads in order again; checked
+// once more just before the launch, then frozen (LAUNCH-TODO.md).
 export const NUMBERS = {
   // Level 1
   'tech-alt-pluck': 101, 'tech-1234': 102, 'rh-pulse': 103, 'rh-pyramid': 104, 'rh-rests': 105,
   'fb-open-strings': 106, 'fb-naturals': 107, 'fb-chromatic-string': 108, 'fb-landmarks': 109, 'fb-octaves': 110,
-  'rd-naturals': 111, 'sc-one-octave': 112, 'sc-open-position': 113, 'tri-shape': 114, 'tri-maj-min': 115,
-  'hm-build-a-chord': 116, 'gr-roots': 117, 'mm-stomp': 118, 'mm-pulse': 119, 'mm-zombie': 120,
-  'mm-spirit': 121, 'game-ear-notes': 122, 'game-read-notes': 123,
+  'rd-naturals': 111, 'game-read-notes': 112, 'game-ear-notes': 113, 'sc-one-octave': 114, 'sc-open-position': 115,
+  'tri-shape': 116, 'tri-maj-min': 117, 'hm-build-a-chord': 118, 'gr-roots': 119, 'mm-stomp': 120,
+  'mm-pulse': 121, 'mm-zombie': 122, 'mm-spirit': 123,
   // Level 2
   'tech-raking': 201, 'tech-muting': 202, 'tech-1234-climb': 203, 'tech-permutations': 204, 'tech-spider': 205,
-  'tech-diagonal': 206, 'tech-finger-pairs': 207, 'tech-octaves': 208, 'tech-dynamics': 209, 'rh-offbeats': 210,
-  'rh-shuffle': 211, 'rh-dotted': 212, 'rh-syncopation': 213, 'fb-unison': 214, 'fb-find-note': 215,
-  'fb-note-sweep': 216, 'fb-cycle-zone': 217, 'fb-quiz': 218, 'rd-accidentals': 219, 'rd-melodies': 220,
-  'iv-shapes': 221, 'iv-all-from-root': 222, 'iv-moving': 223, 'iv-ear-quiz': 224, 'ear-triads': 225,
-  'sc-blues': 226, 'sc-chromatic': 227, 'tri-qualities': 228, 'tri-four-types': 229, 'tri-zone-cycle': 230, 'game-ear-intervals': 245, 'gr-fills': 246, 'tech-pick-alt': 247,
-  'arp-7th-qualities': 231, 'arp-7th': 232, 'hm-chord-qualities': 233, 'hm-progression-roots': 234, 'hm-12-bar-blues': 235,
-  'gr-pick': 236, 'gr-octaves': 237, 'gr-blues': 238, 'mm-dust': 239, 'mm-sunshine': 240,
-  'mm-standby': 241, 'mm-calif': 242, 'mm-feelgood': 243, 'mm-blitz': 244,
+  'tech-diagonal': 206, 'tech-finger-pairs': 207, 'tech-octaves': 208, 'tech-dynamics': 209, 'tech-pick-alt': 210,
+  'rh-offbeats': 211, 'rh-shuffle': 212, 'rh-dotted': 213, 'rh-syncopation': 214, 'fb-unison': 215,
+  'fb-find-note': 216, 'fb-note-sweep': 217, 'fb-cycle-zone': 218, 'fb-quiz': 219, 'rd-accidentals': 220,
+  'rd-melodies': 221, 'iv-shapes': 222, 'iv-all-from-root': 223, 'iv-moving': 224, 'iv-ear-quiz': 225,
+  'ear-triads': 226, 'game-ear-intervals': 227, 'sc-blues': 228, 'sc-chromatic': 229, 'tri-qualities': 230,
+  'tri-four-types': 231, 'tri-zone-cycle': 232, 'arp-7th-qualities': 233, 'arp-7th': 234, 'hm-chord-qualities': 235,
+  'hm-progression-roots': 236, 'hm-12-bar-blues': 237, 'gr-pick': 238, 'gr-octaves': 239, 'gr-blues': 240,
+  'gr-fills': 241, 'mm-dust': 242, 'mm-sunshine': 243, 'mm-standby': 244, 'mm-calif': 245,
+  'mm-feelgood': 246, 'mm-blitz': 247,
   // Level 3
   'tech-trills': 301, 'tech-legato': 302, 'tech-string-skip': 303, 'tech-shifting': 304, 'tech-simandl': 305,
-  'tech-accents': 306, 'tech-ghost-16ths': 307, 'rh-triplets': 308, 'rh-16th-grid': 309, 'fb-position-notes': 310,
-  'fb-all-octaves': 311, 'rd-upper': 312, 'iv-diatonic': 313, 'ear-sevenths': 314, 'sc-two-octaves': 315,
-  'sc-sequences': 316, 'sc-one-string': 317, 'sc-keys-one-position': 318, 'sc-3nps': 319, 'sc-pent-three-boxes': 320,
-  'sc-pent-minor-grooves': 321, 'tri-scale-forms': 322, 'md-relative': 323, 'md-parallel': 324, 'tri-three-forms': 325,
-  'tri-neck-chain': 326, 'tri-inversions': 327, 'tri-diatonic': 328, 'arp-broken': 329, 'arp-zone-cycle': 330,
-  'arp-diatonic-7ths': 331, 'hm-chord-formulas': 332, 'hm-chord-tones': 333, 'hm-double-stops': 334, 'gr-approach': 335,
-  'gr-world': 336, 'gr-genres': 337, 'gr-funk': 338, 'wk-two-feel': 339, 'wk-chord-tones': 340,
-  'sl-thumb-pop': 341, 'mm-pressure': 342, 'mm-jean': 343, 'mm-together': 344, 'mm-longview': 345,
-  'mm-chain': 346, 'game-ear-chordtones': 347, 'lk-rock-blues': 348, 'tech-pick-gallop': 349,
+  'tech-accents': 306, 'tech-ghost-16ths': 307, 'tech-pick-gallop': 308, 'rh-triplets': 309, 'rh-16th-grid': 310,
+  'fb-position-notes': 311, 'fb-all-octaves': 312, 'rd-upper': 313, 'iv-diatonic': 314, 'ear-sevenths': 315,
+  'game-ear-chordtones': 316, 'sc-two-octaves': 317, 'sc-sequences': 318, 'sc-one-string': 319, 'sc-keys-one-position': 320,
+  'sc-3nps': 321, 'sc-pent-three-boxes': 322, 'sc-pent-minor-grooves': 323, 'tri-scale-forms': 324, 'md-relative': 325,
+  'md-parallel': 326, 'tri-three-forms': 327, 'tri-neck-chain': 328, 'tri-inversions': 329, 'tri-diatonic': 330,
+  'arp-broken': 331, 'arp-zone-cycle': 332, 'arp-diatonic-7ths': 333, 'hm-chord-formulas': 334, 'hm-chord-tones': 335,
+  'hm-double-stops': 336, 'gr-approach': 337, 'gr-world': 338, 'gr-genres': 339, 'gr-funk': 340,
+  'wk-two-feel': 341, 'wk-chord-tones': 342, 'lk-rock-blues': 343, 'sl-thumb-pop': 344, 'mm-pressure': 345,
+  'mm-jean': 346, 'mm-together': 347, 'mm-longview': 348, 'mm-chain': 349,
   // Level 4
   'tech-stretch': 401, 'tech-harmonics': 402, 'tech-endurance': 403, 'rh-groupings': 404, 'rh-displacement': 405,
   'rh-odd-meters': 406, 'rh-sparse-click': 407, 'fb-key-box': 408, 'rd-keys': 409, 'iv-tenths': 410,
@@ -41,8 +43,8 @@ export const NUMBERS = {
   'tri-string-sets': 426, 'tri-voice-led-cycle': 427, 'tri-progressions': 428, 'arp-inversions': 429, 'arp-two-octaves': 430,
   'arp-diatonic-inversions': 431, 'arp-ii-v-i': 432, 'arp-voice-led': 433, 'arp-guide-tones': 434, 'hm-minor-keys': 435,
   'hm-shells': 436, 'gr-soul': 437, 'gr-odd-meters': 438, 'wk-approach': 439, 'wk-scalar': 440,
-  'wk-mixed': 441, 'sl-grooves': 442, 'mm-money': 443, 'mm-criminal': 444, 'mm-goodtimes': 445,
-  'mm-flyaway': 446, 'sl-octaves-16': 447,
+  'wk-mixed': 441, 'sl-grooves': 442, 'sl-octaves-16': 443, 'mm-money': 444, 'mm-criminal': 445,
+  'mm-goodtimes': 446, 'mm-flyaway': 447,
   // Level 5
   'tech-permutations-across': 501, 'tech-pim': 502, 'tech-sweep': 503, 'tech-harmonic-chords': 504, 'rh-polyrhythm': 505,
   'iv-cycles': 506, 'sc-bebop': 507, 'sc-symmetric': 508, 'sc-exotic': 509, 'sc-sixth-diminished': 510,

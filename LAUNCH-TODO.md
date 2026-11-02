@@ -294,8 +294,9 @@ your country is worth it once money is involved; the legal review's report (`qa/
 gives the reasons for every line.
 
 ### ☐ 5.5 Freeze the numbers 🤖 (just before the closed test)
-Renumber the exercises (`web/js/curriculum/numbers.js`, level + two digits) and the lessons (`web/js/course/numbers.js`,
-stage + number) once, in course order, so the first public numbers are tidy; drop the `added` dates of everything
+Renumber the exercises (`web/js/curriculum/numbers.js`, level + two digits) once more in the Library's order (done on
+2026-11-02; only what is added after it will be out of order) and the lessons (`web/js/course/numbers.js`, stage + number)
+in course order, so the first public numbers are tidy; drop the `added` dates of everything
 shipped before the launch (at the launch every player is new). After that, never change a number again: new content
 takes the next free one, removed numbers are retired.
 
