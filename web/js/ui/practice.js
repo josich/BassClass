@@ -698,7 +698,7 @@ export function practiceScreen(main, params = {}) {
     const d = DRONES[k];
     if (d.type || d.like) neck.setOwn(`s:${droneScale(d.type || d.like)}`);
     setHarmony({ hQual: k });
-    if (!engine.playing && !engine.starting) A.chordPreview(droneMidis(room.hKey, k), room.hSound);
+    if (!engine.playing && !engine.starting) A.chordPreview(droneMidis(room.hKey, k), room.hSound, 2);
   };
   const openDrones = (at) => {
     // (Change itself is new for a player who had the room before the drone chords: its chip goes once opened)
@@ -709,7 +709,7 @@ export function practiceScreen(main, params = {}) {
       items: DRONE_KEYS.map((k) => ({ key: k, name: droneTitle(k), group: DRONES[k].group, sub: `${droneName(room.hKey, k, settings.notation)} · ${droneFormula(k)}`, lock: droneLock(k), fresh: isNew(`drone:${k}`) })),
       current: room.hQual, open: at,
       favs: room.droneFavs, recent: room.droneRecent,
-      onLocked: (why, k, g) => { markUsed(`drone:${k}`); if (canPreview()) A.chordPreview(droneMidis(room.hKey, k), room.hSound); openPro(why, { then: () => pickDrone(k), cancel: () => openDrones(g) }); },
+      onLocked: (why, k, g) => { markUsed(`drone:${k}`); if (canPreview()) A.chordPreview(droneMidis(room.hKey, k), room.hSound, 2); openPro(why, { then: () => pickDrone(k), cancel: () => openDrones(g) }); },
       onFav: (k, on) => set({ droneFavs: favsWith(room.droneFavs, k, on) }),
       onPick: pickDrone,
     });

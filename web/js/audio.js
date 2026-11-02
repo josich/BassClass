@@ -842,13 +842,13 @@ function osc(x, type, f, cents, when, to) {
  * −3 dB a doubling; QA round 18 found it rising with the tempo when only the subdivision counted). It ends at
  * 1.5 s, 40 dB down (lighter on a phone at fast tempos). Returns its gain node.
  */
-export function arpNote(midi, when = now(), rate = 4) {
+export function arpNote(midi, when = now(), rate = 4, gain = 1) {
   audioCtx();
   const kind = PAD_SOUNDS.arp;
   const g = ac.createGain();
   g.gain.value = 0;
   const each = Math.min(2, Math.sqrt(4 / Math.max(0.01, rate)));
-  for (const o of kind.voice(ac, midiToFreq(midi), when, g, 0.16 * kind.level * each)) o.stop(when + 1.5);
+  for (const o of kind.voice(ac, midiToFreq(midi), when, g, 0.16 * kind.level * each * gain)) o.stop(when + 1.5);
   g.connect(padBus);
   return g;
 }
@@ -858,7 +858,7 @@ export function arpNote(midi, when = now(), rate = 4) {
  * the engine plays one on each subdivision of the beat, in the groove's feel, as the arpeggio; `rate` strikes a
  * second (faster ones a little shorter), `accent` the beat's own (3 dB up). Returns its gain node.
  */
-export function chugNote(midis, when = now(), rate = 4, accent = false) {
+export function chugNote(midis, when = now(), rate = 4, accent = false, gain = 1) {
   audioCtx();
   const kind = PAD_SOUNDS.guitar;
   const notes = kind.chord(midis);
@@ -866,7 +866,7 @@ export function chugNote(midis, when = now(), rate = 4, accent = false) {
   g.gain.value = 0;
   // (each chug rings on to the next: user, 2026-10-27, "it needs to sustain longer")
   const len = Math.min(0.7, 0.97 / Math.max(0.5, rate));
-  const peak = (0.16 / Math.sqrt(notes.length)) * kind.level * (accent ? 1.41 : 1);
+  const peak = (0.16 / Math.sqrt(notes.length)) * kind.level * (accent ? 1.41 : 1) * gain;
   for (const m of notes) for (const o of kind.voice(ac, midiToFreq(m), when, g, peak, true)) o.stop(when + len + 0.15);
   g.gain.setValueAtTime(peak, when + len);
   g.gain.setTargetAtTime(0, when + len, 0.02);
@@ -878,25 +878,25 @@ export function chugNote(midis, when = now(), rate = 4, accent = false) {
  * A chord heard once in a harmony sound (a chord chip tapped while the room is stopped; user, 2026-10-23):
  * a held sound rings a moment and fades, the arpeggio runs up the chord.
  */
-export function chordPreview(midis, sound = 'pad') {
+export function chordPreview(midis, sound = 'pad', gain = 1) {
   audioCtx();
   const t = now() + 0.02;
   if (PAD_SOUNDS[sound]?.arp) {
-    [...midis].sort((a, b) => a - b).forEach((m, i) => arpNote(m, t + i * 0.11, 6));
+    [...midis].sort((a, b) => a - b).forEach((m, i) => arpNote(m, t + i * 0.11, 6, gain));
     return;
   }
-  padSet(midis, t, sound);
+  padSet(midis, t, sound, gain);
   padStop(t + 1.2);
 }
-/** Sound a chord from `when` on the pad, in one of `PAD_SOUNDS` (crossfading from the previous one). */
-export function padSet(midis, when = now(), sound = 'pad') {
+/** Sound a chord from `when` on the pad, in one of `PAD_SOUNDS` (crossfading from the previous one), `gain` times its level. */
+export function padSet(midis, when = now(), sound = 'pad', gain = 1) {
   audioCtx();
   padStop(when);
   if (!midis?.length) return;
   const kind = PAD_SOUNDS[sound] || PAD_SOUNDS.pad;
   // (the guitar plays its own grip of the chord)
   if (kind.chord) midis = kind.chord(midis);
-  const peak = (0.16 / Math.sqrt(midis.length)) * kind.level;
+  const peak = (0.16 / Math.sqrt(midis.length)) * kind.level * gain;
   for (const m of midis) {
     const g = ac.createGain();
     // silent from creation: cancelling its fade-in can never leave it at the default gain of 1

@@ -11,6 +11,10 @@ import { progression } from './harmony.js';
 import { droneMidis } from './drones.js';
 
 const LOOKAHEAD = 0.12;   // seconds scheduled ahead
+// the drone 6 dB over the chords (user, 2026-11-02: "the harmony drone note is too quiet compared to the rest of
+// sounds"): measured A-weighted at the room's defaults it was already as loud as the drums and the bass (about −22 dB),
+// but a held tone with no attack sinks under them, and a phone's speaker loses most of its low root
+const DRONE_GAIN = 2;
 const TICK_MS = 25;
 
 export class Room {
@@ -105,6 +109,7 @@ export class Room {
     // (the same notes again sound on, as a held chord; new ones, or silence, replace them; muted bars are
     // silent while the form goes on)
     const sound = muted ? null : midis;
+    const gain = this.o.harmony === 'drone' ? DRONE_GAIN : 1;
     if (A.PAD_SOUNDS[this.o.hSound]?.arp) {
       // an arpeggio: the chord's notes up and down, one per subdivision of the beat in the groove's feel (a
       // shuffle's off-beat on its last triplet, as the click and the drums), from its lowest when the chord's
@@ -118,7 +123,7 @@ export class Room {
         const at = clickTimes(this._pattern(), L);
         for (const [k, f] of at.entries()) {
           const t = t0 + f * len;
-          const node = A.arpNote(turn[this.arpAt++ % turn.length], t, (this.bpm * at.length) / 60);
+          const node = A.arpNote(turn[this.arpAt++ % turn.length], t, (this.bpm * at.length) / 60, gain);
           if (k) this.ahead.push([t, node]);
         }
       } else this.arpSig = null;
@@ -130,7 +135,7 @@ export class Room {
         const at = clickTimes(this._pattern(), L);
         for (const [k, f] of at.entries()) {
           const t = t0 + f * len;
-          const node = A.chugNote(sound, t, (this.bpm * at.length) / 60, k === 0);
+          const node = A.chugNote(sound, t, (this.bpm * at.length) / 60, k === 0, gain);
           if (k) this.ahead.push([t, node]);
         }
       }
@@ -140,7 +145,7 @@ export class Room {
       // (a struck sound, the e-piano, is struck again on each bar so a long chord does not die away)
       const restrike = sound && this.beat === 0 && A.PAD_SOUNDS[this.o.hSound]?.struck;
       if (sig !== this.hSig || restrike || this.hSwitch) {
-        if (sound) A.padSet(sound, t0, this.o.hSound); else A.padStop(t0);
+        if (sound) A.padSet(sound, t0, this.o.hSound, gain); else A.padStop(t0);
         this.hSig = sig;
       }
       this.arpSig = null;
