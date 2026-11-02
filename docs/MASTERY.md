@@ -14,7 +14,7 @@ numbers are the ones given on 2026-11-02, when the exercises were renumbered in 
 - **Cleared.** A main choice is cleared when the player ticks ✓ Cleared after a full loop at the goal on it, as ✓ Clean in a lesson. The Options sheet shows a cleared choice with a green edge and a tick.
 - **Mastered.** Set by the app once enough choices are cleared. The ⋯ menu can take it back by hand.
 - **How many are needed.**
-  - Core theory (scales, modes, chords, triads, intervals, upper structures): all of them, however many.
+  - Core theory (scales, modes, chords, triads, intervals, upper structures): all of them, however many, except on the very long all-keys drills (#603, #609, #611): 80%.
   - Variations of a known concept (sequences, permutations, progressions, licks, patterns, studies, rudiments): all of them up to 7; 80% from 8 or on very long exercises.
   - A choice that plays the others ("All 24 in a row", "All 5", "All three", "Rotate", "Whole tune", "All four strings") counts as every choice it plays.
 - **No main option (—).** One full loop at the goal masters the exercise, as today.
@@ -237,15 +237,15 @@ In all, 195 exercises have a main option and 45 have none.
 |---|---|---|---|
 | 601 | Two-hand tapping | Pattern (3) | all 3 |
 | 602 | Odd groupings, all keys | Sequence: 3s, 5s | both |
-| 603 | Alternating 3rds, all keys | Scale (11) | all 11 |
+| 603 | Alternating 3rds, all keys | Scale (11) | 9 of 11 (long) |
 | 604 | Messiaen's modes | Mode (7) | all 7 |
 | 605 | Modes of harmonic major | — (every mode in one loop) | one loop |
 | 606 | Altered chord-scale | Progression (4) | all 4 |
 | 607 | Major-3rd cycle triads | Triad: major, minor | both |
 | 608 | Every inversion, every key | Triad (4) | all 4 |
-| 609 | Harmonised triads, all keys | Scale (9) | all 9 |
+| 609 | Harmonised triads, all keys | Scale (9) | 8 of 9 (long) |
 | 610 | Triad rudiments, all keys | Rudiment (6) | 5 of 6 (long) |
-| 611 | Diatonic 7ths, all keys | Scale (8) | all 8 |
+| 611 | Diatonic 7ths, all keys | Scale (8) | 7 of 8 (long) |
 | 612–613 | Rhythm changes, Giant Steps arpeggios | — | one loop |
 | 614 | Chordal bass | Voicing: R-5-10, R-7-10 | both |
 | 615 | Walking over Coltrane changes | — | one loop |
