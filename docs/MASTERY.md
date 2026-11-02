@@ -11,7 +11,7 @@ exercises were renumbered in the Library's order (`curriculum/numbers.js`).
   - 🏅 The Library: an exercise mastered. Its card also gets a green edge, so mastered cards stand out from the rest.
   - ● Today's session: a row played today.
 - **Main option.** Each exercise names at most one option whose choices are really different material (the Scale of #114: major, natural minor, major pentatonic, minor pentatonic). Key, root string, range, direction, feel, register, neck position and similar options never count. A string counts only where the string is the exercise's topic (#107, #108, #215).
-- **Cleared.** A main choice is cleared when the player ticks ✓ Cleared after a full loop at the goal on it, as ✓ Clean in a lesson. The Options sheet shows a cleared choice with a green edge and a tick.
+- **Cleared.** A main choice is cleared when the player ticks ✓ Cleared after a full loop at the goal on it, as ✓ Clean in a lesson. Each choice takes its own goal from the course's steps on it, where there are some (a 12/8 gospel ballad does not share a jazz waltz's tempo); else the exercise's. The Options sheet shows a cleared choice with a green edge and a tick.
 - **Mastered.** Set by the app once enough choices are cleared. The ⋯ menu can take it back by hand.
 - **How many are needed.**
   - Core theory (scales, modes, chords, triads, intervals, upper structures): all of them, however many, except on the very long all-keys drills (#603, #609, #611): 80%.
@@ -22,7 +22,7 @@ exercises were renumbered in the Library's order (`curriculum/numbers.js`).
 - **Course and Library.** A lesson step passed and ticked ✓ Clean at the goal clears its choice in the Library. A mastered exercise still passes the steps on it.
 - **No migration.** Mastery records from earlier builds need no care: there are no users yet (user, 2026-11-02).
 
-In all, 195 exercises have a main option and 45 have none.
+In all, 202 exercises have a main option and 45 have none (the seven groove exercises added on 2026-11-02 included).
 
 ## Level 1
 
@@ -92,6 +92,7 @@ In all, 195 exercises have a main option and 45 have none.
 | 240 | Blues lines | Groove (5) | all 5 |
 | 241 | Fills into the next bar | Fill (6) | all 6 |
 | 242–247 | Song studies | Part | Whole tune |
+| 248 | Waltzes, 6/8 and 12/8 | Groove (6) | all 6 |
 
 ## Level 3
 
@@ -140,6 +141,9 @@ In all, 195 exercises have a main option and 45 have none.
 | 343 | Rock and blues licks | Lick (8) | 7 of 8 |
 | 344 | Slap basics | Pattern (2) | both |
 | 345–349 | Song studies | Part | Whole tune |
+| 350 | Metal grooves | Groove (5) | all 5 |
+| 351 | Reggae and ska | Groove (4) | all 4 |
+| 352 | World grooves | Groove (4) | all 4 |
 
 ## Level 4
 
@@ -187,6 +191,9 @@ In all, 195 exercises have a main option and 45 have none.
 | 442 | Slap grooves | Pattern (3) | all 3 |
 | 443 | Slap: 16th-note octaves | Pattern (4) | all 4 |
 | 444–447 | Song studies | Part | Whole tune |
+| 448 | Latin grooves | Groove (4) | all 4 |
+| 449 | Hip-hop and electronic | Groove (4) | all 4 |
+| 450 | Gospel and R&B | Groove (3) | all 3 |
 
 ## Level 5
 

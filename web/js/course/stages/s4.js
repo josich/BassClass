@@ -1,7 +1,7 @@
 // Course Stage 4: The whole neck (Level 4). See ../data.js for the format.
 export default {
   id: 's4', title: 'The whole neck', level: 4,
-  desc: 'Stamina and harmonics, advanced time and odd metres, every key across the neck, minor harmony, the modes at work, triads and 7ths in inversions and voice leading, 10ths, walking bass, and soul, odd-metre and slap grooves.',
+  desc: 'Stamina and harmonics, advanced time and odd metres, every key across the neck, minor harmony, the modes at work, triads and 7ths in inversions and voice leading, 10ths, walking bass, soul, odd-metre and slap grooves, and Latin, hip-hop and gospel grooves.',
   units: [
     {
       id: 'u-stamina', title: 'Stamina, stretch and harmonics',
@@ -806,6 +806,75 @@ export default {
           { ex: 'gr-odd-meters', p: { meter: '78' }, from: 130, goal: 170 },
           { ex: 'gr-soul', p: { style: 'soulBallad' }, from: 66, goal: 84, backing: 'chords' },
           { ex: 'sl-octaves-16', p: { lick: '1' }, from: 72, goal: 92, backing: 'chords' },
+        ],
+      },
+    },
+    {
+      // (added 2026-11-02, user: "more styles", woven into the course for everyone)
+      id: 'u-styles4', title: 'Latin, hip-hop and gospel grooves', added: 1793628000000,
+      goal: 'Cuban and Brazilian grooves, lines for hip-hop and electronic beats, and gospel and R&B.',
+      lessons: [
+        {
+          id: 'latin-grooves', title: 'Songo, partido alto, baião and cha-cha-chá',
+          idea: 'Latin bass plays with the clave and leaves the downbeat to the percussion.',
+          concept: [
+            'The songo, a modern Cuban groove, syncopates and lands the next chord\'s root early, on beat 4, like the tumbao. The cha-cha-chá plays beat 1 and the next root on beat 4.',
+            'Partido alto, from Brazilian samba, is a syncopated 16th figure; the baião, from north-east Brazil, repeats a dotted 8th, a 16th and a quarter, often over a Mixolydian vamp.',
+          ],
+          steps: [
+            { ex: 'gr-latin', p: { style: 'songo' }, from: 90, goal: 112, backing: 'chords', do: 'Songo: syncopated, the next root early.' },
+            { ex: 'gr-latin', p: { style: 'partidoAlto' }, from: 80, goal: 100, backing: 'chords', do: 'Partido alto: Brazilian 16ths.' },
+            { ex: 'gr-latin', p: { style: 'baiao' }, from: 90, goal: 112, backing: 'chords', do: 'Baião over a Mixolydian vamp.' },
+            { ex: 'gr-latin', p: { style: 'chacha' }, from: 100, goal: 120, backing: 'chords', music: true, do: 'Cha-cha-chá: beat 1, and the next root on beat 4.' },
+          ],
+          mistakes: [
+            'A heavy beat 1 in the songo. The percussion has it; the bass anticipates.',
+          ],
+        },
+        {
+          id: 'hiphop-electronic', title: 'Hip-hop and electronic grooves',
+          idea: 'Over programmed beats the bass is long, low and placed.',
+          concept: [
+            'Boom bap leaves space and lays back on the beat. UK garage plays syncopated 16ths over a 2-step beat. Drum & bass runs the drums at 160–180 BPM while the bass plays long notes in half time.',
+            'Trip-hop is slow, heavy and dark: long roots under a dragging beat. In all four, the length of each note is part of the line.',
+          ],
+          steps: [
+            { ex: 'gr-electronic', p: { style: 'boomBap' }, from: 80, goal: 94, backing: 'chords', do: 'Boom bap: laid back, with space.' },
+            { ex: 'gr-electronic', p: { style: 'ukGarage' }, from: 112, goal: 132, backing: 'chords', do: 'UK garage: 2-step 16ths.' },
+            { ex: 'gr-electronic', p: { style: 'dnb' }, from: 150, goal: 172, backing: 'chords', do: 'Drum & bass: feel the half time under the fast drums.' },
+            { ex: 'gr-electronic', p: { style: 'tripHop' }, from: 70, goal: 84, backing: 'chords', music: true, do: 'Trip-hop: slow, heavy, the long notes held.' },
+          ],
+          mistakes: [
+            'Cutting the long notes short. Their sustain is the sound.',
+          ],
+        },
+        {
+          id: 'gospel-rnb', title: 'Gospel and R&B',
+          idea: 'Walk up into every chord, and syncopate with ghost notes.',
+          concept: [
+            'Gospel bass walks: a run up from the 5th through the 6th and the 7th into each new chord, over the secondary dominants of church harmony. The gospel shuffle swings in triplets with the same walk-ups.',
+            'Modern R&B syncopates the root, adds ghost notes and leans on the chord\'s 7th over neo-soul changes.',
+          ],
+          steps: [
+            { ex: 'gr-gospel', p: { style: 'gospelWalk' }, from: 76, goal: 96, backing: 'chords', do: 'Gospel walk-ups into each chord.' },
+            { ex: 'gr-gospel', p: { style: 'gospelShuffle' }, from: 88, goal: 108, backing: 'chords', do: 'The gospel shuffle, in triplets.' },
+            { ex: 'gr-gospel', p: { style: 'rnb' }, from: 66, goal: 84, backing: 'chords', music: true, do: 'Modern R&B: syncopated, with ghost notes.' },
+          ],
+          mistakes: [
+            'A walk-up that lands late. The next root is on beat 1.',
+          ],
+        },
+      ],
+      check: {
+        can: [
+          'I can play songo, partido alto, baião and cha-cha-chá grooves.',
+          'I can play boom bap, UK garage, drum & bass and trip-hop lines.',
+          'I can walk up gospel lines and syncopate R&B grooves.',
+        ],
+        steps: [
+          { ex: 'gr-latin', p: { style: 'songo' }, from: 96, goal: 120, backing: 'chords' },
+          { ex: 'gr-electronic', p: { style: 'dnb' }, from: 156, goal: 176, backing: 'chords' },
+          { ex: 'gr-gospel', p: { style: 'rnb' }, from: 70, goal: 90, backing: 'chords' },
         ],
       },
     },

@@ -39,7 +39,7 @@ export const MODULES = [
   { id: 'triads', name: 'Triads', icon: '🔺', desc: 'From the first shape to triad pairs, rudiments and upper structures.' },
   { id: 'arpeggios', name: 'Arpeggios & 7ths', icon: '🪜', desc: '7th chords, broken chords, inversions, ii–V–I, extensions, Giant Steps.' },
   { id: 'harmony', name: 'Chords & Harmony', icon: '🎹', desc: 'How chords work, progressions, double stops, shells.' },
-  { id: 'grooves', name: 'Grooves & Bass Lines', icon: '🥁', desc: 'Rock, blues, Motown, funk, soul, reggae, Latin, country, afrobeat, pick playing, odd metres.' },
+  { id: 'grooves', name: 'Grooves & Bass Lines', icon: '🥁', desc: 'Rock, metal, blues, Motown, funk, soul, gospel and R&B, reggae and ska, Latin, world, hip-hop and electronic, country, waltzes and 12/8, pick playing, odd metres.' },
   { id: 'walking', name: 'Walking Bass', icon: '🚶', desc: 'Two-feel to bebop: chord tones, approaches, enclosures.' },
   { id: 'licks', name: 'Licks', icon: '🎷', desc: 'Rock and blues licks, then jazz vocabulary: ii–V–I, minor, blues, bebop, modern, bass solos, motifs, implied changes.' },
   { id: 'slap', name: 'Slap & Pop', icon: '👍', desc: 'Thumb, pop, hammer, ghost notes, double thumb.' },

@@ -37,6 +37,13 @@ const BAND = {
   'gr-funk-changes': { by: 'style', funk16: ['funk16'], funkOct: ['funkdisco', 'funkopen'] },
   'gr-odd-meters': { by: 'meter', 54: ['five32'], 68: ['six8rock', 'folk68'], 74: ['sevenfour'], 78: ['seven223'] },
   'gr-fills': swingOr(['texasshuffle'], ['rock8']),
+  'gr-waltz': { by: 'style', countryWaltz: ['waltz'], jazzWaltz: ['jazzwaltz'], waltzBallad: ['waltz', 'threefour'], ballad68: ['folk68', 'six8rock'], afro128: ['afro68', 'soulballad'], gospel128: ['soulballad'] },
+  'gr-metal': { by: 'style', metalChug: ['skank', 'metaldk'], doubleKick: ['metaldk'], breakdown: ['breakdown'], djent: ['djent', 'metaldk'], doom: ['doom', 'breakdown'] },
+  'gr-reggae': { by: 'style', rockers: ['rockers', 'onedrop'], steppers: ['steppers', 'rocksteady'], rocksteady: ['rocksteady'], skaWalk: ['ska'] },
+  'gr-world-grooves': { by: 'style', highlife: ['highlife'], cumbia: ['cumbia', 'chacha'], soca: ['soca', 'ska'], maqsum: ['maqsum', 'afrobeat'] },
+  'gr-latin': { by: 'style', songo: ['songo', 'chacha'], partidoAlto: ['partidoalto', 'samba'], baiao: ['baiao', 'samba'], chacha: ['chacha'] },
+  'gr-electronic': { by: 'style', boomBap: ['boombap'], ukGarage: ['garage', 'breakbeat'], dnb: ['dnb', 'breakbeat'], tripHop: ['triphop', 'lofi'] },
+  'gr-gospel': { by: 'style', gospelWalk: ['stax', 'motown'], gospelShuffle: ['gospelshuffle', 'texasshuffle'], rnb: ['rnbballad', 'boombap'] },
   // walking
   'wk-two-feel': ['twofeel'],
   'wk-giant-steps': ['upswing', 'swing'],

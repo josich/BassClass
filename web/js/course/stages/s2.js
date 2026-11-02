@@ -1,7 +1,7 @@
 // Course Stage 2: Building blocks (Level 2). See ../data.js for the format.
 export default {
   id: 's2', title: 'Building blocks', level: 2,
-  desc: 'Stronger hands, off-beats and swing, the whole neck, intervals, every triad and 7th chord, the blues, your first grooves, fills and the pick, and reading in keys.',
+  desc: 'Stronger hands, off-beats and swing, the whole neck, intervals, every triad and 7th chord, the blues, your first grooves, fills and the pick, waltzes and 6/8, and reading in keys.',
   units: [
     {
       id: 'u-hands2', title: 'Stronger hands',
@@ -602,6 +602,27 @@ export default {
             'Landing late on beat 1. The note after the fill matters most.',
           ],
         },
+        {
+          // (added 2026-11-02, user: "more styles", woven into the course for everyone)
+          id: 'waltz', title: 'Waltzes, 6/8 and 12/8', added: 1793628000000,
+          idea: 'Grooves that count in three: the waltz, and the dotted-quarter beat of 6/8 and 12/8.',
+          concept: [
+            'A waltz has three quarter notes to the bar and one strong beat: beat 1. The country waltz plays the root on beat 1 and the 5th below on the next bar\'s beat 1, and leaves beats 2 and 3 to the guitar; the jazz waltz walks root, 5th and an approach into the next chord.',
+            '6/8 and 12/8 count dotted quarters, each split in three ("1 & a 2 & a"): two big beats to the bar in 6/8, four in 12/8. The 6/8 ballad rocks between root, 5th and octave; the Afro-Cuban 12/8 answers the drums\' bell pattern; the 12/8 gospel ballad leans into each chord with a pickup.',
+          ],
+          steps: [
+            { ex: 'gr-waltz', p: { style: 'countryWaltz' }, from: 96, goal: 120, backing: 'chords', do: 'The country waltz: the root on 1, then the 5th below on the next bar\'s 1.' },
+            { ex: 'gr-waltz', p: { style: 'jazzWaltz' }, from: 100, goal: 132, backing: 'chords', do: 'The jazz waltz: root, 5th and an approach into the next chord.' },
+            { ex: 'gr-waltz', p: { style: 'waltzBallad' }, from: 72, goal: 92, backing: 'chords', do: 'A waltz ballad: a long root, then the 5th.' },
+            { ex: 'gr-waltz', p: { style: 'ballad68' }, from: 50, goal: 63, backing: 'chords', do: 'A 6/8 ballad: two big beats, "1 & a 2 & a".' },
+            { ex: 'gr-waltz', p: { style: 'afro128' }, from: 80, goal: 100, backing: 'chords', do: 'Afro-Cuban 12/8: answer the bell, leave the gaps.' },
+            { ex: 'gr-waltz', p: { style: 'gospel128' }, from: 48, goal: 60, backing: 'chords', music: true, do: 'A 12/8 gospel ballad: lean into each chord with the pickup.' },
+          ],
+          mistakes: [
+            'Beats 2 and 3 as heavy as beat 1. One strong beat to the bar.',
+            '6/8 turned into 3/4. Two big beats, each split in three.',
+          ],
+        },
       ],
       check: {
         can: [
@@ -610,6 +631,7 @@ export default {
           'I control my volume from very soft to very loud.',
           'I can play a fill and land beat 1 on the root.',
           'I can pick 8ths with down-strokes and with alternate picking.',
+          'I can groove in 3/4, 6/8 and 12/8.',
         ],
         steps: [
           { ex: 'gr-octaves', p: { style: 'octaves' }, from: 104, goal: 120, backing: 'chords' },
@@ -617,6 +639,7 @@ export default {
           { ex: 'tech-dynamics', p: { pos: '5' }, sub: 2, from: 72, goal: 90 },
           { ex: 'gr-fills', p: { lick: '3' }, from: 88, goal: 112, backing: 'chords' },
           { ex: 'gr-pick', p: { style: 'pickAlt' }, from: 110, goal: 150, backing: 'chords' },
+          { ex: 'gr-waltz', p: { style: 'jazzWaltz' }, from: 108, goal: 138, backing: 'chords' },
         ],
       },
     },

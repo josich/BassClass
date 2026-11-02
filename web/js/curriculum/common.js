@@ -526,7 +526,7 @@ function shapeRoots(roots, ctx, { below = false } = {}) {
   return { midis, pos };
 }
 
-export function grooveLine(b, chords, roots, pattern, { tags = true, place: popts = {}, next = null, shape = false } = {}) {
+export function grooveLine(b, chords, roots, pattern, { tags = true, place: popts = {}, next = null, shape = false, barBeats = 4 } = {}) {
   const pitches = [];
   // a shape line keeps each chord's notes around its root: fret window from one below to four above
   let rootAt = null;
@@ -544,14 +544,14 @@ export function grooveLine(b, chords, roots, pattern, { tags = true, place: popt
     const nextC = lastOfKey ? next.chord : chords[(ci + 1) % chords.length];
     const nextMidi = lastOfKey ? next.midi : roots[(ci + 1) % chords.length];
     let beatsLeft = c.beats;
-    let barIdx = Math.floor(at / 4 + 1e-9);
+    let barIdx = Math.floor(at / barBeats + 1e-9);
     at += c.beats;
     let first = true;
     while (beatsLeft > 1e-9) {
       const bar = pattern[barIdx % pattern.length];
       // approaches and pickups lead to the next chord only from its last bar; inside a long
       // chord they lead back to its own root
-      const last = beatsLeft <= 4 + 1e-9;
+      const last = beatsLeft <= barBeats + 1e-9;
       const tgtRoot = last ? nextC.root : c.root, tgtMidi = last ? nextMidi : roots[ci];
       for (const [tok, dur, tag] of bar) {
         if (beatsLeft <= 1e-9) break;

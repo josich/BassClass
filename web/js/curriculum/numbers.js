@@ -22,7 +22,7 @@ export const NUMBERS = {
   'tri-four-types': 231, 'tri-zone-cycle': 232, 'arp-7th-qualities': 233, 'arp-7th': 234, 'hm-chord-qualities': 235,
   'hm-progression-roots': 236, 'hm-12-bar-blues': 237, 'gr-pick': 238, 'gr-octaves': 239, 'gr-blues': 240,
   'gr-fills': 241, 'mm-dust': 242, 'mm-sunshine': 243, 'mm-standby': 244, 'mm-calif': 245,
-  'mm-feelgood': 246, 'mm-blitz': 247,
+  'mm-feelgood': 246, 'mm-blitz': 247, 'gr-waltz': 248,
   // Level 3
   'tech-trills': 301, 'tech-legato': 302, 'tech-string-skip': 303, 'tech-shifting': 304, 'tech-simandl': 305,
   'tech-accents': 306, 'tech-ghost-16ths': 307, 'tech-pick-gallop': 308, 'rh-triplets': 309, 'rh-16th-grid': 310,
@@ -33,7 +33,8 @@ export const NUMBERS = {
   'arp-broken': 331, 'arp-zone-cycle': 332, 'arp-diatonic-7ths': 333, 'hm-chord-formulas': 334, 'hm-chord-tones': 335,
   'hm-double-stops': 336, 'gr-approach': 337, 'gr-world': 338, 'gr-genres': 339, 'gr-funk': 340,
   'wk-two-feel': 341, 'wk-chord-tones': 342, 'lk-rock-blues': 343, 'sl-thumb-pop': 344, 'mm-pressure': 345,
-  'mm-jean': 346, 'mm-together': 347, 'mm-longview': 348, 'mm-chain': 349,
+  'mm-jean': 346, 'mm-together': 347, 'mm-longview': 348, 'mm-chain': 349, 'gr-metal': 350,
+  'gr-reggae': 351, 'gr-world-grooves': 352,
   // Level 4
   'tech-stretch': 401, 'tech-harmonics': 402, 'tech-endurance': 403, 'rh-groupings': 404, 'rh-displacement': 405,
   'rh-odd-meters': 406, 'rh-sparse-click': 407, 'fb-key-box': 408, 'rd-keys': 409, 'iv-tenths': 410,
@@ -44,7 +45,7 @@ export const NUMBERS = {
   'arp-diatonic-inversions': 431, 'arp-ii-v-i': 432, 'arp-voice-led': 433, 'arp-guide-tones': 434, 'hm-minor-keys': 435,
   'hm-shells': 436, 'gr-soul': 437, 'gr-odd-meters': 438, 'wk-approach': 439, 'wk-scalar': 440,
   'wk-mixed': 441, 'sl-grooves': 442, 'sl-octaves-16': 443, 'mm-money': 444, 'mm-criminal': 445,
-  'mm-goodtimes': 446, 'mm-flyaway': 447,
+  'mm-goodtimes': 446, 'mm-flyaway': 447, 'gr-latin': 448, 'gr-electronic': 449, 'gr-gospel': 450,
   // Level 5
   'tech-permutations-across': 501, 'tech-pim': 502, 'tech-sweep': 503, 'tech-harmonic-chords': 504, 'rh-polyrhythm': 505,
   'iv-cycles': 506, 'sc-bebop': 507, 'sc-symmetric': 508, 'sc-exotic': 509, 'sc-sixth-diminished': 510,

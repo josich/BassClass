@@ -1,7 +1,7 @@
 // Course Stage 3: Harmony on the neck (Level 3). See ../data.js for the format.
 export default {
   id: 's3', title: 'Harmony on the neck', level: 3,
-  desc: 'Legato and shifts, 16th-note funk, rock and blues licks, gallops with a pick, every note in every position, scales over two octaves and in sequences, the modes, the triads and 7th chords of every key, lines that move between chords, and your first slap.',
+  desc: 'Legato and shifts, 16th-note funk, rock and blues licks, gallops with a pick, metal, reggae and world grooves, every note in every position, scales over two octaves and in sequences, the modes, the triads and 7th chords of every key, lines that move between chords, and your first slap.',
   units: [
     {
       id: 'u-legato', title: 'Legato and shifts',
@@ -218,6 +218,78 @@ export default {
           { ex: 'lk-rock-blues', p: { lick: '1', feel: 'straight' }, from: 80, goal: 104, backing: 'chords' },
           { ex: 'lk-rock-blues', p: { lick: '6', feel: 'swing' }, from: 76, goal: 100, backing: 'chords' },
           { ex: 'tech-pick-gallop', p: { lick: '2' }, from: 84, goal: 112 },
+        ],
+      },
+    },
+    {
+      // (added 2026-11-02, user: "more styles", woven into the course for everyone)
+      id: 'u-styles3', title: 'Metal, reggae and world grooves', added: 1793628000000,
+      goal: 'Metal with a pick, reggae and ska, and dance grooves from Africa, Latin America, the Caribbean and the Middle East.',
+      lessons: [
+        {
+          id: 'metal', title: 'Metal grooves',
+          idea: 'Lock with the kick drum and the guitar\'s palm-muted riff.',
+          concept: [
+            'Metal bass doubles the guitar riff and locks with the kick. Chug 8ths with down-strokes; when the drummer plays the double kick, play 16ths with alternate picking; in a half-time breakdown leave space and hit every stab with the kick.',
+            'Djent groups 16ths in threes across the bar; doom slows everything down and lets each note ring. The ♭5 and ♭6 are the darkest notes of the minor sound.',
+          ],
+          steps: [
+            { ex: 'gr-metal', p: { style: 'metalChug' }, from: 100, goal: 140, backing: 'chords', do: 'Palm-muted 8th chugs, down-strokes only.' },
+            { ex: 'gr-metal', p: { style: 'doubleKick' }, from: 90, goal: 120, backing: 'chords', do: '16ths with alternate picking, locked with the double kick.' },
+            { ex: 'gr-metal', p: { style: 'breakdown' }, from: 100, goal: 132, backing: 'chords', do: 'A half-time breakdown: stabs and space.' },
+            { ex: 'gr-metal', p: { style: 'djent' }, from: 80, goal: 108, backing: 'chords', do: 'Djent: groups of three 16ths across the bar.' },
+            { ex: 'gr-metal', p: { style: 'doom' }, from: 50, goal: 66, backing: 'chords', music: true, do: 'Doom: slow and heavy, every note ringing its full length.' },
+          ],
+          mistakes: [
+            'Strings ringing between the chugs. Palm mute, and mute with the fretting hand too.',
+            'Up-strokes louder than down-strokes. Every 16th the same.',
+          ],
+        },
+        {
+          id: 'reggae-ska', title: 'Reggae and ska',
+          idea: 'The melody of the groove is in the bass, with a lot of space around it.',
+          concept: [
+            'Beyond the one drop: rockers plays 8ths with beat 1 sounded, steppers drives roots under a kick on every beat, and rocksteady sings a melodic line with rests. Ska, the fast ancestor of reggae, walks quarter notes with an approach into each chord.',
+            'Short, round notes: the rests are part of the line. Pluck over the neck for the warm low sound.',
+          ],
+          steps: [
+            { ex: 'gr-reggae', p: { style: 'rockers' }, from: 66, goal: 84, backing: 'chords', do: 'Rockers: 8ths, beat 1 played.' },
+            { ex: 'gr-reggae', p: { style: 'steppers' }, from: 66, goal: 84, backing: 'chords', do: 'Steppers: roots under four on the floor.' },
+            { ex: 'gr-reggae', p: { style: 'rocksteady' }, from: 64, goal: 80, backing: 'chords', do: 'Rocksteady: a melodic line with space.' },
+            { ex: 'gr-reggae', p: { style: 'skaWalk' }, from: 120, goal: 160, backing: 'chords', music: true, do: 'Ska: walking quarter notes at speed.' },
+          ],
+          mistakes: [
+            'Filling the rests. The space is the groove.',
+          ],
+        },
+        {
+          id: 'dance-grooves', title: 'Highlife, cumbia, soca and maqsum',
+          idea: 'Four dance grooves, each answering its own drum pattern.',
+          concept: [
+            'Highlife, from Ghana and Nigeria, is bright and syncopated, weaving between root, 3rd and 5th. Cumbia, from Colombia, swings between the root and the 5th below. Soca, from Trinidad, drives 8ths on top of the beat.',
+            'The maqsum, the most common Middle-Eastern rhythm, plays its low "dum" strokes on beat 1 and the "&" of 2: the bass follows the dums over a Phrygian vamp.',
+          ],
+          steps: [
+            { ex: 'gr-world-grooves', p: { style: 'highlife' }, from: 96, goal: 120, backing: 'chords', do: 'Highlife: bright and syncopated.' },
+            { ex: 'gr-world-grooves', p: { style: 'cumbia' }, from: 80, goal: 100, backing: 'chords', do: 'Cumbia: the root, then the 5th below.' },
+            { ex: 'gr-world-grooves', p: { style: 'soca' }, from: 110, goal: 132, backing: 'chords', do: 'Soca: driving 8ths, on top of the beat.' },
+            { ex: 'gr-world-grooves', p: { style: 'maqsum' }, from: 90, goal: 112, backing: 'chords', music: true, do: 'Maqsum: follow the dums.' },
+          ],
+          mistakes: [
+            'Playing every style with the same feel. Listen to the drums first.',
+          ],
+        },
+      ],
+      check: {
+        can: [
+          'I can chug, play 16ths with the double kick and play a breakdown with a pick.',
+          'I can play reggae and ska lines with their space.',
+          'I can play highlife, cumbia, soca and maqsum grooves.',
+        ],
+        steps: [
+          { ex: 'gr-metal', p: { style: 'doubleKick' }, from: 100, goal: 126, backing: 'chords' },
+          { ex: 'gr-reggae', p: { style: 'rockers' }, from: 72, goal: 88, backing: 'chords' },
+          { ex: 'gr-world-grooves', p: { style: 'soca' }, from: 116, goal: 138, backing: 'chords' },
         ],
       },
     },

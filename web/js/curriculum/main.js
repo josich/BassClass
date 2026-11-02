@@ -24,7 +24,7 @@ export const MAIN = {
   'rd-melodies': 'key', 'iv-shapes': 'iv', 'iv-moving': 'iv', 'iv-ear-quiz': { by: 'set', only: ['all'] }, 'ear-triads': { by: 'set', only: ['all'] },
   'game-ear-intervals': { by: 'set', game: true }, 'sc-blues': 'type', 'sc-chromatic': 'layout', 'tri-qualities': 'quality',
   'tri-zone-cycle': 'quality', 'arp-7th': 'quality', 'hm-chord-qualities': 'scale', 'hm-progression-roots': P80('prog'),
-  'hm-12-bar-blues': 'prog', 'gr-pick': 'style', 'gr-octaves': 'style', 'gr-blues': 'style', 'gr-fills': 'lick',
+  'hm-12-bar-blues': 'prog', 'gr-pick': 'style', 'gr-octaves': 'style', 'gr-blues': 'style', 'gr-fills': 'lick', 'gr-waltz': 'style',
   'mm-dust': SONG, 'mm-sunshine': SONG, 'mm-standby': SONG, 'mm-calif': SONG, 'mm-feelgood': SONG, 'mm-blitz': SONG,
   // Level 3
   'tech-trills': 'pair', 'tech-string-skip': 'style', 'tech-shifting': 'shift', 'tech-accents': 'group', 'tech-ghost-16ths': 'pattern',
@@ -35,7 +35,7 @@ export const MAIN = {
   'tri-diatonic': 'scale', 'arp-broken': 'quality', 'arp-zone-cycle': 'quality', 'arp-diatonic-7ths': 'scale',
   'hm-chord-formulas': 'family', 'hm-chord-tones': P80('prog'), 'hm-double-stops': 'type', 'gr-approach': 'style', 'gr-world': 'style',
   'gr-genres': 'style', 'gr-funk': 'style', 'wk-two-feel': P80('prog'), 'wk-chord-tones': P80('prog'), 'lk-rock-blues': P80('lick'),
-  'sl-thumb-pop': 'style', 'mm-pressure': SONG, 'mm-jean': SONG, 'mm-together': SONG, 'mm-longview': SONG, 'mm-chain': SONG,
+  'sl-thumb-pop': 'style', 'gr-metal': 'style', 'gr-reggae': 'style', 'gr-world-grooves': 'style', 'mm-pressure': SONG, 'mm-jean': SONG, 'mm-together': SONG, 'mm-longview': SONG, 'mm-chain': SONG,
   // Level 4
   'tech-harmonics': { by: 'set', only: ['all'] }, 'rh-groupings': 'group', 'rh-displacement': 'step', 'rh-odd-meters': 'meter',
   'rh-sparse-click': 'every', 'rd-keys': 'mode', 'iv-tenths': 'mode', 'iv-scale-octaves': 'scale', 'ear-progressions': 'set',
@@ -46,7 +46,7 @@ export const MAIN = {
   'tri-progressions': P80('prog'), 'arp-inversions': 'quality', 'arp-two-octaves': 'quality', 'arp-diatonic-inversions': 'inversion',
   'arp-ii-v-i': 'type', 'arp-voice-led': P80('prog'), 'arp-guide-tones': 'prog', 'hm-minor-keys': 'prog', 'hm-shells': 'prog',
   'gr-soul': 'style', 'gr-odd-meters': 'meter', 'wk-approach': P80('prog'), 'wk-scalar': P80('prog'), 'wk-mixed': P80('prog'),
-  'sl-grooves': 'style', 'sl-octaves-16': 'lick', 'mm-money': SONG, 'mm-criminal': SONG, 'mm-goodtimes': SONG, 'mm-flyaway': SONG,
+  'sl-grooves': 'style', 'sl-octaves-16': 'lick', 'gr-latin': 'style', 'gr-electronic': 'style', 'gr-gospel': 'style', 'mm-money': SONG, 'mm-criminal': SONG, 'mm-goodtimes': SONG, 'mm-flyaway': SONG,
   // Level 5
   'tech-permutations-across': ALL('perm', { pct: 0.8 }), 'tech-sweep': 'shape', 'rh-polyrhythm': 'ratio', 'iv-cycles': 'iv',
   'sc-bebop': 'type', 'sc-symmetric': 'type', 'sc-exotic': 'type', 'sc-pent-sidestep': 'side', 'sc-pent-double-stops': 'pattern',

@@ -315,13 +315,13 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         // (a full loop at the goal on the choice playing: ✓ Cleared can be ticked on it, here or anywhere; user,
         // 2026-11-02)
         const v = choiceOf(tpl.id, p);
-        const met = played != null && !demo && !goalMet(tpl.id, v) && meetsGoal(tpl.id, played, inst?.uniform ? player.sub : null);
+        const met = played != null && !demo && !goalMet(tpl.id, v) && meetsGoal(tpl.id, played, inst?.uniform ? player.sub : null, v);
         updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, ...(played != null ? { bestBpm: Math.max(pr.bestBpm || 0, played) } : {}), ...keep(), lastBpm: player.bpm });
         if (met) {
           recordGoal(tpl.id, v);
           if (!isCleared(tpl.id, v) && countsHere()) {
             const name = choiceName(tpl.id, v);
-            tip(h('span', {}, `🎯 Goal reached${name ? ` on ${name}` : ''} (${masteryGoal(tpl.id)}). If it was clean: `,
+            tip(h('span', {}, `🎯 Goal reached${name ? ` on ${name}` : ''} (${masteryGoal(tpl.id, v)}). If it was clean: `,
               h('button', { class: 'btn small primary', onClick: () => { hideTip(); toggleCleared(); } }, '✓ Cleared')));
           }
         }
@@ -888,11 +888,11 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       syncToggles();
       return;
     }
-    const g = goalOf(tpl.id);
+    const g = goalOf(tpl.id, v);
     const inLesson = lesson && !demo && (g ? stepState(L.id, LI).best >= g.bpm && (g.sub == null || (LS.sub ?? g.sub) >= g.sub) : stepState(L.id, LI).loops > 0);
     if (!goalMet(tpl.id, v) && !inLesson) {
       closeMore(); // (the tip sits where the menu was: QA round 19)
-      tip(`🎯 To clear ${what}: ${g ? `a full loop at ${masteryGoal(tpl.id)}` : 'one full loop'}, then ✓ Cleared`);
+      tip(`🎯 To clear ${what}: ${g ? `a full loop at ${masteryGoal(tpl.id, v)}` : 'one full loop'}, then ✓ Cleared`);
       return;
     }
     setCleared(tpl.id, v, true);
@@ -1509,7 +1509,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   function masteryLine() {
     if (isMastered(tpl.id)) return ' · <b style="color:var(--good)">🏅 mastered</b>';
     const c = clearedCount(tpl.id), m = mainOf(tpl.id);
-    const how = m?.game ? '8 of 10 in each' : `a full loop at ${esc(masteryGoal(tpl.id))}, then ✓ Cleared`;
+    const how = m?.game ? '8 of 10 in each' : `a full loop at ${esc(masteryGoal(tpl.id, choiceOf(tpl.id, p)))}, then ✓ Cleared`;
     return ` · 🎯 to master it: ${how}${c.of > 1 ? ` (${c.done} of ${c.need} cleared)` : ''}`;
   }
 

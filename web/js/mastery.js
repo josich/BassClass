@@ -18,8 +18,9 @@ import { getProgress, updateProgress, allProgress, settings } from './store.js';
 /** The share of a level's exercises mastered that moves the player's level on. */
 export const LEVEL_PASS = 0.8;
 
-// each exercise's goal: { bpm, sub } (sub null on a written rhythm), or null (no tempo goal); worked out on
-// first use (the course and the curriculum may still be loading when this module is)
+// each exercise's goal: { bpm, sub } (sub null on a written rhythm), or null (no tempo goal); and each choice of its
+// main option its own, from the steps on that choice (2026-11-02: a 12/8 gospel ballad and a jazz waltz in one exercise
+// do not share a tempo); worked out on first use (the course and the curriculum may still be loading when this module is)
 let GOALS = null;
 function goals() {
   if (GOALS) return GOALS;
@@ -30,39 +31,41 @@ function goals() {
       const t = byId.get(s.ex);
       if (!t || t.level !== level || !s.goal) continue;
       const g = { bpm: s.goal, sub: s.sub ?? null };
-      const was = GOALS.get(s.ex);
-      if (!was || g.bpm * (g.sub || 1) > was.bpm * (was.sub || 1)) GOALS.set(s.ex, g);
+      for (const key of [s.ex, `${s.ex}|${choiceOf(s.ex, s.p)}`]) {
+        const was = GOALS.get(key);
+        if (!was || g.bpm * (g.sub || 1) > was.bpm * (was.sub || 1)) GOALS.set(key, g);
+      }
     }
   }
   return GOALS;
 }
 
-/** An exercise's goal: { bpm, sub } or null (one full loop is enough). */
-export const goalOf = (id) => goals().get(id) || null;
+/** An exercise's goal (`choice`: one of its main option's, when it has steps of its own): { bpm, sub } or null (one full loop). */
+export const goalOf = (id, choice = null) => (choice != null && goals().get(`${id}|${choice}`)) || goals().get(id) || null;
 /** What a goal tempo counts in ("92 BPM in 8ths"): one list for the Library, the lessons and the session (QA round 19). */
 export const SUB_NAMES = { 0.25: 'whole notes', 0.5: 'half notes', 1: 'quarter notes', 2: '8ths', 3: 'triplets', 4: '16ths', 5: 'quintuplets', 6: 'sextuplets' };
 /** The goal in words: "92 BPM in 8ths", "120 BPM", or "one full loop". */
-export function goalText(id) {
-  const g = goalOf(id);
+export function goalText(id, choice = null) {
+  const g = goalOf(id, choice);
   if (!g) return 'one full loop';
   return `${g.bpm} BPM${g.sub ? ` in ${SUB_NAMES[g.sub] || `${g.sub} per beat`}` : ''}`;
 }
 /** Does a full loop at `bpm`, `sub` notes per beat (null: a written rhythm), reach the goal? */
-export function meetsGoal(id, bpm, sub) {
-  const g = goalOf(id);
+export function meetsGoal(id, bpm, sub, choice = null) {
+  const g = goalOf(id, choice);
   if (!g) return true;
   return bpm >= g.bpm && (g.sub == null || sub == null || sub >= g.sub);
 }
 /** Is a step (of a lesson) at least as hard as its exercise's goal, so passing it masters the exercise? */
 export function stepMasters(step) {
-  const g = goalOf(step.ex);
+  const g = goalOf(step.ex, choiceOf(step.ex, step.p));
   if (!g) return true;
   return !!step.goal && step.goal >= g.bpm && (g.sub == null || (step.sub ?? g.sub) >= g.sub);
 }
 /** Does the exercise's mastery pass this step (its goal no harder than the exercise's)? */
 export function masteryCovers(step) {
   if (!isMastered(step.ex)) return false;
-  const g = goalOf(step.ex);
+  const g = goalOf(step.ex, choiceOf(step.ex, step.p));
   if (!step.goal) return true;
   if (!g) return false;
   return step.goal <= g.bpm && (step.sub == null || g.sub == null || step.sub <= g.sub);
