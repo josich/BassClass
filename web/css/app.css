@@ -1071,3 +1071,5 @@ input[type="range"] { touch-action: pan-y; }
 /* a 6-string's seven chips (Auto and six strings) in one row: the reading's column takes more room */
 .tuner.tn-s6 .tn-main { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.5fr); }
 @media (max-width: 600px) { .tuner.tn-s6 .tn-main { grid-template-columns: minmax(0, 1fr); } }
+/* a course exercise's title shows its lesson on the map, glowing a moment (#/course?f=<lesson>) */
+.les-row.focus { animation: card-focus 2.6s ease-out; border-radius: 8px; }

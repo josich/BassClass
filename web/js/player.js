@@ -92,7 +92,7 @@ export class Player {
 
   _time(absBeat) { return this.anchorTime + (absBeat - this.anchorBeat) * (60 / this.bpm); }
 
-  async play() {
+  async play({ countIn = this.countIn } = {}) {
     if (!this.inst || this.playing || this._starting) return;
     this._starting = true;
     const token = ++this._token;
@@ -107,7 +107,7 @@ export class Player {
     A.prepare(this.inst.steps.flatMap((s) => s.notes.map((n) => n.play ?? n.midi)));
     this.playing = true;
     const startBeat = this.starts[this.cur] || 0;
-    const pre = this.countIn ? (this.inst.beatsPerBar || 4) : 0;
+    const pre = countIn ? (this.inst.beatsPerBar || 4) : 0;
     this.anchorTime = ac.currentTime + 0.08;
     this.anchorBeat = startBeat - pre;
     this.loopBase = 0;
@@ -149,6 +149,14 @@ export class Player {
   }
 
   toggle() { (this.playing || this._starting) ? this.pause() : this.play(); }
+
+  /** From the first note again, playing on with no count-in (the exercise's ⏮ while it plays). */
+  restart() {
+    if (!this.playing) { this.cur = 0; return; }
+    this.pause();
+    this.cur = 0;
+    this.play({ countIn: false });
+  }
 
   /** Manual stepping: move to step i and sound it. */
   stepTo(i, sound = true) {

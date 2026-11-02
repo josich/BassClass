@@ -151,10 +151,12 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const subtitle = L
     ? `${lessonName} · ${demo ? 'demo: listen and watch' : `step ${LI + 1}/${L.steps.length} · ${goalText()}`}`
     : `${mod?.name ?? ''}${tpl.song ? ' · our own line in its style, not the record\'s' : ''} · Level ${tpl.level} ${lvl ? lvl.name : ''}${preview ? ' · Pro preview' : ''}`;
-  // a tap on the title shows the exercise in the Library, at its level, its card highlighted (user, 2026-10-29)
-  const toLibrary = () => { location.hash = `#/library?f=${encodeURIComponent(tpl.id)}`; };
-  const titleEl = h('div', { class: 'exv-title to-lib', role: 'link', tabindex: 0, 'aria-label': `${tpl.title}: show it in the Library`, onClick: toLibrary, onKeydown: (e) => { if (e.key === 'Enter') toLibrary(); } },
-    h('b', { title: `${tpl.title} · show it in the Library` }, h('span', { class: 'ex-num' }, tpl.num), tpl.short || tpl.title), h('span', { title: subtitle }, subtitle));
+  // a tap on the title shows where the exercise lives: a lesson's step its lesson on the course map (user,
+  // 2026-11-02), anything else its card in the Library, at its level (user, 2026-10-29); either highlighted a moment
+  const where = L ? 'the course map' : 'the Library';
+  const toLibrary = () => { location.hash = L ? `#/course?f=${encodeURIComponent(L.id)}` : `#/library?f=${encodeURIComponent(tpl.id)}`; };
+  const titleEl = h('div', { class: 'exv-title to-lib', role: 'link', tabindex: 0, 'aria-label': `${tpl.title}: show it in ${where}`, onClick: toLibrary, onKeydown: (e) => { if (e.key === 'Enter') toLibrary(); } },
+    h('b', { title: `${tpl.title} · show it in ${where}` }, h('span', { class: 'ex-num' }, tpl.num), tpl.short || tpl.title), h('span', { title: subtitle }, subtitle));
   let nextBtn = null;
   if (routine) {
     const last = routine.index + 1 >= routine.total;
@@ -531,7 +533,9 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     }
     const passed = reviewing ? visitPassed : stepPassed(L, LI);
     if (!passed) {
-      tip(LS.goal ? `Play a full loop from the first note at ${LS.goal} BPM or faster, then tick ✓ Clean.` : 'Play one full round from the first note, then tick ✓ if you named them all before the answers.');
+      // (the goal's tempo set in the player: user, 2026-11-02, "if the goal is 100 BPM then set 100 BPM")
+      if (LS.goal && player.bpm !== LS.goal) setBpm(LS.goal);
+      tip(LS.goal ? `Tempo set to the goal, ${LS.goal} BPM: play a full loop from the first note, then tick ✓ Clean.` : 'Play one full round from the first note, then tick ✓ if you named them all before the answers.');
       return;
     }
     if (reviewing) {
@@ -578,7 +582,15 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     if (player.playing) player.pause();
     player.stepTo(cur < 0 ? (d > 0 ? 0 : inst.steps.length - 1) : cur + d);
   }
-  function restart() { if (TAP) { tapStart(); return; } player.stop(true); player.cur = 0; showStep(-1); }
+  // ⏮ (user, 2026-11-02): the score back to its start; while playing, the playing goes on from the first note
+  function restart() {
+    if (TAP) { tapStart(); return; }
+    tab.toStart();
+    if (player.playing) { player.restart(); return; }
+    player.stop(true);
+    player.cur = 0;
+    showStep(-1);
+  }
   function tapNote(s, f) {
     if (TAP) { tapAnswer(s, f); return; }
     const midi = ctx.tuning[s] + f;

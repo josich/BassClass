@@ -201,7 +201,7 @@ function route() {
   if (parts[0] === 'course' && parts[1] === 'placement') placementScreen(main);
   // (by its id, or by its number: #/course/3.15)
   else if (parts[0] === 'course' && parts[1]) lessonScreen(main, LESSONS.find((l) => l.kind === 'lesson' && l.num === parts[1])?.id || parts[1]);
-  else if (parts[0] === 'course') courseScreen(main);
+  else if (parts[0] === 'course') courseScreen(main, params);
   else if (parts[0] === 'library') libraryScreen(main, params);
   else if (parts[0] === 'm') moduleScreen(main, parts[1]);
   else if (parts[0] === 'practice') active = practiceScreen(main, params);

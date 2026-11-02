@@ -211,6 +211,14 @@ export class TabView {
     }
   }
 
+  /** Back to the start of the strip (⏮): drawn there, scrolled there. */
+  toStart() {
+    if (this.win && this.win[0] > 0) this.paint(0, { keepScroll: true });
+    this.goal = 0;
+    this.goalUntil = performance.now() + 700;
+    this.el.scrollTo({ left: 0, behavior: 'smooth' });
+  }
+
   setCurrent(i) {
     this.cur = i;
     if (!this.cols) return;

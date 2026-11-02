@@ -393,10 +393,15 @@ function setMapOpen(cont, n, open) {
   if (open) s.add(n); else s.delete(n);
   saveSettings({ mapOpen: [...s].sort(), mapAt: stageNo(cont) });
 }
-export function courseScreen(main) {
+export function courseScreen(main, params = {}) {
   const stats = courseStats();
   const cont = continueLesson();
   const open = mapOpen(cont);
+  // "#/course?f=<lesson>": a course exercise's title tapped (user, 2026-11-02): its stage opens and its row comes into
+  // view, glowing a moment; the address then loses it
+  const focus = params.f ? lessonById.get(params.f) : null;
+  if (params.f) { try { history.replaceState(history.state, '', '#/course'); } catch { /* ignore */ } }
+  if (focus) open.add(STAGES.indexOf(focus.stage) + 1);
   // jump to a stage (opening it if it is folded)
   const jump = (n) => {
     const fold = main.querySelector(`#stage-${n}`);
@@ -407,7 +412,7 @@ export function courseScreen(main) {
   const row = (l) => {
     const st = status(l);
     const isNext = l === cont;
-    return h('a', { class: `les-row ${st}${isNext ? ' next' : ''}${l.kind !== 'lesson' ? ' check' : ''}${lessonLock(l) ? ' locked' : ''}`, href: lessonHref(l) },
+    return h('a', { class: `les-row ${st}${isNext ? ' next' : ''}${l.kind !== 'lesson' ? ' check' : ''}${lessonLock(l) ? ' locked' : ''}`, href: lessonHref(l), 'data-lesson': l.id },
       h('span', { class: 'st' }, isNext ? '▶' : STATUS_ICON[st]),
       h('span', { class: 'num' }, l.num),
       h('span', { class: 'tt' }, l.kind === 'lesson' ? l.title : l.kind === 'check' ? 'Checkpoint' : l.title),
@@ -452,6 +457,18 @@ export function courseScreen(main) {
   // lesson is the first, sees the top); Back keeps the place the player left (the router restores
   // it, the top too; two frames: after the router's own restore)
   // (a next lesson in a folded stage is not scrolled to)
+  if (focus) {
+    const fi = STAGES.indexOf(focus.stage) + 1;
+    if (!(settings.mapOpen || []).includes(fi)) setMapOpen(cont, fi, true);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const el = main.querySelector(`.les-row[data-lesson="${CSS.escape(focus.id)}"]`);
+      if (!el) return;
+      el.scrollIntoView({ block: 'center' });
+      el.classList.add('focus');
+      setTimeout(() => el.classList.remove('focus'), 2600);
+    }));
+    return;
+  }
   const nextRow = main.querySelector('details[open] .les-row.next');
   if (nextRow && !nav.returning && nextRow !== main.querySelector('details[open] .les-row')) {
     requestAnimationFrame(() => requestAnimationFrame(() => {
