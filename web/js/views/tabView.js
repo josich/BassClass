@@ -120,7 +120,8 @@ export class TabView {
     const rowH = 11;
     const top = 16;
     // technique marks (T, P, H, PO, ⊓ V, RH LH, i m…) get a row under the tab lines, as in tab books
-    const markOf = (st) => st.notes.map((n) => n.tag).find((t) => t && t !== 'x' && t !== '◊');
+    // (an artificial harmonic is marked A.H., as tab books do)
+    const markOf = (st) => st.notes.map((n) => (n.ah != null ? 'A.H.' : n.tag)).find((t) => t && t !== 'x' && t !== '◊');
     const marks = inst.steps.some(markOf);
     const markY = top + rowH * (strings - 1) + 12;
     const h = top + rowH * (strings - 1) + 17 + (marks ? 10 : 0);
@@ -168,10 +169,11 @@ export class TabView {
       if (this.opts.quiz && c.st.notes.length) out.push(`<text x="${cx - 3}" y="${top + rowH * (strings - 1) / 2 + 4}" class="tnum tqm">?</text>`, '<g class="tq">');
       for (const n of c.st.notes) {
         const y = top + (strings - 1 - n.s) * rowH;
-        // (a harmonic is written in angle brackets, as bass tab books do, where it is touched: <12>, <3.9>; QA round 20)
+        // (a harmonic is written in angle brackets, as bass tab books do, where it is touched: <12>, <3.9>; QA round 20;
+        // an artificial one as its fretted fret with the touch point in brackets, 3(15), under A.H.: QA round 23)
         if (n.tag === '◊') {
           const at = n.at ?? n.f;
-          const t = `<${Math.abs(at - Math.round(at)) > 0.1 ? at.toFixed(1) : Math.round(at)}>`;
+          const t = n.ah != null ? `${n.ah}(${Math.round(at)})` : `<${Math.abs(at - Math.round(at)) > 0.1 ? at.toFixed(1) : Math.round(at)}>`;
           const w = Math.round(t.length * 6.6 + 4);
           out.push(`<rect x="${cx + 1 - w / 2}" y="${y - 6}" width="${w}" height="12" class="tbg"/>`);
           out.push(`<text x="${cx + 1}" y="${y + 4}" text-anchor="middle" class="tnum${c.st.accent ? ' acc' : ''}">${t.replace('<', '&lt;').replace('>', '&gt;')}</text>`);

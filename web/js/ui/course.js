@@ -7,6 +7,7 @@ import { EXERCISES, byId } from '../curriculum/index.js';
 import { SUB_NAMES, paramOptions } from './exercise.js';
 import { exHref, go, buildRoutine, routineParams, setRoutine, routineHref, proChip, newChip } from './screens.js';
 import { isNew, newCount, markUsed } from '../news.js';
+import { choiceName, choiceOf } from '../mastery.js';
 import { isPro, lessonLock, exerciseLock, levelLocked, FREE_LEVELS, FREE_TASTE } from '../pro.js';
 import { openPro } from './proSheet.js';
 import { maybeAskRating } from './rate.js';
@@ -15,7 +16,7 @@ import { NEXT_LEVEL, COMPLETE } from '../course/data.js';
 import { PLACEMENT } from '../course/placement.js';
 import {
   STAGES, LESSONS, UNITS, lessonById, SESSION_LENGTHS,
-  stepPassed, stepClean, stepCovered, untickStep, canTicked, setCan, isComplete, isDue, nextReview, dueLessons,
+  stepPassed, stepClean, stepOwnClean, stepCoveredBy, untickStep, canTicked, setCan, isComplete, isDue, nextReview, dueLessons,
   status, started, anyProgress, continueLesson, firstGap, courseStats, knownUnits, setKnown, placed,
   sessionMinutes, setSessionMinutes, setLast, resetCourse,
   sessionStore, setSession, sessionPractised, clearSession,
@@ -322,7 +323,8 @@ export function sessionBlock({ onLength } = {}) {
     // ticked once played in this session; the course's own next steps also once they are clean (a demo
     // once its lesson is started), never a warm-up, review or focus step of a lesson done before
     const courseItem = (it) => !!it.ls && !it.warm && !it.rv && /^(Lesson|Checkpoint|Stage test)/.test(it.slot);
-    const isPlayed = (it) => played.has(it.key) || (courseItem(it) && (it.demo ? started(lessonOf(it)) : stepClean(lessonOf(it), Number(it.ls.split('.')[1]))));
+    // (ticked in the lesson, not by the Library's mastery: ● is a row played, QA round 23)
+    const isPlayed = (it) => played.has(it.key) || (courseItem(it) && (it.demo ? started(lessonOf(it)) : stepOwnClean(lessonOf(it), Number(it.ls.split('.')[1]))));
     const start = (i) => { setRoutine(all, 'Session'); go(routineHref(all[i], i)); };
     // (the rows the player plays are numbered; a "Hear it" demo, only listened to, shows 🎧: user, 2026-10-28)
     const nums = [];
@@ -426,7 +428,7 @@ export function courseScreen(main, params = {}) {
   };
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('button', { class: 'icon-btn', 'aria-label': 'Back', html: icon('back'), onClick: () => back('#/') }),
-      h('h1', {}, 'Course map'), infoBtn(['▶ next lesson · ◐ started · ✓ done or known', '🔓 In order, or jump anywhere', '🎯 A step: one full loop at its goal tempo, then ✓ Clean', '↻ Done lessons come back as reviews (1, 3, 7, 21, 60 days)'], 'About the course map'),
+      h('h1', {}, 'Course map'), infoBtn(['▶ next lesson · ◐ started · ✓ done or known', '🔓 In order, or jump anywhere', '🎯 A step: one full loop at its goal tempo, then ✓ Cleared', '↻ Done lessons come back as reviews (1, 3, 7, 21, 60 days)'], 'About the course map'),
       h('span', { class: 'muted' }, `${stats.done} of ${stats.total} lessons done${stats.known ? ` · ${stats.known} known` : ''}`)),
     // jump to a stage (the map is long on a phone)
     h('div', { class: 'tabs lv-jump map-jump' }, STAGES.map((stage, si) => h('button', { title: stage.title, onClick: () => jump(si + 1) }, `S${si + 1}`))),
@@ -501,13 +503,13 @@ export function lessonScreen(main, id) {
     const clean = stepClean(l, i), passed = stepPassed(l, i);
     // the essentials only: the Library number and the goal (the step's text is the exercise's tip)
     const tempo = `#${t.num} · ${s.goal ? `🎯 ${s.goal} BPM${s.sub ? ` in ${SUB_NAMES[s.sub]}` : ''}` : 'one full round'}`;
-    // a tick can be taken back, after a question (user, 2026-10-29); a step its exercise's mastery ticks says so,
-    // and its untick takes the mastery back too
-    const byMastery = clean && stepCovered(l, i);
+    // a tick can be taken back, after a question (user, 2026-10-29); a step the Library ticks (its exercise mastered,
+    // or its choice cleared: QA round 23) says so, and its untick takes that back too
+    const by = clean ? stepCoveredBy(l, i) : null, name = by && choiceName(s.ex, choiceOf(s.ex, s.p));
     const untick = clean ? h('button', { class: 'icon-btn untick', title: 'Untick: practise this step again', 'aria-label': 'Untick this step', onClick: (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (!confirm(byMastery ? 'This step is ticked because you mastered its exercise. Untick it? 🏅 Mastered is taken back too, with its ✓ Cleared ticks, in the Library and the course.' : 'Untick this step? The lesson counts as done again once every step is ticked.')) return;
+      if (!confirm(by ? `This step is ticked because you ${by === 'mastered' ? 'mastered its exercise' : `cleared ${name || 'it'}`} in the Library. Untick it? ✓ Cleared${name ? ` on ${name}` : ''} is taken back there too${by === 'mastered' ? ', and 🏅 Mastered with it' : ''}.` : 'Untick this step? The lesson counts as done again once every step is ticked.')) return;
       untickStep(l, i);
       rerender();
     } }, '↺') : null;
@@ -516,7 +518,7 @@ export function lessonScreen(main, id) {
       h('span', { class: 't' },
         s.music ? h('small', { class: 'music-tag' }, '🎵 Make music') : null,
         h('b', {}, t.title, vars[i] ? h('span', { class: 'chip var' }, vars[i]) : null, due && i === rv ? h('span', { class: 'chip due' }, 'review') : null),
-        h('span', { class: 'tempo' }, tempo, byMastery ? h('span', { class: 'by-mastery' }, ' · 🏅 mastered in the Library') : null)),
+        h('span', { class: 'tempo' }, tempo, by ? h('span', { class: 'by-mastery' }, by === 'mastered' ? ' · 🏅 mastered in the Library' : ' · ✓ cleared in the Library') : null)),
       untick,
       h('span', { class: 'go', html: icon('next') }));
   };
@@ -538,7 +540,7 @@ export function lessonScreen(main, id) {
     ? ['🎯 Each step at its goal tempo, cleanly', '✓ Tick only what you can really do', '↩ Shaky? Back to its lesson: nothing is locked']
     : ['🎯 The whole stage: each step at its goal tempo', '✓ Then tick what you can now do'];
   const stepsInfo = [l.steps.some((s) => s.goal)
-    ? '🎯 One full loop from the first note at the goal tempo, then ✓ Clean'
+    ? '🎯 One full loop from the first note at the goal tempo, then ✓ Cleared'
     : '👂 One full round, then ✓ if you named every answer first',
   ...(l.kind === 'lesson' && demoAt < 0 ? ['An ear lesson: no demo, the rounds play before their answers'] : [])];
   main.replaceChildren(

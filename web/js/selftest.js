@@ -9,7 +9,7 @@ import { CHANGED_STEPS } from './course/progress.js';
 import { CYCLE_OPTS } from './curriculum/common.js';
 import { NO_BACKING, harmonyTrack } from './harmony.js';
 import { MAIN } from './curriculum/main.js';
-import { mainOf, choicesOf, neededOf } from './mastery.js';
+import { mainOf, choicesOf, neededOf, goalOf, shapeOf } from './mastery.js';
 import { BAND_IDS, isBandExercise, bandBy, bandCandidates, matchedStyle, meterOf, fits, patternUnit, bandHits, bandTicks } from './band.js';
 import { makeCtx } from './fretboard.js';
 import { STYLES, levelsOf, regroup, phraseHits, beatHits, clickTimes } from './practice/styles.js';
@@ -207,12 +207,14 @@ function checkBand(problems) {
     for (const v of by ? t.params[by].options.map((o) => o[0]) : [null]) {
       const p = { ...defaultParams(t), ...(by ? { [by]: v } : {}) };
       const where = `band: #${t.num} ${t.id}${by ? ` ${by}=${v}` : ''}`;
-      for (const k of bandCandidates(t, p)) if (!STYLES[k]) problems.push(`${where}: no drum pattern "${k}"`);
       const inst = t.build(p, ctx, S);
+      for (const k of bandCandidates(t, p, inst)) if (!STYLES[k]) problems.push(`${where}: no drum pattern "${k}"`);
+      // (a band chosen by feel follows the line's own: every line says whether it swings, QA round 23)
+      if (by === 'feel' && !inst.feel) problems.push(`${where}: the line does not say its feel`);
       if (!harmonyTrack(inst, 'chords').some(Boolean)) problems.push(`${where}: no chords for the band`);
       const m = meterOf(inst);
       const key = matchedStyle(t, p, inst, true);
-      const want = bandCandidates(t, p).find((k) => fits(STYLES[k], m));
+      const want = bandCandidates(t, p, inst).find((k) => fits(STYLES[k], m));
       if (!key || key !== want) problems.push(`${where}: plays ${key}, not ${want} (the first of its patterns that fits ${inst.timeSig || '4/4'})`);
       const free = matchedStyle(t, p, inst, false);
       if (free ? !FREE_STYLE.has(free) : Object.values(STYLES).some((s) => FREE_STYLE.has(s.key) && fits(s, m))) problems.push(`${where}: a free player gets ${free}`);
@@ -253,6 +255,11 @@ function checkMain(problems) {
     for (const st of [4, 5, 6]) {
       const n = choicesOf(id, st).length, need = neededOf(id, st);
       if (!n || need < 1 || need > n) problems.push(`main: ${id} on ${st} strings: ${need} of ${n} choices`);
+    }
+    // (each choice's goal within reach of its own tempo: QA round 23, a 12/8 slow blues was asked for 120)
+    if (!m.game) for (const v of choicesOf(id, 4)) {
+      const g = goalOf(id, v), sh = shapeOf(id, v);
+      if (g && sh?.bpm && g.bpm > 1.75 * sh.bpm) problems.push(`main: ${id} ${v}: its goal ${g.bpm} BPM is far above its own tempo, ${sh.bpm}`);
     }
   }
   for (const t of EXERCISES.filter((x) => x.game)) if (!MAIN[t.id]) problems.push(`main: the game ${t.id} has no main option`);

@@ -2,7 +2,7 @@
 // the loops played and the "clean" tick; per lesson the day it was completed and its reviews; the
 // "I can" ticks of checkpoints; the units the placement check marked as known.
 import { STAGES, LESSONS, UNITS, lessonById } from './data.js';
-import { masteryCovers, stepMasters, setMastered, setCleared, choiceOf, onMastery, levelPassed } from '../mastery.js';
+import { masteryCovers, coverOf, stepMasters, setMastered, setCleared, choiceOf, onMastery, levelPassed } from '../mastery.js';
 
 const KEY = 'bassclass.course.v1';
 const DAY = 86400000;
@@ -49,6 +49,9 @@ export const CHANGED_STEPS = [
   // QA round 22 (user, 2026-10-30): the pick and slap patterns an octave lower, on the open E; the gallop's string
   // skip on real skips; the fill "Up to the octave" reaching it
   { rev: 8, steps: ['pick.3', 'pick.4', 'fills.1', 'pick-gallop.0', 'pick-gallop.1', 'pick-gallop.2', 'pick-gallop.3', 'u-rock3-check.2', 'slap-grooves.2', 'slap-grooves.3', 'u-grooves4-check.3'] },
+  // QA round 23 (user, 2026-11-02): the country waltz two bars a chord, the gospel walk-ups into the next root, the
+  // steppers' roots, the long drum & bass roots, and the jazz waltz, soca, songo and partido alto towards the next root
+  { rev: 9, steps: ['waltz.0', 'waltz.1', 'u-grooves-check.5', 'reggae-ska.1', 'dance-grooves.2', 'u-styles3-check.2', 'latin-grooves.0', 'latin-grooves.1', 'hiphop-electronic.2', 'gospel-rnb.0', 'u-styles4-check.0', 'u-styles4-check.1'] },
 ];
 const REV = CHANGED_STEPS.length;
 // a step whose notes changed after the player finished its lesson asks to be played again, but the
@@ -142,8 +145,12 @@ const covered = (lesson, i) => !!lesson.steps[i] && masteryCovers(lesson.steps[i
 /** Has this step's tempo goal been reached (no goal: one full loop played), here or by mastering its exercise? */
 export const stepPassed = (lesson, i) => ownPassed(lesson, i) || covered(lesson, i);
 export const stepClean = (lesson, i) => ownClean(lesson, i) || covered(lesson, i);
-/** Is this step ticked by its exercise's mastery (then only unmastering it takes the tick back: QA round 19)? */
+/** Ticked in the lesson itself (not by the Library): today's session counts these as played (QA round 23). */
+export const stepOwnClean = ownClean;
+/** Is this step ticked by the Library (then only unclearing its choice takes the tick back: QA round 19)? */
 export const stepCovered = covered;
+/** What ticks it from the Library: 'mastered', 'cleared' or null. */
+export const stepCoveredBy = (lesson, i) => (lesson.steps[i] ? coverOf(lesson.steps[i]) : null);
 /** A step passed and ✓ Clean that is at least as hard as its exercise's goal clears its choice in the Library (the
  * step's value of the exercise's main option; the exercise is mastered once enough are cleared: mastery.js). */
 function masterFrom(lesson, i) {
@@ -175,10 +182,14 @@ export function setClean(lesson, i, on) {
   if (on) masterFrom(lesson, i);
   return settle(lesson);
 }
-/** Takes a step's tick back: its own ✓ Clean, and its exercise's mastery when that is what ticks it (user, 2026-10-29:
- * "checked exercises have to be able to be unchecked"). Returns what `setClean` returns. */
+/** Takes a step's tick back: its own ✓ Cleared, and its choice's in the Library when that is what ticks it (the
+ * mastery goes with it; user, 2026-10-29: "checked exercises have to be able to be unchecked"). Returns what
+ * `setClean` returns. */
 export function untickStep(lesson, i) {
-  if (covered(lesson, i)) setMastered(lesson.steps[i].ex, false);
+  const step = lesson.steps[i];
+  if (covered(lesson, i)) setCleared(step.ex, choiceOf(step.ex, step.p), false);
+  // (an exercise mastered before the choices, with none cleared, is still mastered: take that back too)
+  if (covered(lesson, i)) setMastered(step.ex, false);
   return setClean(lesson, i, false);
 }
 export const canTicked = (lesson, i) => !!state.can[skey(lesson.id, i)];

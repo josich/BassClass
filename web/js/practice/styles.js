@@ -22,7 +22,7 @@ const RAW = [
       hhc: 'Xgxg|xgxg|Xgxg|xgxg', kick: 'X...|....|X.x.|....', snare: '....|X...|....|X..g' },
     { key: 'rockride', name: 'Ride 8ths', bpm: 124, sub: 2,
       ride: 'Xgxg|xgxg|Xgxg|xgxg', hhp: '....|x...|....|x...', kick: 'X...|..x.|X...|..x.', snare: '....|X...|....|X...' },
-    { key: 'rockhalf', free: true, name: 'Half-time', bpm: 140, sub: 2,
+    { key: 'rockhalf', name: 'Half-time', bpm: 140, sub: 2,
       hhc: 'xgsg|xgsg|xgsg|xgsg', kick: 'X...|....|....|..x.', snare: '....|...g|X...|....' },
     { key: 'punk', name: 'Punk (fast)', bpm: 180, sub: 2,
       hhc: 'X.x.|X.x.|X.x.|X.x.', kick: 'X...|X...|X...|X...', snare: '..X.|..X.|..X.|..X.' },
@@ -39,7 +39,7 @@ const RAW = [
     { key: 'rockshuffle', free: true, name: 'Rock shuffle', grid: 3, bpm: 120, sub: 2,
       hhc: 'Xgx|xgx|Xgx|xgx', kick: 'X..|...|X.x|...', snare: '...|X..|...|X.g' },
     // (3/4 and 6/8 are not odd metres: they sit with the rock grooves, QA round 15)
-    { key: 'six8rock', name: '6/8 rock', meter: '6/8', beats: 2, beat: 'dq', grid: 3, bpm: 72, sub: 3,
+    { key: 'six8rock', free: true, name: '6/8 rock', meter: '6/8', beats: 2, beat: 'dq', grid: 3, bpm: 72, sub: 3,
       hhc: 'xss|xss', kick: 'X..|..x', snare: '...|X..' },
     { key: 'threefour', name: '3/4 rock', meter: '3/4', beats: 3, bpm: 120, sub: 2,
       hhc: 'Xgxg|xgxg|xgxg', kick: 'X...|..x.|....', snare: '....|....|X...' },

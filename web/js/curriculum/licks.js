@@ -271,8 +271,10 @@ export function lickTemplate(def) {
       // (a pick or slap pattern plays its open strings: the open E chugged and thumbed, user, 2026-10-30)
       emitMixed(b, items, open === 'prefer' ? { center: 2, open: openMode, fold: false } : { center: 6, open: 'avoid', fold: false });
       const fixed = swingable ? {} : { feel: lick.feel === 'straight' ? 'Straight 8ths' : 'Triplets (swing does not apply)' };
+      // the feel the line has, for the band (QA round 23): swung, a triplet lick, or straight (a straight lick, 16ths)
+      const trip = !swingable && lick.feel !== 'straight' && parseLick(lick.notes).notes.some((x) => { const f = x.t - Math.floor(x.t); return Math.abs(f - 1 / 3) < 1e-6 || Math.abs(f - 2 / 3) < 1e-6; });
       // swing is written as straight 8ths under "Swing" on the staff
-      return b.build({ uniform: false, label: 'degree', fixed, swing });
+      return b.build({ uniform: false, label: 'degree', fixed, swing, feel: swing || trip ? 'swing' : 'straight' });
     },
   });
 }

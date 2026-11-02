@@ -136,12 +136,21 @@ const earIntervals = ex({
       const root = lo + Math.floor(rand() * Math.max(1, hi - lo + 1));
       const midi = root + (down ? -semis : semis);
       const r = showAt(root, ctx);
-      const rootN = T.bestRoot(T.mod(root, 12), ['1', '3', '5']);
+      // the root's other name when the answer would need a double accidental or C♭ F♭ E♯ B♯ (QA round 23, user's
+      // choice: G♭'s minor 3rd is B♭♭, so the root is F♯ and the answer A)
+      const spell = (rn) => (down ? downFrom(rn, semis) : T.up(rn, IV_OF[semis]));
+      const odd = (n) => Math.abs(n.a) > 1 || (n.a === -1 && (n.l === 0 || n.l === 3)) || (n.a === 1 && (n.l === 2 || n.l === 6));
+      let rootN = T.bestRoot(T.mod(root, 12), ['1', '3', '5']);
+      if (odd(spell(rootN))) {
+        const other = [spellMidi(root, false), spellMidi(root, true)].find((x) => x.l !== rootN.l);
+        if (other && !odd(spell(other))) rootN = other;
+      }
       return {
         play: [{ midi: root, at: 0, dur: 0.9 }, { midi, at: 1.0, dur: 1.2 }],
         refs: [{ midi: root, s: r.s, f: r.f, label: 'R', root: true }],
         ask: down ? 'The root, then a note below or above it' : 'The root, then a note above it',
-        answer: { midi, n: down ? downFrom(rootN, semis) : T.up(rootN, IV_OF[semis]), label: down ? `↓${IV_LABEL[semis]}` : IV_LABEL[semis], say: `the ${IV_NAME[semis]} ${down ? 'below' : 'above'}` },
+        // (the tritone over F, C♭ as its ♭5, is written as the ♯4, B)
+        answer: { midi, ...(odd(spell(rootN)) && semis === 6 && !down ? { n: T.up(rootN, '#4'), label: '♯4' } : { n: spell(rootN), label: down ? `↓${IV_LABEL[semis]}` : IV_LABEL[semis] }), say: `the ${IV_NAME[semis]} ${down ? 'below' : 'above'}` },
       };
     },
   },

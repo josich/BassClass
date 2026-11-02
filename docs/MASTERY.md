@@ -7,11 +7,11 @@ exercises were renumbered in the Library's order (`curriculum/numbers.js`).
 ## The rules
 
 - **Three marks, one per part of the app.**
-  - ✓ The course: a lesson done, a step clean.
+  - ✓ The course: a lesson done, a step cleared.
   - 🏅 The Library: an exercise mastered. Its card also gets a green edge, so mastered cards stand out from the rest.
   - ● Today's session: a row played today.
 - **Main option.** Each exercise names at most one option whose choices are really different material (the Scale of #114: major, natural minor, major pentatonic, minor pentatonic). Key, root string, range, direction, feel, register, neck position and similar options never count. A string counts only where the string is the exercise's topic (#107, #108, #215).
-- **Cleared.** A main choice is cleared when the player ticks ✓ Cleared after a full loop at the goal on it, as ✓ Clean in a lesson. Each choice takes its own goal from the course's steps on it, where there are some (a 12/8 gospel ballad does not share a jazz waltz's tempo); else the exercise's. The Options sheet shows a cleared choice with a green edge and a tick.
+- **Cleared.** A main choice is cleared when the player ticks ✓ Cleared after a full loop at the goal on it, as ✓ Cleared in a lesson (one word for one act since QA round 23; it was ✓ Clean there). Each choice takes its own goal from the course's steps on it, where there are some (a 12/8 gospel ballad does not share a jazz waltz's tempo); a choice without steps of its own takes the hardest goal of the choices in its own metre, and where none has one, a goal 15% over its own tempo (QA round 23: the 12/8 slow blues 68, not the shuffle's 120; the 7/4 128, not the 7/8's 170). The Options sheet shows a cleared choice with a green edge and a tick. Unticking one choice that an "all" choice cleared keeps the others it played.
 - **Mastered.** Set by the app once enough choices are cleared. The ⋯ menu can take it back by hand.
 - **How many are needed.**
   - Core theory (scales, modes, chords, triads, intervals, upper structures): all of them, however many, except on the very long all-keys drills (#603, #609, #611): 80%.
@@ -19,7 +19,7 @@ exercises were renumbered in the Library's order (`curriculum/numbers.js`).
   - A choice that plays the others ("All 24 in a row", "All 5", "All three", "Rotate", "Whole tune", "All four strings") counts as every choice it plays.
 - **No main option (—).** One full loop at the goal masters the exercise, as today.
 - **Games.** 8 of 10 in a mode of the main setting clears that mode on its own, with no tick, since the score is the proof. Every mode is needed.
-- **Course and Library.** A lesson step passed and ticked ✓ Clean at the goal clears its choice in the Library. A mastered exercise still passes the steps on it.
+- **Course and Library.** A lesson step passed and ticked ✓ Cleared at the goal clears its choice in the Library. Both ways (QA round 23, user's choice): a choice cleared in the Library passes and ticks the course's steps on that choice whose goal is no harder, and a mastered exercise all its steps up to its goal; the step says "✓ cleared in the Library" or "🏅 mastered in the Library", and its ↺ takes that choice's ✓ Cleared back (the mastery with it). Inside a lesson step ⋯ shows no ✓ Cleared (the step's own tick does it), nor in a drill's tap mode (its play mode clears it). Today's session marks ● only on rows played, not on steps the Library ticks.
 - **No migration.** Mastery records from earlier builds need no care: there are no users yet (user, 2026-11-02).
 
 In all, 203 exercises have a main option and 45 have none (the eight exercises added on 2026-11-02 included).

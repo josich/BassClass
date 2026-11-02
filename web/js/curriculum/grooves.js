@@ -48,28 +48,28 @@ const GROOVES = {
   djent: { name: 'Djent (groups of three 16ths)', bars: [[['R', 0.25, '⊓'], ['R', 0.25, '⊓'], ['-', 0.25], ['R', 0.25, '⊓'], ['R', 0.25, '⊓'], ['-', 0.25], ['R', 0.25, '⊓'], ['R', 0.25, '⊓'], ['-', 0.25], ['R', 0.25, '⊓'], ['R', 0.25, '⊓'], ['-', 0.25], ['8', 0.25, '⊓'], ['5', 0.25, '⊓'], ['-', 0.25], ['R', 0.25, '⊓']]] },
   doom: { name: 'Doom (slow and heavy)', bpm: 60, bars: [[['R', 2, '⊓'], ['5', 1, '⊓'], ['b6', 1, '⊓']]] },
   rockers: { name: 'Rockers (8ths, beat 1 played)', bars: [[['R', 0.5], ['R', 0.5], ['-', 0.5], ['5', 0.5], ['8', 0.5], ['-', 0.5], ['5', 0.5], ['3', 0.5]]] },
-  steppers: { name: 'Steppers (roots under four on the floor)', bars: [[['R', 1], ['-', 0.5], ['R', 0.5], ['5', 1], ['3', 1]]] },
+  steppers: { name: 'Steppers (roots on the beats, under four on the floor)', bars: [[['R', 1], ['-', 0.5], ['R', 0.5], ['R', 1], ['R', 0.5], ['5', 0.5]]] },
   rocksteady: { name: 'Rocksteady (melodic, with space)', bars: [[['R', 1.5], ['3', 0.5], ['5', 1], ['-', 0.5], ['A', 0.5]]] },
   skaWalk: { name: 'Ska walking (quarter notes)', bpm: 150, bars: [[['R', 1], ['3', 1], ['5', 1], ['A', 1]]] },
   highlife: { name: 'Highlife (bright and syncopated)', bars: [[['R', 0.75], ['5', 0.25], ['-', 0.5], ['3', 0.5], ['5', 0.5], ['R', 0.5], ['-', 0.5], ['5', 0.5]]] },
   cumbia: { name: 'Cumbia (root, then the 5th below)', bpm: 92, bars: [[['R', 1.5], ['R', 0.5], ['5_', 1.5], ['5_', 0.5]]] },
-  soca: { name: 'Soca (driving 8ths, on top of the beat)', bpm: 124, bars: [[['R', 0.5], ['R', 0.5], ['8', 0.5], ['R', 0.5], ['-', 0.5], ['R', 0.5], ['5', 0.5], ['8', 0.5]]] },
+  soca: { name: 'Soca (driving 8ths, on top of the beat)', shape: true, bpm: 124, bars: [[['R', 0.5], ['R', 0.5], ['8', 0.5], ['R', 0.5], ['-', 0.5], ['R', 0.5], ['5', 0.5], ['8~', 0.5]]] },
   maqsum: { name: 'Maqsum (Middle-Eastern dum and tek)', bars: [[['R', 1], ['-', 0.5], ['R', 0.5], ['5', 1], ['3', 0.5], ['R', 0.5]]] },
-  songo: { name: 'Songo (syncopated, the next root early)', bars: [[['-', 0.5], ['R', 0.5], ['-', 0.25], ['5', 0.75], ['-', 0.5], ['8', 0.5], ['N', 1]]] },
-  partidoAlto: { name: 'Partido alto (Brazilian 16ths)', bars: [[['R', 0.75], ['R', 0.25], ['-', 0.5], ['5', 0.5], ['R', 0.25], ['-', 0.5], ['5', 0.25], ['8', 0.5], ['5', 0.5]]] },
+  songo: { name: 'Songo (syncopated, the next root early)', shape: true, bars: [[['-', 0.5], ['R', 0.5], ['-', 0.25], ['5', 0.75], ['-', 0.5], ['8~', 0.5], ['N', 1]]] },
+  partidoAlto: { name: 'Partido alto (Brazilian 16ths)', shape: true, bars: [[['R', 0.75], ['R', 0.25], ['-', 0.5], ['5', 0.5], ['R', 0.25], ['-', 0.5], ['5', 0.25], ['8~', 0.5], ['5~', 0.5]]] },
   baiao: { name: 'Baião (dotted 8th, 16th, quarter)', bars: [[['R', 0.75], ['5', 0.25], ['5', 1], ['R', 0.75], ['5', 0.25], ['5', 1]]] },
   chacha: { name: 'Cha-cha-chá (the next root on beat 4)', bars: [[['R', 1.5], ['5', 0.5], ['-', 0.5], ['5', 0.5], ['N', 1]]] },
   boomBap: { name: 'Boom bap (laid back, with space)', bpm: 90, bars: [[['R', 1.5], ['-', 0.5], ['-', 0.75], ['R', 0.25], ['b7', 0.5], ['5', 0.5]]] },
   ukGarage: { name: 'UK garage (2-step 16ths)', bpm: 128, bars: [[['R', 0.75], ['R', 0.25], ['-', 0.5], ['8', 0.5], ['-', 0.25], ['5', 0.25], ['-', 0.5], ['R', 0.5], ['b7', 0.5]]] },
-  dnb: { name: 'Drum & bass (long roots, half-time feel)', bpm: 168, bars: [[['R', 1.5], ['R', 0.5], ['-', 1], ['b7', 0.5], ['8', 0.5]]] },
+  dnb: { name: 'Drum & bass (long roots, half-time feel)', shape: true, bpm: 168, bars: [[['R', 3], ['b7', 0.5], ['8', 0.5]]] },
   tripHop: { name: 'Trip-hop (slow and heavy)', bpm: 80, bars: [[['R', 2], ['-', 0.5], ['3', 0.5], ['5', 1]]] },
-  gospelWalk: { name: 'Gospel walk-ups into each chord', bars: [[['R', 1], ['R', 1], ['5', 0.5], ['6', 0.5], ['b7', 0.5], ['A', 0.5]]] },
+  gospelWalk: { name: 'Gospel walk-ups into each chord', bars: [[['R', 1.5], ['R', 0.5], ['W3', 0.5], ['W2', 0.5], ['W1', 1]]] },
   gospelShuffle: { name: 'Gospel shuffle (triplet feel)', bars: [swing([['R', 0.5], ['R', 0.5], ['3', 0.5], ['5', 0.5], ['6', 0.5], ['5', 0.5], ['3', 0.5], ['A', 0.5]])] },
   rnb: { name: 'Modern R&B (syncopated, ghost notes)', bars: [[['R', 0.75], ['x', 0.25], ['-', 0.5], ['R', 0.25], ['5', 0.25], ['7', 0.5], ['-', 0.5], ['8', 0.5], ['5', 0.5]]] },
   // in three: `bpb` beats to the bar (3/4 in quarters; 6/8 in two dotted quarters, 8ths a third of a beat); 12/8 is four
   // dotted-quarter beats like the slow blues
-  countryWaltz: { name: 'Country waltz (root, then the 5th below)', ts: [3, 4], bpb: 3, bpm: 108, bars: [[['R', 1], ['-', 1], ['-', 1]], [['5_', 1], ['-', 1], ['-', 1]]] },
-  jazzWaltz: { name: 'Jazz waltz (walking in three)', ts: [3, 4], bpb: 3, bpm: 120, bars: [[['R', 1], ['5', 1], ['A', 1]]] },
+  countryWaltz: { name: 'Country waltz (root, then the 5th below)', ts: [3, 4], bpb: 3, barsPerChord: 2, bpm: 108, bars: [[['R', 1], ['-', 1], ['-', 1]], [['5_', 1], ['-', 1], ['-', 1]]] },
+  jazzWaltz: { name: 'Jazz waltz (walking in three)', ts: [3, 4], bpb: 3, bpm: 120, bars: [[['R', 1], ['5~', 1], ['A', 1]]] },
   waltzBallad: { name: 'Waltz ballad (root and 5th)', ts: [3, 4], bpb: 3, bpm: 84, bars: [[['R', 2], ['5', 1]]] },
   ballad68: { name: '6/8 ballad (two dotted-quarter beats)', ts: [6, 8], compound: true, bpb: 2, bpm: 60, bars: [[['R', 1], ['5', 2 / 3], ['8', 1 / 3]]] },
   afro128: { name: 'Afro-Cuban 12/8', ts: [12, 8], compound: true, bpm: 96, bars: [[['R', 1], ['-', 2 / 3], ['5', 1 / 3], ['8', 1], ['-', 1 / 3], ['5', 1 / 3], ['R', 1 / 3]]] },
@@ -108,8 +108,8 @@ function grooveEx(id, level, styleKeys, def, meta) {
       const b = new Builder(ctx, S, { jazz: true });
       const g = GROOVES[p.style];
       const progKey = p.prog === 'auto' ? STYLE_PROGS[p.style] : p.prog;
-      // (a groove in three: each 4/4 bar of the progression becomes one bar of its metre)
-      const bpb = g.bpb || 4, scale = bpb / 4;
+      // (a groove in three: each 4/4 bar of the progression becomes one bar of its metre; the country waltz two)
+      const bpb = g.bpb || 4, scale = (bpb / 4) * (g.barsPerChord || 1);
       for (const L of keyLines(keysFor(p.key), (k) => progChords(progKey, k, { S }).map((c) => ({ ...c, beats: c.beats * scale })))) {
         // a line that is a hand shape (R-5-8, octaves, boogie, riffs) keeps it: fretted notes, open
         // strings only where no fret has the note (the open E of a 4-string)
@@ -206,7 +206,7 @@ const waltz = grooveEx('gr-waltz', 2, ['countryWaltz', 'jazzWaltz', 'waltzBallad
 const metal = grooveEx('gr-metal', 3, ['metalChug', 'doubleKick', 'breakdown', 'djent', 'doom'], 'metalChug', {
   title: 'Metal grooves: chugs, double kick, breakdowns and doom',
   summary: 'With a pick: palm-muted chugs, 16ths with the double kick, a half-time breakdown, djent and doom.',
-  about: 'Metal bass locks with the kick drum and the guitar\'s palm-muted riffs. Chug 8ths with down-strokes; play 16ths with alternate picking when the drummer plays the double kick; leave space in a half-time breakdown and hit the stabs with the band; group 16ths in threes across the bar for djent; and in doom, slow everything down and let each note ring. The ♭5 and ♭6 are the darkest notes of the minor sound.',
+  about: 'Metal bass locks with the kick drum and the guitar\'s palm-muted riffs. Chug 8ths with down-strokes; play 16ths with alternate picking when the drummer plays the double kick; leave space in a half-time breakdown and hit the stabs with the band; group 16ths in threes across the bar for djent; and in doom, slow everything down and let each note ring. The darkest colours are the ♭5, the tritone, and the minor scale\'s ♭6.',
   tips: ['Palm mute: the edge of the picking hand on the strings by the bridge.', 'Lock with the kick: in a breakdown, every stab is a kick hit.'],
   source: 'Metal and hard-rock bass practice', bpm: 120,
 });
@@ -222,15 +222,15 @@ const reggae = grooveEx('gr-reggae', 3, ['rockers', 'steppers', 'rocksteady', 's
 const worldGrooves = grooveEx('gr-world-grooves', 3, ['highlife', 'cumbia', 'soca', 'maqsum'], 'highlife', {
   title: 'World grooves: highlife, cumbia, soca and maqsum',
   summary: 'West African highlife, Colombian cumbia, Caribbean soca and the Middle-Eastern maqsum.',
-  about: 'Four dance grooves from around the world. Highlife (Ghana and Nigeria) is bright and syncopated, the bass weaving between root, 3rd and 5th. Cumbia (Colombia) swings between the root and the 5th below. Soca (Trinidad) drives 8ths on top of the beat. The maqsum, the most common Middle-Eastern rhythm, plays its low "dum" strokes on beat 1 and the "&" of 2: the bass follows the dums.',
-  tips: ['Listen to the drums first: each groove answers its own drum pattern.', 'Maqsum: dum on 1 and the "&" of 2, tek in between.'],
+  about: 'Four dance grooves from around the world. Highlife (Ghana and Nigeria) is bright and syncopated, the bass weaving between root, 3rd and 5th. Cumbia (Colombia) swings between the root and the 5th below. Soca (Trinidad) drives 8ths on top of the beat. The maqsum, the most common Middle-Eastern rhythm, plays its low "dum" strokes on beats 1 and 3, with the lighter "tek" strokes between: the bass plays its long notes with the dums and short ones with the teks.',
+  tips: ['Listen to the drums first: each groove answers its own drum pattern.', 'Maqsum: dum on 1 and 3, tek in between.'],
   source: 'Highlife, cumbia, soca and Middle-Eastern rhythms', bpm: 104,
 });
 
 const latin = grooveEx('gr-latin', 4, ['songo', 'partidoAlto', 'baiao', 'chacha'], 'songo', {
   title: 'Latin grooves: songo, partido alto, baião and cha-cha-chá',
   summary: 'Cuban songo and cha-cha-chá, Brazilian partido alto and baião.',
-  about: 'Latin bass plays with the clave and leaves the downbeat to the percussion. The songo, a modern Cuban groove, syncopates and lands the next chord\'s root early on beat 4, like the tumbao. Partido alto, from Brazilian samba, plays a syncopated 16th figure; the baião, from north-east Brazil, repeats a dotted 8th, a 16th and a quarter, often over a Mixolydian vamp. The cha-cha-chá plays beat 1 and lands the next root on beat 4.',
+  about: 'Latin bass plays with the clave. Cuban bass often leaves the downbeat to the percussion: the songo, a modern Cuban groove, syncopates and lands the next chord\'s root early on beat 4, like the tumbao. Partido alto, from Brazilian samba, plays a syncopated 16th figure; the baião, from north-east Brazil, repeats a dotted 8th, a 16th and a quarter, often over a Mixolydian vamp. The cha-cha-chá plays beat 1 and lands the next root on beat 4.',
   tips: ['The anticipated root on beat 4 belongs to the next chord.', 'Light 16ths, heavy long notes.'],
   source: 'Afro-Cuban and Brazilian bass grooves', bpm: 100,
 });
@@ -246,7 +246,7 @@ const electronic = grooveEx('gr-electronic', 4, ['boomBap', 'ukGarage', 'dnb', '
 const gospel = grooveEx('gr-gospel', 4, ['gospelWalk', 'gospelShuffle', 'rnb'], 'gospelWalk', {
   title: 'Gospel and R&B: walk-ups, the gospel shuffle and modern R&B',
   summary: 'Walk up into every chord, shuffle in triplets, and syncopate with ghost notes over neo-soul changes.',
-  about: 'Gospel bass walks: a run up from the 5th through the 6th and the 7th into each new chord, over the secondary dominants of church harmony. The gospel shuffle swings in triplets with the same walk-ups. Modern R&B syncopates the root, adds ghost notes and leans on the chord\'s 7th over neo-soul changes.',
+  about: 'Gospel bass walks: a run up the chord\'s scale into each new chord, landing on its root (R, 2, 3 into a root a 4th up), over the secondary dominants of church harmony. The gospel shuffle swings in triplets through the chord, with an approach into each new one. Modern R&B syncopates the root, adds ghost notes and leans on the chord\'s 7th over neo-soul changes.',
   tips: ['The walk-up lands on the next root on beat 1.', 'R&B: the ghost note is a touch, not a note.'],
   source: 'Gospel and R&B bass practice', bpm: 84,
 });

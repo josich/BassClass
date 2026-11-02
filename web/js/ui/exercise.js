@@ -11,7 +11,7 @@ import * as T from '../theory.js';
 import { moduleOf, LEVELS, defaultParams } from '../curriculum/index.js';
 import { CYCLE_OPTS, PROGS, tonicFor } from '../curriculum/common.js';
 import { harmonyTrack, harmonyAt, NO_BACKING } from '../harmony.js';
-import { recordLoop, rememberTempo, stepState, stepPassed, stepClean, stepCovered, setClean, untickStep, isDue, isComplete, reviewed } from '../course/progress.js';
+import { recordLoop, rememberTempo, stepState, stepPassed, stepClean, stepCoveredBy, setClean, untickStep, isDue, isComplete, reviewed } from '../course/progress.js';
 import { goalOf, goalText as masteryGoal, meetsGoal, setMastered, isMastered, SUB_NAMES, mainOf, choicesOf, choiceOf, choiceName, isCleared, goalMet,
   recordGoal, setCleared, clearedCount, recordGame } from '../mastery.js';
 import { openPro } from './proSheet.js';
@@ -19,7 +19,7 @@ import { JUDGED, startTake, judge, playTake, keepResult, resultFor } from '../ju
 import { tapSet, placesOf } from '../curriculum/games.js';
 import { spellMidi } from '../builder.js';
 import { logPlaying } from '../practiceLog.js';
-import { isBandExercise, bandStyle, matchedStyle, bandKey, bandSound, meterOf, patternUnit, fits, BAND_SOUNDS, soundName } from '../band.js';
+import { isBandExercise, bandStyle, matchedStyle, bandKey, bandSound, styleSound, meterOf, patternUnit, fits, BAND_SOUNDS, soundName } from '../band.js';
 import { STYLES, GENRES } from '../practice/styles.js';
 import { styleGain, loadKit, kitReady } from '../drums.js';
 import { loadPiano, pianoReady } from '../piano.js';
@@ -47,8 +47,9 @@ const RANK = { ghost: 0, future: 1, past: 2, next: 3, current: 4 };
 const BAND_INFO = [
   '🥁 The band: the Practice room\'s drums and the chords play with you, in place of the click',
   '🎯 Each exercise starts with a pattern that fits its style; Change picks another, kept for this exercise',
-  '🎹 Chords: the sound of the chords, as in the room',
-  '🔇 Off, or a tap on the beat lights (🥁 at their left): the click again',
+  '🎹 Chords: the sound of the chords, as in the room; each style starts with its own (rock and metal the guitar, gospel the organ, jazz the piano), your choice kept for this exercise',
+  '🔊 Volume: the drums and the chords together',
+  '🔇 Off, or a tap on the beat lights (🥁 at their left): the click again, in every style exercise',
   '⭐ Free: three patterns of each genre, Pad, E-piano and Arpeggio; Pro: all of them',
 ];
 const TRAIL = 16;
@@ -159,7 +160,13 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const silent = (el) => { el.dataset.silent = ''; return el; };
   const playBtn = silent(btn('play', 'Play / pause (space)', () => playPress(), 'big'));
   // (Play is the red ● of a take that is ready, and its ■ while it runs)
-  const playPress = () => (TAP ? tapPlay() : rec?.phase === 'armed' ? startRec() : rec ? cancelTake() : player.toggle());
+  const playPress = () => (TAP ? tapPlay() : rec?.phase === 'armed' ? startRec() : rec ? cancelTake() : (bandHint(), player.toggle()));
+  // (the first time the band plays, a tip says what it is and how to get the click back: QA round 23)
+  function bandHint() {
+    if (!player.band || player.playing || S.bandHint || preview) return;
+    saveSettings({ bandHint: true });
+    tip('🥁 The band plays with you, in place of the click: tap the beat lights for the click, ⋯ → Band for its drums, chords and volume');
+  }
   // all exercise options live behind one clear button (a strip of selects gets cut off on phones)
   const optsSum = h('span', { class: 'opts-sum' });
   const hasParams = Object.keys(tpl.params || {}).length > 0;
@@ -212,6 +219,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   // band and the click (user, 2026-11-02: "clicking on the metronome dots the user has to be able to switch it"); in
   // the other exercises it turns the click on or off
   const BANDS = isBandExercise(tpl) && !TAP;
+  // (the quiz prompt clear of the beat lights and 🥁, QA round 23)
+  if (BANDS) promptEl.classList.add('with-band');
   const bandIco = h('span', { class: 'band-ico', hidden: !BANDS, html: icon('band') });
   const fbHost = h('div', { class: 'fb-host' });
   // a tip to read (the lesson step's instruction, a hint, an explanation): it belongs to this screen,
@@ -321,7 +330,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
           recordGoal(tpl.id, v);
           if (!isCleared(tpl.id, v) && countsHere()) {
             const name = choiceName(tpl.id, v);
-            tip(h('span', {}, `🎯 Goal reached${name ? ` on ${name}` : ''} (${masteryGoal(tpl.id, v)}). If it was clean: `,
+            tip(h('span', {}, `🎯 Goal (${masteryGoal(tpl.id, v)}) reached${name ? ` on ${name}` : ''}. If it was clean: `,
               h('button', { class: 'btn small primary', onClick: () => { hideTip(); toggleCleared(); } }, '✓ Cleared')));
           }
         }
@@ -334,7 +343,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         if (first || (reviewing && visitPassed && !passShown)) {
           passShown = true;
           tip(earStep ? (reviewing ? 'Round played: if you still got them all, tick ✓ Still got them?' : 'Round played: if you named them all before the answers, tick ✓ Got them all?')
-            : reviewing ? 'Goal reached: if it is still clean, tick ✓ Still clean?' : 'Goal reached! If it felt clean, tick ✓ Clean?');
+            : reviewing ? 'Goal reached: if it is still clean, tick ✓ Still clean?' : 'Goal reached! If it felt clean, tick ✓ Cleared?');
         }
         syncGoal();
       }
@@ -392,7 +401,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         } }, l));
       }
       const c = isMain && !preview ? clearedCount(tpl.id) : null;
-      const status = c && (isMastered(tpl.id) ? '🏅 mastered' : `✓ ${c.done} of ${c.need}${c.need < c.of ? ` (of ${c.of})` : ''} cleared for 🏅`);
+      const status = c && (isMastered(tpl.id) ? '🏅 mastered' : `✓ ${c.done} cleared · ${c.need < c.of ? `${c.need} of ${c.of}` : `all ${c.of}`} needed for 🏅`);
       return h('div', { class: `opt-group${fixed[k] ? ' fixed' : ''}` }, h('h4', {}, def.label, status ? h('span', { class: 'opt-mastery' }, status) : null),
         fixed[k] ? h('p', { class: 'opt-note' }, `Fixed for this choice: ${fixed[k]}.`) : null, chips);
     });
@@ -595,13 +604,13 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     const clean = !reviewing && stepClean(L, LI);
     const ok = presetOk();
     goalBtn.className = `btn goal-btn${!ok ? ' off' : clean ? ' clean' : passed ? ' ready' : ''}`;
-    const tick = earStep ? 'Got them all' : 'Clean';
+    const tick = earStep ? 'Got them all' : 'Cleared';
     goalBtn.textContent = !ok ? '↺ Options'
-      : clean ? `✓ ${earStep ? 'Got them' : 'Clean'}`
+      : clean ? `✓ ${earStep ? 'Got them' : 'Cleared'}`
         : passed ? (reviewing ? `✓ Still ${earStep ? 'got them' : 'clean'}?` : `✓ ${tick}?`)
           : LS.goal ? `🎯 ${reviewing ? 'review' : st.best || '–'}/${LS.goal}` : '🎯 1 round';
     goalBtn.title = !ok ? 'You changed an option the lesson sets (or its notes per beat): tap to go back to the lesson\'s options. Only those count for the lesson.'
-      : LS.goal ? `Goal: a full loop from the first note at ${LS.goal} BPM or faster${LS.sub ? ` in ${SUB_NAMES[LS.sub]}` : ''}, then tick ✓ Clean (best so far: ${st.best || '–'} BPM)`
+      : LS.goal ? `Goal: a full loop from the first note at ${LS.goal} BPM or faster${LS.sub ? ` in ${SUB_NAMES[LS.sub]}` : ''}, then tick ✓ Cleared (best so far: ${st.best || '–'} BPM)`
         : 'Goal: one full round from the first note, then tick ✓ if you named them all before the answers';
   }
   function onGoal() {
@@ -619,7 +628,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     if (!passed) {
       // (the goal's tempo set in the player: user, 2026-11-02, "if the goal is 100 BPM then set 100 BPM")
       if (LS.goal && player.bpm !== LS.goal) setBpm(LS.goal);
-      tip(LS.goal ? `Tempo set to the goal, ${LS.goal} BPM: play a full loop from the first note, then tick ✓ Clean.` : 'Play one full round from the first note, then tick ✓ if you named them all before the answers.');
+      tip(LS.goal ? `Tempo set to the goal, ${LS.goal} BPM: play a full loop from the first note, then tick ✓ Cleared.` : 'Play one full round from the first note, then tick ✓ if you named them all before the answers.');
       return;
     }
     if (reviewing) {
@@ -629,8 +638,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     } else if (stepClean(L, LI)) {
       // a ticked step can be unticked here too, after a question (user, 2026-10-29: "checked exercises have to be
       // able to be unchecked"); one its exercise's mastery ticks takes the mastery back with it
-      const byMastery = stepCovered(L, LI);
-      if (!confirm(byMastery ? 'This step is ticked because you mastered this exercise. Untick it? 🏅 Mastered is taken back too, with its ✓ Cleared ticks, in the Library and the course.' : `Untick ✓ ${earStep ? 'Got them all' : 'Clean'}? Practise the step again, and tick it when it is clean.`)) return;
+      const by = stepCoveredBy(L, LI), name = by && choiceName(L.steps[LI].ex, choiceOf(L.steps[LI].ex, LS.p));
+      if (!confirm(by ? `This step is ticked because you ${by === 'mastered' ? 'mastered this exercise' : `cleared ${name || 'it'}`} in the Library. Untick it? ✓ Cleared${name ? ` on ${name}` : ''} is taken back there too${by === 'mastered' ? ', and 🏅 Mastered with it' : ''}.` : `Untick ✓ ${earStep ? 'Got them all' : 'Cleared'}? Practise the step again, and tick it when it is clean.`)) return;
       untickStep(L, LI);
       lessonDone = false;
       if (nextBtn && !routine) nextBtn.classList.remove('primary');
@@ -731,16 +740,17 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   /** The band in the player: the pattern, its beat against the exercise's, the chords in its sound. */
   function applyBand() {
     const key = bandOn && rec?.phase !== 'running' ? bandNow() : null;
-    if (!key) { player.band = null; return; }
+    if (!key) { if (player.band) A.setAudioOptions({ padVol: 1 }); player.band = null; return; }
     const s = STYLES[key];
-    const sound = bandSound(S.bandSound, isPro());
+    const sound = bandSound(tpl, key, S.bandSounds, isPro());
     player.band = { key, s, gain: styleGain(key), unit: meterOf(inst).unit, pUnit: patternUnit(s), sound };
     // (the band plays the exercise's chords, whatever the Backing)
     if (canBack) player.harmony = harmonyTrack(inst, 'chords');
     // (the kit and the piano load on first use, from the app's own files; until then the click keeps the time)
     if (!kitReady()) loadKit().catch(() => {});
     if (sound === 'piano' && !pianoReady()) loadPiano().catch(() => {});
-    A.setAudioOptions({ drumVol: room.drumVol / 100 });
+    // (the band's own volume, in its panel: QA round 23; 80% is the drums at the room's default, the chords at the Backing's)
+    A.setAudioOptions({ drumVol: S.bandVol / 100, padVol: S.bandVol / 80 });
   }
   const meterName = () => { const ts = inst.timeSig || [4, 4]; return `${ts[0]}/${ts[1]}`; };
   /** A tap on the beat lights: the band or the click (style exercises), else the click on or off. */
@@ -756,7 +766,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   function toggleBand() {
     if (!BANDS) return;
     if (rec) { toast('A take keeps the click: no band while recording'); return; }
-    if (!bandOn && !bandNow()) { toast(`No free drum pattern in ${meterName()}: the click keeps the time`); return; }
+    // (no pattern here: nothing to switch, and the band stays as it is in the other exercises: QA round 23)
+    if (!bandNow()) { toast(`No free drum pattern in ${meterName()}: the click keeps the time`); return; }
     bandOn = !bandOn;
     saveSettings({ band: bandOn });
     applyBacking();
@@ -789,17 +800,24 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       ? h('div', { class: 'chips' }, h('button', { class: 'chip-btn', onClick: () => pickBandStyle(matched) }, `↺ Back to ${STYLES[matched].name}`)) : null;
     const sounds = h('div', { class: 'chips' }, BAND_SOUNDS.map(([v, l]) => {
       const lock = soundLock(v);
-      return h('button', { class: `chip-btn${bandSound(S.bandSound, pro) === v ? ' on' : ''}${lock ? ' locked' : ''}`, onClick: () => {
+      return h('button', { class: `chip-btn${bandSound(tpl, key, S.bandSounds, pro) === v ? ' on' : ''}${lock ? ' locked' : ''}`, onClick: () => {
         if (lock) { openPro(lock, { then: () => setBandSound(v), cancel: () => openBand() }); return; }
         setBandSound(v);
       } }, l, lock ? h('span', { class: 'chip pro' }, 'Pro') : null);
     }));
+    const volOut = h('output', {}, `${S.bandVol}%`);
+    const vol = h('div', { class: 'band-vol' }, h('input', { type: 'range', min: 0, max: 100, step: 5, value: S.bandVol, 'aria-label': 'Band volume', onInput: (e) => {
+      saveSettings({ bandVol: Number(e.target.value) });
+      volOut.textContent = `${S.bandVol}%`;
+      if (player.band) A.setAudioOptions({ drumVol: S.bandVol / 100, padVol: S.bandVol / 80 });
+    } }), volOut);
     const panel = h('div', { class: 'panel band-panel' },
       h('header', {}, h('div', { class: 'band-head' }, h('h2', {}, '🥁 Band'), infoBtn(BAND_INFO, 'About the band')),
         h('button', { class: 'btn primary', onClick: () => closeOptions() }, 'Done')),
       h('div', { class: 'opt-group' }, h('h4', {}, 'Band'), onOff),
       h('div', { class: 'opt-group' }, h('h4', {}, 'Drums'), drums, back),
-      h('div', { class: 'opt-group' }, h('h4', {}, 'Chords'), sounds));
+      h('div', { class: 'opt-group' }, h('h4', {}, 'Chords'), sounds),
+      h('div', { class: 'opt-group' }, h('h4', {}, 'Volume'), vol));
     sheet.replaceChildren(panel);
   }
   /** The room's drum patterns that fit this exercise's metre, in the shared picker (Pro ones gold for free players). */
@@ -834,7 +852,10 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     toast(`🥁 ${STYLES[k].name}`);
   }
   function setBandSound(v) {
-    saveSettings({ bandSound: v });
+    // (kept for this exercise; its style's own sound again forgets the choice)
+    const chosen = { ...S.bandSounds };
+    if (v === styleSound(tpl, bandNow(), isPro())) delete chosen[tpl.id]; else chosen[tpl.id] = v;
+    saveSettings({ bandSounds: chosen });
     applyBacking();
     if (sheet.classList.contains('open')) renderBand(); else openBand();
     toast(`Chords: ${soundName(v)}`);
@@ -872,6 +893,9 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   // user, 2026-11-02: "user manually say that an exercise is cleared, mastered set automatic")
   /** Does the choice playing count for the mastery (not one an "only" choice holds, as E and A strings)? */
   const countsHere = () => { const v = choiceOf(tpl.id, p); return choicesOf(tpl.id).includes(v) || mainOf(tpl.id)?.all === v; };
+  // (no ✓ Cleared under ⋯ where it cannot be earned or another tick does its job, QA round 23: in a lesson step its
+  // own ✓ Cleared clears the choice; a drill's tap mode plays no loop, so its play mode clears it)
+  function noCleared() { return (!!lesson && !demo) || (TAP && !!TAP_DRILL); }
   function toggleCleared() {
     const m = mainOf(tpl.id);
     const v = choiceOf(tpl.id, p), name = choiceName(tpl.id, v);
@@ -917,6 +941,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     soundBtn.innerHTML = icon(player.sound ? 'sound' : 'mute');
     trainerBtn.classList.toggle('on', player.trainer.on);
     doneBtn.classList.toggle('on', isCleared(tpl.id, choiceOf(tpl.id, p)));
+    doneBtn.closest('.mi').hidden = noCleared();
     masteredBtn.closest('.mi').hidden = !isMastered(tpl.id);
     const state = (el, what, name, ico) => { el.innerHTML = icon(ico); el.setAttribute('aria-label', `${what}: ${name}`); };
     const rv = REVEALS.find((r) => r[0] === reveal) || REVEALS[0];
@@ -955,7 +980,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     const step = demo
       ? `<p>Demo: the app plays it once at the goal tempo. Watch the neck and listen, then tap ${routine ? 'Next' : 'Practise'}.</p>`
       : `<p>Step ${LI + 1} of ${L.steps.length}${LS.do ? `: ${esc(LS.do)}` : ''}</p><p class="muted small">${LS.goal
-        ? `Goal: a full loop from the first note at ${LS.goal} BPM or faster${LS.sub ? ` in ${SUB_NAMES[LS.sub]}` : ''}. Then tick ✓ Clean if it really was clean: every note in time, even and clear.`
+        ? `Goal: a full loop from the first note at ${LS.goal} BPM or faster${LS.sub ? ` in ${SUB_NAMES[LS.sub]}` : ''}. Then tick ✓ Cleared if it really was clean: every note in time, even and clear.`
         : 'Goal: one full round from the first note. Then tick ✓ if you named (or sang) every answer before it appeared.'}</p>`;
     return `<div class="les-step-box"><b>${esc(lessonName)} · ${esc(L.title)}</b>${step}</div>
       ${L.idea ? `<p class="les-idea">${esc(L.idea)}</p>` : ''}
@@ -1211,7 +1236,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         h('div', { class: 'row rec-head' }, h('h3', { class: res.clean ? 'ok' : 'no' }, res.clean ? '✓ A clean take' : 'Not clean yet'),
           infoBtn(['🎵 Notes: the pitch the microphone heard on each one', how,
             '🟢 Each note: green edge right and in time, gold early or late (ms), red ✗ a wrong note, dashed not heard or unclear; tap one to see it on the neck',
-            `✓ The app's ear is kept beside your own ✓${lesson && !demo ? ' Clean' : ' Cleared'}: tick that one yourself when it felt clean`,
+            '✓ The app\'s ear is kept beside your own ✓ Cleared: tick that one yourself when it felt clean',
             '📱 Only your latest take is kept, until the next one. Nothing is sent',
             '🎙 shows this result again, greyed, until your next take'], 'About this result')),
         h('p', { class: 'rec-line' }, `🎵 Notes: ${parts.join(' · ')}${previous ? ` · ${kept.bpm} BPM` : ''}`),
@@ -1340,6 +1365,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   /** The staff: the notes not asked yet hidden (the one asked too, when it is heard or named), the ones answered green or red. */
   function decorateStaff(root = tabEl) {
     const list = asks(), kind = inst?.tap?.kind;
+    // (a note-finding drill writes its answers on the staff: no empty staff before the first, QA round 23)
+    tabEl.classList.toggle('tap-empty', kind === 'find' && !tapRes.some(Boolean));
     const at = tapAt < 0 ? -1 : tapAt >= list.length ? Infinity : list[tapAt].i;
     const index = new Map(list.map((a, j) => [a.i, j]));
     for (const g of root.querySelectorAll('.sn[data-i]')) {
@@ -1388,8 +1415,13 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   }
   function tapVerdict(ask, r) {
     const name = tapName(ask.answer.n), say = ask.answer.say ? ` · ${esc(ask.answer.say)}` : '';
-    return r.ok ? `<b class="tap-ok">✓ ${esc(name)}</b>${say}`
-      : `<b class="tap-no">✗ ${esc(name)}</b>${r.wrong ? `, not ${esc(tapName(spellMidi(r.wrong.midi)))}` : ''}${say}`;
+    if (r.ok) return `<b class="tap-ok">✓ ${esc(name)}</b>${say}`;
+    // (the right note in another octave says so, not "✗ C, not C": QA round 23)
+    const d = r.wrong && ask.answer.midi != null ? r.wrong.midi - ask.answer.midi : null;
+    const oct = d && d % 12 === 0 ? d / 12 : 0;
+    const why = oct ? `: that ${esc(name)} is ${Math.abs(oct) > 1 ? `${Math.abs(oct)} octaves` : 'an octave'} too ${oct > 0 ? 'high' : 'low'}`
+      : r.wrong ? `, not ${esc(tapName(spellMidi(r.wrong.midi)))}` : '';
+    return `<b class="tap-no">✗ ${esc(name)}</b>${why}${say}`;
   }
   /** A tap on the neck: the note sounds; on the question asked, it answers. */
   function tapAnswer(s, f) {
@@ -1435,7 +1467,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       tapBusy = false;
       const j = tapAt + 1;
       // (a preview: its first question only, then what Pro opens; nothing more answers until ▶)
-      if (preview) { tapBusy = true; tapHush(); previewEnd(); return; }
+      if (preview) { tapBusy = true; tapHush(); logPlaying(false); previewEnd(); return; }
       if (j >= asks().length) { tapAt = j; tapHush(); decorateStaff(); tapEnd(); return; }
       tapAsk(j);
     }, ms);
@@ -1501,6 +1533,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   function applyTapUi() {
     for (const el of [tempo, loopBtn, beatRow, ...ctrl.querySelectorAll(':scope > .sep')]) el.hidden = TAP;
     for (const el of morePop.children) if (!el.contains(doneBtn) && !el.contains(masteredBtn)) el.hidden = TAP;
+    doneBtn.closest('.mi').hidden = noCleared();
+    if (!TAP) tabEl.classList.remove('tap-empty');
     tapBtn.hidden = !TAP_DRILL || !!lesson || demo;
     tapBtn.classList.toggle('on', TAP);
     tapBtn.title = TAP ? '▶ Play mode: play along on your bass' : '👆 Tap mode: the notes one by one, tap them on the neck';
@@ -1511,8 +1545,11 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   function masteryLine() {
     if (isMastered(tpl.id)) return ' · <b style="color:var(--good)">🏅 mastered</b>';
     const c = clearedCount(tpl.id), m = mainOf(tpl.id);
-    const how = m?.game ? '8 of 10 in each' : `a full loop at ${esc(masteryGoal(tpl.id, choiceOf(tpl.id, p)))}, then ✓ Cleared`;
-    return ` · 🎯 to master it: ${how}${c.of > 1 ? ` (${c.done} of ${c.need} cleared)` : ''}`;
+    if (m?.game) return ` · 🎯 to master it: 8 of 10 in each mode (${c.done} of ${c.need} cleared)`;
+    const v = choiceOf(tpl.id, p), how = `a full loop at ${esc(masteryGoal(tpl.id, v))}, then ✓ Cleared`;
+    // (each choice has its own goal: the line names the one playing, QA round 23)
+    if (c.of < 2) return ` · 🎯 to master it: ${how}`;
+    return ` · 🎯 to clear ${esc(choiceName(tpl.id, v) || 'this choice')}: ${how} (each choice has its own 🎯; ${c.done} of ${c.need} cleared for 🏅)`;
   }
 
   // ------------------------------------------------------------ tip
@@ -1533,6 +1570,9 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   function onKey(e) {
     if (!tipEl.hidden) hideTip();
     if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+    // (the keys sleep behind a picker, as in the room; Escape still closes the sheet: QA round 23)
+    if (history.state?.picker) return;
+    if (sheet.classList.contains('open') && e.key !== 'Escape') return;
     if (e.code === 'Space') { e.preventDefault(); playPress(); }
     else if (e.code === 'ArrowRight') manual(1);
     else if (e.code === 'ArrowLeft') manual(-1);
@@ -1552,6 +1592,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     if (rec) { const r = rec; rec = null; r.take?.stop({ keep: false }); A.setAudioOptions({ recClick: false, clickVol: S.clickVol }); }
     listening?.stop();
     closePicker?.();
+    // (the Backing's own level again, after the band's)
+    if (player.band) A.setAudioOptions({ padVol: 1 });
     document.removeEventListener('pointerdown', pressAnywhere, true);
     hideTip();
     player.stop(true);

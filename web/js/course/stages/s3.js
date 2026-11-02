@@ -231,7 +231,7 @@ export default {
           idea: 'Lock with the kick drum and the guitar\'s palm-muted riff.',
           concept: [
             'Metal bass doubles the guitar riff and locks with the kick. Chug 8ths with down-strokes; when the drummer plays the double kick, play 16ths with alternate picking; in a half-time breakdown leave space and hit every stab with the kick.',
-            'Djent groups 16ths in threes across the bar; doom slows everything down and lets each note ring. The ♭5 and ♭6 are the darkest notes of the minor sound.',
+            'Djent groups 16ths in threes across the bar; doom slows everything down and lets each note ring. The darkest colours are the ♭5, the tritone, and the minor scale\'s ♭6.',
           ],
           steps: [
             { ex: 'gr-metal', p: { style: 'metalChug' }, from: 100, goal: 140, backing: 'chords', do: 'Palm-muted 8th chugs, down-strokes only.' },
@@ -267,13 +267,13 @@ export default {
           idea: 'Four dance grooves, each answering its own drum pattern.',
           concept: [
             'Highlife, from Ghana and Nigeria, is bright and syncopated, weaving between root, 3rd and 5th. Cumbia, from Colombia, swings between the root and the 5th below. Soca, from Trinidad, drives 8ths on top of the beat.',
-            'The maqsum, the most common Middle-Eastern rhythm, plays its low "dum" strokes on beat 1 and the "&" of 2: the bass follows the dums over a Phrygian vamp.',
+            'The maqsum, the most common Middle-Eastern rhythm, plays its low "dum" strokes on beats 1 and 3, with the lighter "tek" strokes between: the bass plays its long notes with the dums and short ones with the teks, over a Phrygian vamp.',
           ],
           steps: [
             { ex: 'gr-world-grooves', p: { style: 'highlife' }, from: 96, goal: 120, backing: 'chords', do: 'Highlife: bright and syncopated.' },
             { ex: 'gr-world-grooves', p: { style: 'cumbia' }, from: 80, goal: 100, backing: 'chords', do: 'Cumbia: the root, then the 5th below.' },
             { ex: 'gr-world-grooves', p: { style: 'soca' }, from: 110, goal: 132, backing: 'chords', do: 'Soca: driving 8ths, on top of the beat.' },
-            { ex: 'gr-world-grooves', p: { style: 'maqsum' }, from: 90, goal: 112, backing: 'chords', music: true, do: 'Maqsum: follow the dums.' },
+            { ex: 'gr-world-grooves', p: { style: 'maqsum' }, from: 90, goal: 112, backing: 'chords', music: true, do: 'Maqsum: long notes with the dums on 1 and 3.' },
           ],
           mistakes: [
             'Playing every style with the same feel. Listen to the drums first.',

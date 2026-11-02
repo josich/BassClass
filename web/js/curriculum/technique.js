@@ -548,14 +548,16 @@ const falseHarmonics = ex({
       const line = [...up, ...up.slice(0, -1).reverse()];
       b.chord(`${nm(tonic, S)} ${L.name.toLowerCase()}`);
       for (const q of line) {
-        // the lowest string from the root's on which the note sits within the hand (one fret behind the root to four ahead)
+        // the lowest string from the root's on which the note sits under the hand: one finger per fret, the root under
+        // the 2nd finger (one fret behind it to two ahead: C D E on the A string's 3rd and 5th and the D string's 2nd)
         let at = null;
-        for (let s = root.s; s < ctx.tuning.length && !at; s++) { const f = q.midi - ctx.tuning[s]; if (f >= Math.max(0, root.f - 1) && f <= Math.min(root.f + 4, hi)) at = { s, f }; }
+        for (let s = root.s; s < ctx.tuning.length && !at; s++) { const f = q.midi - ctx.tuning[s]; if (f >= Math.max(0, root.f - 1) && f <= Math.min(root.f + 2, hi)) at = { s, f }; }
         for (let s = root.s; s < ctx.tuning.length && !at; s++) { const f = q.midi - ctx.tuning[s]; if (f >= 0 && f <= hi) at = { s, f }; }
         for (let s = ctx.tuning.length - 1; s >= 0 && !at; s--) { const f = q.midi - ctx.tuning[s]; if (f >= 0) at = { s, f }; }
-        // (one finger per fret from the one behind the root; the thumb, T, at the touch point)
-        const finger = at.f === 0 ? 0 : Math.max(1, Math.min(4, at.f - Math.max(0, root.f - 1) + (root.f === 0 ? 0 : 1)));
-        b.stack([{ s: at.s, f: at.f, n: q.n, deg: q.deg, held: true, finger }, { s: at.s, f: at.f + 12, at: at.f + 12, tag: '◊', play: q.midi + 12, n: q.n, deg: q.deg, finger: 'T' }], { dur: 1 });
+        // (one finger per fret from the fret behind the root, the index on fret 1 in the open position; the thumb, T,
+        // at the touch point; the harmonic remembers its fretted fret, `ah`, for the tab: 3(15))
+        const finger = at.f === 0 ? 0 : Math.max(1, Math.min(4, at.f - Math.max(1, root.f - 1) + 1));
+        b.stack([{ s: at.s, f: at.f, n: q.n, deg: q.deg, held: true, finger }, { s: at.s, f: at.f + 12, at: at.f + 12, tag: '◊', play: q.midi + 12, n: q.n, deg: q.deg, finger: 'T', ah: at.f }], { dur: 1 });
       }
     }
     return b.build({ uniform: false, label: 'note' });

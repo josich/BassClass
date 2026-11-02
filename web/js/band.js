@@ -86,11 +86,16 @@ const entryOf = (tpl) => BAND[tpl.id] || BY_MODULE[tpl.module] || null;
 export const bandBy = (tpl) => entryOf(tpl)?.by || null;
 /** Where the player's choice is kept: the exercise, and the value of the option that sets its style. */
 export const bandKey = (tpl, p) => { const by = bandBy(tpl); return by ? `${tpl.id}:${p[by]}` : tpl.id; };
-/** The patterns the app tries for these options, in order. */
-export function bandCandidates(tpl, p) {
+/**
+ * The patterns the app tries for these options, in order. A feel is the one the line has (`inst.feel`: a straight
+ * lick or a 16th-note pattern is straight whatever the Feel option says, a triplet lick swings; QA round 23).
+ */
+export function bandCandidates(tpl, p, inst = null) {
   const e = entryOf(tpl);
   if (!e) return [];
-  return Array.isArray(e) ? e : (e[p[e.by]] || e[Object.keys(e).find((k) => k !== 'by')] || []);
+  if (Array.isArray(e)) return e;
+  const v = e.by === 'feel' && inst?.feel ? inst.feel : p[e.by];
+  return e[v] || e[Object.keys(e).find((k) => k !== 'by')] || [];
 }
 
 const UNIT = { q: 1, e: 0.5, dq: 1.5 };
@@ -120,7 +125,7 @@ const open = (key, pro) => pro || FREE_STYLE.has(key);
  */
 export function matchedStyle(tpl, p, inst, pro) {
   const m = meterOf(inst);
-  const cands = bandCandidates(tpl, p).filter((k) => fits(STYLES[k], m));
+  const cands = bandCandidates(tpl, p, inst).filter((k) => fits(STYLES[k], m));
   const own = cands.find((k) => open(k, pro));
   if (own) return own;
   const meant = STYLES[cands[0]];
@@ -168,5 +173,18 @@ export function bandTicks(s, unit, pUnit, k) {
   return out;
 }
 
-/** The chord sound that plays: the player's, while it is open to them (free players: Pad, E-piano, Arpeggio). */
-export const bandSound = (v, pro) => (BAND_SOUNDS.some(([k]) => k === v) && (pro || FREE_SOUNDS.has(v)) ? v : 'epiano');
+/**
+ * The chords' sound a style starts with (QA round 23, user's choice): rock and metal the guitar, gospel the organ, jazz
+ * the piano, the rest the e-piano; for a free player the nearest free one (the arpeggio for rock and metal).
+ */
+export function styleSound(tpl, key, pro) {
+  const s = STYLES[key];
+  const want = tpl.id === 'gr-gospel' || /gospel/.test(key || '') ? 'organ'
+    : s?.genre === 'rock' || s?.genre === 'metal' ? 'guitar' : s?.genre === 'jazz' ? 'piano' : 'epiano';
+  return pro || FREE_SOUNDS.has(want) ? want : want === 'guitar' ? 'arp' : 'epiano';
+}
+/** The chord sound that plays: the player's for this exercise (`chosen`, by id), while it is open to them, else its style's. */
+export function bandSound(tpl, key, chosen, pro) {
+  const v = chosen?.[tpl.id];
+  return BAND_SOUNDS.some(([k]) => k === v) && (pro || FREE_SOUNDS.has(v)) ? v : styleSound(tpl, key, pro);
+}

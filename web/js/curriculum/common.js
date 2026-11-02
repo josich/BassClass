@@ -468,7 +468,23 @@ export function resolveToken(tok, chord, rootMidi, nextRoot, nextMidi) {
     case 'b7_': iv = 'b7'; below = true; break;
     case '6_': iv = '6'; below = true; break;
     case '7_': iv = seventh; below = true; break;
+    // the 5th and the octave on the side of the next root: below it when the line goes down (QA round 23: no drop of
+    // more than an octave after them); the octave "below" is the root itself
+    case '5~': iv = fifth; below = nextMidi < rootMidi; break;
+    case '8~': iv = nextMidi < rootMidi ? '1' : '8'; break;
     default: iv = TOKEN_IV[tok];
+  }
+  // a walk-up (W3 W2 W1): the three steps of the chord's scale under the next root (R 2 3 into a root a 4th up;
+  // major chords Ionian, dominants Mixolydian, minor ones Dorian)
+  if (/^W[123]$/.test(tok)) {
+    const minor = ivs.includes('b3'), dom = !minor && ivs.includes('b7');
+    const mode = minor ? [['1', 0], ['2', 2], ['b3', 3], ['4', 5], ['5', 7], ['6', 9], ['b7', 10]]
+      : [['1', 0], ['2', 2], ['3', 4], ['4', 5], ['5', 7], ['6', 9], [dom ? 'b7' : '7', dom ? 10 : 11]];
+    let k = Number(tok[1]);
+    for (let m = nextMidi - 1; m > nextMidi - 13; m--) {
+      const step = mode.find(([, x]) => x === T.mod(m - rootMidi, 12));
+      if (step && --k === 0) return { midi: m, n: T.up(chord.root, step[0]), deg: T.fmtDeg(step[0]) };
+    }
   }
   if (tok === 'A' || tok === 'Ab') {
     const m = nextMidi + (tok === 'A' ? -1 : 1);

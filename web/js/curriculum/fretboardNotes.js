@@ -173,7 +173,9 @@ const findNote = ex({
       const n = T.bestRoot(pcv, ['1', '3', '5']);
       const hi = Math.min(Number(p.range), ctx.maxFret);
       const show = Math.min(...ctx.tuning.map((o) => o + T.mod(pcv - o, 12)));
-      return { play: [], refs: [], ask: `Every ${nm(n, S)}, frets 0–${hi}`, answer: { pc: pcv, n, show, hi, all: true, label: '', say: '' } };
+      // (one key: the set goes round the 4ths from it, and says so: QA round 23)
+      const from = keys.length > 1 ? '' : ` · the 4ths from ${nm(T.bestRoot(keys[0], ['1', '3', '5']), S)}`;
+      return { play: [], refs: [], ask: `Every ${nm(n, S)}, frets 0–${hi}${from}`, answer: { pc: pcv, n, show, hi, all: true, label: '', say: '' } };
     },
   },
   build(p, ctx, S) {

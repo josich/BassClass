@@ -14,6 +14,7 @@ import { EXERCISES, byId, defaultParams } from './curriculum/index.js';
 import { MAIN } from './curriculum/main.js';
 import { STAGES, LESSONS } from './course/data.js';
 import { getProgress, updateProgress, allProgress, settings } from './store.js';
+import { makeCtx } from './fretboard.js';
 
 /** The share of a level's exercises mastered that moves the player's level on. */
 export const LEVEL_PASS = 0.8;
@@ -40,8 +41,51 @@ function goals() {
   return GOALS;
 }
 
-/** An exercise's goal (`choice`: one of its main option's, when it has steps of its own): { bpm, sub } or null (one full loop). */
-export const goalOf = (id, choice = null) => (choice != null && goals().get(`${id}|${choice}`)) || goals().get(id) || null;
+// a choice's bar and its own tempo, built once: "12/8:4" and 60 for the 12/8 slow blues
+const SHAPES = new Map();
+export function shapeOf(id, v) {
+  const key = `${id}|${v}`;
+  if (!SHAPES.has(key)) {
+    let shape = null;
+    try {
+      const t = byId.get(id), m = mainOf(id);
+      const S = { ...settings, strings: 4 };
+      const inst = t.build({ ...defaultParams(t), ...(m ? { [m.by]: v } : {}) }, makeCtx(S), S);
+      shape = { meter: `${(inst.timeSig || [4, 4]).join('/')}:${inst.beatsPerBar || 4}`, bpm: inst.bpm || t.bpm || null };
+    } catch { shape = null; }
+    SHAPES.set(key, shape);
+  }
+  return SHAPES.get(key);
+}
+// a choice without steps of its own (QA round 23: the 12/8 slow blues was asked for the shuffle's 120, the 7/4 for
+// the 7/8's 170): the hardest goal of the choices in its own metre; none there, a goal from its own tempo (15% over
+// it, to 4 BPM); the exercise's when its tempo is not known
+const FALLBACK = new Map();
+function fallbackGoal(id, v, all) {
+  const key = `${id}|${v}`;
+  if (FALLBACK.has(key)) return FALLBACK.get(key);
+  const shape = shapeOf(id, v);
+  let g = all;
+  if (shape) {
+    let best = null;
+    const m = mainOf(id);
+    for (const o of (m && byId.get(id)?.params?.[m.by]?.options) || []) {
+      const c = String(o[0]), own = goals().get(`${id}|${c}`);
+      if (!own || c === v || shapeOf(id, c)?.meter !== shape.meter) continue;
+      if (!best || own.bpm * (own.sub || 1) > best.bpm * (best.sub || 1)) best = own;
+    }
+    if (best) g = best;
+    else if (shape.bpm) g = { bpm: Math.round((shape.bpm * 1.15) / 4) * 4, sub: all.sub ?? null };
+  }
+  FALLBACK.set(key, g);
+  return g;
+}
+/** An exercise's goal (`choice`: one of its main option's: its own from its steps, else see above): { bpm, sub } or null (one full loop). */
+export function goalOf(id, choice = null) {
+  const all = goals().get(id) || null;
+  if (choice == null || !all) return all;
+  return goals().get(`${id}|${choice}`) || fallbackGoal(id, String(choice), all);
+}
 /** What a goal tempo counts in ("92 BPM in 8ths"): one list for the Library, the lessons and the session (QA round 19). */
 export const SUB_NAMES = { 0.25: 'whole notes', 0.5: 'half notes', 1: 'quarter notes', 2: '8ths', 3: 'triplets', 4: '16ths', 5: 'quintuplets', 6: 'sextuplets' };
 /** The goal in words: "92 BPM in 8ths", "120 BPM", or "one full loop". */
@@ -62,14 +106,21 @@ export function stepMasters(step) {
   if (!g) return true;
   return !!step.goal && step.goal >= g.bpm && (g.sub == null || (step.sub ?? g.sub) >= g.sub);
 }
-/** Does the exercise's mastery pass this step (its goal no harder than the exercise's)? */
-export function masteryCovers(step) {
-  if (!isMastered(step.ex)) return false;
-  const g = goalOf(step.ex, choiceOf(step.ex, step.p));
-  if (!step.goal) return true;
-  if (!g) return false;
-  return step.goal <= g.bpm && (step.sub == null || g.sub == null || step.sub <= g.sub);
+/**
+ * What passes this step from the Library, its goal no harder than its choice's: 'mastered' (the exercise), 'cleared'
+ * (the step's choice ✓ Cleared: QA round 23, user's choice), or null.
+ */
+export function coverOf(step) {
+  const v = choiceOf(step.ex, step.p);
+  const by = isMastered(step.ex) ? 'mastered' : isCleared(step.ex, v) ? 'cleared' : null;
+  if (!by) return null;
+  const g = goalOf(step.ex, v);
+  if (!step.goal) return by;
+  if (!g) return null;
+  return step.goal <= g.bpm && (step.sub == null || g.sub == null || step.sub <= g.sub) ? by : null;
 }
+/** Does the Library pass this step (its exercise mastered, or its choice cleared, at a goal no harder)? */
+export const masteryCovers = (step) => !!coverOf(step);
 
 export const isMastered = (id) => !!getProgress(id)?.done;
 const listeners = new Set();
@@ -142,7 +193,11 @@ function settle(id) {
 export function setCleared(id, v, on) {
   const c = { ...(rec(id).cleared || {}) }, m = mainOf(id);
   if (on) c[v] = true;
-  else { delete c[v]; if (m?.all) delete c[m.all]; }
+  else {
+    delete c[v];
+    // (unticking one choice the "all" choice cleared keeps the others it played: QA round 23)
+    if (m?.all && v !== m.all && c[m.all]) { delete c[m.all]; for (const o of choicesOf(id)) if (o !== v) c[o] = true; }
+  }
   updateProgress(id, { cleared: c });
   settle(id);
 }

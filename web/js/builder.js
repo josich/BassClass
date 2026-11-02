@@ -175,7 +175,7 @@ export class Builder {
     const { dur = 1 } = opts;
     if (pitches.every((p) => p.s != null)) {
       // (`held`: a note fretted but not plucked, shown on the neck only: a false harmonic's fretted finger)
-      const notes = pitches.map((p) => ({ midi: this.ctx.tuning[p.s] + p.f, n: p.n || spellMidi(this.ctx.tuning[p.s] + p.f), deg: p.deg, s: p.s, f: p.f, tag: p.tag, ...(p.at != null ? { at: p.at } : {}), ...(p.play != null ? { play: p.play } : {}), ...(p.held ? { held: true } : {}), ...(p.finger != null ? { finger: p.finger } : {}) }));
+      const notes = pitches.map((p) => ({ midi: this.ctx.tuning[p.s] + p.f, n: p.n || spellMidi(this.ctx.tuning[p.s] + p.f), deg: p.deg, s: p.s, f: p.f, tag: p.tag, ...(p.at != null ? { at: p.at } : {}), ...(p.play != null ? { play: p.play } : {}), ...(p.held ? { held: true } : {}), ...(p.ah != null ? { ah: p.ah } : {}), ...(p.finger != null ? { finger: p.finger } : {}) }));
       // (fingers the exercise sets itself stay, as in frets())
       for (const n of notes) if (n.finger != null) this.fixedFingers.add(n);
       const step = { notes, dur: opts.dur ?? dur };
@@ -224,7 +224,8 @@ export class Builder {
       if (st.notes.length > 1) {
         const fr = st.notes.filter((n) => n.f > 0).map((n) => n.f);
         const lo = fr.length ? Math.min(...fr) : 0;
-        for (const n of st.notes) n.finger = n.f === 0 ? 0 : Math.min(4, n.f - lo + 1);
+        // (fingers the exercise set itself stay: a false harmonic's fretting finger and the thumb, QA round 23)
+        for (const n of st.notes) if (!this.fixedFingers.has(n)) n.finger = n.f === 0 ? 0 : Math.min(4, n.f - lo + 1);
       }
     }
     // a note played again at once (rests between allowed) keeps its finger inside one chord: the hand does

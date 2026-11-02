@@ -816,7 +816,7 @@ export default {
       lessons: [
         {
           id: 'latin-grooves', title: 'Songo, partido alto, baião and cha-cha-chá',
-          idea: 'Latin bass plays with the clave and leaves the downbeat to the percussion.',
+          idea: 'Latin bass plays with the clave: Cuban lines often leave the downbeat to the percussion, Brazilian ones play it.',
           concept: [
             'The songo, a modern Cuban groove, syncopates and lands the next chord\'s root early, on beat 4, like the tumbao. The cha-cha-chá plays beat 1 and the next root on beat 4.',
             'Partido alto, from Brazilian samba, is a syncopated 16th figure; the baião, from north-east Brazil, repeats a dotted 8th, a 16th and a quarter, often over a Mixolydian vamp.',
@@ -852,7 +852,7 @@ export default {
           id: 'gospel-rnb', title: 'Gospel and R&B',
           idea: 'Walk up into every chord, and syncopate with ghost notes.',
           concept: [
-            'Gospel bass walks: a run up from the 5th through the 6th and the 7th into each new chord, over the secondary dominants of church harmony. The gospel shuffle swings in triplets with the same walk-ups.',
+            'Gospel bass walks: a run up the chord\'s scale into each new chord, landing on its root (R, 2, 3 into a root a 4th up), over the secondary dominants of church harmony. The gospel shuffle swings in triplets through the chord, with an approach into each new one.',
             'Modern R&B syncopates the root, adds ghost notes and leans on the chord\'s 7th over neo-soul changes.',
           ],
           steps: [

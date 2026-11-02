@@ -85,8 +85,8 @@ export class Player {
     bpm = Math.max(MIN_BPM, Math.min(MAX_BPM, Math.round(bpm) || MIN_BPM));
     if (this.playing) {
       // re-anchor at the next scheduled event so the change is seamless
-      // (clicks only count while they are actually being scheduled)
-      const clicking = this.metro || this.nextClickAbs < this.countInEnd;
+      // (clicks only count while they are actually being scheduled; the band's beats are, the click off too)
+      const clicking = this.metro || !!this.band || this.nextClickAbs < this.countInEnd;
       const b = clicking ? Math.min(this.nextStepAbs, this.nextClickAbs) : this.nextStepAbs;
       this.anchorTime = this._time(b);
       this.anchorBeat = b;
