@@ -28,8 +28,9 @@ import { openPicker } from './picker.js';
 import { isPro, styleLock, soundLock } from '../pro.js';
 import { isNew, markUsed } from '../news.js';
 
-// a Pro exercise opened by a free player plays its first bars once, a preview (user, 2026-10-29)
-const PREVIEW_BEATS = 16;
+// a Pro exercise opened by a free player is a preview (user, 2026-10-29): since 2026-11-02 its first bar only ("much
+// more strict… reproduce the first bar only and opacity fade the rest of the bars, no auto scroll"): the player, the
+// neck and ‹ › stop there, and the strip shows the next bars fading out to the screen's right edge, not scrolling
 
 // what a lesson step's goal tempo counts in ("goal 96 BPM in 8ths"; the list lives in mastery.js)
 export { SUB_NAMES };
@@ -136,6 +137,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   }
   let ctx = makeCtx(S);
   let inst = null;
+  let stripInst = null;   // the whole line the strip draws (a preview plays and shows only its first bar: `inst`)
   // a lesson step plays in its own subdivision (part of the lesson's options, never saved to the exercise)
   let userSub = lesson ? (LS.sub ?? null) : (prog.sub ?? null);
   let labelMode = prog.label || null;
@@ -236,6 +238,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const subSel = h('select', { class: 'mini-sel', title: 'Notes per beat' }, SUBS.map(([v, l]) => h('option', { value: v }, l)));
   subSel.addEventListener('change', () => {
     userSub = Number(subSel.value);
+    if (preview) { rebuild(); return; }
     player.setSub(userSub);
     if (!lesson && !preview) updateProgress(tpl.id, { sub: userSub });
     renderTab();
@@ -280,14 +283,17 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   root.replaceChildren(view, drawer, sheet);
 
   const fb = new FretboardView(fbHost, { onTap: (s, f) => tapNote(s, f) });
-  const tab = new TabView(tabEl, { onSeek: (i) => { if (TAP) { tapSeek(i); return; } if (player.playing) player.pause(); player.stepTo(i); } });
+  const tab = new TabView(tabEl, { onSeek: (i) => {
+    if (TAP) { tapSeek(i); return; }
+    if (preview && i >= inst.steps.length) return;   // (a preview's faded bars are not to play)
+    if (player.playing) player.pause();
+    player.stepTo(i);
+  } });
   // tap mode needs no tempo, beats, loop or playback toggles: only ✓ Cleared and 🏅 stay under ⋯
   applyTapUi();
 
   const player = new Player({
     onStep: (i) => {
-      // (a preview stops after its first bars, and says what Pro opens)
-      if (preview && i > 0 && (player.starts?.[i] ?? 0) >= PREVIEW_BEATS) { player.pause(); previewEnd(); return; }
       showStep(i);
     },
     onBeat: (level, beat) => flashBeat(beat),
@@ -351,7 +357,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   if (demo) { player.loop = false; player.sound = true; }
   if (preview) player.loop = false;
   function previewEnd() {
-    tip(h('span', {}, 'That was a preview: its first bars, once. BassClass Pro opens the whole exercise, the loop, the speed trainer and your progress. ', h('button', { class: 'btn small pro-go', onClick: offerPro }, '⭐ Get Pro')), { title: 'Pro preview' });
+    tip(h('span', {}, 'That was a preview: its first bar, once. BassClass Pro opens the whole exercise, the loop, the speed trainer and your progress. ', h('button', { class: 'btn small pro-go', onClick: offerPro }, '⭐ Get Pro')), { title: 'Pro preview' });
   }
   player.metro = S.metro;
   player.countIn = S.countIn;
@@ -434,6 +440,12 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       return;
     }
     if (!next?.steps?.length) { toast('No notes for this variation'); return; }
+    // (a preview plays, shows and steps through its first bar only; the strip draws the whole line, fading)
+    stripInst = next;
+    if (preview && !TAP) {
+      const end = firstBarEnd(next);
+      if (end < next.steps.length) next = { ...next, steps: next.steps.slice(0, end) };
+    }
     inst = next;
     // a variation with its own natural tempo (the 12/8 slow blues) starts there when it is chosen, or when
     // it opens with no tempo of its own yet; choosing another variation then returns to the usual tempo
@@ -479,15 +491,35 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     if (wasPlaying) player.play();
   }
 
+  /** The first step after the first bar (the line's length when it is one bar or less). */
+  function firstBarEnd(x) {
+    const bpb = x.beatsPerBar || 4, sub = (x.uniform ? userSub : null) ?? x.sub ?? tpl.sub ?? 2;
+    let b = 0;
+    for (let i = 0; i < x.steps.length; i++) {
+      if (i > 0 && b >= bpb - 1e-9) return i;
+      b += x.uniform ? x.steps[i].dur / sub : x.steps[i].dur;
+    }
+    return x.steps.length;
+  }
+  /** A preview's strip: the first bar clear, the bars after it fading out to the right edge; it does not scroll. */
+  function previewStrip() {
+    const cut = preview && !TAP && stripInst && inst.steps.length < stripInst.steps.length ? tab.cols?.[inst.steps.length]?.x : null;
+    tabEl.classList.toggle('preview-strip', cut != null);
+    const mask = cut != null ? `linear-gradient(to right, #000 0, #000 ${Math.max(0, cut - 6)}px, transparent 100%)` : '';
+    tabEl.style.maskImage = mask;
+    tabEl.style.webkitMaskImage = mask;
+    if (cut != null) tabEl.scrollLeft = 0;
+  }
   function renderTab() {
     // Quiz mode: the strip gives no answers away (tab: "?" until a note is played; staff: no names)
     const quiz = reveal === 'quiz';
-    tab.render(inst, {
+    tab.render(preview && !TAP && stripInst ? stripInst : inst, {
       strings: ctx.tuning.length, beatsOf: (st) => player.beatsOf(st), beatsPerBar: inst.beatsPerBar || 4, sub: player.sub, mode: TAP ? 'staff' : score, quiz,
       label: (n) => (labelMode === 'none' || (quiz && score === 'staff') ? '' : noteLabel(n, labelMode === 'finger' ? 'note' : labelMode, S.notation)),
       decorate: TAP ? (el) => decorateStaff(el) : null,
     });
     tab.setCurrent(cur);
+    previewStrip();
   }
 
   // ------------------------------------------------------------ dots
@@ -1398,6 +1430,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     tapTimer = setTimeout(() => {
       tapBusy = false;
       const j = tapAt + 1;
+      // (a preview: its first question only, then what Pro opens; nothing more answers until ▶)
+      if (preview) { tapBusy = true; tapHush(); previewEnd(); return; }
       if (j >= asks().length) { tapAt = j; tapHush(); decorateStaff(); tapEnd(); return; }
       tapAsk(j);
     }, ms);

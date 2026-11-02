@@ -185,6 +185,8 @@ input[type=range] { accent-color: var(--accent); width: 100%; }
 .beat-dots i.on { background: var(--accent); }
 .beat-dots i.on.one { background: var(--deg-root); }
 .exv-tab { flex: none; border-top: 1px solid var(--line); background: var(--panel); }
+/* a Pro preview's strip: its first bar, the rest fading out (a mask set in ui/exercise.js), never scrolled */
+.exv-tab.preview-strip { overflow-x: hidden; }
 .exv-ctrl { display: flex; align-items: center; gap: 4px; padding: 6px 10px; background: var(--panel); border-top: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
 .exv-ctrl::-webkit-scrollbar { display: none; }
 .exv-ctrl .sep { width: 1px; height: 28px; background: var(--line); margin: 0 6px; flex: none; }
