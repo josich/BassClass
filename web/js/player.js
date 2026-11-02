@@ -2,6 +2,9 @@
 import * as A from './audio.js';
 import { harmonyAt } from './harmony.js';
 import { logPlaying } from './practiceLog.js';
+import { playDrum, kitReady, trackGain } from './drums.js';
+import { clickTimes } from './practice/styles.js';
+import { bandHits, bandTicks } from './band.js';
 
 const LOOKAHEAD = 0.12;   // seconds scheduled ahead
 const TICK_MS = 25;
@@ -21,6 +24,10 @@ export class Player {
     this.sound = true;
     this.countIn = true;
     this.trainer = { on: false, inc: 4, target: 160 };
+    // the band (band.js): { s (the drum pattern), gain, unit and pUnit (the exercise's beat and the pattern's, in
+    // quarter notes), sound (the chords') } plays the drums and the chords in place of the click; null: the click
+    this.band = null;
+    this.ahead = [];            // [time, node] of the band's hits and notes still to sound (cut by pause)
     this.playing = false;
     this.cur = 0;
     this._timer = null;
@@ -92,6 +99,49 @@ export class Player {
 
   _time(absBeat) { return this.anchorTime + (absBeat - this.anchorBeat) * (60 / this.bpm); }
 
+  /** The band's chord sound plays note by note on the beats (the arpeggio, the guitar's chugs), not held. */
+  _perBeat() { const k = A.PAD_SOUNDS[this.band?.sound]; return !!(k?.arp || k?.chug); }
+
+  /** The chord of the exercise at `rel` beats into the loop (its step's harmony), or null. */
+  _chordAt(rel) {
+    if (!this.harmony) return null;
+    let lo = 0, hi = this.starts.length - 1;
+    while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (this.starts[mid] <= rel + 1e-9) lo = mid; else hi = mid - 1; }
+    return harmonyAt(this.harmony, lo);
+  }
+
+  /**
+   * One beat of the band at `t0` (beat `k` of bar `bar`, `rel` beats into the loop): the drum pattern's hits that fall
+   * in it (its beats may be longer or shorter than the exercise's: 6/8 counted in 8ths, a pattern in dotted quarters),
+   * and the chords: an arpeggio or the guitar's chugs on the pattern's subdivisions, a struck sound struck again on
+   * each bar so a long chord does not die away.
+   */
+  _bandBeat(t0, k, bar, rel) {
+    const { s, gain, unit, pUnit, sound } = this.band;
+    const len = 60 / this.bpm;
+    const now = A.now();
+    this.ahead = this.ahead.filter(([t]) => t > now);
+    for (const [f, piece, v] of bandHits(s, unit, pUnit, k, bar)) {
+      const node = playDrum(piece, t0 + f * len, v, gain * trackGain(s, piece));
+      if (node && f) this.ahead.push([t0 + f * len, node]);
+    }
+    const kind = A.PAD_SOUNDS[sound];
+    const chord = this._chordAt(rel);
+    if (kind?.arp || kind?.chug) {
+      if (!chord) { this.arpSig = null; return; }
+      const up = [...chord].sort((a, b) => a - b);
+      const turn = up.length > 2 ? [...up, ...up.slice(1, -1).reverse()] : up;
+      if (up.join() !== this.arpSig) { this.arpSig = up.join(); this.arpAt = 0; }
+      // (notes a second: the pattern's beats a second times the notes in each)
+      const rate = (this.bpm / 60) * (unit / pUnit) * clickTimes(s, s.sub).length;
+      for (const [f, first] of bandTicks(s, unit, pUnit, k)) {
+        const t = t0 + f * len;
+        const node = kind.arp ? A.arpNote(turn[this.arpAt++ % turn.length], t, rate) : A.chugNote(chord, t, rate, first);
+        if (f) this.ahead.push([t, node]);
+      }
+    } else if (kind?.struck && k === 0 && chord && chord.join() === this.padSig) A.padSet(chord, t0, sound);
+  }
+
   async play({ countIn = this.countIn } = {}) {
     if (!this.inst || this.playing || this._starting) return;
     this._starting = true;
@@ -122,6 +172,10 @@ export class Player {
     this.endAbs = null;
     this.pendingBpm = null;
     this.queue = [];
+    this.ahead = [];
+    this.arpAt = 0;
+    this.arpSig = null;
+    this.padSig = null;
     this._timer = setInterval(() => this._tick(), TICK_MS);
     this._tick();
     this._frame();
@@ -136,6 +190,9 @@ export class Player {
     this.playing = false;
     A.padStop();
     this.padPrimed = false;
+    const now = A.now();
+    for (const [t, node] of this.ahead) if (t > now) node.disconnect();
+    this.ahead = [];
     clearInterval(this._timer);
     cancelAnimationFrame(this._raf);
     this.queue = [];
@@ -177,11 +234,13 @@ export class Player {
     const horizon = ac.currentTime + LOOKAHEAD;
     const steps = this.inst.steps;
     const bpb = this.inst.beatsPerBar || 4;
-    const clickInc = this.clickSubs && this.inst.uniform ? 1 / this.sub : 1;
+    // (the band keeps the time on whole beats; the click may also tick the subdivisions)
+    const clickInc = this.clickSubs && this.inst.uniform && !this.band ? 1 / this.sub : 1;
+    const timing = () => this.metro || !!this.band;
     for (let guard = 0; guard < 512; guard++) {
       // a speed-trainer step takes effect at the loop point, once every click before it is scheduled
       if (this.pendingBpm) {
-        const clicking = this.metro || this.nextClickAbs < this.countInEnd;
+        const clicking = timing() || this.nextClickAbs < this.countInEnd;
         const nextAbs = Math.min(this.nextStepAbs, clicking ? this.nextClickAbs : Infinity);
         if (nextAbs >= this.pendingBpm.at - 1e-9) {
           this.anchorTime = this._time(this.pendingBpm.at);
@@ -191,7 +250,7 @@ export class Player {
         }
       }
       const tStep = this.endAbs == null ? this._time(this.nextStepAbs) : Infinity;
-      const clickOk = (this.metro || this.nextClickAbs < this.countInEnd) && (this.endAbs == null || this.nextClickAbs < this.endAbs - 1e-9);
+      const clickOk = (timing() || this.nextClickAbs < this.countInEnd) && (this.endAbs == null || this.nextClickAbs < this.endAbs - 1e-9);
       const tClick = clickOk ? this._time(this.nextClickAbs) : Infinity;
       const t = Math.min(tStep, tClick);
       if (t > horizon) break;
@@ -211,7 +270,9 @@ export class Player {
         const muted = !counting && (
           (this.inst.clickBeats && (!onBeat || !this.inst.clickBeats.includes(Math.round(inBar) % bpb)))
           || (this.inst.clickEvery && ((bar % this.inst.clickEvery) + this.inst.clickEvery) % this.inst.clickEvery !== 0));
-        if (!muted) {
+        // the band plays the beat (its drums, and the chords' strikes) once its kit has loaded; the count-in clicks
+        if (this.band && !counting && onBeat && kitReady()) this._bandBeat(tClick, Math.round(inBar), bar, rel);
+        else if (!muted && (this.metro || counting || this.band)) {
           A.click(tClick, this.inst.clickBeats && !counting ? 1 : level);
           this.cb.onSched?.({ type: 'click', time: tClick, counting, level });
         }
@@ -228,7 +289,7 @@ export class Player {
       // backing pad: a new harmony starts with its step (and the first step played sets it up)
       if (this.harmony) {
         const hm = this.padPrimed ? this.harmony[idx] : harmonyAt(this.harmony, idx);
-        if (hm) A.padSet(hm, tStep);
+        if (hm && !this._perBeat()) { A.padSet(hm, tStep, this.band?.sound || 'pad'); this.padSig = hm.join(); }
         this.padPrimed = true;
       }
       if (this.sound && !step.rest && !step.silent) {

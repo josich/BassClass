@@ -30,6 +30,7 @@ const P = {
   back: '<path d="M14 6l-6 6 6 6M8 12h12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
   info: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6M12 7.5v.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>',
   loop: '<path d="M4 12a6 6 0 0 1 6-6h8M16 3l3 3-3 3M20 12a6 6 0 0 1-6 6H6M8 21l-3-3 3-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  band: '<ellipse cx="12" cy="11" rx="8" ry="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7.5 3.5l3.5 6M16.5 3.5l-3.5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
   metro: '<path d="M9 3h6l4 18H5zM12 17l5-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>',
   practice: '<path d="M9 3h6l4 18H5zM12 17l5-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>',
   sound: '<path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',

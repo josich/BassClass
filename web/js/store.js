@@ -23,6 +23,9 @@ export const DEFAULT_SETTINGS = {
   maxFret: 20,
   level: 1,                // preferred level for warm-ups (new players start at Level 1)
   backing: 'off',          // 'off' | 'drone' | 'chords': a pad under the exercise
+  band: true,              // the band (drums and chords) in place of the click in style exercises (band.js)
+  bandSound: 'epiano',     // … its chords' sound (the room's: pad, epiano, piano, organ, guitar, arp)
+  bandStyles: {},          // … the drum pattern the player chose, per exercise and style ("gr-roots:rock8": "pop8")
   score: 'tab',            // 'tab' | 'staff': the strip under the neck
   libOpen: null,           // the Library levels left open (null: only the player's own level)
   libView: 'levels',       // the Library's view: 'levels' (every exercise by level) | 'topics' (one card per topic)
@@ -48,6 +51,10 @@ const SETTING_RULES = {
   maxFret: oneOf([17, 20, 21, 24]),
   level: oneOf([1, 2, 3, 4, 5, 6]),
   backing: oneOf(['off', 'drone', 'chords']),
+  band: isBool,
+  bandSound: oneOf(['pad', 'epiano', 'piano', 'organ', 'guitar', 'arp']),
+  bandStyles: (v) => !!v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length <= 500
+    && Object.entries(v).every(([k, x]) => k.length <= 80 && typeof x === 'string' && /^[a-z0-9]{1,30}$/.test(x)),
   score: oneOf(['tab', 'staff']),
   libView: oneOf(['levels', 'topics']),
   libOpen: (v) => v === null || (Array.isArray(v) && v.length <= 6 && v.every((n) => [1, 2, 3, 4, 5, 6].includes(n))),

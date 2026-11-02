@@ -167,7 +167,16 @@ input[type=range] { accent-color: var(--accent); width: 100%; }
 .exv-now .cnt { font-size: 11px; color: var(--muted); }
 .exv-prompt { position: absolute; right: 70px; top: 0; z-index: 2; font-size: 13px; color: var(--muted); }
 .exv-prompt b { font-size: 26px; color: var(--accent); margin-left: 6px; }
-.beat-dots { position: absolute; right: 12px; top: 8px; display: flex; gap: 5px; z-index: 2; }
+/* the beat lights, and 🥁 at their left in the exercises the band plays with (lit while it plays) */
+.beat-row { position: absolute; right: 10px; top: 2px; display: flex; align-items: center; gap: 6px; z-index: 2; }
+.beat-dots { display: flex; gap: 5px; }
+.band-ico { width: 26px; height: 22px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--dim); opacity: 0.7; }
+.band-ico svg { width: 17px; height: 17px; }
+.band-ico.on { color: var(--accent); opacity: 1; }
+.band-head { display: flex; align-items: center; gap: 6px; }
+.band-panel .opt-group > .chips { margin-top: 6px; }
+.band-panel .chip-btn.locked { border-color: rgba(219, 168, 90, 0.55); opacity: 0.8; }
+.band-panel .chip-btn .chip.pro { margin-left: 6px; }
 .beat-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--panel-3); transition: background 0.05s; }
 .beat-dots i.on { background: var(--accent); }
 .beat-dots i.on.one { background: var(--deg-root); }

@@ -18,6 +18,14 @@ import { JUDGED, startTake, judge, playTake, keepResult, resultFor } from '../ju
 import { tapSet, placesOf } from '../curriculum/games.js';
 import { spellMidi } from '../builder.js';
 import { logPlaying } from '../practiceLog.js';
+import { isBandExercise, bandStyle, matchedStyle, bandKey, bandSound, meterOf, patternUnit, fits, BAND_SOUNDS, soundName } from '../band.js';
+import { STYLES, GENRES } from '../practice/styles.js';
+import { styleGain, loadKit, kitReady } from '../drums.js';
+import { loadPiano, pianoReady } from '../piano.js';
+import { room, saveRoom } from '../practice/state.js';
+import { openPicker } from './picker.js';
+import { isPro, styleLock, soundLock } from '../pro.js';
+import { isNew, markUsed } from '../news.js';
 
 // a Pro exercise opened by a free player plays its first bars once, a preview (user, 2026-10-29)
 const PREVIEW_BEATS = 16;
@@ -34,6 +42,13 @@ const LABELS = [['note', 'Note names', 'lblNote'], ['degree', 'Degrees', 'lblDeg
 const BACKINGS = { off: 'Off', drone: 'Drone', chords: 'Chords' };
 const SCORES = { tab: ['Tab', 'tab'], staff: ['Staff', 'staff'] };
 const RANK = { ghost: 0, future: 1, past: 2, next: 3, current: 4 };
+const BAND_INFO = [
+  '🥁 The band: the Practice room\'s drums and the chords play with you, in place of the click',
+  '🎯 Each exercise starts with a pattern that fits its style; Change picks another, kept for this exercise',
+  '🎹 Chords: the sound of the chords, as in the room',
+  '🔇 Off, or 🥁 beside the beat lights: the click again',
+  '⭐ Free: three patterns of each genre, Pad, E-piano and Arpeggio; Pro: all of them',
+];
 const TRAIL = 16;
 
 export function noteLabel(n, mode, notation) {
@@ -186,11 +201,15 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const nowEl = h('div', { class: 'exv-now' });
   const promptEl = h('div', { class: 'exv-prompt' });
   const beatsEl = h('div', { class: 'beat-dots' });
+  // the band (band.js; user, 2026-11-02): in the exercises played in a style over chords, the room's drums and a chord
+  // sound play in place of the click; 🥁 beside the beat lights says so, and a tap turns it on or off
+  const BANDS = isBandExercise(tpl) && !TAP;
+  const bandIco = h('button', { class: 'band-ico', type: 'button', hidden: !BANDS, onClick: () => toggleBand(), html: icon('band') });
   const fbHost = h('div', { class: 'fb-host' });
   // a tip to read (the lesson step's instruction, a hint, an explanation): it belongs to this screen,
   // stays until it is closed, and closes as soon as anything else in the exercise is pressed
   const tipEl = h('div', { class: 'coach', role: 'status', hidden: true });
-  boardEl.append(fbHost, nowEl, promptEl, beatsEl);
+  boardEl.append(fbHost, nowEl, promptEl, h('div', { class: 'beat-row' }, bandIco, beatsEl));
   const tabEl = h('div', { class: 'exv-tab' });
   // a take: its card (before and after) over the stage, and while it runs a badge that leaves the neck in view
   const recLayer = h('div', { class: 'rec-layer', hidden: true, onClick: (e) => { if (e.target === recLayer) closeRec(); } });
@@ -219,19 +238,25 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const rhythmBtn = h('button', { class: 'lbl-btn written', title: 'Why can\'t I change the subdivision?',
     onClick: () => tip('The rhythm is written into this exercise, so the subdivision is fixed. Change the tempo instead.') }, '♪ Written rhythm');
   const loopBtn = btn('loop', 'Loop', () => { if (preview) { offerPro(); return; } player.loop = !player.loop; syncToggles(); });
-  const metroBtn = btn('metro', 'Metronome', () => { player.metro = !player.metro; saveSettings({ metro: player.metro }); syncToggles(); });
+  const metroBtn = btn('metro', 'Metronome', () => {
+    if (player.band) { toast('The band keeps the time: tap 🥁 beside the beat lights for the click'); return; }
+    player.metro = !player.metro;
+    saveSettings({ metro: player.metro });
+    syncToggles();
+  });
   const soundBtn = btn('sound', 'Bass sound on/off', () => { player.sound = !player.sound; syncToggles(); });
   const trainerBtn = btn('trainer', 'Speed trainer (+4 BPM each loop)', () => (preview ? offerPro() : toggleTrainer()));
   const doneBtn = btn('check', 'Mark as mastered', () => (preview ? offerPro() : toggleDone()));
   const revealBtn = h('button', { class: 'lbl-btn ico', title: 'Reveal mode: step by step / whole shape / quiz', onClick: () => cycleReveal() });
   const backingBtn = h('button', { class: 'lbl-btn', title: 'Backing: off / a drone on the root / the chords', onClick: () => cycleBacking() });
+  const bandBtn = h('button', { class: 'lbl-btn ico', title: 'The band: drums and chords in place of the click', 'aria-label': 'The band', onClick: () => openBand(), html: icon('band') });
   const scoreBtn = h('button', { class: 'lbl-btn ico', title: 'Under the neck: tab or bass-clef staff', onClick: () => cycleScore() });
   const labelBtn = h('button', { class: 'lbl-btn ico', title: 'Dot labels: note / degree / finger / none', onClick: () => cycleLabel() });
   // secondary controls: inline on wide screens, in a "⋯" popover on phones (see .more-pop in app.css)
   const item = (el, text) => h('div', { class: 'mi' }, el, h('span', { class: 'mi-l', onClick: () => el.click() }, text));
   const morePop = h('div', { class: 'more-pop' },
     h('div', { class: 'sep' }), item(metroBtn, 'Metronome'), item(soundBtn, 'Bass sound'), item(trainerBtn, 'Speed trainer'),
-    item(backingBtn, 'Backing'),
+    item(backingBtn, 'Backing'), BANDS ? item(bandBtn, 'Band') : null,
     h('div', { class: 'sep' }), item(revealBtn, 'Reveal'), item(labelBtn, 'Dot labels'), item(scoreBtn, 'Tab / staff'), h('div', { class: 'grow' }), item(doneBtn, 'Mastered'));
   const moreBtn = btn('more', 'More controls', () => toggleMore(), 'more-btn');
   const ctrl = h('footer', { class: 'exv-ctrl' },
@@ -613,6 +638,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const backing = () => backingOverride || S.backing;
   function cycleBacking() {
     if (!canBack) { toast(BACKS ? 'No chords in this exercise: no backing' : `No backing in ${NO_BACKING_NAME[tpl.module]}`); return; }
+    if (player.band) { toast('The band plays the chords: tap 🥁 beside the beat lights to choose a backing'); return; }
     const order = ['off', 'drone', 'chords'];
     const was = backing();
     backingOverride = null;
@@ -628,9 +654,121 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   function applyBacking() {
     canBack = BACKS && harmonyTrack(inst, 'chords').some(Boolean);
     player.harmony = backing() === 'off' || !canBack ? null : harmonyTrack(inst, backing());
+    applyBand();
     if (!player.playing) return;
     const hm = player.harmony && harmonyAt(player.harmony, Math.max(0, cur));
-    if (hm) A.padSet(hm, A.now() + 0.02); else A.padStop();
+    // (the arpeggio and the guitar play on the beats: the player starts them on the next one)
+    player.arpSig = null;
+    if (hm && !player._perBeat()) A.padSet(hm, A.now() + 0.02, player.band?.sound || 'pad'); else A.padStop();
+    player.padSig = hm ? hm.join() : null;
+  }
+
+  // ------------------------------------------------------------ the band
+  // (on or off is the player's choice for every style exercise, `band` in the settings; a take never has it)
+  let bandOn = BANDS && S.band;
+  /** The pattern this exercise plays with these options (the player's choice or the matched one), or null. */
+  const bandNow = () => (BANDS && inst ? bandStyle(tpl, p, inst, { pro: isPro(), chosen: S.bandStyles }) : null);
+  /** The band in the player: the pattern, its beat against the exercise's, the chords in its sound. */
+  function applyBand() {
+    const key = bandOn && rec?.phase !== 'running' ? bandNow() : null;
+    if (!key) { player.band = null; return; }
+    const s = STYLES[key];
+    const sound = bandSound(S.bandSound, isPro());
+    player.band = { key, s, gain: styleGain(key), unit: meterOf(inst).unit, pUnit: patternUnit(s), sound };
+    // (the band plays the exercise's chords, whatever the Backing)
+    if (canBack) player.harmony = harmonyTrack(inst, 'chords');
+    // (the kit and the piano load on first use, from the app's own files; until then the click keeps the time)
+    if (!kitReady()) loadKit().catch(() => {});
+    if (sound === 'piano' && !pianoReady()) loadPiano().catch(() => {});
+    A.setAudioOptions({ drumVol: room.drumVol / 100 });
+  }
+  const meterName = () => { const ts = inst.timeSig || [4, 4]; return `${ts[0]}/${ts[1]}`; };
+  /** 🥁: the band on or off (for every style exercise). */
+  function toggleBand() {
+    if (!BANDS) return;
+    if (rec) { toast('A take keeps the click: no band while recording'); return; }
+    if (!bandOn && !bandNow()) { toast(`No free drum pattern in ${meterName()}: the click keeps the time`); return; }
+    bandOn = !bandOn;
+    saveSettings({ band: bandOn });
+    applyBacking();
+    syncToggles();
+    if (sheet.querySelector('.band-panel')) renderBand();
+    toast(bandOn ? `🥁 Band: ${STYLES[player.band.key].name}, ${soundName(player.band.sound)}` : 'Band off: the click keeps the time');
+  }
+  let closePicker = null;
+  /** ⋯ → Band: on or off, the drum pattern (Change: the room's patterns that fit this metre) and the chords' sound. */
+  function openBand() {
+    closeMore();
+    renderBand();
+    sheet.classList.add('open', 'opening');
+    setTimeout(() => sheet.classList.remove('opening'), 260);
+  }
+  function renderBand() {
+    const key = bandNow();
+    const pro = isPro();
+    const matched = BANDS ? matchedStyle(tpl, p, inst, pro) : null;
+    const s = key && STYLES[key];
+    const genre = s && GENRES.find((g) => g.key === s.genre);
+    const onOff = h('div', { class: 'chips' }, [[true, 'On'], [false, 'Off']].map(([v, l]) => h('button', {
+      class: `chip-btn${bandOn === v ? ' on' : ''}`, onClick: () => { if (bandOn !== v) toggleBand(); } }, l)));
+    const drums = s
+      ? h('button', { class: 'pick-now', type: 'button', onClick: () => openDrums() },
+        h('span', { class: 'pick-text' }, h('b', {}, s.name), h('small', {}, `${genre ? `${genre.icon} ${genre.name}` : ''}${key === matched ? ' · matched to this exercise' : ' · your choice'}`)),
+        h('span', { class: 'pick-change' }, 'Change', h('span', { html: icon('next') })))
+      : h('p', { class: 'opt-note' }, `No free drum pattern in ${meterName()}: the click keeps the time.`);
+    const back = s && key !== matched && STYLES[matched]
+      ? h('div', { class: 'chips' }, h('button', { class: 'chip-btn', onClick: () => pickBandStyle(matched) }, `↺ Back to ${STYLES[matched].name}`)) : null;
+    const sounds = h('div', { class: 'chips' }, BAND_SOUNDS.map(([v, l]) => {
+      const lock = soundLock(v);
+      return h('button', { class: `chip-btn${bandSound(S.bandSound, pro) === v ? ' on' : ''}${lock ? ' locked' : ''}`, onClick: () => {
+        if (lock) { openPro(lock, { then: () => setBandSound(v), cancel: () => openBand() }); return; }
+        setBandSound(v);
+      } }, l, lock ? h('span', { class: 'chip pro' }, 'Pro') : null);
+    }));
+    const panel = h('div', { class: 'panel band-panel' },
+      h('header', {}, h('div', { class: 'band-head' }, h('h2', {}, '🥁 Band'), infoBtn(BAND_INFO, 'About the band')),
+        h('button', { class: 'btn primary', onClick: () => closeOptions() }, 'Done')),
+      h('div', { class: 'opt-group' }, h('h4', {}, 'Band'), onOff),
+      h('div', { class: 'opt-group' }, h('h4', {}, 'Drums'), drums, back),
+      h('div', { class: 'opt-group' }, h('h4', {}, 'Chords'), sounds));
+    sheet.replaceChildren(panel);
+  }
+  /** The room's drum patterns that fit this exercise's metre, in the shared picker (Pro ones gold for free players). */
+  function openDrums(at) {
+    const m = meterOf(inst);
+    const fit = Object.values(STYLES).filter((x) => fits(x, m));
+    const key = bandNow();
+    closePicker = openPicker({
+      title: `Drum patterns in ${meterName()}`, host: root,
+      groups: GENRES.filter((g) => fit.some((x) => x.genre === g.key)).map((g) => ({ key: g.key, name: `${g.icon} ${g.name}` })),
+      // (no tempo on the cards: the pattern plays at the exercise's)
+      items: fit.map((x) => ({ key: x.key, name: x.name, group: x.genre, sub: '', lock: styleLock(x.key), fresh: isNew(`style:${x.key}`) })),
+      current: key, open: at ?? STYLES[key]?.genre,
+      favs: room.drumFavs, recent: room.drumRecent,
+      onLocked: (why, k, g) => { markUsed(`style:${k}`); openPro(why, { then: () => pickBandStyle(k), cancel: () => openDrums(g) }); },
+      onFav: (k, on) => saveRoom({ drumFavs: on ? [...room.drumFavs.filter((x) => x !== k), k] : room.drumFavs.filter((x) => x !== k) }),
+      onPick: (k) => pickBandStyle(k),
+    });
+  }
+  /** A pattern chosen for this exercise and style (the matched one again forgets the choice). */
+  function pickBandStyle(k) {
+    markUsed(`style:${k}`);
+    saveRoom({ drumRecent: [k, ...room.drumRecent.filter((x) => x !== k)].slice(0, 6) });
+    const chosen = { ...S.bandStyles };
+    const at = bandKey(tpl, p);
+    if (k === matchedStyle(tpl, p, inst, isPro())) delete chosen[at]; else chosen[at] = k;
+    saveSettings({ bandStyles: chosen, ...(bandOn ? {} : { band: true }) });
+    bandOn = true;
+    applyBacking();
+    syncToggles();
+    if (sheet.classList.contains('open')) renderBand(); else openBand();
+    toast(`🥁 ${STYLES[k].name}`);
+  }
+  function setBandSound(v) {
+    saveSettings({ bandSound: v });
+    applyBacking();
+    if (sheet.classList.contains('open')) renderBand(); else openBand();
+    toast(`Chords: ${soundName(v)}`);
   }
   function cycleScore() {
     if (inst.view) { toast('A reading drill: the staff is fixed'); return; }
@@ -699,7 +837,13 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       el.parentElement?.classList.toggle('na', off);
       el.setAttribute('aria-disabled', String(off));
     };
-    na(backingBtn, !canBack);
+    na(backingBtn, !canBack || !!player.band);
+    na(metroBtn, !!player.band);
+    if (player.band) { backingBtn.textContent = 'Band'; backingBtn.classList.add('on'); }
+    bandIco.classList.toggle('on', !!player.band);
+    bandIco.title = player.band ? `Band: ${STYLES[player.band.key].name}, ${soundName(player.band.sound)} (tap: the click instead)` : 'Band off: tap for drums and chords instead of the click';
+    bandIco.setAttribute('aria-label', bandIco.title);
+    bandBtn.classList.toggle('on', !!player.band);
     na(revealBtn, !!inst.reveal);
     na(scoreBtn, !!inst.view);
     const lb = LABELS.find((r) => r[0] === labelMode) || LABELS[0];
@@ -844,7 +988,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     hideTip();
     rec = { phase: 'running', take: rec.take, sched: { clicks: [], notes: [] }, bpm: player.bpm,
       saved: { loop: player.loop, sound: player.sound, metro: player.metro, countIn: player.countIn, trainer: player.trainer.on } };
-    Object.assign(player, { loop: false, sound: false, metro: true, countIn: true, harmony: null });
+    Object.assign(player, { loop: false, sound: false, metro: true, countIn: true, harmony: null, band: null });
     player.trainer.on = false;
     A.padStop();
     A.setAudioOptions({ recClick: true, clickVol: Math.max(S.clickVol, 0.75) });
@@ -1174,6 +1318,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     if (TAP) { clearTimeout(tapTimer); logPlaying(false); }
     if (rec) { const r = rec; rec = null; r.take?.stop({ keep: false }); A.setAudioOptions({ recClick: false, clickVol: S.clickVol }); }
     listening?.stop();
+    closePicker?.();
     document.removeEventListener('pointerdown', pressAnywhere, true);
     hideTip();
     player.stop(true);

@@ -7,9 +7,10 @@ import { LESSONS, STAGES, UNITS, lessonById } from './course/data.js';
 import { PLACEMENT } from './course/placement.js';
 import { CHANGED_STEPS } from './course/progress.js';
 import { CYCLE_OPTS } from './curriculum/common.js';
-import { NO_BACKING } from './harmony.js';
+import { NO_BACKING, harmonyTrack } from './harmony.js';
+import { BAND_IDS, isBandExercise, bandBy, bandCandidates, matchedStyle, meterOf, fits, patternUnit, bandHits, bandTicks } from './band.js';
 import { makeCtx } from './fretboard.js';
-import { STYLES, levelsOf, regroup, phraseHits } from './practice/styles.js';
+import { STYLES, levelsOf, regroup, phraseHits, beatHits, clickTimes } from './practice/styles.js';
 import { PIECES } from './drums.js';
 import { checkLicks, default as LICK_TEMPLATES } from './curriculum/licks.js';
 import { PENTATONIC_LICKS } from './curriculum/pentatonics.js';
@@ -189,6 +190,49 @@ function checkTuner(problems) {
   }
 }
 
+/**
+ * The band (band.js): every exercise it lists is real and every pattern exists; each style exercise, for every value
+ * of the option that sets its style, has chords and a pattern that fits its metre (the first it asks for, for a Pro
+ * player; a free one for a free player, unless the metre has none: then the click stays); and each bar of the
+ * exercise, beat by beat, plays every hit and subdivision of the pattern's bar once, where the pattern has it.
+ */
+function checkBand(problems) {
+  for (const id of BAND_IDS) if (!byId.has(id)) problems.push(`band: ${id} is not an exercise`);
+  const S = { strings: 4, notation: 'letters', maxFret: 20 };
+  const ctx = makeCtx(S);
+  for (const t of EXERCISES.filter(isBandExercise)) {
+    const by = bandBy(t);
+    for (const v of by ? t.params[by].options.map((o) => o[0]) : [null]) {
+      const p = { ...defaultParams(t), ...(by ? { [by]: v } : {}) };
+      const where = `band: #${t.num} ${t.id}${by ? ` ${by}=${v}` : ''}`;
+      for (const k of bandCandidates(t, p)) if (!STYLES[k]) problems.push(`${where}: no drum pattern "${k}"`);
+      const inst = t.build(p, ctx, S);
+      if (!harmonyTrack(inst, 'chords').some(Boolean)) problems.push(`${where}: no chords for the band`);
+      const m = meterOf(inst);
+      const key = matchedStyle(t, p, inst, true);
+      const want = bandCandidates(t, p).find((k) => fits(STYLES[k], m));
+      if (!key || key !== want) problems.push(`${where}: plays ${key}, not ${want} (the first of its patterns that fits ${inst.timeSig || '4/4'})`);
+      const free = matchedStyle(t, p, inst, false);
+      if (free ? !FREE_STYLE.has(free) : Object.values(STYLES).some((s) => FREE_STYLE.has(s.key) && fits(s, m))) problems.push(`${where}: a free player gets ${free}`);
+      for (const k of [key, free].filter(Boolean)) {
+        const s = STYLES[k], pu = patternUnit(s);
+        for (let bar = 0; bar < s.bars; bar++) {
+          const want = [], got = [], wantT = [], gotT = [];
+          for (let j = 0; j < s.beats; j++) {
+            for (const [f, piece] of beatHits(s, s.sub, bar, j)) want.push(`${((j + f) * pu).toFixed(4)} ${piece}`);
+            for (const f of clickTimes(s, s.sub)) wantT.push(((j + f) * pu).toFixed(4));
+          }
+          for (let b = 0; b < m.bpb; b++) {
+            for (const [f, piece] of bandHits(s, m.unit, pu, b, bar)) got.push(`${((b + f) * m.unit).toFixed(4)} ${piece}`);
+            for (const [f] of bandTicks(s, m.unit, pu, b)) gotT.push(((b + f) * m.unit).toFixed(4));
+          }
+          if (want.sort().join() !== got.sort().join() || wantT.sort().join() !== gotT.sort().join()) problems.push(`${where}: ${k} bar ${bar + 1} does not fall on the exercise's beats`);
+        }
+      }
+    }
+  }
+}
+
 function checkGames(problems) {
   let seed = 11;
   const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
@@ -300,6 +344,7 @@ export function run({ strings = [4, 5, 6], verbose = false } = {}) {
   checkDrones(problems);
   checkGames(problems);
   checkTuner(problems);
+  checkBand(problems);
   for (const st of strings) {
     const S = { strings: st, notation: 'letters', maxFret: 20 };
     const ctx = makeCtx(S);
