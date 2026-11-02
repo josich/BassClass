@@ -95,7 +95,13 @@ function cleanEntry(e) {
   if (numIn(30, 260)(e.bestBpm)) out.bestBpm = e.bestBpm;
   if (numIn(30, 260)(e.lastBpm)) out.lastBpm = e.lastBpm;
   if (isBool(e.done)) out.done = e.done;
-  if (isBool(e.met)) out.met = e.met;   // a full loop reached the exercise's goal (mastery.js), outside a lesson
+  if (isBool(e.met)) out.met = e.met;   // (before 2026-11-02: a full loop reached the exercise's goal)
+  // its main option's choices (mastery.js): cleared by the player's tick, the goal reached on them, a game's best
+  // score of 10 on each mode
+  const marks = (o) => o && typeof o === 'object' && !Array.isArray(o) && Object.keys(o).length <= 64;
+  if (marks(e.cleared)) out.cleared = Object.fromEntries(Object.keys(e.cleared).filter((k) => e.cleared[k] === true && k.length <= 40).map((k) => [k, true]));
+  if (marks(e.metOn)) out.metOn = Object.fromEntries(Object.keys(e.metOn).filter((k) => e.metOn[k] === true && k.length <= 40).map((k) => [k, true]));
+  if (marks(e.bests)) out.bests = Object.fromEntries(Object.entries(e.bests).filter(([k, v]) => k.length <= 40 && numIn(0, 10)(v)));
   if (SUB_VALUES.includes(e.sub)) out.sub = e.sub;
   if (LABEL_VALUES.includes(e.label)) out.label = e.label;
   if (numIn(0, 1e15)(e.last)) out.last = e.last;

@@ -72,7 +72,8 @@ h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -0.01em; }
 .card-note { font-size: 12px; color: var(--muted); margin-top: -4px; }
 .card .meta .info-btn { margin: -4px -6px -4px auto; }
 .card .meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: auto; }
-.card.done { border-color: rgba(87, 201, 122, 0.45); }
+/* 🏅 a mastered exercise: a green edge that stands out from the rest (user, 2026-11-02) */
+.card.done { border-color: var(--good); box-shadow: inset 0 0 0 1px rgba(87, 201, 122, 0.55); }
 .mod-card { min-height: 110px; }
 .mod-card .ico { font-size: 22px; }
 .mod-card .bar { height: 4px; background: var(--panel-3); border-radius: 2px; overflow: hidden; }
@@ -168,9 +169,12 @@ input[type=range] { accent-color: var(--accent); width: 100%; }
 .exv-prompt { position: absolute; right: 70px; top: 0; z-index: 2; font-size: 13px; color: var(--muted); }
 .exv-prompt b { font-size: 26px; color: var(--accent); margin-left: 6px; }
 /* the beat lights, and 🥁 at their left in the exercises the band plays with (lit while it plays) */
-.beat-row { position: absolute; right: 10px; top: 2px; display: flex; align-items: center; gap: 6px; z-index: 2; }
+.beat-row { position: absolute; right: 6px; top: 0; display: flex; align-items: center; gap: 6px; z-index: 2; padding: 4px 6px; min-height: 28px;
+  border: 0; border-radius: 8px; background: transparent; color: inherit; cursor: pointer; }
+.beat-row:hover { background: rgba(255, 255, 255, 0.05); }
+.beat-row.quiet .beat-dots { opacity: 0.45; }
 .beat-dots { display: flex; gap: 5px; }
-.band-ico { width: 26px; height: 22px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--dim); opacity: 0.7; }
+.band-ico { width: 22px; height: 20px; display: grid; place-items: center; color: var(--dim); opacity: 0.7; }
 .band-ico svg { width: 17px; height: 17px; }
 .band-ico.on { color: var(--accent); opacity: 1; }
 .band-head { display: flex; align-items: center; gap: 6px; }
@@ -416,6 +420,14 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
 .card h3 { padding-right: 28px; }
 .chip.core { background: rgba(70, 201, 162, 0.14); color: var(--accent); }
 .chip.mastered { background: rgba(70, 201, 162, 0.2); color: var(--good); }
+.chip.cleared { color: var(--good); border: 1px solid rgba(87, 201, 122, 0.4); }
+/* the main option's choices in Options: a cleared one has a green edge and a tick (user, 2026-11-02) */
+.chip-btn.cleared { border-color: var(--good); box-shadow: inset 0 0 0 1px rgba(87, 201, 122, 0.5); }
+.chip-btn.cleared::after { content: ' ✓'; color: var(--good); font-weight: 800; }
+.chip-btn.cleared.on::after { color: var(--accent-ink); }
+.opt-mastery { margin-left: 8px; text-transform: none; letter-spacing: 0; font-weight: 600; color: var(--good); }
+.lbl-btn.medal { font-size: 16px; padding: 0; }
+.game-news { color: var(--good); font-weight: 700; margin: 4px 0 0; }
 .chip.goal { color: #dba85a; }
 
 .home-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
@@ -455,7 +467,7 @@ svg.fb { display: block; width: 100%; height: 100%; touch-action: manipulation; 
   /* (a long tag wraps under itself instead of squeezing the title) */
   .session-list .item .tag { white-space: normal; max-width: 38%; text-align: right; }
 }
-.session-list .item.played .n { background: var(--accent); color: var(--accent-ink); }
+.session-list .item.played .n { background: none; color: var(--accent); font-size: 15px; }
 .session-list .item.played .t b { color: var(--muted); }
 .session-list .more-warm { align-self: flex-start; padding: 4px 10px; font-size: 12.5px; min-height: 32px; }
 .session-foot { margin-top: 4px; }

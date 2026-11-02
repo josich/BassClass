@@ -8,7 +8,7 @@ import { paramOptions } from './exercise.js';
 import { starButton, dragToReorder } from './favorites.js';
 import { courseBlock, sessionBlock, playerLevel } from './course.js';
 import { practiceCard } from './practiceCard.js';
-import { goalOf, goalText, LEVEL_PASS } from '../mastery.js';
+import { goalOf, goalText, LEVEL_PASS, clearedCount, isCleared } from '../mastery.js';
 import { resetCourse, placed, anyProgress } from '../course/progress.js';
 import { replaceHash, goBack, canGoBack } from './nav.js';
 import { saveBackup, parseBackup, restoreBackup } from '../backup.js';
@@ -54,11 +54,19 @@ function card(t, { level = true, topic = true } = {}) {
       level ? h('span', { class: `chip lv lv${t.level}` }, `L${t.level}`) : null,
       topic ? h('span', { class: 'chip' }, `${mod?.icon ?? ''} ${mod?.name ?? ''}`) : null,
       t.star ? h('span', { class: 'chip core' }, '★ core') : null,
-      pr.done ? h('span', { class: 'chip mastered' }, '✓ mastered') : null,
+      // 🏅 the Library's own mark, and a green edge (user, 2026-11-02); until then the choices cleared and the goal
+      pr.done ? h('span', { class: 'chip mastered' }, '🏅 Mastered') : null,
+      !pr.done ? clearedChip(t) : null,
       pr.bestBpm ? h('span', { class: 'chip' }, `${pr.bestBpm} BPM`) : null,
-      // (the goal that masters it, until it is mastered)
-      !pr.done && goalOf(t.id) ? h('span', { class: 'chip goal', title: `To master it: ${goalText(t.id)}, then ✓ Mastered` }, `🎯 ${goalOf(t.id).bpm}`) : null,
+      !pr.done && goalOf(t.id) ? h('span', { class: 'chip goal', title: `To clear a choice: a full loop at ${goalText(t.id)}, then ✓ Cleared` }, `🎯 ${goalOf(t.id).bpm}`) : null,
       t.summary ? infoBtn(t.song ? ['🎵 An original bass line in this song\'s style: our own notes, not a transcription and not the record\'s part', t.summary] : t.summary, `About ${t.title}`) : null));
+}
+
+/** "✓ 2/4": the choices of its main option cleared, once one is (an exercise with one choice shows nothing). */
+function clearedChip(t) {
+  const c = clearedCount(t.id);
+  if (c.of < 2 || !c.done) return null;
+  return h('span', { class: 'chip cleared', title: `${c.done} of ${c.need} choices cleared: 🏅 at ${c.need}` }, `✓ ${c.done}/${c.need}`);
 }
 
 function moduleStats(id) {
@@ -157,7 +165,7 @@ function favRow(t, rerender) {
   const pr = getProgress(t.id) || {};
   const mod = moduleOf(t.module);
   const grip = h('button', { class: 'grip', title: 'Drag to reorder (or arrow keys)', 'aria-label': `Move ${t.title} (arrow keys)`, html: icon('grip') });
-  const info = [`${mod?.icon ?? ''} ${mod?.name ?? ''}`, pr.done ? '✓ mastered' : '', pr.bestBpm ? `best ${pr.bestBpm} BPM` : ''].filter(Boolean).join(' · ');
+  const info = [`${mod?.icon ?? ''} ${mod?.name ?? ''}`, pr.done ? '🏅 mastered' : '', pr.bestBpm ? `best ${pr.bestBpm} BPM` : ''].filter(Boolean).join(' · ');
   const row = h('div', { class: `item fav${exerciseLock(t) ? ' locked' : ''}`, 'data-id': t.id, onClick: () => go(exHref(t.id)) },
     grip,
     h('div', { class: 't' }, h('b', {}, h('span', { class: 'ex-num' }, t.num), t.title), h('span', {}, info)),
@@ -250,8 +258,9 @@ const SYNONYMS = {
 const played = (pr) => !!(pr.plays || pr.bestBpm || pr.done);
 const STATUS = [
   [['not mastered', 'unmastered', 'not done', 'to master', 'to do', 'todo'], 'not mastered', (t, pr) => !pr.done],
-  [['goal reached', 'goal met'], '🎯 goal reached, not ticked yet', (t, pr) => !!pr.met && !pr.done],
-  [['mastered', 'cleared', 'done'], '✓ mastered', (t, pr) => !!pr.done],
+  [['goal reached', 'goal met'], '🎯 goal reached, not cleared yet', (t, pr) => !pr.done && Object.keys(pr.metOn || {}).some((v) => !isCleared(t.id, v))],
+  [['cleared'], '✓ a choice cleared', (t, pr) => !pr.done && clearedCount(t.id).done > 0],
+  [['mastered', 'done'], '🏅 mastered', (t, pr) => !!pr.done],
   [['not played', 'never played', 'not started', 'unplayed'], 'not played yet', (t, pr) => !played(pr)],
   [['played', 'started'], 'played', (t, pr) => played(pr)],
   [['favourites', 'favourite', 'favorites', 'favorite', 'starred', 'favs', 'fav'], '★ favourites', (t) => isFavorite(t.id)],
@@ -361,7 +370,7 @@ export function libraryScreen(main, params = {}) {
   // (a level the player has just reached opens: the page scrolls to it once, when it is not the first)
   const reached = settings.libOpen != null && settings.libAt !== playerLevel() && !params.l && !focus ? playerLevel() : null;
   main.replaceChildren(
-    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '▸ Levels: tap a level to open or fold it', '🗂 Topics: one card per topic, its exercises Level 1 to 6', '🔎 Search by name, topic, song, artist or number (#305); lessons by name or number (3.15)', '🏷 Status words: mastered, not mastered, goal reached, played, not played, favourites, new, core, pro, free, level 3; mix them with any words ("scales not mastered")', '🔢 An exercise\'s number is its level, then its own: 305 is Level 3', '★ core: a key exercise of its level', `🎯 Master an exercise: a full loop at its goal, then ✓ Mastered; it counts in the course too`, `📈 ${Math.round(LEVEL_PASS * 100)}% of a level mastered moves your level on`, 'ⓘ on a card: what it is'], 'About the Library'), views, h('div', { class: 'grow' }), search),
+    h('div', { class: 'page-head' }, h('h1', {}, 'Library'), infoBtn([`📚 All ${EXERCISES.length} exercises, Level 1 to 6`, '▸ Levels: tap a level to open or fold it', '🗂 Topics: one card per topic, its exercises Level 1 to 6', '🔎 Search by name, topic, song, artist or number (#305); lessons by name or number (3.15)', '🏷 Status words: mastered, not mastered, cleared, goal reached, played, not played, favourites, new, core, pro, free, level 3; mix them with any words ("scales not mastered")', '🔢 An exercise\'s number is its level, then its own: 305 is Level 3', '★ core: a key exercise of its level', '🎯 Each choice of the main option of an exercise (the scales of #114): a full loop at its goal, then ✓ Cleared', '🏅 Enough choices cleared: mastered, with a green edge; it counts in the course too', '✓ 2/4 on a card: the choices cleared, of those needed', `📈 ${Math.round(LEVEL_PASS * 100)}% of a level mastered moves your level on`, 'ⓘ on a card: what it is'], 'About the Library'), views, h('div', { class: 'grow' }), search),
     jumps,
     results);
   render();

@@ -1,8 +1,8 @@
-# Mastery by main options (agreed 2026-11-02, not built yet)
+# Mastery by main options (agreed and built 2026-11-02)
 
-The plan for the mastery rework and each exercise's main option, as the user decided on 2026-11-02. The
-numbers are the ones given on 2026-11-02, when the exercises were renumbered in the Library's order
-(`curriculum/numbers.js`).
+The mastery rules and each exercise's main option, as the user decided on 2026-11-02, built the same day: the data in
+`web/js/curriculum/main.js`, the rules in `web/js/mastery.js`. The numbers are the ones given on 2026-11-02, when the
+exercises were renumbered in the Library's order (`curriculum/numbers.js`).
 
 ## The rules
 

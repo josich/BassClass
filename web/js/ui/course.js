@@ -250,7 +250,7 @@ function todaysSession(minutes) {
   const store = sessionStore();
   let cur = store.cur;
   // a plan from an earlier day with nothing played is planned again (new reviews, the course moved on);
-  // one started stays until ✓ Practised (its focus too)
+  // one started stays until Finish session (its focus too)
   const day = (t) => new Date(t).toDateString();
   if (cur && !cur.played.length && !cur.extra.length && day(cur.at) !== day(Date.now())) cur = { ...cur, seed: Math.floor(Math.random() * 2 ** 31), at: Date.now(), level: playerLevel(), lists: {} };
   // (the level moved on, by mastery too, before anything was played: planned again for it, as a placement does: QA
@@ -276,8 +276,8 @@ const SESSION_INFO = [
   '▶ The next steps of the course',
   '🎧 Hear it: a new lesson\'s exercise, played once for you: listen and watch the neck, then play it',
   '🧭 A focus topic, a new one each session',
-  '⏱ Warm-ups ~3 min, the rest ~5 min · ✓ once played through',
-  '✓ Practised: the next session follows on',
+  '⏱ Warm-ups ~3 min, the rest ~5 min · ● once played through',
+  'Finish session: the next one follows on',
 ];
 const COURSE_INFO = [
   '6 stages, from your first notes',
@@ -311,7 +311,7 @@ export function courseBlock() {
       h('button', { class: 'btn map-btn', title: 'Course map: every lesson', onClick: () => go('#/course') }, h('span', { html: icon('path') }), 'Map')));
 }
 
-/** Today's session: warm-ups, the day's practice, ▶ Start and ✓ Practised. `onLength`: its length changed. */
+/** Today's session: warm-ups, the day's practice, ▶ Start and Finish session. `onLength`: its length changed. */
 export function sessionBlock({ onLength } = {}) {
   const section = h('section', { class: 'block session-block' });
   const render = () => {
@@ -334,7 +334,8 @@ export function sessionBlock({ onLength } = {}) {
       // (a demo is named after the exercise it plays, not its lesson: user, 2026-10-28)
       const title = `${it.demo ? 'Hear it: ' : ''}${byId.get(it.id).title}`;
       return h('div', { class: `item${done ? ' played' : ''}${it.demo ? ' demo' : ''}`, title: it.demo ? 'Listen: the app plays this lesson\'s example once' : null, onClick: () => start(i) },
-        h('div', { class: 'n', 'aria-label': it.demo ? 'Listen' : null }, done ? '✓' : it.demo ? '🎧' : nums[i]),
+        // (● played today: the session's own mark, ✓ is the course's and 🏅 the Library's; user, 2026-11-02)
+        h('div', { class: 'n', 'aria-label': done ? 'Played' : it.demo ? 'Listen' : null }, done ? '●' : it.demo ? '🎧' : nums[i]),
         h('div', { class: 't' }, h('b', {}, title)),
         stepTag(it) || vs[i] ? h('span', { class: 'tag' }, [stepTag(it), vs[i]].filter(Boolean).join(' · ')) : null);
     };
@@ -360,13 +361,13 @@ export function sessionBlock({ onLength } = {}) {
         h('div', { class: 'grow' }),
         h('button', { class: `btn${next < 0 ? ' primary' : ''}`, onClick: () => {
           // (nothing played yet: ask first, so a double tap never files a plan unseen)
-          if (!all.some(isPlayed) && !confirm('Nothing played yet. Mark this session as practised anyway?')) return;
+          if (!all.some(isPlayed) && !confirm('Nothing played yet. Finish this session anyway?')) return;
           sessionPractised(all.map((x) => x.id));
-          toast('Practised ✓ The next session is ready.', 2500);
+          toast('Session finished. The next one is ready.', 2500);
           render();
           // (a session done: a moment the rate reminder may ask, after the toast)
           setTimeout(maybeAskRating, 2600);
-        } }, '✓ Practised')));
+        } }, 'Finish session')));
   };
   // (a stored plan that cannot be shown is planned again instead of leaving Home empty)
   const safe = () => {
@@ -506,7 +507,7 @@ export function lessonScreen(main, id) {
     const untick = clean ? h('button', { class: 'icon-btn untick', title: 'Untick: practise this step again', 'aria-label': 'Untick this step', onClick: (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (!confirm(byMastery ? 'This step is ticked because you mastered its exercise. Untick it? ✓ Mastered is taken back too, in the Library and the course.' : 'Untick this step? The lesson counts as done again once every step is ticked.')) return;
+      if (!confirm(byMastery ? 'This step is ticked because you mastered its exercise. Untick it? 🏅 Mastered is taken back too, with its ✓ Cleared ticks, in the Library and the course.' : 'Untick this step? The lesson counts as done again once every step is ticked.')) return;
       untickStep(l, i);
       rerender();
     } }, '↺') : null;
@@ -515,7 +516,7 @@ export function lessonScreen(main, id) {
       h('span', { class: 't' },
         s.music ? h('small', { class: 'music-tag' }, '🎵 Make music') : null,
         h('b', {}, t.title, vars[i] ? h('span', { class: 'chip var' }, vars[i]) : null, due && i === rv ? h('span', { class: 'chip due' }, 'review') : null),
-        h('span', { class: 'tempo' }, tempo, byMastery ? h('span', { class: 'by-mastery' }, ' · ✓ mastered in the Library') : null)),
+        h('span', { class: 'tempo' }, tempo, byMastery ? h('span', { class: 'by-mastery' }, ' · 🏅 mastered in the Library') : null)),
       untick,
       h('span', { class: 'go', html: icon('next') }));
   };

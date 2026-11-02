@@ -12,7 +12,8 @@ import { moduleOf, LEVELS, defaultParams } from '../curriculum/index.js';
 import { CYCLE_OPTS, PROGS, tonicFor } from '../curriculum/common.js';
 import { harmonyTrack, harmonyAt, NO_BACKING } from '../harmony.js';
 import { recordLoop, rememberTempo, stepState, stepPassed, stepClean, stepCovered, setClean, untickStep, isDue, isComplete, reviewed } from '../course/progress.js';
-import { goalOf, goalText as masteryGoal, meetsGoal, setMastered, isMastered, SUB_NAMES } from '../mastery.js';
+import { goalOf, goalText as masteryGoal, meetsGoal, setMastered, isMastered, SUB_NAMES, mainOf, choicesOf, choiceOf, choiceName, isCleared, goalMet,
+  recordGoal, setCleared, clearedCount, recordGame } from '../mastery.js';
 import { openPro } from './proSheet.js';
 import { JUDGED, startTake, judge, playTake, keepResult, resultFor } from '../judge.js';
 import { tapSet, placesOf } from '../curriculum/games.js';
@@ -46,7 +47,7 @@ const BAND_INFO = [
   '🥁 The band: the Practice room\'s drums and the chords play with you, in place of the click',
   '🎯 Each exercise starts with a pattern that fits its style; Change picks another, kept for this exercise',
   '🎹 Chords: the sound of the chords, as in the room',
-  '🔇 Off, or 🥁 beside the beat lights: the click again',
+  '🔇 Off, or a tap on the beat lights (🥁 at their left): the click again',
   '⭐ Free: three patterns of each genre, Pad, E-piano and Arpeggio; Pro: all of them',
 ];
 const TRAIL = 16;
@@ -202,14 +203,17 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const promptEl = h('div', { class: 'exv-prompt' });
   const beatsEl = h('div', { class: 'beat-dots' });
   // the band (band.js; user, 2026-11-02): in the exercises played in a style over chords, the room's drums and a chord
-  // sound play in place of the click; 🥁 beside the beat lights says so, and a tap turns it on or off
+  // sound play in place of the click; 🥁 beside the beat lights says so, and a tap on the lights switches between the
+  // band and the click (user, 2026-11-02: "clicking on the metronome dots the user has to be able to switch it"); in
+  // the other exercises it turns the click on or off
   const BANDS = isBandExercise(tpl) && !TAP;
-  const bandIco = h('button', { class: 'band-ico', type: 'button', hidden: !BANDS, onClick: () => toggleBand(), html: icon('band') });
+  const bandIco = h('span', { class: 'band-ico', hidden: !BANDS, html: icon('band') });
   const fbHost = h('div', { class: 'fb-host' });
   // a tip to read (the lesson step's instruction, a hint, an explanation): it belongs to this screen,
   // stays until it is closed, and closes as soon as anything else in the exercise is pressed
   const tipEl = h('div', { class: 'coach', role: 'status', hidden: true });
-  boardEl.append(fbHost, nowEl, promptEl, h('div', { class: 'beat-row' }, bandIco, beatsEl));
+  const beatRow = h('button', { class: 'beat-row', type: 'button', onClick: () => tapBeats() }, bandIco, beatsEl);
+  boardEl.append(fbHost, nowEl, promptEl, beatRow);
   const tabEl = h('div', { class: 'exv-tab' });
   // a take: its card (before and after) over the stage, and while it runs a badge that leaves the neck in view
   const recLayer = h('div', { class: 'rec-layer', hidden: true, onClick: (e) => { if (e.target === recLayer) closeRec(); } });
@@ -239,14 +243,16 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     onClick: () => tip('The rhythm is written into this exercise, so the subdivision is fixed. Change the tempo instead.') }, '♪ Written rhythm');
   const loopBtn = btn('loop', 'Loop', () => { if (preview) { offerPro(); return; } player.loop = !player.loop; syncToggles(); });
   const metroBtn = btn('metro', 'Metronome', () => {
-    if (player.band) { toast('The band keeps the time: tap 🥁 beside the beat lights for the click'); return; }
+    if (player.band) { toast('The band keeps the time: tap the beat lights for the click'); return; }
     player.metro = !player.metro;
     saveSettings({ metro: player.metro });
     syncToggles();
   });
   const soundBtn = btn('sound', 'Bass sound on/off', () => { player.sound = !player.sound; syncToggles(); });
   const trainerBtn = btn('trainer', 'Speed trainer (+4 BPM each loop)', () => (preview ? offerPro() : toggleTrainer()));
-  const doneBtn = btn('check', 'Mark as mastered', () => (preview ? offerPro() : toggleDone()));
+  // ✓ Cleared: the choice playing (its main option's value) is clean at the goal; 🏅 once enough are (mastery.js)
+  const doneBtn = btn('check', 'Cleared: this choice played clean at the goal', () => (preview ? offerPro() : toggleCleared()));
+  const masteredBtn = h('button', { class: 'lbl-btn medal', title: 'Mastered: tap to take it back', 'aria-label': 'Mastered', onClick: () => unmasterAsk() }, '🏅');
   const revealBtn = h('button', { class: 'lbl-btn ico', title: 'Reveal mode: step by step / whole shape / quiz', onClick: () => cycleReveal() });
   const backingBtn = h('button', { class: 'lbl-btn', title: 'Backing: off / a drone on the root / the chords', onClick: () => cycleBacking() });
   const bandBtn = h('button', { class: 'lbl-btn ico', title: 'The band: drums and chords in place of the click', 'aria-label': 'The band', onClick: () => openBand(), html: icon('band') });
@@ -257,7 +263,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const morePop = h('div', { class: 'more-pop' },
     h('div', { class: 'sep' }), item(metroBtn, 'Metronome'), item(soundBtn, 'Bass sound'), item(trainerBtn, 'Speed trainer'),
     item(backingBtn, 'Backing'), BANDS ? item(bandBtn, 'Band') : null,
-    h('div', { class: 'sep' }), item(revealBtn, 'Reveal'), item(labelBtn, 'Dot labels'), item(scoreBtn, 'Tab / staff'), h('div', { class: 'grow' }), item(doneBtn, 'Mastered'));
+    h('div', { class: 'sep' }), item(revealBtn, 'Reveal'), item(labelBtn, 'Dot labels'), item(scoreBtn, 'Tab / staff'), h('div', { class: 'grow' }), item(doneBtn, 'Cleared'), item(masteredBtn, 'Mastered'));
   const moreBtn = btn('more', 'More controls', () => toggleMore(), 'more-btn');
   const ctrl = h('footer', { class: 'exv-ctrl' },
     btn('restart', 'Back to start', () => restart()), silent(btn('prev', 'Previous note (←)', () => manual(-1))), playBtn,
@@ -272,8 +278,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const tab = new TabView(tabEl, { onSeek: (i) => { if (TAP) { tapSeek(i); return; } if (player.playing) player.pause(); player.stepTo(i); } });
   // the reading game needs no tempo, beats, loop or playback toggles: only ✓ Mastered stays under ⋯
   if (TAP) {
-    for (const el of [tempo, subSel, rhythmBtn, loopBtn, beatsEl, ...ctrl.querySelectorAll(':scope > .sep')]) el.hidden = true;
-    for (const el of morePop.children) if (!el.contains(doneBtn)) el.hidden = true;
+    for (const el of [tempo, subSel, rhythmBtn, loopBtn, beatRow, ...ctrl.querySelectorAll(':scope > .sep')]) el.hidden = true;
+    for (const el of morePop.children) if (!el.contains(doneBtn) && !el.contains(masteredBtn)) el.hidden = true;
   }
 
   const player = new Player({
@@ -298,10 +304,19 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       if (played != null && !demo) routine?.played?.();
       if (!lesson) {
         const pr = getProgress(tpl.id) || {};
-        // (a full loop at the goal: ✓ Mastered can be ticked, here or anywhere; user, 2026-10-26)
-        const met = played != null && !pr.met && !demo && meetsGoal(tpl.id, played, inst?.uniform ? player.sub : null);
-        updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, ...(played != null ? { bestBpm: Math.max(pr.bestBpm || 0, played) } : {}), ...keep(), lastBpm: player.bpm, ...(met ? { met: true } : {}) });
-        if (met && !pr.done) tip(`🎯 Goal reached (${masteryGoal(tpl.id)}): when it is clean, tick ✓ Mastered under ⋯`);
+        // (a full loop at the goal on the choice playing: ✓ Cleared can be ticked on it, here or anywhere; user,
+        // 2026-11-02)
+        const v = choiceOf(tpl.id, p);
+        const met = played != null && !demo && !goalMet(tpl.id, v) && meetsGoal(tpl.id, played, inst?.uniform ? player.sub : null);
+        updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, ...(played != null ? { bestBpm: Math.max(pr.bestBpm || 0, played) } : {}), ...keep(), lastBpm: player.bpm });
+        if (met) {
+          recordGoal(tpl.id, v);
+          if (!isCleared(tpl.id, v) && countsHere()) {
+            const name = choiceName(tpl.id, v);
+            tip(h('span', {}, `🎯 Goal reached${name ? ` on ${name}` : ''} (${masteryGoal(tpl.id)}). If it was clean: `,
+              h('button', { class: 'btn small primary', onClick: () => { hideTip(); toggleCleared(); } }, '✓ Cleared')));
+          }
+        }
       }
       // a lesson step counts only with the lesson's options (another key is fine where the lesson leaves it free)
       if (lesson && !demo && played != null && presetOk()) {
@@ -352,10 +367,14 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     const old = sheet.querySelector('.panel');
     const scroll = old ? old.scrollTop : 0;
     const fixed = inst?.fixed || {};
+    const main = mainOf(tpl.id);
     const groups = Object.entries(tpl.params || {}).map(([k, def]) => {
       const chips = h('div', { class: 'chips' });
+      const isMain = main?.by === k;
       for (const [v, l] of paramOptions(def, S, p)) {
-        chips.append(h('button', { class: `chip-btn${v === p[k] ? ' on' : ''}`, disabled: !!fixed[k], onClick: () => {
+        // (the main option: a cleared choice has a green edge and a tick; user, 2026-11-02)
+        const done = isMain && isCleared(tpl.id, String(v));
+        chips.append(h('button', { class: `chip-btn${v === p[k] ? ' on' : ''}${done ? ' cleared' : ''}`, title: done ? `${l}: cleared` : null, disabled: !!fixed[k], onClick: () => {
           if (p[k] === v) return;
           p[k] = v;
           rebuild();
@@ -364,7 +383,9 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
           if (!preview) updateProgress(tpl.id, keep());
         } }, l));
       }
-      return h('div', { class: `opt-group${fixed[k] ? ' fixed' : ''}` }, h('h4', {}, def.label),
+      const c = isMain && !preview ? clearedCount(tpl.id) : null;
+      const status = c && (isMastered(tpl.id) ? '🏅 mastered' : `✓ ${c.done} of ${c.need}${c.need < c.of ? ` (of ${c.of})` : ''} cleared for 🏅`);
+      return h('div', { class: `opt-group${fixed[k] ? ' fixed' : ''}` }, h('h4', {}, def.label, status ? h('span', { class: 'opt-mastery' }, status) : null),
         fixed[k] ? h('p', { class: 'opt-note' }, `Fixed for this choice: ${fixed[k]}.`) : null, chips);
     });
     const panel = h('div', { class: 'panel' },
@@ -571,16 +592,17 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       // a ticked step can be unticked here too, after a question (user, 2026-10-29: "checked exercises have to be
       // able to be unchecked"); one its exercise's mastery ticks takes the mastery back with it
       const byMastery = stepCovered(L, LI);
-      if (!confirm(byMastery ? 'This step is ticked because you mastered this exercise. Untick it? ✓ Mastered is taken back too, in the Library and the course.' : `Untick ✓ ${earStep ? 'Got them all' : 'Clean'}? Practise the step again, and tick it when it is clean.`)) return;
+      if (!confirm(byMastery ? 'This step is ticked because you mastered this exercise. Untick it? 🏅 Mastered is taken back too, with its ✓ Cleared ticks, in the Library and the course.' : `Untick ✓ ${earStep ? 'Got them all' : 'Clean'}? Practise the step again, and tick it when it is clean.`)) return;
       untickStep(L, LI);
       lessonDone = false;
       if (nextBtn && !routine) nextBtn.classList.remove('primary');
       toast('Unticked');
     } else {
-      const ex = L.steps[LI].ex, was = isMastered(ex);
+      const ex = L.steps[LI].ex, was = isMastered(ex), ch = choiceOf(ex, LS.p), wasC = isCleared(ex, ch);
       const complete = setClean(L, LI, true);
-      // (a step at least as hard as the exercise's goal masters it everywhere: say so, QA round 19)
-      const mastered = !was && isMastered(ex) ? ' · the exercise is ✓ mastered in the Library too' : '';
+      // (a step at least as hard as the exercise's goal clears its choice in the Library: say so, QA round 19)
+      const mastered = !was && isMastered(ex) ? ' · 🏅 the exercise is mastered in the Library too'
+        : !wasC && isCleared(ex, ch) ? ` · ✓ ${choiceName(ex, ch) || 'cleared'} in the Library too` : '';
       toast(`${complete ? `${lessonName} complete ✓` : 'Step done ✓'}${mastered}`, complete || mastered ? 3000 : 1800);
       if (nextBtn && !routine) {
         nextBtn.classList.add('primary');
@@ -638,7 +660,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const backing = () => backingOverride || S.backing;
   function cycleBacking() {
     if (!canBack) { toast(BACKS ? 'No chords in this exercise: no backing' : `No backing in ${NO_BACKING_NAME[tpl.module]}`); return; }
-    if (player.band) { toast('The band plays the chords: tap 🥁 beside the beat lights to choose a backing'); return; }
+    if (player.band) { toast('The band plays the chords: tap the beat lights for the click, then choose a backing'); return; }
     const order = ['off', 'drone', 'chords'];
     const was = backing();
     backingOverride = null;
@@ -683,6 +705,15 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     A.setAudioOptions({ drumVol: room.drumVol / 100 });
   }
   const meterName = () => { const ts = inst.timeSig || [4, 4]; return `${ts[0]}/${ts[1]}`; };
+  /** A tap on the beat lights: the band or the click (style exercises), else the click on or off. */
+  function tapBeats() {
+    if (BANDS) { toggleBand(); return; }
+    if (rec) { toast('A take keeps the click'); return; }
+    player.metro = !player.metro;
+    saveSettings({ metro: player.metro });
+    syncToggles();
+    toast(player.metro ? 'Click on' : 'Click off: the beat lights keep the time');
+  }
   /** 🥁: the band on or off (for every style exercise). */
   function toggleBand() {
     if (!BANDS) return;
@@ -797,24 +828,48 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     }
     syncToggles();
   }
-  // ✓ Mastered: once a full loop reached the exercise's goal (here, in the Library or the session, or in a
-  // lesson step), and then it counts everywhere: the Library, the session and the course's steps on it
-  // (mastery.js; user, 2026-10-26)
-  function toggleDone() {
-    const pr = getProgress(tpl.id) || {};
-    const done = !pr.done;
-    if (done) {
-      const g = goalOf(tpl.id);
-      const inLesson = lesson && !demo && g && stepState(L.id, LI).best >= g.bpm && (g.sub == null || (LS.sub ?? g.sub) >= g.sub);
-      const anyLoop = !g && (pr.plays > 0 || (lesson && stepState(L.id, LI).loops > 0));
-      if (!pr.met && !inLesson && !anyLoop) {
-        closeMore(); // (the tip sits where the menu was: QA round 19)
-        tip(`🎯 To master it: ${g ? `a full loop at ${masteryGoal(tpl.id)}` : 'one full loop'}, then ✓ Mastered`);
-        return;
-      }
+  // ✓ Cleared: the choice playing (the value of the exercise's main option: Major pentatonic, or the exercise itself
+  // when it has none) once a full loop on it reached the goal, here, in the Library or the session, or in a lesson
+  // step; 🏅 the app masters the exercise once enough choices are cleared, and it counts everywhere (mastery.js;
+  // user, 2026-11-02: "user manually say that an exercise is cleared, mastered set automatic")
+  /** Does the choice playing count for the mastery (not one an "only" choice holds, as E and A strings)? */
+  const countsHere = () => { const v = choiceOf(tpl.id, p); return choicesOf(tpl.id).includes(v) || mainOf(tpl.id)?.all === v; };
+  function toggleCleared() {
+    const m = mainOf(tpl.id);
+    const v = choiceOf(tpl.id, p), name = choiceName(tpl.id, v);
+    const what = name || 'this exercise';
+    if (m?.game) { closeMore(); tip(`🎯 ${what}: 8 of 10 or more clears it on its own. Every ${(tpl.params?.[m.by]?.label || 'mode').toLowerCase()} cleared: 🏅 mastered.`); return; }
+    if (!countsHere()) {
+      const need = choicesOf(tpl.id).map((x) => choiceName(tpl.id, x)).filter(Boolean).join(', ');
+      closeMore();
+      tip(`${what} is a step on the way: ${need} clears this exercise.`);
+      return;
     }
-    setMastered(tpl.id, done);
-    toast(done ? 'Mastered ✓: it counts in the Library and the course' : 'Unmarked');
+    const was = isMastered(tpl.id);
+    if (isCleared(tpl.id, v)) {
+      setCleared(tpl.id, v, false);
+      toast(`${what}: not cleared${was && !isMastered(tpl.id) ? ' · 🏅 taken back' : ''}`);
+      syncToggles();
+      return;
+    }
+    const g = goalOf(tpl.id);
+    const inLesson = lesson && !demo && (g ? stepState(L.id, LI).best >= g.bpm && (g.sub == null || (LS.sub ?? g.sub) >= g.sub) : stepState(L.id, LI).loops > 0);
+    if (!goalMet(tpl.id, v) && !inLesson) {
+      closeMore(); // (the tip sits where the menu was: QA round 19)
+      tip(`🎯 To clear ${what}: ${g ? `a full loop at ${masteryGoal(tpl.id)}` : 'one full loop'}, then ✓ Cleared`);
+      return;
+    }
+    setCleared(tpl.id, v, true);
+    const c = clearedCount(tpl.id);
+    toast(!was && isMastered(tpl.id) ? `🏅 Mastered: it counts in the Library and the course` : `✓ ${what} cleared${c.of > 1 ? ` · ${c.done} of ${c.need} for 🏅` : ''}`, 2600);
+    syncToggles();
+  }
+  /** 🏅 under ⋯: the mastery taken back, with its ✓ Cleared ticks (user, 2026-11-02). */
+  function unmasterAsk() {
+    if (!isMastered(tpl.id)) return;
+    if (!confirm('Take back 🏅 Mastered? Its ✓ Cleared ticks go too, in the Library and the course.')) return;
+    setMastered(tpl.id, false);
+    toast('🏅 taken back');
     syncToggles();
   }
   function syncToggles() {
@@ -823,7 +878,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     soundBtn.classList.toggle('on', player.sound);
     soundBtn.innerHTML = icon(player.sound ? 'sound' : 'mute');
     trainerBtn.classList.toggle('on', player.trainer.on);
-    doneBtn.classList.toggle('on', !!(getProgress(tpl.id) || {}).done);
+    doneBtn.classList.toggle('on', isCleared(tpl.id, choiceOf(tpl.id, p)));
+    masteredBtn.closest('.mi').hidden = !isMastered(tpl.id);
     const state = (el, what, name, ico) => { el.innerHTML = icon(ico); el.setAttribute('aria-label', `${what}: ${name}`); };
     const rv = REVEALS.find((r) => r[0] === reveal) || REVEALS[0];
     state(revealBtn, 'Reveal', rv[1], rv[2]);
@@ -841,8 +897,11 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     na(metroBtn, !!player.band);
     if (player.band) { backingBtn.textContent = 'Band'; backingBtn.classList.add('on'); }
     bandIco.classList.toggle('on', !!player.band);
-    bandIco.title = player.band ? `Band: ${STYLES[player.band.key].name}, ${soundName(player.band.sound)} (tap: the click instead)` : 'Band off: tap for drums and chords instead of the click';
-    bandIco.setAttribute('aria-label', bandIco.title);
+    beatRow.title = BANDS
+      ? (player.band ? `Band: ${STYLES[player.band.key].name}, ${soundName(player.band.sound)} (tap: the click instead)` : 'The click (tap: the band, drums and chords)')
+      : (player.metro ? 'Click on (tap: off)' : 'Click off (tap: on)');
+    beatRow.setAttribute('aria-label', beatRow.title);
+    beatRow.classList.toggle('quiet', !BANDS && !player.metro);
     bandBtn.classList.toggle('on', !!player.band);
     na(revealBtn, !!inst.reveal);
     na(scoreBtn, !!inst.view);
@@ -891,7 +950,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         <p class="muted small" style="margin-top:8px">A dot labelled → is an approach note: a passing note that leads into the next chord tone.</p>
         ${tpl.source ? `<h4>Related</h4><p class="muted small">${esc(tpl.source)}</p>` : ''}
         <h4>Your progress</h4>
-        <p class="muted">${pr.plays ? `${pr.plays} loops played · best ${pr.bestBpm || '–'} BPM` : 'Not played yet.'}${pr.done ? ' · <b style="color:var(--good)">mastered</b>' : ` · 🎯 to master it: ${esc(masteryGoal(tpl.id))}, then ✓ Mastered`}</p>
+        <p class="muted">${pr.plays ? `${pr.plays} loops played · best ${pr.bestBpm || '–'} BPM` : 'Not played yet.'}${masteryLine()}</p>
         ${pr.judged ? `<p class="muted small">🎙 Your last take, as the app heard it: ${pr.judged.clean ? 'clean' : 'not clean yet'} at ${pr.judged.bpm} BPM (${pr.judged.right} of ${pr.judged.total} notes right, ${pr.judged.inTime} in time).</p>` : ''}
       </div>`;
     drawer.querySelector('[data-close]').addEventListener('click', () => drawer.classList.remove('open'));
@@ -1114,7 +1173,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         h('div', { class: 'row rec-head' }, h('h3', { class: res.clean ? 'ok' : 'no' }, res.clean ? '✓ A clean take' : 'Not clean yet'),
           infoBtn(['🎵 Notes: the pitch the microphone heard on each one', how,
             '🟢 Each note: green edge right and in time, gold early or late (ms), red ✗ a wrong note, dashed not heard or unclear; tap one to see it on the neck',
-            `✓ The app's ear is kept beside your own ✓${lesson && !demo ? ' Clean' : ' Mastered'}: tick that one yourself when it felt clean`,
+            `✓ The app's ear is kept beside your own ✓${lesson && !demo ? ' Clean' : ' Cleared'}: tick that one yourself when it felt clean`,
             '📱 Only your latest take is kept, until the next one. Nothing is sent',
             '🎙 shows this result again, greyed, until your next take'], 'About this result')),
         h('p', { class: 'rec-line' }, `🎵 Notes: ${parts.join(' · ')}${previous ? ` · ${kept.bpm} BPM` : ''}`),
@@ -1257,31 +1316,43 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     if (j !== cur) showStep(j);
   }
   function tapSeek(i) { if (tapAt >= 0 && i <= Math.min(tapAt, inst.steps.length - 1)) showStep(i); }
-  /** The set's end: the games' card (stars, Again, Harder, ✓ Mastered from 9 of 10). */
+  /** The set's end: the games' card (stars, Again, Harder; 8 of 10 clears the mode, every mode cleared masters it). */
   function tapEnd() {
     logPlaying(false);
     const total = inst.steps.length, score = tapScore();
     const pr = getProgress(tpl.id) || {};
     const record = pr.best == null || score > pr.best;
-    updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, best: Math.max(pr.best ?? 0, score), ...keep(), ...(score >= total - 1 ? { met: true } : {}) });
+    updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, best: Math.max(pr.best ?? 0, score), ...keep() });
+    const v = choiceOf(tpl.id, p), was = isCleared(tpl.id, v), wasM = isMastered(tpl.id);
+    if (!lesson && !preview) recordGame(tpl.id, v, score, total);
+    const c = clearedCount(tpl.id);
+    const news = !wasM && isMastered(tpl.id) ? '🏅 Mastered: every mode cleared'
+      : !was && isCleared(tpl.id, v) ? `✓ ${choiceName(tpl.id, v)} cleared · ${c.done} of ${c.need} modes`
+        : isCleared(tpl.id, v) ? null : `8 of 10 clears ${choiceName(tpl.id, v)}`;
     const stars = score >= total ? '★★★' : score >= total - 2 ? '★★☆' : score >= total / 2 ? '★☆☆' : '☆☆☆';
     // (the next choice of the first option: a harder set, when there is one)
     const [k0, def0] = Object.entries(tpl.params || {})[0] || [];
     const opts0 = def0 ? paramOptions(def0, S, p) : [];
     const harder = opts0[opts0.findIndex((o) => o[0] === p[k0]) + 1];
-    const masterBtn = score >= total - 1 && !isMastered(tpl.id)
-      ? h('button', { class: 'btn', onClick: () => { setMastered(tpl.id, true); toast('Mastered ✓: it counts in the Library and the course'); masterBtn.remove(); syncToggles(); } }, '✓ Mastered')
-      : null;
+    syncToggles();
     tapEndEl.replaceChildren(h('div', { class: 'game-card' },
       h('div', { class: 'game-stars' }, stars),
       h('h2', {}, `${score} of ${total}`),
       pr.best != null ? h('p', { class: 'muted' }, record ? 'A new best score' : `Best ${pr.best} of ${total}`) : null,
+      news ? h('p', { class: 'game-news' }, news) : null,
       h('div', { class: 'row' },
         h('button', { class: 'btn primary', onClick: () => tapStart() }, '↻ Again'),
         harder && score >= total - 2 ? h('button', { class: 'btn', onClick: () => { p[k0] = harder[0]; renderParams(); if (!lesson && !preview) updateProgress(tpl.id, keep()); tapStart(); } }, `Harder: ${harder[1]}`) : null,
-        masterBtn,
         h('button', { class: 'btn', onClick: () => { tapEndEl.hidden = true; showStep(total - 1); } }, '‹ Look back'))));
     tapEndEl.hidden = false;
+  }
+
+  /** The drawer's mastery: 🏅, or how many choices are cleared and what clears one. */
+  function masteryLine() {
+    if (isMastered(tpl.id)) return ' · <b style="color:var(--good)">🏅 mastered</b>';
+    const c = clearedCount(tpl.id), m = mainOf(tpl.id);
+    const how = m?.game ? '8 of 10 in each' : `a full loop at ${esc(masteryGoal(tpl.id))}, then ✓ Cleared`;
+    return ` · 🎯 to master it: ${how}${c.of > 1 ? ` (${c.done} of ${c.need} cleared)` : ''}`;
   }
 
   // ------------------------------------------------------------ tip

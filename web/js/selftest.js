@@ -8,6 +8,8 @@ import { PLACEMENT } from './course/placement.js';
 import { CHANGED_STEPS } from './course/progress.js';
 import { CYCLE_OPTS } from './curriculum/common.js';
 import { NO_BACKING, harmonyTrack } from './harmony.js';
+import { MAIN } from './curriculum/main.js';
+import { mainOf, choicesOf, neededOf } from './mastery.js';
 import { BAND_IDS, isBandExercise, bandBy, bandCandidates, matchedStyle, meterOf, fits, patternUnit, bandHits, bandTicks } from './band.js';
 import { makeCtx } from './fretboard.js';
 import { STYLES, levelsOf, regroup, phraseHits, beatHits, clickTimes } from './practice/styles.js';
@@ -233,6 +235,29 @@ function checkBand(problems) {
   }
 }
 
+/**
+ * The main options (curriculum/main.js, docs/MASTERY.md): every listed exercise is real, its option exists, an "all" or
+ * "only" choice is one of its values, a game's is a game, every game has one, and each has choices to clear on every
+ * bass (the share needed between 1 and all of them).
+ */
+function checkMain(problems) {
+  for (const id of Object.keys(MAIN)) {
+    const t = byId.get(id), m = mainOf(id);
+    if (!t) { problems.push(`main: ${id} is not an exercise`); continue; }
+    const def = t.params?.[m.by];
+    if (!def?.options) { problems.push(`main: ${id} has no option "${m.by}"`); continue; }
+    const vals = def.options.map((o) => String(o[0]));
+    for (const v of [m.all, ...(m.only || [])].filter((x) => x != null)) if (!vals.includes(String(v))) problems.push(`main: ${id} has no choice "${v}"`);
+    if (!!m.game !== !!t.game) problems.push(`main: ${id} ${m.game ? 'is not a game' : 'is a game: mark it game'}`);
+    if (m.pct != null && !(m.pct > 0 && m.pct < 1)) problems.push(`main: ${id} needs a share between 0 and 1`);
+    for (const st of [4, 5, 6]) {
+      const n = choicesOf(id, st).length, need = neededOf(id, st);
+      if (!n || need < 1 || need > n) problems.push(`main: ${id} on ${st} strings: ${need} of ${n} choices`);
+    }
+  }
+  for (const t of EXERCISES.filter((x) => x.game)) if (!MAIN[t.id]) problems.push(`main: the game ${t.id} has no main option`);
+}
+
 function checkGames(problems) {
   let seed = 11;
   const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
@@ -345,6 +370,7 @@ export function run({ strings = [4, 5, 6], verbose = false } = {}) {
   checkGames(problems);
   checkTuner(problems);
   checkBand(problems);
+  checkMain(problems);
   for (const st of strings) {
     const S = { strings: st, notation: 'letters', maxFret: 20 };
     const ctx = makeCtx(S);

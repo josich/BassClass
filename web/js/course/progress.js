@@ -2,7 +2,7 @@
 // the loops played and the "clean" tick; per lesson the day it was completed and its reviews; the
 // "I can" ticks of checkpoints; the units the placement check marked as known.
 import { STAGES, LESSONS, UNITS, lessonById } from './data.js';
-import { masteryCovers, stepMasters, setMastered, onMastery, levelPassed } from '../mastery.js';
+import { masteryCovers, stepMasters, setMastered, setCleared, choiceOf, onMastery, levelPassed } from '../mastery.js';
 
 const KEY = 'bassclass.course.v1';
 const DAY = 86400000;
@@ -144,10 +144,11 @@ export const stepPassed = (lesson, i) => ownPassed(lesson, i) || covered(lesson,
 export const stepClean = (lesson, i) => ownClean(lesson, i) || covered(lesson, i);
 /** Is this step ticked by its exercise's mastery (then only unmastering it takes the tick back: QA round 19)? */
 export const stepCovered = covered;
-/** A step passed and ✓ Clean that is at least as hard as its exercise's goal masters the exercise everywhere. */
+/** A step passed and ✓ Clean that is at least as hard as its exercise's goal clears its choice in the Library (the
+ * step's value of the exercise's main option; the exercise is mastered once enough are cleared: mastery.js). */
 function masterFrom(lesson, i) {
   const step = lesson.steps[i];
-  if (step && ownPassed(lesson, i) && ownClean(lesson, i) && stepMasters(step)) setMastered(step.ex, true);
+  if (step && ownPassed(lesson, i) && ownClean(lesson, i) && stepMasters(step)) setCleared(step.ex, choiceOf(step.ex, step.p), true);
 }
 
 /** A full loop of a lesson step was played at `bpm`. Returns true when this loop reached the goal for the first time. */

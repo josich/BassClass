@@ -1,7 +1,7 @@
 // The rate reminder (user, 2026-10-28: "a couple of times separated by hours of use: after 10 h, then after 20 h,
 // always at the end of an event, not in the middle of something running; 5 stars and a short text"): once the
 // practice log holds 10 hours of playing, and again at 20, a card asks for a rating on Google Play, shown only when
-// the player has just finished something (left an exercise or the Practice room, or ticked ✓ Practised), never
+// the player has just finished something (left an exercise or the Practice room, or finished today's session), never
 // while anything plays or another sheet is open. The five stars are a picture, not a choice (launch legal review,
 // 2026-10-28: stars that look like an input but all do the same); its one button opens the Play Store page (no
 // filtering of ratings, as Google asks). Rated, it never asks again; "Not now" waits for the next mark. Only

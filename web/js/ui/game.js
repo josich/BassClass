@@ -11,7 +11,7 @@ import { bassClef } from '../views/staff.js';
 import { moduleOf, LEVELS, defaultParams } from '../curriculum/index.js';
 import { placesOf } from '../curriculum/games.js';
 import { paramOptions } from './exercise.js';
-import { setMastered, isMastered } from '../mastery.js';
+import { isMastered, isCleared, choiceOf, choiceName, clearedCount, recordGame } from '../mastery.js';
 import { logPlaying } from '../practiceLog.js';
 import { spellMidi } from '../builder.js';
 import * as A from '../audio.js';
@@ -236,24 +236,28 @@ export function gameScreen(root, tpl, { params = {}, onBack }) {
     replayBtn.hidden = true;
     const pr = getProgress(tpl.id) || {};
     const record = pr.best == null || score > pr.best;
-    updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, best: Math.max(pr.best ?? 0, score), params: { ...p }, ...(score >= ROUNDS - 1 ? { met: true } : {}) });
+    updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, best: Math.max(pr.best ?? 0, score), params: { ...p } });
+    // (8 of 10 clears the mode playing; every mode cleared masters the game: mastery.js, user, 2026-10-30)
+    const v = choiceOf(tpl.id, p), was = isCleared(tpl.id, v), wasM = isMastered(tpl.id);
+    recordGame(tpl.id, v, score, ROUNDS);
+    const c = clearedCount(tpl.id);
+    const news = !wasM && isMastered(tpl.id) ? '🏅 Mastered: every mode cleared'
+      : !was && isCleared(tpl.id, v) ? `✓ ${choiceName(tpl.id, v)} cleared · ${c.done} of ${c.need} modes`
+        : isCleared(tpl.id, v) ? null : `8 of 10 clears ${choiceName(tpl.id, v)}`;
     prog.best = Math.max(pr.best ?? 0, score);
     const stars = score >= ROUNDS ? '★★★' : score >= ROUNDS - 2 ? '★★☆' : score >= ROUNDS / 2 ? '★☆☆' : '☆☆☆';
     // (the next choice of the first option: a harder set, when there is one)
     const [k0, def0] = Object.entries(tpl.params || {})[0] || [];
     const opts0 = def0 ? paramOptions(def0, S, p) : [];
     const harder = opts0[opts0.findIndex((o) => o[0] === p[k0]) + 1];
-    const masterBtn = score >= ROUNDS - 1 && !isMastered(tpl.id)
-      ? h('button', { class: 'btn', onClick: () => { setMastered(tpl.id, true); toast('Mastered ✓: it counts in the Library and the course'); masterBtn.remove(); } }, '✓ Mastered')
-      : null;
     endEl.replaceChildren(h('div', { class: 'game-card' },
       h('div', { class: 'game-stars' }, stars),
       h('h2', {}, `${score} of ${ROUNDS}`),
       h('p', { class: 'muted' }, `Best streak ${best}${record && pr.best != null ? ' · a new best score' : ''}`),
+      news ? h('p', { class: 'game-news' }, news) : null,
       h('div', { class: 'row' },
         h('button', { class: 'btn primary', 'data-silent': '', onClick: () => startSet() }, '↻ Again'),
-        harder && score >= ROUNDS - 2 ? h('button', { class: 'btn', 'data-silent': '', onClick: () => { p[k0] = harder[0]; optsSum.textContent = summary(); startSet(); } }, `Harder: ${harder[1]}`) : null,
-        masterBtn)));
+        harder && score >= ROUNDS - 2 ? h('button', { class: 'btn', 'data-silent': '', onClick: () => { p[k0] = harder[0]; optsSum.textContent = summary(); startSet(); } }, `Harder: ${harder[1]}`) : null)));
     endEl.hidden = false;
     msgEl.textContent = '';
     askEl.replaceChildren(h('b', {}, score >= ROUNDS - 1 ? '🎉 Well done' : score >= ROUNDS / 2 ? '👍 Keep going' : '🌱 Again, slowly'));

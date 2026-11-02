@@ -1,14 +1,19 @@
 // One record of what the player has mastered, everywhere in the app (user, 2026-10-26: "the checks have
-// to be extensive to all the app regardless in what section it has been achieved"). An exercise is
-// mastered when a full loop reached its goal and the player ticked it: in the Library (✓ Mastered), in
-// today's session, or in a lesson (a step at least as hard as the goal, passed and ✓ Clean). Its goal
-// is the hardest of its steps in its own level's stage of the course (tempo × notes per beat), so the
-// Library and the course ask the same; an exercise without one (an ear round) needs one full loop. A
-// mastered exercise passes the course's steps on it up to its goal, and a level of the Library 80%
+// to be extensive to all the app regardless in what section it has been achieved"). Since 2026-11-02 (user; the
+// rules and each exercise's main option in docs/MASTERY.md): an exercise's main option (curriculum/main.js: the Scale
+// of #114, never its key or root string) has choices; a choice is cleared when a full loop on it reached the
+// exercise's goal and the player ticked ✓ Cleared, wherever: in the Library, today's session, or a lesson (a step at
+// least as hard as the goal, passed and ✓ Clean, clears its choice); a game clears a mode at 8 of 10 on its own. The
+// app masters the exercise once enough choices are cleared: all of them, or 80% where the main option says so (an
+// "all" choice clears every one it plays); an exercise without a main option has one choice, '*'. The ⋯ menu takes
+// the mastery back, with its ticks. Its goal is the hardest of its steps in its own level's stage of the course
+// (tempo × notes per beat), so the Library and the course ask the same; an exercise without one (an ear round) needs
+// one full loop. A mastered exercise passes the course's steps on it up to its goal, and a level of the Library 80%
 // mastered counts as known in the course: the player's level moves on (course/progress.js).
-import { EXERCISES, byId } from './curriculum/index.js';
+import { EXERCISES, byId, defaultParams } from './curriculum/index.js';
+import { MAIN } from './curriculum/main.js';
 import { STAGES, LESSONS } from './course/data.js';
-import { getProgress, updateProgress, allProgress } from './store.js';
+import { getProgress, updateProgress, allProgress, settings } from './store.js';
 
 /** The share of a level's exercises mastered that moves the player's level on. */
 export const LEVEL_PASS = 0.8;
@@ -67,11 +72,96 @@ export const isMastered = (id) => !!getProgress(id)?.done;
 const listeners = new Set();
 /** Called with the exercise id when it is mastered or unmastered (the course settles its lessons). */
 export const onMastery = (fn) => { listeners.add(fn); return () => listeners.delete(fn); };
-/** Master an exercise, or take it back. */
+const tell = (id) => { for (const fn of listeners) fn(id); };
+
+// ---- main options and their choices
+/** An exercise's main option: { by, all, pct, only, game }, or null (one choice, '*'). */
+export function mainOf(id) {
+  const m = MAIN[id];
+  return !m ? null : typeof m === 'string' ? { by: m } : m;
+}
+/** The choices that count on a bass of `strings` (the options it offers there; an "all" choice is not one of them). */
+export function choicesOf(id, strings = settings.strings) {
+  const m = mainOf(id);
+  if (!m) return ['*'];
+  if (m.only) return [...m.only];
+  const def = byId.get(id)?.params?.[m.by];
+  return (def?.options || []).filter((o) => !(o[2]?.minStrings > strings)).map((o) => String(o[0])).filter((v) => v !== m.all);
+}
+/** How many cleared choices master it: all of them, or 80% (rounded up) where the main option says so. */
+export function neededOf(id, strings) {
+  const n = choicesOf(id, strings).length, m = mainOf(id);
+  return m?.pct ? Math.ceil(m.pct * n - 1e-9) : n;
+}
+/** The choice options `p` play: the main option's value (the exercise's own when `p` leaves it out), or '*'. */
+export function choiceOf(id, p = {}) {
+  const m = mainOf(id);
+  if (!m) return '*';
+  return String(p[m.by] ?? defaultParams(byId.get(id))[m.by]);
+}
+/** The name of a choice as its option shows it ("Major pentatonic"), or null. */
+export function choiceName(id, v) {
+  const m = mainOf(id);
+  if (!m) return null;
+  const o = byId.get(id)?.params?.[m.by]?.options?.find((x) => String(x[0]) === String(v));
+  return o ? String(o[1]) : null;
+}
+const rec = (id) => getProgress(id) || {};
+/** Is choice `v` cleared (by its own tick, or by the "all" choice that plays it)? */
+export function isCleared(id, v) {
+  const c = rec(id).cleared || {}, m = mainOf(id);
+  return !!c[v] || (!!m?.all && v !== m.all && !!c[m.all]);
+}
+/** Has a full loop on choice `v` reached the goal (or one on the "all" choice)? */
+export function goalMet(id, v) {
+  const g = rec(id).metOn || {}, m = mainOf(id);
+  return !!g[v] || (!!m?.all && !!g[m.all]);
+}
+/** The choices that count: { done (cleared), of (all of them), need }. */
+export function clearedCount(id, strings) {
+  const list = choicesOf(id, strings);
+  return { done: list.filter((v) => isCleared(id, v)).length, of: list.length, need: neededOf(id, strings) };
+}
+/** A full loop on choice `v` reached the goal (the Library, today's session): ✓ Cleared can be ticked on it. */
+export function recordGoal(id, v) {
+  if (goalMet(id, v)) return;
+  updateProgress(id, { metOn: { ...(rec(id).metOn || {}), [v]: true } });
+}
+/** The mastery follows the cleared choices: set once enough are, taken back when one fewer is. */
+function settle(id) {
+  const c = clearedCount(id);
+  const ok = c.of > 0 && c.done >= c.need;
+  if (ok === isMastered(id)) return;
+  updateProgress(id, { done: ok });
+  tell(id);
+}
+/** Tick or untick ✓ Cleared on choice `v` (unticking one the "all" choice covers takes that tick back too). */
+export function setCleared(id, v, on) {
+  const c = { ...(rec(id).cleared || {}) }, m = mainOf(id);
+  if (on) c[v] = true;
+  else { delete c[v]; if (m?.all) delete c[m.all]; }
+  updateProgress(id, { cleared: c });
+  settle(id);
+}
+/** A game's round on mode `v` scored `score` of `total`: its best is kept, and 8 of 10 or better clears the mode. */
+export function recordGame(id, v, score, total) {
+  const bests = { ...(rec(id).bests || {}) };
+  bests[v] = Math.max(bests[v] ?? 0, Math.round((score / total) * 10));
+  updateProgress(id, { bests });
+  if (score / total >= 0.8 && !isCleared(id, v)) setCleared(id, v, true);
+}
+/** Master an exercise (every choice cleared), or take it back with its ticks (the ⋯ menu, a lesson's untick). */
 export function setMastered(id, on) {
-  if (isMastered(id) === !!on) return;
-  updateProgress(id, { done: !!on });
-  for (const fn of listeners) fn(id);
+  if (on) {
+    const c = { ...(rec(id).cleared || {}) };
+    for (const v of choicesOf(id)) c[v] = true;
+    updateProgress(id, { cleared: c });
+    settle(id);
+    return;
+  }
+  const was = isMastered(id);
+  updateProgress(id, { cleared: {}, done: false });
+  if (was) tell(id);
 }
 
 /** A Library level's exercises: how many there are and how many are mastered. */
