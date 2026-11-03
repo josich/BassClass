@@ -314,7 +314,7 @@ export default {
           idea: 'Raise the 7th: harmonic minor. Raise the 6th too: melodic minor.',
           concept: [
             'Harmonic minor raises the 7th of natural minor, which creates the exotic augmented 2nd (♭6 to 7, a three-fret gap) and a strong pull back to the root. Melodic minor also raises the 6th: it sounds like major with a ♭3, and it is the parent of the altered and Lydian dominant scales.',
-            'Jazz players use melodic minor the same going up and coming down, as the app does.',
+            'Jazz players use melodic minor the same going up and coming down, as this lesson does; classical music plays it as natural minor coming down (the classical form, also under Options).',
           ],
           steps: [
             { ex: 'sc-minor-family', p: { pattern: 'g4', type: 'harmonicMinor', oct: '1' }, sub: 2, from: 66, goal: 92, do: 'Harmonic minor in groups of 4. Feel the three-fret gap.' },
