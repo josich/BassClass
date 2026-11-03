@@ -14,6 +14,7 @@ import licks from './licks.js';
 import reading from './reading.js';
 import ear from './ear.js';
 import songs from './songs.js';
+import tunes from './tunes.js';
 import { NUMBERS } from './numbers.js';
 import { EAR_GAMES, READ_GAMES } from './games.js';
 import rock from './rock.js';
@@ -44,9 +45,10 @@ export const MODULES = [
   { id: 'licks', name: 'Licks', icon: '🎷', desc: 'Rock and blues licks, then jazz vocabulary: ii–V–I, minor, blues, bebop, modern, bass solos, motifs, implied changes.' },
   { id: 'slap', name: 'Slap & Pop', icon: '👍', desc: 'Thumb, pop, hammer, ghost notes, double thumb.' },
   { id: 'music', name: 'Make Music', icon: '🎵', desc: 'Original lines in the style of famous songs, from the first riff to a whole bass solo.' },
+  { id: 'tunes', name: 'Classic tunes', icon: '🎻', desc: 'Melodies everyone knows, from folk songs to Beethoven, Bach and Joplin, played as written: free of copyright, the composer named.' },
 ];
 
-const ALL = [...fretboard, ...reading, ...READ_GAMES, ...technique, ...rhythm, ...intervals, ...ear, ...EAR_GAMES, ...scales, ...pentatonics, ...modes, ...triads, ...arpeggios, ...harmony, ...grooves, ...licks, ...rock, ...songs];
+const ALL = [...fretboard, ...reading, ...READ_GAMES, ...technique, ...rhythm, ...intervals, ...ear, ...EAR_GAMES, ...scales, ...pentatonics, ...modes, ...triads, ...arpeggios, ...harmony, ...grooves, ...licks, ...rock, ...songs, ...tunes];
 {
   const seen = new Set();
   for (const t of ALL) {
@@ -59,7 +61,7 @@ export const EXERCISES = ALL;
 export const byId = new Map(ALL.map((e) => [e.id, e]));
 
 /** Topic order inside a level: hands and time first, then the neck, then theory and music. */
-export const PATH_ORDER = ['technique', 'rhythm', 'fretboard', 'reading', 'intervals', 'ear', 'scales', 'modes', 'triads', 'arpeggios', 'harmony', 'grooves', 'walking', 'licks', 'slap', 'music'];
+export const PATH_ORDER = ['technique', 'rhythm', 'fretboard', 'reading', 'intervals', 'ear', 'scales', 'modes', 'triads', 'arpeggios', 'harmony', 'grooves', 'walking', 'licks', 'slap', 'music', 'tunes'];
 export const topicRank = (id) => { const i = PATH_ORDER.indexOf(id); return i < 0 ? PATH_ORDER.length : i; };
 
 // The Library's order (t.order): level, then topic (path order), then the order of the module's export list.

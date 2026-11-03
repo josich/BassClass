@@ -38,6 +38,13 @@ function goals() {
       }
     }
   }
+  // (the classic tunes are in no lesson yet: each part's goal is the tune's own tempo, in its written rhythm)
+  for (const t of EXERCISES) {
+    if (t.module !== 'tunes' || GOALS.has(t.id)) continue;
+    const g = { bpm: t.bpm, sub: null };
+    GOALS.set(t.id, g);
+    for (const v of [...(t.params?.part?.options || []).map((o) => o[0]), '*']) GOALS.set(`${t.id}|${v}`, g);
+  }
   return GOALS;
 }
 

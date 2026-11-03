@@ -15,16 +15,16 @@ const TECH = new Set(['x', 'T', 'P', 'H', 'PO', 'T⊓', 'TV', '⊓', 'V']);
  * modifiers: x ghost, T thumb (T⊓ / TV double-thumb down / up), P pop, H hammer-on, PO pull-off,
  * ⊓ V pick down / up, > accent, @A on that string. Octaves are scientific pitch (E1 = the open E
  * string). '|' marks bar lines (for reading only). `unit` scales the values (2 in 5/8 and 7/8, where
- * the beat is the 8th note).
+ * the beat is the 8th note). Values joined by + are one note held over both (a tie: "C3:dq+s").
  */
-function parseLine(src, unit = 1) {
+export function parseLine(src, unit = 1) {
   const out = [];
   let t = 0;
   for (const tok of src.trim().split(/\s+/)) {
     if (tok === '|') continue;
     const [name, d = 'e', mods = ''] = tok.split(':');
-    if (!DUR[d]) throw new Error(`bad value in "${tok}"`);
-    const dur = DUR[d] * unit;
+    if (d.split('+').some((v) => !DUR[v])) throw new Error(`bad value in "${tok}"`);
+    const dur = d.split('+').reduce((s, v) => s + DUR[v], 0) * unit;
     if (name === 'r') { out.push({ rest: true, t, dur }); t += dur; continue; }
     const m = name.match(/^([A-G])(#{1,2}|b{1,2})?(-?\d)$/);
     if (!m) throw new Error(`bad note "${tok}"`);
@@ -41,7 +41,7 @@ const QUALITY = { '': 'maj', m: 'min', 5: 'pow', 7: 'dom7', m7: 'min7', maj7: 'm
 // a power chord (F5: root and 5th) is a rock chord of these studies only, not one of the app's chord types
 const chordIvs = (type) => (type === 'pow' ? ['1', '5'] : T.CHORDS[type].iv);
 /** "Em:4 D/F#:4 Bm7:8" -> chords with their start and end (in the line's own beats). */
-function parseChords(src, S) {
+export function parseChords(src, S) {
   let at = 0;
   return src.trim().split(/\s+/).map((tok) => {
     const [sym, beats] = tok.split(':');
@@ -67,12 +67,15 @@ const KEY_PCS = {
 const DOM_NAMES = { 2: '9', b2: '♭9', '#2': '♯9', 4: '11', '#4': '♯11', 6: '13', b6: '♭13' };
 
 /** One part of a study: its notes, each with the chord under it (the first note of a chord shows its badge). */
-function partNotes(song, part, S) {
+export function partNotes(song, part, S) {
   const { notes, total } = parseLine(part.notes, part.unit || 1);
   const chords = parseChords(part.chords, S);
   const len = chords[chords.length - 1].end;
   if (Math.abs(total - len) > 1e-6) throw new Error(`${song.id} "${part.name}": ${total} beats of notes, ${len} of chords`);
   const chordAt = (t) => chords.find((c) => t >= c.start - 1e-9 && t < c.end - 1e-9) || chords[chords.length - 1];
+  // (a chord carries its badge, and the Backing its sound, on the first note that starts under it: one with none would
+  // never be heard, so every chord needs one; a note tied over into it from before is that chord's anticipation)
+  for (const c of chords) if (!notes.some((x) => !x.rest && x.t >= c.start - 1e-9 && x.t < c.end - 1e-9)) throw new Error(`${song.id} "${part.name}": no note starts under ${c.sym} (beat ${c.start})`);
   const seen = new Set();
   return notes.map((x, i) => {
     const c = chordAt(x.t);
@@ -88,7 +91,7 @@ function partNotes(song, part, S) {
  * it lies outside the key or leads into the next chord; a dominant's other notes take their jazz names,
  * and the blue ♭5 keeps its name in a blues.
  */
-function labelled(song, seq) {
+export function labelled(song, seq) {
   const keyPcs = KEY_PCS[song.mode].map((x) => T.mod(T.pc(T.N(song.key)) + x, 12));
   const above = (x) => T.mod(x.midi - T.pc(x.c.root), 12);
   const tone = (x) => chordIvs(x.c.type).some((iv) => T.semis(iv) % 12 === above(x));

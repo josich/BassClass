@@ -17,6 +17,7 @@ exercises were renumbered in the Library's order (`curriculum/numbers.js`).
   - Core theory (scales, modes, chords, triads, intervals, upper structures): all of them, however many, except on the very long all-keys drills (#603, #609, #611): 80%.
   - Variations of a known concept (sequences, permutations, progressions, licks, patterns, studies, rudiments): all of them up to 7; 80% from 8 or on very long exercises.
   - A choice that plays the others ("All 24 in a row", "All 5", "All three", "Rotate", "Whole tune", "All four strings") counts as every choice it plays.
+  - The classic tunes (#124–#553, topic Classic tunes) are in no lesson yet: each part's goal is the tune's own tempo.
 - **No main option (—).** One full loop at the goal masters the exercise, as today.
 - **Games.** 8 of 10 in a mode of the main setting clears that mode on its own, with no tick, since the score is the proof. Every mode is needed.
 - **Course and Library.** A lesson step passed and ticked ✓ Cleared at the goal clears its choice in the Library. Both ways (QA round 23, user's choice): a choice cleared in the Library passes and ticks the course's steps on that choice whose goal is no harder, and a mastered exercise all its steps up to its goal; the step says "✓ cleared in the Library" or "🏅 mastered in the Library", and its ↺ takes that choice's ✓ Cleared back (the mastery with it). Inside a lesson step ⋯ shows no ✓ Cleared (the step's own tick does it), nor in a drill's tap mode (its play mode clears it). Today's session marks ● only on rows played, not on steps the Library ticks.
@@ -48,6 +49,7 @@ In all, 203 exercises have a main option and 45 have none (the eight exercises a
 | 118 | How a chord is built | Scale: major, natural minor | both |
 | 119 | Root-note grooves | Groove (4) | all 4 |
 | 120–123 | Song studies | Part | Whole tune (holds the parts) |
+| 124–125 | Classic tunes: When the Saints, Ode to Joy | — | one loop at its tempo |
 
 ## Level 2
 
@@ -93,6 +95,7 @@ In all, 203 exercises have a main option and 45 have none (the eight exercises a
 | 241 | Fills into the next bar | Fill (6) | all 6 |
 | 242–247 | Song studies | Part | Whole tune |
 | 248 | Waltzes, 6/8 and 12/8 | Groove (6) | all 6 |
+| 249–250 | Classic tunes: Amazing Grace, Greensleeves | — | one loop at its tempo |
 
 ## Level 3
 
@@ -144,6 +147,7 @@ In all, 203 exercises have a main option and 45 have none (the eight exercises a
 | 350 | Metal grooves | Groove (5) | all 5 |
 | 351 | Reggae and ska | Groove (4) | all 4 |
 | 352 | World grooves | Groove (4) | all 4 |
+| 353–355 | Classic tunes: Canon in D, Minuet in G, Musette in D | Part | Whole tune |
 
 ## Level 4
 
@@ -194,6 +198,9 @@ In all, 203 exercises have a main option and 45 have none (the eight exercises a
 | 448 | Latin grooves | Groove (4) | all 4 |
 | 449 | Hip-hop and electronic | Groove (4) | all 4 |
 | 450 | Gospel and R&B | Groove (3) | all 3 |
+| 451 | Air (Suite No. 3) | Part | Whole tune |
+| 452 | Bourrée in E minor | Part: melody and bass, each half (4) | all 4 |
+| 453 | The Entertainer | — | one loop at its tempo |
 
 ## Level 5
 
@@ -238,6 +245,7 @@ In all, 203 exercises have a main option and 45 have none (the eight exercises a
 | 546 | Schism study | Part: 5/8, 7/8 | both |
 | 547–550 | Song studies | Part | Whole tune |
 | 551 | False harmonics | Line: major scale, major pentatonic, major 7th arpeggio | all 3 |
+| 552–553 | Cello Suite No. 1 Prélude, Invention No. 4 | Part | Whole tune |
 
 ## Level 6
 

@@ -36,6 +36,7 @@ export const MAIN = {
   'hm-chord-formulas': 'family', 'hm-chord-tones': P80('prog'), 'hm-double-stops': 'type', 'gr-approach': 'style', 'gr-world': 'style',
   'gr-genres': 'style', 'gr-funk': 'style', 'wk-two-feel': P80('prog'), 'wk-chord-tones': P80('prog'), 'lk-rock-blues': P80('lick'),
   'sl-thumb-pop': 'style', 'gr-metal': 'style', 'gr-reggae': 'style', 'gr-world-grooves': 'style', 'mm-pressure': SONG, 'mm-jean': SONG, 'mm-together': SONG, 'mm-longview': SONG, 'mm-chain': SONG,
+  'tn-canon': SONG, 'tn-minuet': SONG, 'tn-musette': SONG,
   // Level 4
   'tech-harmonics': { by: 'set', only: ['all'] }, 'rh-groupings': 'group', 'rh-displacement': 'step', 'rh-odd-meters': 'meter',
   'rh-sparse-click': 'every', 'rd-keys': 'mode', 'iv-tenths': 'mode', 'iv-scale-octaves': 'scale', 'ear-progressions': 'set',
@@ -47,6 +48,7 @@ export const MAIN = {
   'arp-ii-v-i': 'type', 'arp-voice-led': P80('prog'), 'arp-guide-tones': 'prog', 'hm-minor-keys': 'prog', 'hm-shells': 'prog',
   'gr-soul': 'style', 'gr-odd-meters': 'meter', 'wk-approach': P80('prog'), 'wk-scalar': P80('prog'), 'wk-mixed': P80('prog'),
   'sl-grooves': 'style', 'sl-octaves-16': 'lick', 'gr-latin': 'style', 'gr-electronic': 'style', 'gr-gospel': 'style', 'mm-money': SONG, 'mm-criminal': SONG, 'mm-goodtimes': SONG, 'mm-flyaway': SONG,
+  'tn-air': SONG, 'tn-bourree': 'part',
   // Level 5
   'tech-permutations-across': ALL('perm', { pct: 0.8 }), 'tech-false-harmonics': 'line', 'tech-sweep': 'shape', 'rh-polyrhythm': 'ratio', 'iv-cycles': 'iv',
   'sc-bebop': 'type', 'sc-symmetric': 'type', 'sc-exotic': 'type', 'sc-pent-sidestep': 'side', 'sc-pent-double-stops': 'pattern',
@@ -57,7 +59,7 @@ export const MAIN = {
   'gr-funk-changes': 'style', 'wk-enclosures': P80('prog'), 'wk-two-per-bar': P80('prog'), 'wk-minor': 'prog', 'wk-triplet-skips': P80('prog'),
   'lk-ii-v-i': 'lick', 'lk-minor-ii-v-i': 'lick', 'lk-blues': 'lick', 'lk-turnarounds': 'lick', 'lk-bass-solo': 'lick', 'lk-motif': 'lick',
   'lk-implied': 'lick', 'sl-advanced': 'style', 'mm-schism': 'part', 'mm-cantstop': SONG, 'mm-hysteria': SONG, 'mm-duke': SONG,
-  'mm-whatsgoingon': SONG,
+  'mm-whatsgoingon': SONG, 'tn-prelude': SONG, 'tn-invention': SONG,
   // Level 6
   'tech-tapping': 'pattern', 'sc-odd-groupings': 'pattern', 'sc-alternating-all-keys': P80('type'), 'sc-messiaen': 'type',
   'md-altered-chord-scale': 'prog', 'tri-major-thirds': 'quality', 'tri-cycle-all-inversions': 'quality', 'tri-diatonic-all-keys': P80('scale'),

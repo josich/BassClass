@@ -57,9 +57,9 @@ export function proDetails() {
   }
   // the Library
   const pro = EXERCISES.filter((t) => t.level > FREE_LEVELS);
-  const songs = pro.filter((t) => t.module === 'music').length;
+  const songs = pro.filter((t) => t.module === 'music').length, tunes = pro.filter((t) => t.module === 'tunes').length;
   // ("most in every key": the rhythm drills and the song studies keep theirs, QA round 19)
-  out.push(head(`📚 Library Levels ${FREE_LEVELS + 1}–6: ${pro.length} more exercises (${songs} of them song-style studies, with their backing), most in every key, each with its own variations`));
+  out.push(head(`📚 Library Levels ${FREE_LEVELS + 1}–6: ${pro.length} more exercises (${songs} of them song-style studies and ${tunes} classic tunes, with their backing), most in every key, each with its own variations`));
   for (const L of LEVELS.filter((x) => x.n > FREE_LEVELS)) {
     const list = pro.filter((t) => t.level === L.n);
     const byTopic = new Map();
@@ -155,7 +155,7 @@ export function openPro(reason = '', { then, cancel } = {}) {
     body.replaceChildren(...[
       reason ? h('p', { class: 'pro-why' }, `🔒 ${reason}`) : null,
       h('ul', { class: 'pro-list' },
-        h('li', {}, `🎓 Levels ${FREE_LEVELS + 1}–6: ${c.les} more lessons and ${c.ex} more exercises (${c.songs} of them song-style studies)`),
+        h('li', {}, `🎓 Levels ${FREE_LEVELS + 1}–6: ${c.les} more lessons and ${c.ex} more exercises (${c.songs} of them song-style studies, ${c.tunes} classic tunes)`),
         ...proHighlights().map(([ico, text]) => h('li', {}, `${ico} ${text}`)),
         h('li', {}, `🎛 The whole Practice room: all ${c.styles} drum patterns and fills, every progression and drone chord, the Piano, Organ and Guitar sounds`),
         h('li', {}, '✨ The new content we add to them')),

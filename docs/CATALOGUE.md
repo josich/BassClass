@@ -1,6 +1,6 @@
 # BassClass exercise catalogue
 
-248 exercise families. Each runs in any key (or all 12 keys in a row) and has its own variations (patterns, inversions, scales, positions, rhythms), so the number of distinct drills runs into the thousands.
+260 exercise families. Each runs in any key (or all 12 keys in a row) and has its own variations (patterns, inversions, scales, positions, rhythms), so the number of distinct drills runs into the thousands.
 
 Generated from `web/js/curriculum/` (run `saveCatalogue()` from `js/selftest.js` to refresh). # = the exercise number shown in the app: its level, then two digits (305 = Level 3), kept for good (`curriculum/numbers.js`). ★ = core exercise.
 
@@ -35,6 +35,8 @@ _Open strings, first notes, steady pulse, first shapes._
 | 121 | With or Without You style | Make Music | Steady root 8ths through D – A – Bm – G, then a lift through each chord's triad. | Original line in the style of “With or Without You” (U2, 1987): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 122 | Zombie style | Make Music | Em – C – G – D: a heavy verse groove with a walk down, then pumping octaves in the chorus. | Original line in the style of “Zombie” (The Cranberries, 1994): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 123 | Smells Like Teen Spirit style | Make Music | F5 – B♭5 – A♭5 – D♭5: long, quiet notes in the verse, then loud root 8ths in the chorus. | Original line in the style of “Smells Like Teen Spirit” (Nirvana, 1991): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
+| 124 | When the Saints Go Marching In | Classic tunes | The spiritual every brass band plays: four notes up from C, then the famous long G. | Traditional (an African-American spiritual), public domain. The tune as it is usually sung, two octaves lower; the chords are the usual ones. |
+| 125 | Ode to Joy | Classic tunes | Beethoven's theme as the cellos and double basses first play it, alone, in the Ninth Symphony. | Public domain: Ludwig van Beethoven (1770–1827), Symphony No. 9 (1824), last movement, bars 92–107, the theme as the cellos and double basses play it, as written, at the double basses' pitch. The chords are a plain harmony of our own. |
 
 ### Level 2: Elementary
 
@@ -90,6 +92,8 @@ _Core shapes in every key, simple grooves, 8ths and triplets._
 | 246 | Feel Good Inc. style | Make Music | A laid-back minor riff that hops octaves and leaves holes, then a chorus that bounces off the root. | Original line in the style of “Feel Good Inc.” (Gorillaz, 2005): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 247 | Blitzkrieg Bop style | Make Music | Fast root 8ths through A, D and E, every note a down-stroke (Π) with a pick or one finger. | Original line in the style of “Blitzkrieg Bop” (Ramones, 1976): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 248 | Waltzes, 6/8 and 12/8: grooves in three | Grooves & Bass Lines | The country and jazz waltz in 3/4, a 6/8 ballad, and the Afro-Cuban and gospel 12/8. | Waltz, 6/8 and 12/8 feels; graded exams |
+| 249 | Amazing Grace | Classic tunes | The hymn in 3/4: long notes on beat 1, a two-note turn, and the climb to the high D. | Traditional: the hymn tune "New Britain" (USA, 1829), words by John Newton (1779); public domain. The tune as it is sung, two octaves lower, with the hymn's usual chords. |
+| 250 | Greensleeves | Classic tunes | The English ballad in 6/8 and G minor, with its lilting dotted rhythm. | Traditional (England, late 16th century), public domain. The tune as it is usually sung, two octaves lower; the chords are the usual ones. |
 
 ### Level 3: Intermediate
 
@@ -149,6 +153,9 @@ _Harmony on the neck: diatonic chords, sequences, positions._
 | 350 | Metal grooves: chugs, double kick, breakdowns and doom | Grooves & Bass Lines | With a pick: palm-muted chugs, 16ths with the double kick, a half-time breakdown, djent and doom. | Metal and hard-rock bass practice |
 | 351 | Reggae and ska: rockers, steppers, rocksteady and ska | Grooves & Bass Lines | Beyond the one drop: rockers 8ths, steppers under four on the floor, rocksteady and the fast walking of ska. | Reggae and ska bass practice |
 | 352 | World grooves: highlife, cumbia, soca and maqsum | Grooves & Bass Lines | West African highlife, Colombian cumbia, Caribbean soca and the Middle-Eastern maqsum. | Highlife, cumbia, soca and Middle-Eastern rhythms |
+| 353 | Canon in D | Classic tunes | The ground bass that never stops, then the first violin's lines over it, in quarters and 8ths. | Public domain: Johann Pachelbel (1653–1706), Canon in D for three violins and continuo. Bars 1–2 the ground bass as written; bars 3–10 the first violin, two octaves lower. |
+| 354 | Minuet in G | Classic tunes | The minuet from Anna Magdalena Bach's notebook: a dance in 3/4, up the G major scale and back. | Public domain: Christian Petzold (1677–1733), Minuet in G, BWV Anh. 114, from the Notebook for Anna Magdalena Bach (1725). The melody as written, two octaves lower. |
+| 355 | Musette in D | Classic tunes | The left hand of the Musette: octaves over a drone, as a bagpipe plays it. | Public domain: anonymous, Musette in D, BWV Anh. 126, from the Notebook for Anna Magdalena Bach (1725). The left hand as written. |
 
 ### Level 4: Upper-intermediate
 
@@ -206,6 +213,9 @@ _Inversions, voice leading, modes, walking, two octaves._
 | 448 | Latin grooves: songo, partido alto, baião and cha-cha-chá | Grooves & Bass Lines | Cuban songo and cha-cha-chá, Brazilian partido alto and baião. | Afro-Cuban and Brazilian bass grooves |
 | 449 | Hip-hop and electronic: boom bap, UK garage, drum & bass and trip-hop | Grooves & Bass Lines | Lines for the beats players jam to: laid-back boom bap, 2-step garage, half-time drum & bass, heavy trip-hop. | Hip-hop and electronic bass lines |
 | 450 | Gospel and R&B: walk-ups, the gospel shuffle and modern R&B | Grooves & Bass Lines | Walk up into every chord, shuffle in triplets, and syncopate with ghost notes over neo-soul changes. | Gospel and R&B bass practice |
+| 451 | Air (Orchestral Suite No. 3) | Classic tunes | The walking bass of Bach's Air: 8th notes stepping down the scale, every other one an octave apart. | Public domain: Johann Sebastian Bach (1685–1750), Air from the Orchestral Suite No. 3 in D, BWV 1068. The continuo as written, an octave under the cellos, as the double basses play it; the few notes under the low E string (D♯, D, C♯) go up an octave. The chords follow Bach's harmony. |
+| 452 | Bourrée in E minor | Classic tunes | Bach's two-voice dance for lute: the tune on top, a walking line beneath, both for the bass. | Public domain: Johann Sebastian Bach (1685–1750), Bourrée from the Suite in E minor for lute, BWV 996. The upper voice an octave lower, the lower voice as written. |
+| 453 | The Entertainer | Classic tunes | Joplin's rag, its first strain: the syncopated 16ths and the climb D – D♯ – E. | Public domain: Scott Joplin (1868–1917), The Entertainer (1902), the first strain with its first ending. The melody as written (the lower note of the right hand's octaves), two octaves lower. |
 
 ### Level 5: Advanced
 
@@ -264,6 +274,8 @@ _Approach notes, triad pairs, melodic minor, odd groupings._
 | 549 | Sir Duke style | Make Music | A fast 8th-note line in B major with chromatic passing notes, played like a horn section, plus a groove part. | Original line in the style of “Sir Duke” (Stevie Wonder, 1976): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 550 | What's Going On style | Make Music | A syncopated, chromatic line through Emaj7 – C♯m7 – F♯m7 – B7, then the same chords with ghosted triplets. | Original line in the style of “What's Going On” (Marvin Gaye, 1971): its key, feel and technique, at a practice tempo. Not a transcription: the notes are our own. Not affiliated with or endorsed by the artist or the song's owners. |
 | 551 | False harmonics: fret, touch 12 frets higher, pluck | Technique & Rudiments | Artificial harmonics on fretted notes: the thumb touches the string 12 frets above the fretted note, the index plucks behind it. | Artificial harmonics in the style of Jaco Pastorius |
+| 552 | Cello Suite No. 1: Prélude | Classic tunes | The opening of Bach's first cello suite: broken chords in 16ths over the open G. | Public domain: Johann Sebastian Bach (1685–1750), Suite No. 1 in G for solo cello, BWV 1007, Prélude, bars 1–10. As written, an octave under the cello. |
+| 553 | Invention No. 4 in D minor | Classic tunes | The lower voice of Bach's D minor Invention: the subject in 16ths, then a sequence down the key. | Public domain: Johann Sebastian Bach (1685–1750), Invention No. 4 in D minor, BWV 775 (1723), the lower voice of bars 3–16, an octave lower. |
 
 ### Level 6: Mastery
 
@@ -593,3 +605,18 @@ _All keys, all inversions, Coltrane changes, pro-level stamina._
 - **622 · Teen Town style** (L6, `mm-teentown`): Part: Run / Chromatic line / Whole tune
 - **623 · Classical Thump style** (L6, `mm-thump`): Part: Motion in 8ths / Double thumb 16ths / Whole tune
 - **624 · Anesthesia (Pulling Teeth) style** (L6, `mm-solo-piece`): Part: Arpeggios / Theme / Tremolo build / Finale / Whole tune
+
+### Classic tunes
+
+- **124 · When the Saints Go Marching In** (L1, `tn-saints`): no options
+- **125 · Ode to Joy** (L1, `tn-ode`): no options
+- **249 · Amazing Grace** (L2, `tn-grace`): no options
+- **250 · Greensleeves** (L2, `tn-greensleeves`): no options
+- **353 · Canon in D** (L3, `tn-canon`): Part: Ground bass / Violin, bars 3–6 / Violin, bars 7–10 / Whole tune
+- **354 · Minuet in G** (L3, `tn-minuet`): Part: First half / Second half / Whole tune
+- **355 · Musette in D** (L3, `tn-musette`): Part: First half / Second half / Whole tune
+- **451 · Air (Orchestral Suite No. 3)** (L4, `tn-air`): Part: First half / Second half / Whole tune
+- **452 · Bourrée in E minor** (L4, `tn-bourree`): Part: Melody, first half / Melody, second half / Bass, first half / Bass, second half
+- **453 · The Entertainer** (L4, `tn-entertainer`): no options
+- **552 · Cello Suite No. 1: Prélude** (L5, `tn-prelude`): Part: Bars 1–4 / Bars 5–10 / Whole tune
+- **553 · Invention No. 4 in D minor** (L5, `tn-invention`): Part: Bars 3–10 / Bars 11–16 / Whole tune

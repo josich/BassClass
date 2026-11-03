@@ -185,7 +185,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   const goalText = () => (LS?.goal ? `goal ${LS.goal} BPM${LS.sub ? ` in ${SUB_NAMES[LS.sub]}` : ''}` : 'one full round');
   const subtitle = L
     ? `${lessonName} · ${demo ? 'demo: listen and watch' : `step ${LI + 1}/${L.steps.length} · ${goalText()}`}`
-    : `${mod?.name ?? ''}${tpl.song ? ' · our own line in its style, not the record\'s' : ''} · Level ${tpl.level} ${lvl ? lvl.name : ''}${preview ? ' · Pro preview' : ''}`;
+    : `${mod?.name ?? ''}${tpl.song ? ' · our own line in its style, not the record\'s' : ''}${tpl.tune ? ` · ${tpl.tune.who}` : ''} · Level ${tpl.level} ${lvl ? lvl.name : ''}${preview ? ' · Pro preview' : ''}`;
   // a tap on the title shows where the exercise lives: a lesson's step its lesson on the course map (user,
   // 2026-11-02), anything else its card in the Library, at its level (user, 2026-10-29); either highlighted a moment
   const where = L ? 'the course map' : 'the Library';
@@ -1629,7 +1629,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     if (isMastered(tpl.id)) return ' · <b style="color:var(--good)">🏅 mastered</b>';
     const c = clearedCount(tpl.id), m = mainOf(tpl.id);
     if (m?.game) return ` · 🎯 to master it: 8 of 10 in each mode (${c.done} of ${c.need} cleared)`;
-    const v = choiceOf(tpl.id, p), how = `a full loop at ${esc(masteryGoal(tpl.id, v))}, then ✓ Cleared`;
+    const v = choiceOf(tpl.id, p), how = `${goalOf(tpl.id, v) ? `a full loop at ${esc(masteryGoal(tpl.id, v))}` : 'one full loop'}, then ✓ Cleared`;
     // (each choice has its own goal: the line names the one playing, QA round 23)
     if (c.of < 2) return ` · 🎯 to master it: ${how}`;
     return ` · 🎯 to clear ${esc(choiceName(tpl.id, v) || 'this choice')}: ${how} (each choice has its own 🎯; ${c.done} of ${c.need} cleared for 🏅)`;

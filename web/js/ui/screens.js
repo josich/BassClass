@@ -48,6 +48,8 @@ function card(t, { level = true, topic = true, core = true } = {}) {
     // (a song study names its inspiration on its card, and says behind ⓘ that the line is ours: user, 2026-10-29, "make
     // them honest"; 2026-10-30, "Inspired by" on the card, the longer explanation in ⓘ)
     t.song ? h('div', { class: 'card-note' }, `Inspired by: “${t.song.name}” (${t.song.artist})`) : null,
+    // (a classic tune names its composer: user, 2026-11-03)
+    t.tune ? h('div', { class: 'card-note' }, `${t.tune.by}${t.tune.year ? `, ${t.tune.year}` : ''}`) : null,
     // the title says what it is; the description opens on request
     h('div', { class: 'meta' },
       newChip(isNew(`ex:${t.id}`)),
@@ -354,7 +356,7 @@ export function libraryScreen(main, params = {}) {
     // (a number with no exercise of its own, a year such as 1991, is searched as text)
     const list = lnum ? [] : num && byNumber.has(Number(num[1])) ? [byNumber.get(Number(num[1]))] : EXERCISES.filter((t) => {
       if (!keep(t)) return false;
-      const song = t.song ? `${t.song.name} ${t.song.artist} ${t.song.year}` : '';
+      const song = t.song ? `${t.song.name} ${t.song.artist} ${t.song.year}` : t.tune ? `${t.tune.by} ${t.tune.year || ''}` : '';
       return found(norm(`${t.title} ${t.summary} ${t.about} ${t.module} ${moduleOf(t.module)?.name || ''} ${song} ${optionText(t)}`));
     }).sort((a, b) => hit(a.title, a.summary) - hit(b.title, b.summary) || a.order - b.order);
     // the course's lessons too, by number or by their words (QA round 21: "do lesson 3.15" is how teachers say it);

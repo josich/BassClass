@@ -216,5 +216,5 @@ export function proContents(EXERCISES, LESSONS) {
   const ex = EXERCISES.filter((t) => !t.free && (t.pro || t.level > FREE_LEVELS));
   // (lessons as the map counts them, the optional ones apart: QA round 19)
   const les = LESSONS.filter((l) => l.kind === 'lesson' && !l.free && (l.pro || l.stage?.level > FREE_LEVELS));
-  return { ex: ex.length, songs: ex.filter((t) => t.module === 'music').length, les: les.filter((l) => !l.optional).length, optional: les.filter((l) => l.optional).length, styles: Object.keys(STYLES).length };
+  return { ex: ex.length, songs: ex.filter((t) => t.module === 'music').length, tunes: ex.filter((t) => t.module === 'tunes').length, les: les.filter((l) => !l.optional).length, optional: les.filter((l) => l.optional).length, styles: Object.keys(STYLES).length };
 }
