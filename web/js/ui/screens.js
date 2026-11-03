@@ -399,9 +399,11 @@ export function libraryScreen(main, params = {}) {
 }
 
 // ---------------------------------------------------------------- settings
-// (Audio delay's button reads "↻ Again" once a test has run, until the app starts again; user, 2026-11-03)
+// (Audio delay's button reads "↻ Again" once a test has run, until the player leaves Settings: a new visit says
+// Measure again; the screen drawn again in place, `keep`, keeps it; user, 2026-11-03)
 let delayMeasured = false;
-export function settingsScreen(main) {
+export function settingsScreen(main, { keep = false } = {}) {
+  if (!keep) delayMeasured = false;
   const S = settings;
   const seg = (key, opts, after) => {
     const el = h('div', { class: 'seg' });
@@ -531,7 +533,7 @@ export function settingsScreen(main) {
       toast(err.message || 'This file could not be read', 3000);
     }
   } });
-  const rerender = () => { const y = main.scrollTop; settingsScreen(main); main.scrollTop = y; };
+  const rerender = () => { const y = main.scrollTop; settingsScreen(main, { keep: true }); main.scrollTop = y; };
   main.replaceChildren(
     h('div', { class: 'page-head' }, h('h1', {}, 'Settings')),
     ...[devPanel(rerender)].filter(Boolean),
