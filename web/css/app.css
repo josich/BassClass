@@ -86,8 +86,21 @@ h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -0.01em; }
 .delay-x { border: 0; background: transparent; color: var(--muted); cursor: pointer; padding: 0 2px; font-size: 13px; }
 .delay-x:hover { color: var(--text); }
 .delay-test p { margin: 0; }
-.delay-tap { min-height: 64px; font-size: 16px; touch-action: manipulation; }
-.delay-tap.hit { filter: brightness(1.3); transform: scale(0.98); }
+.delay-tap { position: relative; overflow: visible; min-height: 64px; font-size: 16px; touch-action: manipulation; display: flex; align-items: center; justify-content: center; gap: 10px; }
+/* the speaker's waves pulse on their own slow rhythm (1.3 s), never with the clicks: the sound leads the taps */
+.delay-spk { display: grid; }
+.delay-spk svg { width: 28px; height: 28px; }
+.delay-spk .w { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; opacity: 0.2; animation: delay-wave 1.3s ease-in-out infinite; }
+.delay-spk .w2 { animation-delay: 0.22s; }
+.delay-spk .w3 { animation-delay: 0.44s; }
+@keyframes delay-wave { 0%, 100% { opacity: 0.18; } 45% { opacity: 1; } }
+/* a ring spreading from each tap, where the finger touched */
+.delay-ring { position: absolute; width: 36px; height: 36px; margin: -18px 0 0 -18px; border: 2px solid var(--accent); border-radius: 50%; pointer-events: none; animation: delay-ring 0.65s ease-out forwards; }
+@keyframes delay-ring { from { transform: scale(0.5); opacity: 0.95; } to { transform: scale(4.5); opacity: 0; } }
+.delay-dots { display: flex; gap: 7px; justify-content: center; }
+.delay-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--panel-3); transition: background 0.1s; }
+.delay-dots i.on { background: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .delay-spk .w { animation: none; opacity: 0.8; } .delay-ring { animation-duration: 0.01s; } }
 /* (the result stands where the pad was: a late tap lands on it, nothing to press) */
 .delay-result { min-height: 64px; display: flex; align-items: center; padding: 6px 10px; border-radius: 10px; background: var(--panel-2); }
 .band-vol { display: flex; align-items: center; gap: 12px; }

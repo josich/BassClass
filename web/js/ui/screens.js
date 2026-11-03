@@ -453,15 +453,23 @@ export function settingsScreen(main, { keep = false } = {}) {
         const clicks = Array.from({ length: 12 }, (_, i) => t0 + i);
         clicks.forEach((t, i) => A.click(t, i % 4 === 0 ? 2 : 1));
         const taps = [];
+        // what it shows (user, 2026-11-03: "a visual feedback to show the beat is sounding"): a speaker whose waves pulse
+        // on a slow rhythm of their own, never with the clicks (the player would tap with the picture, which comes
+        // before the late sound, and measure nothing), a ring spreading from each tap, and a dot lit for each tap
+        const spk = h('span', { class: 'delay-spk', 'aria-hidden': 'true', html: '<svg viewBox="0 0 32 32"><path d="M5 12h5l7-6v20l-7-6H5z" fill="currentColor"/><path class="w w1" d="M21 12.5a5 5 0 0 1 0 7" /><path class="w w2" d="M23.8 9.5a9.5 9.5 0 0 1 0 13" /><path class="w w3" d="M26.6 6.5a14 14 0 0 1 0 19" /></svg>' });
+        const dots = h('div', { class: 'delay-dots', 'aria-hidden': 'true' }, Array.from({ length: 8 }, () => h('i')));
         const pad = h('button', { class: 'btn primary delay-tap', type: 'button', 'data-silent': '', onPointerdown: (e) => {
           e.preventDefault();
           taps.push(A.now());
-          pad.classList.add('hit');
-          setTimeout(() => pad.classList.remove('hit'), 90);
-        } }, '👆 Tap with each click');
+          const r = pad.getBoundingClientRect();
+          const ring = h('span', { class: 'delay-ring', style: { left: `${e.clientX - r.left}px`, top: `${e.clientY - r.top}px` } });
+          pad.append(ring);
+          setTimeout(() => ring.remove(), 700);
+          dots.children[Math.min(7, taps.length - 1)]?.classList.add('on');
+        } }, spk, h('span', {}, 'Tap with each click'));
         box.hidden = false;
         const hint = h('p', { class: 'muted small' }, 'Listen to 4 clicks, then tap with each click you hear: 8 taps.');
-        box.replaceChildren(hint, pad);
+        box.replaceChildren(hint, pad, dots);
         setTimeout(() => {
           running = false;
           delayMeasured = true;
