@@ -88,6 +88,8 @@ h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -0.01em; }
 .delay-test p { margin: 0; }
 .delay-tap { min-height: 64px; font-size: 16px; touch-action: manipulation; }
 .delay-tap.hit { filter: brightness(1.3); transform: scale(0.98); }
+/* (the result stands where the pad was: a late tap lands on it, nothing to press) */
+.delay-result { min-height: 64px; display: flex; align-items: center; padding: 6px 10px; border-radius: 10px; background: var(--panel-2); }
 .band-vol { display: flex; align-items: center; gap: 12px; }
 .band-vol input { flex: 1; min-width: 0; }
 .band-vol output { min-width: 40px; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }

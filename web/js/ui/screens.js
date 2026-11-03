@@ -399,6 +399,8 @@ export function libraryScreen(main, params = {}) {
 }
 
 // ---------------------------------------------------------------- settings
+// (Audio delay's button reads "↻ Again" once a test has run, until the app starts again; user, 2026-11-03)
+let delayMeasured = false;
 export function settingsScreen(main) {
   const S = settings;
   const seg = (key, opts, after) => {
@@ -436,9 +438,14 @@ export function settingsScreen(main) {
       };
       slider.addEventListener('input', () => set(Number(slider.value)));
       const box = h('div', { class: 'delay-test', hidden: true });
+      // (one button starts the test, then reads "↻ Again"; it sleeps while a test runs, above the pad, away from the finger)
+      const label = () => (delayMeasured ? '↻ Again' : '🎧 Measure');
+      const measureBtn = h('button', { class: 'btn small', type: 'button', onClick: () => measure() }, label());
       const measure = () => {
         if (running) return;
         running = true;
+        measureBtn.disabled = true;
+        measureBtn.textContent = 'Measuring…';
         A.audioCtx();
         const t0 = A.now() + 0.8;
         const clicks = Array.from({ length: 12 }, (_, i) => t0 + i);
@@ -451,9 +458,13 @@ export function settingsScreen(main) {
           setTimeout(() => pad.classList.remove('hit'), 90);
         } }, '👆 Tap with each click');
         box.hidden = false;
-        box.replaceChildren(h('p', { class: 'muted small' }, 'Listen to 4 clicks, then tap with each click you hear: 8 taps.'), pad);
+        const hint = h('p', { class: 'muted small' }, 'Listen to 4 clicks, then tap with each click you hear: 8 taps.');
+        box.replaceChildren(hint, pad);
         setTimeout(() => {
           running = false;
+          delayMeasured = true;
+          measureBtn.disabled = false;
+          measureBtn.textContent = label();
           if (!box.isConnected) return;
           // each tap against the last click before it (the first four find the pulse)
           const offs = [];
@@ -461,20 +472,22 @@ export function settingsScreen(main) {
             const c = clicks.slice(4).filter((x) => x <= t + 0.15).pop();
             if (c != null && t - c <= 0.6) offs.push(t - c);
           }
-          const again = h('button', { class: 'btn small', type: 'button', onClick: measure }, '↻ Again');
-          if (offs.length < 5) { box.replaceChildren(h('p', {}, 'Not enough taps to measure: one tap with each click you hear.'), again); return; }
+          // (the result takes the pad's place, nothing to press there: a tap more after the last click does nothing,
+          // and Measure above starts the test again; user, 2026-11-03)
+          const result = (text) => box.replaceChildren(h('p', { class: 'delay-result' }, text));
+          if (offs.length < 5) { result('Not enough taps to measure: one tap with each click you hear.'); return; }
           // (the middle half of the taps, averaged: a stray early or late tap does not move it)
           offs.sort((a, b) => a - b);
           const mid = offs.slice(Math.floor(offs.length / 4), Math.ceil((offs.length * 3) / 4));
           const ms = Math.max(0, Math.min(400, Math.round((mid.reduce((x, y) => x + y, 0) / mid.length) * 100) * 10));
           set(ms);
-          box.replaceChildren(h('p', {}, ms ? `✓ ${outputName(o)}: the sound reaches you ${ms} ms late. The dots and lights now wait as long, whenever it plays.` : `✓ ${outputName(o)}: no delay, the sound and the dots are together.`), again);
+          result(ms ? `✓ ${outputName(o)}: the sound reaches you ${ms} ms late. The dots and lights now wait as long, whenever it plays.` : `✓ ${outputName(o)}: no delay, the sound and the dots are together.`);
         }, (clicks[11] - A.now() + 1) * 1000);
       };
       const others = keptDelays().filter((d) => d.key !== key);
       wrap.replaceChildren(...[
         h('p', { class: 'delay-now' }, `${outputIcon(o)} ${outputName(o)}${o.kind === 'browser' ? ': one delay for every device' : ': playing now'}`),
-        h('div', { class: 'range-row' }, slider, out, h('button', { class: 'btn small', type: 'button', onClick: measure }, '🎧 Measure')),
+        h('div', { class: 'range-row' }, slider, out, measureBtn),
         box,
         others.length ? h('div', { class: 'delay-kept' }, h('span', { class: 'muted small' }, 'Kept:'), ...others.map((d) => h('span', { class: 'chip delay-chip' }, `${d.icon} ${d.name} · ${d.ms} ms`,
           h('button', { class: 'delay-x', type: 'button', title: `Forget ${d.name}`, 'aria-label': `Forget ${d.name}`, onClick: () => { forgetDelay(d.key); draw(); } }, '✕')))) : null,
