@@ -27,7 +27,8 @@ export const DEFAULT_SETTINGS = {
   bandSounds: {},          // … its chords' sound the player chose, per exercise (else its style's: band.js styleSound)
   bandVol: 80,             // … its volume, 0-100% (80: the drums at the room's default, the chords at the Backing's)
   bandHint: false,         // … the first time it plays, a tip says how to get the click back
-  audioDelay: 0,           // ms the sound arrives late (Bluetooth): the dots and lights wait as long (user, 2026-11-03)
+  audioDelays: {},         // ms the sound arrives late, per device ("bluetooth:Galaxy Buds2": 180; output.js): the dots wait as long
+  delayAsked: [],          // … the Bluetooth devices the app has offered the test for (once each)
   bandStyles: {},          // … the drum pattern the player chose, per exercise and style ("gr-roots:rock8": "pop8")
   score: 'tab',            // 'tab' | 'staff': the strip under the neck
   libOpen: null,           // the Library levels left open (null: only the player's own level)
@@ -59,7 +60,9 @@ const SETTING_RULES = {
     && Object.entries(v).every(([k, x]) => k.length <= 80 && ['pad', 'epiano', 'piano', 'organ', 'guitar', 'arp'].includes(x)),
   bandVol: numIn(0, 100),
   bandHint: isBool,
-  audioDelay: numIn(0, 500),
+  audioDelays: (v) => !!v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length <= 50
+    && Object.entries(v).every(([k, x]) => k.length <= 80 && Number.isInteger(x) && x >= 0 && x <= 500),
+  delayAsked: (v) => Array.isArray(v) && v.length <= 30 && v.every((k) => typeof k === 'string' && k.length <= 80),
   bandStyles: (v) => !!v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length <= 500
     && Object.entries(v).every(([k, x]) => k.length <= 80 && typeof x === 'string' && /^[a-z0-9]{1,30}$/.test(x)),
   score: oneOf(['tab', 'staff']),

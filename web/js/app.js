@@ -4,6 +4,7 @@ import { h, icon, toast, guardSliders } from './ui/dom.js';
 import { byId, byNumber } from './curriculum/index.js';
 import { renderExercise } from './ui/exercise.js';
 import { loadBank, setAudioOptions, tapTick } from './audio.js';
+import { onOutput, needsMeasure, markAsked, outputName } from './output.js';
 import { settings } from './store.js';
 import { tunerScreen } from './ui/tuner.js';
 import { practiceScreen } from './ui/practice.js';
@@ -248,7 +249,15 @@ document.addEventListener('click', (e) => {
   setTimeout(() => { if (settings.tapSounds) tapTick(); }, 0);
 }, true);
 // saved sound settings apply everywhere (Neck, tuner reference notes), not only in exercises
-setAudioOptions({ bassVol: settings.bassVol, clickVol: settings.clickVol, visualDelay: settings.audioDelay / 1000 });
+setAudioOptions({ bassVol: settings.bassVol, clickVol: settings.clickVol });
+// a Bluetooth device with no delay measured yet: the app offers the test once (Settings → Audio delay; output.js)
+const offerMeasure = () => {
+  if (!needsMeasure()) return;
+  markAsked();
+  toast(`🎧 ${outputName()} plays the sound a little late. Settings → Audio delay → Measure, once for this device`, 6000);
+};
+onOutput(offerMeasure);
+setTimeout(offerMeasure, 1500);
 // fetch the recorded bass samples in the background (decoded on first sound)
 loadBank();
 

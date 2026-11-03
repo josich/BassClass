@@ -3,6 +3,7 @@ import { VERSION, COMMIT } from '../version.js';
 import { h, icon, toast, rng, esc, infoBtn } from './dom.js';
 import { settings, saveSettings, getProgress, resetProgress, DEFAULT_SETTINGS, getFavorites, isFavorite } from '../store.js';
 import { EXERCISES, MODULES, LEVELS, byModule, byLevel, moduleOf, byId, byNumber, defaultParams, topicRank as rank } from '../curriculum/index.js';
+import { output, onOutput, outputName, outputIcon, delayFor, keptDelays, setDelay, forgetDelay, applyDelay } from '../output.js';
 import * as A from '../audio.js';
 import { paramOptions } from './exercise.js';
 import { starButton, dragToReorder } from './favorites.js';
@@ -417,56 +418,72 @@ export function settingsScreen(main) {
     });
     return h('div', { class: 'range-row' }, el, pct);
   };
-  // Audio delay (user, 2026-11-03: the review's Bluetooth delay): a slider, and a test that sets it from taps on the
-  // clicks heard (60 BPM, 4 clicks to find the pulse, then 8 to tap with, each tap against its click)
+  // Audio delay, kept per device (user, 2026-11-03: the review's Bluetooth delay, then "build the per-device memory with
+  // the calibration method"; output.js): the device playing now with its delay, a slider and a test that sets it from
+  // taps on the clicks heard (60 BPM, 4 clicks to find the pulse, then 8 to tap with, each tap against its click), and
+  // the other devices kept, each with ✕ to forget it
   const audioDelay = () => {
-    const out = h('b', { class: 'pct' }, `${S.audioDelay} ms`);
-    const slider = h('input', { type: 'range', min: 0, max: 400, step: 10, value: S.audioDelay, 'aria-label': 'Audio delay' });
-    const set = (ms) => {
-      saveSettings({ audioDelay: ms });
-      slider.value = ms;
-      out.textContent = `${ms} ms`;
-      A.setAudioOptions({ visualDelay: ms / 1000 });
-    };
-    slider.addEventListener('input', () => set(Number(slider.value)));
-    const box = h('div', { class: 'delay-test', hidden: true });
+    const wrap = h('div', { class: 'delay-field' });
     let running = false;
-    const measure = () => {
-      if (running) return;
-      running = true;
-      A.audioCtx();
-      const t0 = A.now() + 0.8;
-      const clicks = Array.from({ length: 12 }, (_, i) => t0 + i);
-      clicks.forEach((t, i) => A.click(t, i % 4 === 0 ? 2 : 1));
-      const taps = [];
-      const pad = h('button', { class: 'btn primary delay-tap', type: 'button', 'data-silent': '', onPointerdown: (e) => {
-        e.preventDefault();
-        taps.push(A.now());
-        pad.classList.add('hit');
-        setTimeout(() => pad.classList.remove('hit'), 90);
-      } }, '👆 Tap with each click');
-      box.hidden = false;
-      box.replaceChildren(h('p', { class: 'muted small' }, 'Listen to 4 clicks, then tap with each click you hear: 8 taps.'), pad);
-      setTimeout(() => {
-        running = false;
-        if (!box.isConnected) return;
-        // each tap against the last click before it (the first four find the pulse)
-        const offs = [];
-        for (const t of taps) {
-          const c = clicks.slice(4).filter((x) => x <= t + 0.15).pop();
-          if (c != null && t - c <= 0.6) offs.push(t - c);
-        }
-        const again = h('button', { class: 'btn small', type: 'button', onClick: measure }, '↻ Again');
-        if (offs.length < 5) { box.replaceChildren(h('p', {}, 'Not enough taps to measure: one tap with each click you hear.'), again); return; }
-        // (the middle half of the taps, averaged: a stray early or late tap does not move it)
-        offs.sort((a, b) => a - b);
-        const mid = offs.slice(Math.floor(offs.length / 4), Math.ceil((offs.length * 3) / 4));
-        const ms = Math.max(0, Math.min(400, Math.round((mid.reduce((x, y) => x + y, 0) / mid.length) * 100) * 10));
-        set(ms);
-        box.replaceChildren(h('p', {}, ms ? `✓ The sound reaches you ${ms} ms late: the dots and lights now wait as long.` : '✓ No delay: the sound and the dots are together.'), again);
-      }, (clicks[11] - A.now() + 1) * 1000);
+    const draw = () => {
+      const o = output(), key = o.key;
+      const out = h('b', { class: 'pct' }, `${delayFor(key)} ms`);
+      const slider = h('input', { type: 'range', min: 0, max: 400, step: 10, value: delayFor(key), 'aria-label': `Audio delay of ${outputName(o)}` });
+      const set = (ms) => {
+        setDelay(ms, key);
+        slider.value = ms;
+        out.textContent = `${ms} ms`;
+      };
+      slider.addEventListener('input', () => set(Number(slider.value)));
+      const box = h('div', { class: 'delay-test', hidden: true });
+      const measure = () => {
+        if (running) return;
+        running = true;
+        A.audioCtx();
+        const t0 = A.now() + 0.8;
+        const clicks = Array.from({ length: 12 }, (_, i) => t0 + i);
+        clicks.forEach((t, i) => A.click(t, i % 4 === 0 ? 2 : 1));
+        const taps = [];
+        const pad = h('button', { class: 'btn primary delay-tap', type: 'button', 'data-silent': '', onPointerdown: (e) => {
+          e.preventDefault();
+          taps.push(A.now());
+          pad.classList.add('hit');
+          setTimeout(() => pad.classList.remove('hit'), 90);
+        } }, '👆 Tap with each click');
+        box.hidden = false;
+        box.replaceChildren(h('p', { class: 'muted small' }, 'Listen to 4 clicks, then tap with each click you hear: 8 taps.'), pad);
+        setTimeout(() => {
+          running = false;
+          if (!box.isConnected) return;
+          // each tap against the last click before it (the first four find the pulse)
+          const offs = [];
+          for (const t of taps) {
+            const c = clicks.slice(4).filter((x) => x <= t + 0.15).pop();
+            if (c != null && t - c <= 0.6) offs.push(t - c);
+          }
+          const again = h('button', { class: 'btn small', type: 'button', onClick: measure }, '↻ Again');
+          if (offs.length < 5) { box.replaceChildren(h('p', {}, 'Not enough taps to measure: one tap with each click you hear.'), again); return; }
+          // (the middle half of the taps, averaged: a stray early or late tap does not move it)
+          offs.sort((a, b) => a - b);
+          const mid = offs.slice(Math.floor(offs.length / 4), Math.ceil((offs.length * 3) / 4));
+          const ms = Math.max(0, Math.min(400, Math.round((mid.reduce((x, y) => x + y, 0) / mid.length) * 100) * 10));
+          set(ms);
+          box.replaceChildren(h('p', {}, ms ? `✓ ${outputName(o)}: the sound reaches you ${ms} ms late. The dots and lights now wait as long, whenever it plays.` : `✓ ${outputName(o)}: no delay, the sound and the dots are together.`), again);
+        }, (clicks[11] - A.now() + 1) * 1000);
+      };
+      const others = keptDelays().filter((d) => d.key !== key);
+      wrap.replaceChildren(...[
+        h('p', { class: 'delay-now' }, `${outputIcon(o)} ${outputName(o)}${o.kind === 'browser' ? ': one delay for every device' : ': playing now'}`),
+        h('div', { class: 'range-row' }, slider, out, h('button', { class: 'btn small', type: 'button', onClick: measure }, '🎧 Measure')),
+        box,
+        others.length ? h('div', { class: 'delay-kept' }, h('span', { class: 'muted small' }, 'Kept:'), ...others.map((d) => h('span', { class: 'chip delay-chip' }, `${d.icon} ${d.name} · ${d.ms} ms`,
+          h('button', { class: 'delay-x', type: 'button', title: `Forget ${d.name}`, 'aria-label': `Forget ${d.name}`, onClick: () => { forgetDelay(d.key); draw(); } }, '✕')))) : null,
+      ].filter(Boolean));
     };
-    return h('div', {}, h('div', { class: 'range-row' }, slider, out, h('button', { class: 'btn small', type: 'button', onClick: measure }, '🎧 Measure')), box);
+    draw();
+    // (another device starts playing while Settings is open: its own delay shows)
+    const off = onOutput(() => { if (!wrap.isConnected) { off(); return; } if (!running) draw(); });
+    return wrap;
   };
   const field = (label, control, hint) => h('div', { class: 'field' }, h('div', { class: 'field-head' }, h('label', {}, label), hint ? infoBtn(hint, `About ${label.charAt(0).toLowerCase()}${label.slice(1)}`) : null), control);
   // backup: one file with everything stored; loading one replaces this device's records, then reloads
@@ -515,7 +532,7 @@ export function settingsScreen(main) {
       field('Bass volume', range('bassVol', 0, 2, 0.1, 2)),
       field('Metronome volume', range('clickVol', 0, 1.5, 0.075, 1.5)),
       field('Tap sounds', seg('tapSounds', [[true, 'On'], [false, 'Off']])),
-      field('Audio delay', audioDelay(), ['🎧 Bluetooth headphones and speakers play the sound late: the dots light before you hear the note', '👆 Measure: tap with each click you hear, and the dots and lights wait as long', '🎚 Or set it by hand', '🔌 Wired headphones or the phone speaker: 0 ms']),
+      field('Audio delay', audioDelay(), ['🎧 Bluetooth headphones and speakers play the sound late: the dots light before you hear the note', '👆 Measure: tap with each click you hear, and the dots and lights wait as long', '🔁 Each device keeps its own delay, back whenever it plays (in the Android app; a browser keeps one for all)', '🔌 Wired headphones and the phone speaker: 0 ms']),
       field('Backup', h('div', { class: 'row' },
         h('button', { class: 'btn', onClick: save }, '💾 Save a backup'),
         h('button', { class: 'btn', onClick: () => fileIn.click() }, '📂 Load a backup'), fileIn),
@@ -524,7 +541,8 @@ export function settingsScreen(main) {
         h('button', { class: 'btn', onClick: () => { if (confirm('Reset all progress, the course and the practice log included?')) { resetProgress(); resetCourse(); resetLog(); toast('Progress reset'); } } }, 'Reset progress'),
         h('button', { class: 'btn', onClick: () => {
           saveSettings({ ...DEFAULT_SETTINGS });
-          A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol, visualDelay: S.audioDelay / 1000 });
+          A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol });
+          applyDelay();
           settingsScreen(main);
           toast('Settings restored');
         } }, 'Restore defaults'))),

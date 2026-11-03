@@ -34,6 +34,7 @@ import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import com.google.android.play.core.review.ReviewManagerFactory
+import org.json.JSONObject
 
 /**
  * Hosts the BassClass web app (packaged from ../../web as assets) in a
@@ -70,6 +71,39 @@ class MainActivity : Activity() {
         return if (external) "external" else "speaker"
     }
 
+    /**
+     * The device playing media now, for the web app's audio delay kept per device (web/js/output.js; user, 2026-11-03):
+     * its kind (bluetooth, wired, usb, speaker, other) and its name ("Galaxy Buds2"), as JSON.
+     */
+    private fun audioOutput(): String {
+        var dev: AudioDeviceInfo? = null
+        // Android 13+: the device that actually plays media now
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val media = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build()
+            dev = try { audio.getAudioDevicesForAttributes(media).firstOrNull() } catch (e: Exception) { null }
+        }
+        // older Android: a Bluetooth output first, then any other external one, else the phone's speaker
+        if (dev == null) {
+            val outs = audio.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+            dev = outs.firstOrNull { it.type in BLUETOOTH_OUTPUTS }
+                ?: outs.firstOrNull { it.type in EXTERNAL_OUTPUTS }
+                ?: outs.firstOrNull { it.type in BUILTIN_SPEAKERS }
+        }
+        val t = dev?.type ?: -1
+        val kind = when {
+            dev == null || t in BUILTIN_SPEAKERS -> "speaker"
+            t in BLUETOOTH_OUTPUTS -> "bluetooth"
+            t == AudioDeviceInfo.TYPE_WIRED_HEADSET || t == AudioDeviceInfo.TYPE_WIRED_HEADPHONES -> "wired"
+            t == AudioDeviceInfo.TYPE_USB_DEVICE || t == AudioDeviceInfo.TYPE_USB_ACCESSORY || t == AudioDeviceInfo.TYPE_USB_HEADSET -> "usb"
+            else -> "other"
+        }
+        val name = dev?.productName?.toString()?.trim() ?: ""
+        return JSONObject().put("kind", kind).put("name", name).toString()
+    }
+
     /** Tells the web app when headphones or a speaker are connected or disconnected. */
     private val routeCallback = object : AudioDeviceCallback() {
         override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) = routeChanged()
@@ -86,6 +120,8 @@ class MainActivity : Activity() {
     private fun pushRoute() {
         if (!::web.isInitialized) return
         web.evaluateJavascript("window.dispatchEvent(new CustomEvent('bassclass-route',{detail:'${audioRoute()}'}))", null)
+        // (and which device it is, as a JSON string: its audio delay is kept per device)
+        web.evaluateJavascript("window.dispatchEvent(new CustomEvent('bassclass-output',{detail:${JSONObject.quote(audioOutput())}}))", null)
     }
 
     /** Runs a line of JavaScript in the page (on the main thread). */
@@ -100,6 +136,10 @@ class MainActivity : Activity() {
     private inner class NativeBridge : StoreBridge(this@MainActivity, { js -> this@MainActivity.runJs(js) }) {
         @JavascriptInterface
         fun audioRoute(): String = this@MainActivity.audioRoute()
+
+        /** The device playing media, as JSON { kind, name } (web/js/output.js). */
+        @JavascriptInterface
+        fun audioOutput(): String = this@MainActivity.audioOutput()
 
         /** Settings → Save a backup (web/js/backup.js): Android's "Save to" picker; the answer comes back as a 'bassclass-saved' event. */
         @JavascriptInterface
@@ -403,6 +443,8 @@ class MainActivity : Activity() {
 
         /** Outputs that can play real bass: headphones, headsets, Bluetooth and USB audio, line out, HDMI. */
         val BUILTIN_SPEAKERS = setOf(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER, 24 /* TYPE_BUILTIN_SPEAKER_SAFE, API 30 */)
+        /** Bluetooth outputs for media: classic A2DP and LE Audio headsets and speakers (their sound comes late). */
+        val BLUETOOTH_OUTPUTS = setOf(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP, AudioDeviceInfo.TYPE_BLE_HEADSET, AudioDeviceInfo.TYPE_BLE_SPEAKER, 30 /* TYPE_BLE_BROADCAST, API 33 */)
         val EXTERNAL_OUTPUTS = setOf(
             AudioDeviceInfo.TYPE_WIRED_HEADSET,
             AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
