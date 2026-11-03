@@ -45,7 +45,7 @@ export const MODULES = [
   { id: 'licks', name: 'Licks', icon: '🎷', desc: 'Rock and blues licks, then jazz vocabulary: ii–V–I, minor, blues, bebop, modern, bass solos, motifs, implied changes.' },
   { id: 'slap', name: 'Slap & Pop', icon: '👍', desc: 'Thumb, pop, hammer, ghost notes, double thumb.' },
   { id: 'music', name: 'Make Music', icon: '🎵', desc: 'Original lines in the style of famous songs, from the first riff to a whole bass solo.' },
-  { id: 'tunes', name: 'Classic tunes', icon: '🎻', desc: 'Melodies everyone knows, from folk songs to Beethoven, Bach and Joplin, played as written: free of copyright, the composer named.' },
+  { id: 'tunes', name: 'Classic tunes', icon: '🎻', desc: 'Tunes and bass parts everyone knows, from folk songs to Beethoven, Bach and Joplin, from the composers\' own notes, an octave or two lower where a bass needs it: free of copyright, the composer named.' },
 ];
 
 const ALL = [...fretboard, ...reading, ...READ_GAMES, ...technique, ...rhythm, ...intervals, ...ear, ...EAR_GAMES, ...scales, ...pentatonics, ...modes, ...triads, ...arpeggios, ...harmony, ...THEORY_GAMES, ...grooves, ...licks, ...rock, ...songs, ...tunes];

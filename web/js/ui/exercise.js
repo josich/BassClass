@@ -182,7 +182,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     h('span', { class: 'opts-txt' }, h('small', {}, 'Options · tap to change'), optsSum)) : h('div', { class: 'grow' });
   const sheet = h('div', { class: 'sheet', onClick: (e) => { if (e.target === sheet) closeOptions(); } });
   const lessonName = L ? (L.kind === 'lesson' ? `Lesson ${L.num}` : L.kind === 'check' ? L.title : 'Stage test') : '';
-  const goalText = () => (LS?.goal ? `goal ${LS.goal} BPM${LS.sub ? ` in ${SUB_NAMES[LS.sub]}` : ''}` : 'one full round');
+  const goalText = () => (LS?.goal ? `goal ${LS.goal} BPM${LS.sub ? ` in ${SUB_NAMES[LS.sub]}` : ''}` : TAP ? '8 of 10 passes' : 'one full round');
   const subtitle = L
     ? `${lessonName} · ${demo ? 'demo: listen and watch' : `step ${LI + 1}/${L.steps.length} · ${goalText()}`}`
     : `${mod?.name ?? ''}${tpl.song ? ' · our own line in its style, not the record\'s' : ''}${tpl.tune ? ` · ${tpl.tune.who}` : ''} · Level ${tpl.level} ${lvl ? lvl.name : ''}${preview ? ' · Pro preview' : ''}`;
@@ -552,6 +552,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
 
   // the exercise's whole count of notes (a preview plays its first bar, but says how long the exercise is)
   const total = () => (stripInst || inst).steps.length;
+  const noteCount = () => (stripInst || inst).steps.filter((s) => !s.rest && s.notes?.length).length;
   function showStep(i) {
     if (TAP) { tapShow(i < 0 ? -1 : askOf(i)); return; }
     cur = i;
@@ -561,7 +562,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       fb.setDots([]);
       tab.setCurrent(i);
       const k = Math.max(0, i);
-      nowEl.innerHTML = `${chordAt[k] ? `<span class="chord">${esc(chordAt[k])}</span>` : ''}${textAt[k] ? `<span class="txt">${esc(textAt[k])}</span>` : ''}<span class="cnt">${i < 0 ? `ready · ${total()} notes` : `${i + 1}/${total()}`}</span>`;
+      nowEl.innerHTML = `${chordAt[k] ? `<span class="chord">${esc(chordAt[k])}</span>` : ''}${textAt[k] ? `<span class="txt">${esc(textAt[k])}</span>` : ''}<span class="cnt">${i < 0 ? `ready · ${noteCount()} notes` : `${i + 1}/${total()}`}</span>`;
       promptEl.innerHTML = '';
       return;
     }
@@ -575,7 +576,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     if (i < 0) {
       if (reveal === 'full') for (let j = 0; j <= (segEnd[0] ?? 0); j++) if (!steps[j].silent) for (const n of steps[j].notes) put(n, 'future');
       if (reveal !== 'quiz') for (const n of steps[0].notes) put(n, 'next');
-      nowEl.innerHTML = chordAt[0] ? `<span class="chord">${esc(chordAt[0])}</span>${textAt[0] ? `<span class="txt">${esc(textAt[0])}</span>` : ''}<span class="cnt">ready · ${total()} notes</span>` : `<span class="cnt">ready · ${total()} notes</span>`;
+      nowEl.innerHTML = chordAt[0] ? `<span class="chord">${esc(chordAt[0])}</span>${textAt[0] ? `<span class="txt">${esc(textAt[0])}</span>` : ''}<span class="cnt">ready · ${noteCount()} notes</span>` : `<span class="cnt">ready · ${noteCount()} notes</span>`;
       promptEl.innerHTML = reveal === 'quiz' ? promptHtml(0) : '';
       fb.setDots([...map.values()]);
       tab.setCurrent(-1);
@@ -1001,7 +1002,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       ? `<p>Demo: the app plays it once at the goal tempo. Watch the neck and listen, then tap ${routine ? 'Next' : 'Practise'}.</p>`
       : `<p>Step ${LI + 1} of ${L.steps.length}${LS.do ? `: ${esc(LS.do)}` : ''}</p><p class="muted small">${LS.goal
         ? `Goal: a full loop from the first note at ${LS.goal} BPM or faster${LS.sub ? ` in ${SUB_NAMES[LS.sub]}` : ''}. Then tick ✓ Cleared if it really was clean: every note in time, even and clear.`
-        : 'Goal: one full round from the first note. Then tick ✓ if you named (or sang) every answer before it appeared.'}</p>`;
+        : TAP ? 'Goal: a set of 10 with 8 or more right. The step ticks itself.' : 'Goal: one full round from the first note. Then tick ✓ if you named (or sang) every answer before it appeared.'}</p>`;
     return `<div class="les-step-box"><b>${esc(lessonName)} · ${esc(L.title)}</b>${step}</div>
       ${L.idea ? `<p class="les-idea">${esc(L.idea)}</p>` : ''}
       ${(L.concept || []).map((para) => `<p>${esc(para)}</p>`).join('')}
@@ -1022,7 +1023,12 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         <div class="row" style="margin-bottom:10px"><span class="chip lv lv${tpl.level}">Level ${tpl.level} · ${esc(lvl?.name ?? '')}</span><span class="chip">${esc(mod?.name ?? '')}</span></div>
         ${(tpl.about || '').split('\n\n').map((para) => `<p>${esc(para)}</p>`).join('')}
         ${tpl.tips?.length ? `<h4>Focus points</h4><ul>${tpl.tips.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
-        <h4>How to practise it</h4>
+        ${TAP ? `<h4>How it works</h4>
+        <ul>
+          <li>▶ starts a set of 10 questions: tap each answer on the neck, in any octave unless the question names a place.</li>
+          <li>‹ › look back over the answers given; a wrong one shows where the note was.</li>
+          <li>${tpl.game || TAP_DRILL?.kind === 'ear' ? '8 right clears the choice you are playing' : 'The score is yours to beat; the exercise is cleared in play mode'}${TAP_DRILL && !lesson ? ' · 👆 beside › switches to play mode, the rounds played along' : ''}.</li>
+        </ul>` : `<h4>How to practise it</h4>
         <ul>
           <li>Step through it first with ◀ ▶ and say each note or degree out loud.</li>
           <li>Loop it at a tempo where it is effortless (about 60–70% of your limit). Raise 4 BPM after 3 clean loops, or switch on the speed trainer.</li>
@@ -1030,7 +1036,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         </ul>
         <h4>Colours</h4>
         <div class="legend">${legend.map(([k, n, c]) => `<span><i style="background:${c}${k === 'root' ? ';border-radius:3px' : ''}"></i>${n}</span>`).join('')}</div>
-        <p class="muted small" style="margin-top:8px">A dot labelled → is an approach note: a passing note that leads into the next chord tone.</p>
+        <p class="muted small" style="margin-top:8px">A dot labelled → is an approach note: a passing note that leads into the next chord tone.</p>`}
         ${tpl.source ? `<h4>Related</h4><p class="muted small">${esc(tpl.source)}</p>` : ''}
         <h4>Your progress</h4>
         <p class="muted">${pr.plays ? `${pr.plays} loops played · best ${pr.bestBpm || '–'} BPM` : 'Not played yet.'}${masteryLine()}</p>
@@ -1390,7 +1396,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   function decorateStaff(root = tabEl) {
     const list = asks(), kind = inst?.tap?.kind;
     // (a note-finding drill writes its answers on the staff: no empty staff before the first, QA round 23)
-    tabEl.classList.toggle('tap-empty', (kind === 'find' || kind === 'theory') && !tapRes.some(Boolean));
+    tabEl.classList.toggle('tap-empty', kind !== 'read' && !tapRes.some(Boolean));
     const at = tapAt < 0 ? -1 : tapAt >= list.length ? Infinity : list[tapAt].i;
     const index = new Map(list.map((a, j) => [a.i, j]));
     for (const g of root.querySelectorAll('.sn[data-i]')) {
@@ -1521,7 +1527,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         { s, f, label: tapName(spellMidi(midi)), color: 'sixth', state: 'static', fx: 'miss' },
         ...places.map((q) => ({ s: q.s, f: q.f, label: name, color: 'none', state: 'current' })),
       ]);
-      promptEl.innerHTML = `${tapVerdict(ask, tapRes[tapAt])}${places.length > 1 && !a.all ? ` · here on ${places.length} strings` : ''}`;
+      promptEl.innerHTML = `${tapVerdict(ask, tapRes[tapAt])}${places.length > 1 && !a.all ? ` · here in ${places.length} places` : ''}`;
       // (the right note sounds: a name's lowest place)
       const right = a.midi ?? (places[0] ? ctx.tuning[places[0].s] + places[0].f : a.show);
       tapSounds.push(setTimeout(() => A.playNote(right, A.now() + 0.01, 1.1, 0.85), 450));
@@ -1558,15 +1564,18 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     const total = asks().length, score = tapScore();
     const pr = getProgress(tpl.id) || {};
     const game = !!tpl.game;
+    // (an ear drill in tap mode scores as a game does: 8 of 10 clears the choice played; QA round 24)
+    const scored = game || TAP_DRILL?.kind === 'ear';
     const record = game && (pr.best == null || score > pr.best);
     if (!preview) updateProgress(tpl.id, { plays: (pr.plays || 0) + 1, ...(game ? { best: Math.max(pr.best ?? 0, score) } : {}), ...keep() });
     const v = choiceOf(tpl.id, p), was = isCleared(tpl.id, v), wasM = isMastered(tpl.id);
-    if (game && !lesson && !preview) recordGame(tpl.id, v, score, total);
+    if (scored && !lesson && !preview) recordGame(tpl.id, v, score, total);
+    // (a set played through counts for today's session, a Library row too: QA round 24)
+    if (!demo && !preview && (!lesson || presetOk())) routine?.played?.();
     // a lesson step played in tap mode (a game, an ear drill): 8 of 10 passes it and ticks it, the score being the
     // proof (user, 2026-11-03); a set played through counts for today's session
     let stepNews = null;
     if (lesson && !demo && !preview && presetOk()) {
-      routine?.played?.();
       if (score / total >= 0.8) {
         const was = stepClean(L, LI);
         recordLoop(L, LI, 0);
@@ -1579,9 +1588,12 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       syncGoal();
     }
     const c = clearedCount(tpl.id);
-    const news = stepNews ?? (!game ? null : !wasM && isMastered(tpl.id) ? '🏅 Mastered: every mode cleared'
-      : !was && isCleared(tpl.id, v) ? `✓ ${choiceName(tpl.id, v)} cleared · ${c.done} of ${c.need} modes`
-        : isCleared(tpl.id, v) ? null : `8 of 10 clears ${choiceName(tpl.id, v)}`);
+    // (a choice that does not count for 🏅, a drill's easier set, says which does)
+    const counts = choicesOf(tpl.id).includes(String(v));
+    const news = stepNews ?? (!scored ? null : !wasM && isMastered(tpl.id) ? `🏅 Mastered${game ? ': every mode cleared' : ''}`
+      : !counts ? `🏅 asks for 8 of 10 on ${choicesOf(tpl.id).map((x) => choiceName(tpl.id, x)).join(', ')}`
+        : !was && isCleared(tpl.id, v) ? `✓ ${choiceName(tpl.id, v) || 'Cleared'}${c.need > 1 ? ` cleared · ${c.done} of ${c.need}` : ''}`
+          : isCleared(tpl.id, v) ? null : `8 of 10 clears ${choiceName(tpl.id, v) || 'it'}`);
     const stars = score >= total ? '★★★' : score >= total - 2 ? '★★☆' : score >= total / 2 ? '★☆☆' : '☆☆☆';
     // (a game: the next choice of the first option, a harder set, when there is one)
     const [k0, def0] = Object.entries(tpl.params || {})[0] || [];
@@ -1595,7 +1607,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       news ? h('p', { class: 'game-news' }, news) : null,
       h('div', { class: 'row' },
         h('button', { class: 'btn primary', onClick: () => tapStart() }, '↻ Again'),
-        harder && score >= total - 2 ? h('button', { class: 'btn', onClick: () => { p[k0] = harder[0]; renderParams(); if (!lesson && !preview) updateProgress(tpl.id, keep()); tapStart(); } }, `Harder: ${harder[1]}`) : null,
+        harder && !lesson && score >= total - 2 ? h('button', { class: 'btn', onClick: () => { p[k0] = harder[0]; renderParams(); if (!lesson && !preview) updateProgress(tpl.id, keep()); tapStart(); } }, `Harder: ${harder[1]}`) : null,
         h('button', { class: 'btn', onClick: () => { tapEndEl.hidden = true; tapShow(total - 1); } }, '‹ Look back'))));
     tapEndEl.hidden = false;
   }

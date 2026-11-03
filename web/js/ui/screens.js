@@ -351,6 +351,9 @@ export function libraryScreen(main, params = {}) {
     const found = (hay) => words.every((w) => alts(w).some((a) => hay.includes(a)));
     // (what the title says comes first, then the line under it, then the texts: QA round 22, "plectrum" listed
     // Plucking with two fingers before Playing with a pick)
+    // (a tune's composer and an exercise's topic rank with its title: "Bach" lists Bach's own pieces first, "classic"
+    // the Classic tunes; QA round 24)
+    const head = (t) => `${t.title} ${t.tune ? t.tune.by : ''} ${moduleOf(t.module)?.name || ''}`;
     const hit = (title, sub) => (words.length && found(norm(title || '')) ? 0 : words.length && found(norm(`${title || ''} ${sub || ''}`)) ? 1 : 2);
     const keep = (t) => (!st.level || t.level === st.level) && st.filters.every((i) => STATUS[i][2](t, getProgress(t.id) || {}));
     // (a number with no exercise of its own, a year such as 1991, is searched as text)
@@ -358,7 +361,7 @@ export function libraryScreen(main, params = {}) {
       if (!keep(t)) return false;
       const song = t.song ? `${t.song.name} ${t.song.artist} ${t.song.year}` : t.tune ? `${t.tune.by} ${t.tune.year || ''}` : '';
       return found(norm(`${t.title} ${t.summary} ${t.about} ${t.module} ${moduleOf(t.module)?.name || ''} ${song} ${optionText(t)}`));
-    }).sort((a, b) => hit(a.title, a.summary) - hit(b.title, b.summary) || a.order - b.order);
+    }).sort((a, b) => hit(head(a), a.summary) - hit(head(b), b.summary) || a.order - b.order);
     // the course's lessons too, by number or by their words (QA round 21: "do lesson 3.15" is how teachers say it);
     // a status word is about exercises, so it lists none, and a level keeps its stage's
     const lessons = lnum ? LESSONS.filter((l) => l.num === lnum[1]) : num || st.filters.length || !words.length ? []
@@ -453,7 +456,7 @@ export function settingsScreen(main, { keep = false } = {}) {
         A.audioCtx();
         const t0 = A.now() + 0.8;
         const clicks = Array.from({ length: 12 }, (_, i) => t0 + i);
-        clicks.forEach((t, i) => A.click(t, i % 4 === 0 ? 2 : 1));
+        clicks.forEach((t, i) => A.click(t, i % 4 === 0 ? 2 : 1, true));
         const taps = [];
         // what it shows (user, 2026-11-03: "a visual feedback to show the beat is sounding"): a speaker whose waves pulse
         // on a slow rhythm of their own, never with the clicks (the player would tap with the picture, which comes
@@ -467,7 +470,8 @@ export function settingsScreen(main, { keep = false } = {}) {
           const ring = h('span', { class: 'delay-ring', style: { left: `${e.clientX - r.left}px`, top: `${e.clientY - r.top}px` } });
           pad.append(ring);
           setTimeout(() => ring.remove(), 700);
-          dots.children[Math.min(7, taps.length - 1)]?.classList.add('on');
+          const counted = taps.filter((t) => t >= clicks[4] - 0.5).length;
+          if (counted) dots.children[Math.min(7, counted - 1)]?.classList.add('on');
         } }, spk, h('span', {}, 'Tap with each click'));
         box.hidden = false;
         const hint = h('p', { class: 'muted small' }, 'Listen to 4 clicks, then tap with each click you hear: 8 taps.');

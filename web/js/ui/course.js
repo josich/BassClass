@@ -48,6 +48,8 @@ export function reviewStep(l) {
 }
 /** The step "Hear it" plays: the first one with a tempo goal (none: the lesson is an ear lesson). */
 const demoStep = (l) => l.steps.findIndex((s) => s.goal);
+/** A step that plays in tap mode (a game, an ear drill): a set of 10, 8 right passes it. */
+const tapStep = (s) => { const t = byId.get(s.ex); return !!t?.game || t?.tap?.kind === 'ear'; };
 
 // ---------------------------------------------------------------- today's session
 // A teacher's plan for the day at the player's level, about five minutes an exercise: two warm-ups
@@ -502,7 +504,7 @@ export function lessonScreen(main, id) {
     const t = byId.get(s.ex);
     const clean = stepClean(l, i), passed = stepPassed(l, i);
     // the essentials only: the Library number and the goal (the step's text is the exercise's tip)
-    const tempo = `#${t.num} · ${s.goal ? `🎯 ${s.goal} BPM${s.sub ? ` in ${SUB_NAMES[s.sub]}` : ''}` : 'one full round'}${s.dots === 'hide' ? ' · no dots, from memory' : ''}`;
+    const tempo = `#${t.num} · ${s.goal ? `🎯 ${s.goal} BPM${s.sub ? ` in ${SUB_NAMES[s.sub]}` : ''}` : tapStep(s) ? '👆 8 of 10' : 'one full round'}${s.dots === 'hide' ? ' · no dots, from memory' : ''}`;
     // a tick can be taken back, after a question (user, 2026-10-29); a step the Library ticks (its exercise mastered,
     // or its choice cleared: QA round 23) says so, and its untick takes that back too
     const by = clean ? stepCoveredBy(l, i) : null, name = by && choiceName(s.ex, choiceOf(s.ex, s.p));
@@ -539,10 +541,12 @@ export function lessonScreen(main, id) {
   const canInfo = l.kind === 'check'
     ? ['🎯 Each step at its goal tempo, cleanly', '✓ Tick only what you can really do', '↩ Shaky? Back to its lesson: nothing is locked']
     : ['🎯 The whole stage: each step at its goal tempo', '✓ Then tick what you can now do'];
-  const stepsInfo = [l.steps.some((s) => s.goal)
-    ? '🎯 One full loop from the first note at the goal tempo, then ✓ Cleared'
-    : '👂 One full round, then ✓ if you named every answer first',
-  ...(l.kind === 'lesson' && demoAt < 0 ? ['An ear lesson: no demo, the rounds play before their answers'] : [])];
+  // (a game's or an ear drill's step plays in tap mode: a set of 10, 8 right passes and ticks it; QA round 24)
+  const stepsInfo = [
+    ...(l.steps.some((s) => s.goal) ? ['🎯 One full loop from the first note at the goal tempo, then ✓ Cleared'] : []),
+    ...(l.steps.some((s) => !s.goal && tapStep(s)) ? ['👆 Tap steps: a set of 10, 8 right passes and ticks the step'] : []),
+    ...(l.steps.some((s) => !s.goal && !tapStep(s)) ? ['👂 One full round, then ✓ if you named every answer first'] : []),
+    ...(l.kind === 'lesson' && demoAt < 0 ? ['No demo here: the rounds play themselves'] : [])];
   main.replaceChildren(
     h('div', { class: 'page-head les-head' },
       h('button', { class: 'icon-btn', 'aria-label': 'Back', html: icon('back'), onClick: () => back('#/course') }),

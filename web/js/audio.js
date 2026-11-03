@@ -3,6 +3,7 @@
 import { midiToFreq } from './theory.js';
 
 let ac = null;
+let testClickBus;
 let bassBus, bassVolume, clickBus, fullPath, phonePath, padBus, padTone, padRaw, drumBus, drumVolume, accompIn;
 const PAD_LEVEL = 0.38;   // the pad's level at volume 1 (the Practice room's harmony can set its own)
 const ACCOMP_THRESHOLD = -3.0;   // dB: the accompaniment's limiter (see audioCtx)
@@ -173,6 +174,9 @@ export function audioCtx() {
     const clickAlign = ac.createDelay(0.05);
     clickAlign.delayTime.value = ALIGN.click;
     clickBus.connect(clickAlign).connect(last);
+    // (the audio-delay test's clicks: heard even with the metronome's volume at 0, at its default level at least)
+    testClickBus = ac.createGain();
+    testClickBus.connect(clickAlign);
 
     // backing pad (drone or chords): soft, warm and after the limiter, so it never ducks the bass
     padBus = ac.createGain();
@@ -461,9 +465,10 @@ function harmonicVoice(midi, when, dur, vel) {
 }
 
 /** Schedule a metronome click. level: 2 = bar accent, 1.5 = a group's start (odd metres), 1 = beat, 0 = subdivision. */
-export function click(when = now(), level = 1) {
+export function click(when = now(), level = 1, test = false) {
   audioCtx();
-  if (opts.recClick) return recClick(when, level);
+  if (opts.recClick && !test) return recClick(when, level);
+  if (test) testClickBus.gain.value = Math.max(opts.clickVol, 0.75) * CLICK_TOP;
   const o = ac.createOscillator();
   const g = ac.createGain();
   o.type = 'sine';
@@ -473,7 +478,7 @@ export function click(when = now(), level = 1) {
   g.gain.linearRampToValueAtTime(v, when + 0.001);
   // (the beat's clicks ring 90 ms: louder for the same peak; a subdivision's stay short, under the beat)
   g.gain.exponentialRampToValueAtTime(0.0001, when + (level === 0 ? 0.03 : 0.09));
-  o.connect(g).connect(clickBus);
+  o.connect(g).connect(test ? testClickBus : clickBus);
   o.start(when);
   o.stop(when + 0.11);
   return g;   // (disconnected, a click not yet sounded is cancelled)

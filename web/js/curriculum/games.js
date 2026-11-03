@@ -288,7 +288,7 @@ const theoryChords = ex({
   tips: ['Count up the letters first (E♭ F G: the 3rd is a G), then fix the sharp or flat from the chord\'s quality.', 'A 7th chord\'s 7th: a whole step under the root an octave up (♭7), or a half step (maj7).', 'Any octave counts: tap the place nearest your hand.'],
   source: 'Original game. Naming chord tones and the notes of a key is the core of every harmony syllabus.',
   params: {
-    ask: sel('Ask', [['triads', 'Triads: the 3rd or the 5th'], ['sevenths', '7th chords: the 3rd, 5th or 7th'], ['degrees', 'Major keys: the 2nd to the 7th note']]),
+    ask: sel('Ask', [['degrees', 'Major keys: the 2nd to the 7th note'], ['triads', 'Triads: the 3rd or the 5th'], ['sevenths', '7th chords: the 3rd, 5th or 7th']]),
   },
   label: 'note',
   game: {
@@ -300,17 +300,17 @@ const theoryChords = ex({
           const d = 2 + Math.floor(rand() * 6);
           const n = T.up(root, String(d));
           const key = `${nm(root, S)} major`;
-          return theoryAsk(`the <b>${ORD[d]}</b> note of ${key}`, n, String(d), `the ${ORD[d]} note of ${key}`, 'A note of a major key', ctx);
+          return theoryAsk(`the <b>${ORD[d]}</b> note of <b>${key}</b>`, n, String(d), `the ${ORD[d]} note of ${key}`, 'A note of a major key', ctx);
         });
       }
-      const types = p.ask === 'sevenths' ? ['maj7', 'dom7', 'min7', 'm7b5'] : ['maj', 'min', 'dim', 'aug'];
+      const types = p.ask === 'sevenths' ? ['maj7', 'dom7', 'min7', 'm7b5'] : ['maj', 'maj', 'maj', 'min', 'min', 'min', 'dim', 'aug'];
       return plainly(() => {
         const type = pick(rand, types);
         const ivs = T.CHORDS[type].iv;
-        const root = T.bestRoot(Math.floor(rand() * 12), ivs);
+        const root = T.bestRoot(Math.floor(rand() * 12), ivs.slice(0, 3));
         const iv = pick(rand, ivs.slice(1));
         const n = T.up(root, iv), name = chordName(root, type, S);
-        return theoryAsk(`the <b>${TONE_WORD(iv)}</b> of ${name}`, n, T.fmtDeg(iv), `the ${TONE_WORD(iv)} of ${name}`, p.ask === 'sevenths' ? 'A tone of a 7th chord' : 'A tone of a triad', ctx);
+        return theoryAsk(`the <b>${TONE_WORD(iv)}</b> of <b>${name}</b>`, n, T.fmtDeg(iv), `the ${TONE_WORD(iv)} of ${name}`, p.ask === 'sevenths' ? 'A tone of a 7th chord' : 'A tone of a triad', ctx);
       });
     },
   },
@@ -348,7 +348,7 @@ const theoryHarmony = ex({
         const flats = rand() < 0.5, k = Math.floor(rand() * 7);
         const n = T.N((flats ? FLAT_KEYS : SHARP_KEYS)[mode][k]);
         const sig = k === 0 ? 'no sharps or flats' : `${WORD[k]} ${flats ? 'flat' : 'sharp'}${k > 1 ? 's' : ''}`;
-        return theoryAsk(`the <b>${mode}</b> key with ${sig}`, n, '', `${nm(n, S)} ${mode}: ${sig}`, 'A key by its signature', ctx);
+        return theoryAsk(`the tonic of the <b>${mode}</b> key with <b>${sig}</b>`, n, '', `${nm(n, S)} ${mode}: ${sig}`, 'A key by its signature', ctx);
       }
       if (p.ask === 'numerals') {
         return plainly(() => {
@@ -356,24 +356,27 @@ const theoryHarmony = ex({
           const tonic = T.bestRoot(Math.floor(rand() * 12), mode === 'minor' ? ['1', 'b3', '5'] : ['1', '3', '5']);
           const [num, iv] = pick(rand, NUMERALS[mode]);
           const n = T.up(tonic, iv), key = `${nm(tonic, S)} ${mode}`;
-          return theoryAsk(`the root of <b>${num}</b> in ${key}`, n, num, `${num} in ${key}`, 'A chord of the key by its numeral', ctx);
+          return theoryAsk(`the root of <b>${num}</b> in <b>${key}</b>`, n, num, `${num} in ${key}`, 'A chord of the key by its numeral', ctx);
         });
       }
       if (p.ask === 'extensions') {
         return plainly(() => {
           const [type, iv] = pick(rand, EXTENDED);
-          const root = T.bestRoot(Math.floor(rand() * 12), T.CHORDS[type].iv);
+          // (named by the chord's triad, as a lead sheet names it: G♯m13, never A♭m13; QA round 24)
+          const root = T.bestRoot(Math.floor(rand() * 12), T.CHORDS[type].iv.slice(0, 3));
           const n = T.up(root, iv), name = chordName(root, type, S);
-          return theoryAsk(`the <b>${iv}th</b> of ${name}`, n, iv, `the ${iv}th of ${name}`, 'An extension', ctx);
+          return theoryAsk(`the <b>${iv}th</b> of <b>${name}</b>`, n, iv, `the ${iv}th of ${name}`, 'An extension', ctx);
         });
       }
       // an altered tone of a dominant, written plainly (the jazz rule: A♭7's ♭9 is A)
       const root = T.bestRoot(Math.floor(rand() * 12), T.CHORDS.dom7.iv);
       const [word, iv] = pick(rand, ALTERED);
       let n = T.up(root, iv);
+      // (the ♯9 as the licks write it: whichever of ♯2 and ♭3 reads more easily, B♭ over G7, B over A♭7; QA round 24)
+      if (iv === '#9') { const b3 = T.up(root, 'b3'); if (Math.abs(b3.a) <= Math.abs(n.a) && !odd(b3)) n = b3; }
       if (odd(n)) n = spellMidi(T.pc(n), iv.startsWith('b'));
       const name = chordName(root, 'dom7', S);
-      return theoryAsk(`the <b>${word}</b> of ${name}`, n, word, `the ${word} of ${name}`, 'An altered tone of a dominant', ctx);
+      return theoryAsk(`the <b>${word}</b> of <b>${name}</b>`, n, word, `the ${word} of ${name}`, 'An altered tone of a dominant', ctx);
     },
   },
   build(p, ctx, S) { return sampleLine(this.game, p, ctx, S); },

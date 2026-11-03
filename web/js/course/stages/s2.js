@@ -290,7 +290,7 @@ export default {
         },
         {
           id: 'interval-ear', title: 'Hear the interval',
-          idea: 'Sing the second note before it sounds.',
+          idea: 'Sing the second note back before you tap it.',
           concept: [
             'The root sounds and shows on the neck, then a second note above it. Sing it back, then tap where it is: a right answer grows on the neck, a wrong one shows where it was and plays it again.',
             'Begin with 3rds, 4ths, 5ths and the octave: they are the intervals bass lines use most.',
@@ -300,7 +300,7 @@ export default {
             { ex: 'game-ear-intervals', p: { set: 'all', dir: 'up' }, do: 'Every interval within the octave.' },
           ],
           mistakes: [
-            'Guessing from the fret. Close your eyes and listen first.',
+            'Tapping before you have sung it back. The voice finds the interval first, the hand follows.',
           ],
         },
       ],

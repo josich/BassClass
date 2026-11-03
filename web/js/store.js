@@ -74,7 +74,7 @@ const SETTING_RULES = {
   v: numIn(1, 99),
 };
 export const SUB_VALUES = [0.25, 0.5, 1, 2, 3, 4, 5, 6];
-export const LABEL_VALUES = ['note', 'degree', 'finger', 'none'];
+export const LABEL_VALUES = ['note', 'degree', 'finger', 'none', 'hide'];
 
 function read(key) {
   try {

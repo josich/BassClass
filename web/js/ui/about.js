@@ -66,7 +66,7 @@ export function aboutScreen(main) {
       p('CC0 1.0: the authors have dedicated these works to the public domain. Full text: creativecommons.org/publicdomain/zero/1.0/legalcode')),
 
     section('🎼 The content', false,
-      p('The exercises, lessons, licks, grooves, drum patterns and progressions were written for BassClass. The song-style studies are original lines in the style of famous songs: they keep a song\'s key, feel and technique; they are not transcriptions, and the notes are our own. The classic tunes are works free of copyright (traditional tunes, and composers long dead), played as their composers wrote them, each with its composer named.'),
+      p('The exercises, lessons, licks, grooves, drum patterns and progressions were written for BassClass. The song-style studies are original lines in the style of famous songs: they keep a song\'s key, feel and technique; they are not transcriptions, and the notes are our own. The classic tunes are works free of copyright (traditional tunes, and composers long dead), from their composers\' own notes, an octave or two lower where a bass needs it, each with its composer named.'),
       p('Songs, artists, players, books, methods and exam syllabi named in the app (an exercise\'s "Related" line, a study\'s source) are mentioned for reference only, as related listening and reading. BassClass is not affiliated with or endorsed by them, and their names and trademarks belong to their owners.'),
       p('BassClass has no tracking, no ads and no third-party web code or fonts: all of its code was written for BassClass. The Android app uses a few libraries (below).')),
 

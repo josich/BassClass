@@ -370,7 +370,10 @@ const minorFamily = variant(sequences, {
   about: 'Harmonic minor raises the 7th of natural minor, creating the exotic augmented 2nd (♭6 → 7) and a strong pull to the root. Melodic minor also raises the 6th: it sounds like major with a ♭3. Jazz players keep it the same going up and coming down (the jazz minor, the parent of the altered and Lydian dominant scales); in classical music it is melodic going up and natural minor coming down, where the raised notes have nowhere to lead (the classical form). Both appear in RSL, LCM and conservatory programmes from the intermediate grades.',
   tips: ['Harmonic minor: feel the augmented 2nd (♭6 → 7) as a three-fret gap.', 'Melodic minor, jazz: the same going up and coming down. Classical: the 6th and 7th raised going up, ♭7 and ♭6 coming down.'],
   source: 'Harmonic and melodic minor in graded exams and conservatory programmes',
-  defaults: { type: 'harmonicMinor', pattern: 'g3' }, only: { type: ['harmonicMinor', 'melodicMinor', 'melodicClassical', 'aeolian'] },
+  // (its own Scale option: the classical form is not among the sequences' scales, so filtering them dropped it; QA
+  // round 24)
+  params: { type: typeP(['harmonicMinor', 'melodicMinor', 'melodicClassical', 'aeolian']) },
+  defaults: { type: 'harmonicMinor', pattern: 'g3' },
 });
 
 const pentPositions = variant(positions, {

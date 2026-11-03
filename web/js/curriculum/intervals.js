@@ -238,7 +238,8 @@ const cycles = ex({
 const earQuiz = ex({
   id: 'iv-ear-quiz', module: M, level: 2,
   title: 'Interval quiz: hear it, name it, find it',
-  summary: 'Random intervals from a root. Sing and find the second note before it appears.',
+  short: 'Interval quiz',
+  summary: 'Random intervals from a root: tap the second note on the neck (👆: or sing and find it as the rounds play).',
   about: 'The root plays, then the interval note. In Quiz mode the next note\'s name shows in the corner and its dot only appears when it sounds. Try to sing it, name the interval and play it before it appears. A new random set is generated every time you open the exercise or change a setting.',
   tips: ['Sing or name the second note before it sounds, then check yourself with the dots.', 'Start with only 3rds, 4ths and 5ths in mind, then add the rest.'],
   source: 'Aural tests in graded exams; interval ear training',

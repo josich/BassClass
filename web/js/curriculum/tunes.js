@@ -17,7 +17,9 @@ const s16 = (list) => list.trim().split(/\s+/).map((x) => (x === '|' || x.includ
  * A tune: its parts (name, chords, notes; `hide`: only in the whole tune, never on its own), the whole tune's order of
  * parts (`form`), its key and mode (the key signature, and which notes are outside the key), its metre (`ts`, `bpb`
  * beats to the bar, `compound`, `unit` 2 where the beat is the 8th note) and who wrote it (`by`, `who` for the header,
- * `year`). Notes under the low E string go up an octave (the Air's continuo, where the double basses go lower).
+ * `year`). A note under the low E string goes up an octave with the notes of its beat, so an octave stays an octave
+ * (the Air's continuo, where the double basses go lower). The dots name the notes (a melody's 2nds and 7ths against
+ * each chord meant little at Level 1; degrees are one tap away) and the line keeps its own fingering (QA round 24).
  */
 function tune(def) {
   const { parts, form, key, mode, ts, bpb, compound, by, who, year, center = 3, ...meta } = def;
@@ -29,24 +31,30 @@ function tune(def) {
   return ex({
     ...meta,
     module: M,
-    label: 'degree',
+    label: 'note',
     params,
     tune: { by, who, year },
     build(p, ctx, S) {
       const b = new Builder(ctx, S);
-      const order = p.part === 'all' && whole ? form : [Number(p.part) || 0];
+      // (a part it does not have, from a hand-made address, opens the first: QA round 24)
+      const pick = Number(p.part);
+      const order = p.part === 'all' && whole ? form : [parts[pick] && !parts[pick].hide ? pick : 0];
       const items = labelled(def, order.flatMap((pi) => partNotes(def, parts[pi], S)));
       const e = ctx.tuning[Math.max(0, ctx.str('E'))];
+      let t = 0;
+      const beatOf = items.map((it) => { const at = Math.floor(t + 1e-9); t += it.dur; return at; });
+      const low = new Set(items.map((it, j) => (!it.rest && it.midi < e ? beatOf[j] : null)).filter((x) => x != null));
+      items.forEach((it, j) => { if (!it.rest && low.has(beatOf[j])) it.midi += 12; });
       for (const it of items) if (!it.rest) while (it.midi < e) it.midi += 12;
       const part = parts[order[0]];
       const c = part.center ?? center;
       const region = [Math.max(0, c - 2), c + 3];
       // (the low B of a 5- or 6-string is left out, as in the song studies: the tunes sit on the E string and above)
       const strings = ctx.tuning.map((_, s) => s).filter((s) => s >= Math.max(0, ctx.str('E')));
-      emitMixed(b, items, { center: c, open: 'allow', fold: false, region, strings });
+      emitMixed(b, items, { center: c, open: 'allow', fold: false, region, strings, lineFingers: true });
       const meter = ts ? { timeSig: ts, beatsPerBar: bpb ?? ts[0], ...(compound ? { compound: true } : {}) } : {};
       const ks = keySigFor(T.N(key), mode);
-      return b.build({ uniform: false, label: 'degree', ...meter, ...(ks != null ? { keySig: ks } : {}) });
+      return b.build({ uniform: false, label: 'note', ...meter, ...(ks != null ? { keySig: ks } : {}) });
     },
   });
 }
@@ -56,9 +64,9 @@ const saints = tune({
   id: 'tn-saints', level: 1, title: 'When the Saints Go Marching In', short: 'When the Saints',
   by: 'Traditional', who: 'Traditional', key: 'C', mode: 'ionian', ts: [2, 4], bpm: 96, center: 3,
   summary: 'The spiritual every brass band plays: four notes up from C, then the famous long G.',
-  about: 'An African-American spiritual, sung at funerals in New Orleans on the way back from the cemetery, when the band breaks into a march. The tune climbs C – E – F to a long G, three times, then comes down. On the bass it sits in the first position: C on the A string, E, F and G on the D string.',
+  about: 'An African-American spiritual, sung at funerals in New Orleans on the way back from the cemetery, when the band breaks into a march. The tune climbs C – E – F to a long G, three times, then comes down. On the bass it sits in one position, frets 2 to 5: C on the A string, E, F and G on the D string.',
   source: 'Traditional (an African-American spiritual), public domain. The tune as it is usually sung, two octaves lower; the chords are the usual ones.',
-  tips: ['Every phrase starts after an 8th-note rest: count "1 &", come in on the "&".', 'In "that number", the F comes on the "&" of 1 and holds to the end of the bar.'],
+  tips: ['Most phrases start after an 8th-note rest: count "1 &", come in on the "&" (the last one after a quarter rest).', 'In "that number", the F comes on the "&" of 1 and holds to the end of the bar.'],
   parts: [
     {
       name: 'Tune',
@@ -72,7 +80,7 @@ const ode = tune({
   id: 'tn-ode', level: 1, title: 'Ode to Joy', short: 'Ode to Joy',
   by: 'Ludwig van Beethoven', who: 'Beethoven', year: 1824, key: 'D', mode: 'ionian', bpm: 84, center: 3,
   summary: 'Beethoven\'s theme as the cellos and double basses first play it, alone, in the Ninth Symphony.',
-  about: 'In the last movement of his Ninth Symphony, Beethoven lets the low strings play the great theme first, alone and quietly, before the rest of the orchestra joins in. This is that moment, note for note, at the double basses\' pitch: a step-by-step melody in D, almost all in the first position. Notice the one note that comes early: the F♯ on beat 4 of bar 12, tied over the bar line, as the theme returns.',
+  about: 'In the last movement of his Ninth Symphony, Beethoven lets the low strings play the great theme first, alone and quietly, before the rest of the orchestra joins in. This is that moment, note for note, at the double basses\' pitch: a step-by-step melody in D, in one position, frets 2 to 5 with the open D and A. Notice the one note that comes early: the F♯ on beat 4 of bar 12, tied over the bar line, as the theme returns.',
   source: 'Public domain: Ludwig van Beethoven (1770–1827), Symphony No. 9 (1824), last movement, bars 92–107, the theme as the cellos and double basses play it, as written, at the double basses\' pitch. The chords are a plain harmony of our own.',
   tips: ['Bars 4, 8 and 16: the dotted quarter is "1 & 2", the 8th the "&" after it.', 'Bar 12: the F♯ comes on beat 4 and holds over the bar line.', 'Let every half note ring its full two beats.'],
   parts: [
@@ -103,11 +111,11 @@ const grace = tune({
 
 const greensleeves = tune({
   id: 'tn-greensleeves', level: 2, title: 'Greensleeves', short: 'Greensleeves',
-  by: 'Traditional', who: 'Traditional', key: 'G', mode: 'dorian', ts: [6, 8], bpb: 2, compound: true, bpm: 52, center: 5,
+  by: 'Traditional', who: 'Traditional', key: 'G', mode: 'aeolian', ts: [6, 8], bpb: 2, compound: true, bpm: 52, center: 5,
   summary: 'The English ballad in 6/8 and G minor, with its lilting dotted rhythm.',
-  about: 'An English tune from the late 16th century. It moves in 6/8, two dotted-quarter beats to the bar, with a long-short lilt (a quarter and an 8th) and a dotted figure at the end of each line. It mixes F and F♯, E♭ and E: the minor mode of its time.',
+  about: 'An English tune from the late 16th century. It moves in 6/8, two dotted-quarter beats to the bar, with a long-short lilt (a quarter and an 8th) and a dotted figure at the end of each line. It mixes F and F♯, E♭ and E: the minor mode of its time, written here with G minor\'s two flats.',
   source: 'Traditional (England, late 16th century), public domain. The tune as it is usually sung, two octaves lower; the chords are the usual ones.',
-  tips: ['Count two beats to the bar, each split in three: "1 2 3, 2 2 3".', 'The tune starts on the last 8th of an empty bar.', 'The F♯ leads up to G; the F natural comes down to E♭ or D.'],
+  tips: ['Count two beats to the bar, each split in three: "1 2 3, 2 2 3".', 'The tune starts on the last 8th of an empty bar.', 'The F♯ leads up to G; the F natural moves on up to G, or down through E natural to D.'],
   parts: [
     {
       name: 'Song',
@@ -160,8 +168,8 @@ const musette = tune({
   id: 'tn-musette', level: 3, title: 'Musette in D', short: 'Musette in D',
   by: 'Anonymous', who: 'Anonymous', year: 1725, key: 'D', mode: 'ionian', ts: [2, 4], bpm: 92,
   summary: 'The left hand of the Musette: octaves over a drone, as a bagpipe plays it.',
-  about: 'A musette is a small French bagpipe, and this piece copies its drone: the left hand jumps between D and the D an octave up, bar after bar, then does the same on A and on E. Copied into Anna Magdalena Bach\'s notebook in 1725; who wrote it is not known. The octaves are a bassist\'s shape: the root, then two strings up and two frets up.',
-  source: 'Public domain: anonymous, Musette in D, BWV Anh. 126, from the Notebook for Anna Magdalena Bach (1725). The left hand as written.',
+  about: 'A musette is a small French bagpipe, and this piece copies its drone: the left hand jumps between D and the D an octave up, bar after bar, then does the same on A and on E, before the opening comes back. Copied into Anna Magdalena Bach\'s notebook in 1725; who wrote it is not known. The octaves are a bassist\'s shape: the root, then two strings up and two frets up.',
+  source: 'Public domain: anonymous, Musette in D, BWV Anh. 126, from the Notebook for Anna Magdalena Bach (1725). The left hand as written; in the whole tune the first half comes back after the second, to its fermata, the da capo that ends the piece in D.',
   tips: ['Octaves: the low note with the 1st finger, the high one two strings up with the 3rd or 4th.', 'Mute the string between the two notes with the side of the fretting finger.', 'Bars 3 and 7: two 16ths, then 8ths, in step with the right hand.'],
   parts: [
     {
@@ -170,12 +178,12 @@ const musette = tune({
       notes: 'D2 D3 D2 D3 | D2 D3 D2 D3 | F#3:s G3:s A3 G3 F#3 | E3 A3 F#3 D3 | D2 D3 D2 D3 | D2 D3 D2 D3 | F#3:s G3:s A3 G3 F#3 | E3 A3 D3:q',
     },
     {
-      name: 'Second half', center: 10,
+      name: 'Second half', center: 9,
       chords: 'A:7 E:1 E7:11 A/C#:0.5 E7/D:0.5 A/E:1 A:0.5 D:0.5 A:2',
       notes: 'A2 A3 A2 A3 | A2 A3 A2 A3 | A2 A3 A2 A3 | A2 A3 E2 E3 | E2 E3 E2 E3 | E2 E3 E2 E3 | E2 E3 E2 E3 | E2 E3 E2 E3 | E2 E3 E2 E3 | E2 D3 C#3 D3 | E3:q A2 D3 | C#3:s D3:s E3 A2:q',
     },
   ],
-  form: [0, 0, 1, 1],
+  form: [0, 0, 1, 1, 0],
 });
 
 // ---------------------------------------------------------------- Level 4
@@ -185,8 +193,8 @@ const air = tune({
   id: 'tn-air', level: 4, title: 'Air (Orchestral Suite No. 3)', short: 'Air',
   by: 'Johann Sebastian Bach', who: 'Bach', key: 'D', mode: 'ionian', bpm: 56, center: 3,
   summary: 'The walking bass of Bach\'s Air: 8th notes stepping down the scale, every other one an octave apart.',
-  about: 'Under the long violin melody of the Air, the continuo walks: 8th notes in octaves, low – high, high – low, stepping down the scale and round the harmony, one chord to a beat. Baroque musicians called a bass that moves in steady notes like this a walking bass (basso andante), long before jazz, and it does what every walking line does: it moves by step, it outlines every chord, and it never stops.',
-  source: 'Public domain: Johann Sebastian Bach (1685–1750), Air from the Orchestral Suite No. 3 in D, BWV 1068. The continuo as written, an octave under the cellos, as the double basses play it; the few notes under the low E string (D♯, D, C♯) go up an octave. The chords follow Bach\'s harmony.',
+  about: 'Under the long violin melody of the Air, the continuo walks: 8th notes in octaves, low – high, high – low, stepping down the scale and round the harmony, one chord to a beat. A bass that moves in steady notes like this is a walking bass, centuries before jazz (andante, the Italian for walking, names the pace), and it does what every walking line does: it moves by step, it outlines every chord, and it never stops.',
+  source: 'Public domain: Johann Sebastian Bach (1685–1750), Air from the Orchestral Suite No. 3 in D, BWV 1068. The continuo as written, an octave under the cellos, as the double basses play it; the few beats that go under the low E string (D♯, D, C♯) go up an octave, both notes, so the octave stays. The chords follow Bach\'s harmony.',
   tips: ['The octaves: the 1st finger on the low note, the 3rd or 4th two strings up.', 'Each beat is one chord: its root, or the bass note of the chord, twice.', 'Slow and smooth: let each 8th ring into the next.'],
   parts: [
     {
@@ -224,7 +232,7 @@ const bourree = tune({
   summary: 'Bach\'s two-voice dance for lute: the tune on top, a walking line beneath, both for the bass.',
   about: 'A bourrée is a quick French dance that starts on the last beat of the bar. Bach wrote this one for the lute in two voices that answer each other: a melody that runs in 8ths and a bass that walks in quarter notes. Learn both: the melody (an octave lower) and the bass voice (as written), then play one against a friend playing the other.',
   source: 'Public domain: Johann Sebastian Bach (1685–1750), Bourrée from the Suite in E minor for lute, BWV 996. The upper voice an octave lower, the lower voice as written.',
-  tips: ['It starts on beat 4: the two 8ths before the first bar line lead into it.', 'Melody: the quarter-8th-8th figure is the dance\'s step; keep it light.', 'Bass voice: one note a beat, every one the same length.'],
+  tips: ['The two 8ths at the end of each half are the upbeat into its repeat: a bourrée steps off on the last beat.', 'Melody: the quarter-8th-8th figure is the dance\'s step; keep it light.', 'Bass voice: mostly one note a beat, with runs of 8ths into the cadences.'],
   parts: [
     {
       name: 'Melody, first half', center: 7,
@@ -270,7 +278,7 @@ const prelude = tune({
   id: 'tn-prelude', level: 5, title: 'Cello Suite No. 1: Prélude', short: 'Prélude',
   by: 'Johann Sebastian Bach', who: 'Bach', key: 'G', mode: 'ionian', bpm: 56, center: 3,
   summary: 'The opening of Bach\'s first cello suite: broken chords in 16ths over the open G.',
-  about: 'Bach\'s six suites for solo cello are pieces every bassist wants to play sooner or later, and this Prélude is their most famous page. Each bar is one chord broken into 16th notes, the same shape twice: the low G pedal, then the chord tones above it, the harmony moving one note at a time. It sits low on the bass, an octave under the cello, around the first five frets.',
+  about: 'Bach\'s six suites for solo cello are pieces every bassist wants to play sooner or later, and this Prélude is their most famous page. Most bars are one chord broken into 16th notes, often the same shape twice: the low G pedal, then the chord tones above it, the harmony moving one note at a time. It sits low on the bass, an octave under the cello, around the first five frets.',
   source: 'Public domain: Johann Sebastian Bach (1685–1750), Suite No. 1 in G for solo cello, BWV 1007, Prélude, bars 1–10. As written, an octave under the cello.',
   tips: ['Each half bar is one shape: hold the chord under the fingers and let the notes ring.', 'Even 16ths first; Bach\'s rubato, the stretching of time, later.', 'Bars 1–4: the low G stays while the notes above it change.'],
   parts: [
@@ -294,7 +302,7 @@ const invention = tune({
   summary: 'The lower voice of Bach\'s D minor Invention: the subject in 16ths, then a sequence down the key.',
   about: 'Bach wrote his fifteen Inventions to teach keyboard players to make two voices sing at once. In the fourth, in 3/8, the lower voice enters in bar 3 with the subject: up the D minor scale to B♭, a leap down to C♯, and back down. Then 8th notes answer the other hand, and a sequence of 16ths walks down the key to F major. On the bass it lies an octave lower, around the open D.',
   source: 'Public domain: Johann Sebastian Bach (1685–1750), Invention No. 4 in D minor, BWV 775 (1723), the lower voice of bars 3–16, an octave lower.',
-  tips: ['Count three 8ths to the bar, each split in two: "1 & 2 & 3 &".', 'The C♯ is the leading note of D minor: it pulls up to D.', 'Bars 11–16: each bar starts one step lower; feel the pattern, not the single notes.'],
+  tips: ['Count three 8ths to the bar, each split in two: "1 & 2 & 3 &".', 'The C♯ is the leading note of D minor: it pulls up to D.', 'Bars 11–16: one two-bar shape three times (up from a 3rd below, then down from a leap), the second a step under the first: feel the shape, not the single notes.'],
   parts: [
     {
       name: 'Bars 3–10', unit: 2,

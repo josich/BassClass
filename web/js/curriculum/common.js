@@ -63,7 +63,9 @@ export function variant(base, over) {
     if (defaults && defaults[k] != null) params[k].default = defaults[k];
     if (only && only[k]) params[k].options = v.options.filter((o) => only[k].includes(o[0]));
   }
-  return { ...base, star: false, ...rest, params };
+  // (a choice `only` names that the base does not have is lost: the self-test reports it, QA round 24)
+  const lost = Object.entries(only || {}).flatMap(([k, vals]) => vals.filter((x) => !(src[k]?.options || []).some((o) => o[0] === x)).map((x) => `${k}=${x}`));
+  return { ...base, star: false, ...rest, params, ...(lost.length ? { onlyLost: lost } : {}) };
 }
 
 export const QUALITY_TRIADS = [
@@ -675,7 +677,7 @@ export function chordShape(midis, ctx, { home, center = home, string = null, fit
 }
 
 export function emitMixed(b, items, popts = {}) {
-  const { fold = true, shapes: byShape = false, ...placeOpts } = popts;
+  const { fold = true, shapes: byShape = false, lineFingers = false, ...placeOpts } = popts;
   const notes = items.filter((x) => !x.rest);
   // fold single notes that fall off either end of the neck by an octave
   // (phrases that must keep their shape pass fold:false and are shifted as a whole)
@@ -872,7 +874,9 @@ export function emitMixed(b, items, popts = {}) {
   items.reduce((pi, it) => { const c = pi + (it.chord || it.text ? 1 : 0); if (!it.rest) partOf.push(c); return c; }, 0);
   const byPart = new Map();
   pos.forEach((q, j) => { if (!byPart.has(partOf[j])) byPart.set(partOf[j], []); byPart.get(partOf[j]).push(q); });
-  for (const ps of byPart.values()) chordFingers(ps);
+  // (a melody whose chord changes every beat keeps the line's fingering, `lineFingers`: one chord a note would be
+  // a hand shape a note, finger 1 each time; QA round 24, the classic tunes)
+  if (!lineFingers) for (const ps of byPart.values()) chordFingers(ps);
   let k = 0;
   for (const it of items) {
     if (it.chord) b.chord(it.chord);

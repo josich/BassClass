@@ -215,8 +215,11 @@ export function recordGame(id, v, score, total) {
   updateProgress(id, { bests });
   if (score / total >= 0.8 && !isCleared(id, v)) setCleared(id, v, true);
 }
-/** Master an exercise (every choice cleared), or take it back with its ticks (the ⋯ menu, a lesson's untick). */
-export function setMastered(id, on) {
+/**
+ * Master an exercise (every choice cleared), or take it back with its ticks (the ⋯ menu). `keep`: take back only 🏅,
+ * the cleared choices staying (a lesson step unticked: QA round 24, unticking one step wiped every choice).
+ */
+export function setMastered(id, on, keep = false) {
   if (on) {
     const c = { ...(rec(id).cleared || {}) };
     for (const v of choicesOf(id)) c[v] = true;
@@ -225,7 +228,7 @@ export function setMastered(id, on) {
     return;
   }
   const was = isMastered(id);
-  updateProgress(id, { cleared: {}, done: false });
+  updateProgress(id, keep ? { done: false } : { cleared: {}, done: false });
   if (was) tell(id);
 }
 

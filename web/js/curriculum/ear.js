@@ -58,21 +58,28 @@ function chordRound(b, ctx, S, type, i) {
  * 3rd and the 5th tell a triad's quality, the 7th a 7th chord's). Triads close, 7th chords R-5-7-10 as bassists play
  * them, the root from E2.
  */
+const TONE_WORDS = { 3: '3rd', 5: '5th', 6: '6th', 7: '7th' };
+const andList = (l) => (l.length < 2 ? l.join('') : `${l.slice(0, -1).join(', ')} and ${l[l.length - 1]}`);
 function chordAsk(types, ctx, rand, S) {
   const type = types[Math.floor(rand() * types.length)];
   const ivs = T.CHORDS[type].iv;
   const pcv = Math.floor(rand() * 12);
-  const root = T.bestRoot(pcv, ivs);
+  // (named as a lead sheet names it, by its triad: G♯m6, never A♭m6; QA round 24)
+  const root = T.bestRoot(pcv, ivs.slice(0, 3));
   const rm = 40 + T.mod(pcv - 40, 12);
   const spread = ivs.length === 4;
   const midis = (spread ? [0, 2, 3, 1] : ivs.map((_, j) => j)).map((j, k) => rm + T.semis(ivs[j]) + (spread && k === 3 ? 12 : 0));
   const gap = 0.42, at = midis.length * gap + 0.2;
-  const r = showAt(rm, ctx);
+  // the root shown on the E or A string, frets 1–7, where the shapes start (the chord sounds where it sounds; any
+  // octave answers: QA round 24, the root was on the G string for half the roots)
+  const r = [ctx.str('E'), ctx.str('A')].filter((s) => s >= 0).map((s) => ({ s, f: T.mod(pcv - ctx.tuning[s], 12) })).find((q) => q.f >= 1 && q.f <= 7) || showAt(rm, ctx);
   const tones = ivs.slice(1).map((iv) => ({ pc: T.mod(pcv + T.semis(iv), 12), n: T.up(root, iv), deg: T.fmtDeg(iv) }));
+  // (each tone by its own number: a 6th chord's is the 6th, not a 7th; QA round 24)
+  const words = ivs.slice(1).map((iv) => TONE_WORDS[Number(iv.replace(/[^0-9]/g, ''))] || T.fmtDeg(iv));
   return {
     play: [...midis.map((m, k) => ({ midi: m, at: k * gap, dur: 0.5 })), ...midis.map((m) => ({ midi: m, at, dur: 1.7 }))],
-    refs: [{ midi: rm, s: r.s, f: r.f, label: 'R', root: true }],
-    ask: `The chord over its root: tap its ${tones.length === 2 ? '3rd and 5th' : '3rd, 5th and 7th'}`,
+    refs: [{ midi: ctx.tuning[r.s] + r.f, s: r.s, f: r.f, label: 'R', root: true }],
+    ask: `The chord over its root: tap its ${andList(words)}`,
     answer: { pc: tones[0].pc, n: tones[0].n, show: rm + T.semis(ivs[1]), multi: tones, title: chordName(root, type, S), say: `${T.CHORDS[type].name}: R ${tones.map((t) => t.deg).join(' ')}` },
   };
 }
@@ -95,7 +102,7 @@ function progAsk(set, ctx, rand, S) {
     const prog = PROGS[key];
     const k = Math.floor(rand() * 12);
     const chords = progChords(key, k, { S });
-    const js = chords.map((_, j) => j).filter((j) => j > 0 && typeof prog.chords[j][0] === 'string' && T.mod(T.pc(chords[j].root) - k, 12) !== 0);
+    const js = chords.map((_, j) => j).filter((j) => typeof prog.chords[j][0] === 'string' && T.mod(T.pc(chords[j].root) - k, 12) !== 0);
     if (!js.length) continue;
     const j = js[Math.floor(rand() * js.length)], c = chords[j];
     const tm = 40 + T.mod(k - 40, 12), cm = 40 + T.mod(T.pc(c.root) - 40, 12);
@@ -118,7 +125,8 @@ const TRIADS = { mm: ['maj', 'min'], all: ['maj', 'min', 'dim', 'aug'] };
 const triads = ex({
   id: 'ear-triads', module: M, level: 2,
   title: 'Hear the chord: major, minor, diminished, augmented',
-  summary: 'A triad plays (broken, then together): name its quality before the answer appears.',
+  short: 'Chords, by ear',
+  summary: 'A triad sounds over its root: tap its 3rd and 5th (👆: or name its quality as the rounds play).',
   about: 'Each round plays a triad on a random root, first broken (R-3-5-3) and then all together, with the notes hidden. Name it before the answer appears, right after the chord. Major sounds bright and stable, minor darker, diminished tense and narrow, augmented open and unresolved. Start with major and minor only.',
   tips: ['Sing the 3rd: a major 3rd is two whole steps above the root, a minor 3rd a step and a half.', 'Diminished = two minor 3rds stacked; augmented = two major 3rds.', 'A new random set comes every time you open the exercise or change an option.'],
   source: 'Aural tests in graded exams (chord quality); ear-training practice',
@@ -136,7 +144,8 @@ const SEVENTHS = { basic: ['maj7', 'dom7', 'min7'], five: ['maj7', 'dom7', 'min7
 const sevenths = ex({
   id: 'ear-sevenths', module: M, level: 3,
   title: 'Hear the 7th chord: maj7, 7, m7, m7♭5, °7',
-  summary: 'The five main 7th chords, broken and then together: name the quality.',
+  short: '7th chords, by ear',
+  summary: 'The five main 7th chords over their root: tap the 3rd, 5th and 7th (👆: or name the quality as the rounds play).',
   about: 'Seventh chords add a fourth colour on top of the triad. Major 7 is soft and dreamy, dominant 7 wants to move, minor 7 is mellow, half-diminished is dark and searching, diminished 7 is tense and symmetrical. Each round plays one on a random root, notes hidden, and shows the answer right after the chord. The chords are voiced the way bassists play them: root, 5th, 7th and the 3rd on top (R-5-7-10), in one hand position.',
   tips: ['First decide the triad (major or minor or diminished), then the 7th (major 7th, a half step under the octave, or minor 7th, a whole step under it).', 'Dominant 7 = major triad + minor 7th: the "unfinished" sound.'],
   source: 'Aural tests in graded exams; jazz ear-training practice',
@@ -157,8 +166,9 @@ const PROG_SETS = {
 };
 const progressions = ex({
   id: 'ear-progressions', module: M, level: 4,
-  title: 'Hear the progression: name the chords by number',
-  summary: 'A progression plays (root, then the chord): name it in Roman numerals before the answer.',
+  title: 'Hear the progression: the chords by their roots',
+  short: 'Progressions, by ear',
+  summary: 'The key\'s I, then a chord of a progression: tap its root (👆: or name the progression in numerals as it plays).',
   about: 'Hearing progressions is hearing the bass: each chord plays as its root, then the chord above it, with the notes hidden. Follow the root movement (up a 4th, down a step…) and the quality of each chord, and name the progression in Roman numerals before the answer appears. Every round picks a new progression and a new key.',
   tips: ['Sing the roots back first: the bass line is the progression.', 'Listen for the V chord: it pulls back to I.', 'In minor keys, ♭VI and ♭VII are major chords a whole step apart.'],
   source: 'Harmonic dictation; aural tests in graded exams (cadences)',

@@ -246,6 +246,7 @@ function checkBand(problems) {
  * bass (the share needed between 1 and all of them).
  */
 function checkMain(problems) {
+  for (const t of EXERCISES) if (t.onlyLost) problems.push(`${t.id}: offers ${t.onlyLost.join(', ')}, which its base exercise does not have`);
   for (const id of Object.keys(MAIN)) {
     const t = byId.get(id), m = mainOf(id);
     if (!t) { problems.push(`main: ${id} is not an exercise`); continue; }
