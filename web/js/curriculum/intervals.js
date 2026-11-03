@@ -1,4 +1,5 @@
 // Intervals: every distance between two notes, as a shape and a sound.
+import { intervalAsk } from './games.js';
 import { T, Builder, keysFor, ex, sel, keyP, nm, pickRoot, scaleRun, SCALE_PATTERNS, SCALE_TYPE_OPTS, spellMidi, rootStrP, rootStrLowP , tonicFor, keySigFor } from './common.js';
 import { place } from '../fretboard.js';
 
@@ -243,6 +244,19 @@ const earQuiz = ex({
   source: 'Aural tests in graded exams; interval ear training',
   params: { key: keyP(['1'], { cycles: false }), set: sel('Intervals', [['basic', '3rds, 4ths, 5ths, octave'], ['all', 'All within an octave']]) },
   bpm: 60, sub: 1, label: 'degree', reveal: 'quiz',
+  // tap mode, where it opens (user, 2026-11-03: every note-guessing exercise uses the tap system, the answer never
+  // shown ahead): the root sounds and shows, then the interval note; tap it. 👆 goes back to the play-along quiz
+  tap: {
+    kind: 'ear', def: true,
+    round(p, ctx, rand) {
+      const pool = p.set === 'basic' ? [3, 4, 5, 7, 12] : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+      // (the root from C2; an octave lower when the interval would pass G3, the 12th fret of a 4-string's G string)
+      const semis = pool[Math.floor(rand() * pool.length)];
+      let root = 36 + T.mod(Number(p.key) - 36, 12);
+      if (root + semis > 55) root -= 12;
+      return intervalAsk(root, semis, false, ctx);
+    },
+  },
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     const k = Number(p.key);

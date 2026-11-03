@@ -18,7 +18,7 @@ const pick = (rand, list) => list[Math.floor(rand() * list.length)];
 /** The places of a pitch on the neck, frets 0–`hi`, lowest fret first. */
 export const placesOf = (midi, ctx, hi = 12) => ctx.tuning.map((o, s) => ({ s, f: midi - o })).filter((q) => q.f >= 0 && q.f <= hi);
 /** A place for a note shown on the neck (a root, a reference): frets 1–7 where it can, the lowest string first. */
-const showAt = (midi, ctx) => placesOf(midi, ctx, 12).find((q) => q.f >= 1 && q.f <= 7) || placesOf(midi, ctx, 12)[0];
+export const showAt = (midi, ctx) => placesOf(midi, ctx, 12).find((q) => q.f >= 1 && q.f <= 7) || placesOf(midi, ctx, 12)[0];
 const IV_LABEL = { 0: 'R', 1: '♭2', 2: '2', 3: '♭3', 4: '3', 5: '4', 6: '♭5', 7: '5', 8: '♭6', 9: '6', 10: '♭7', 11: '7', 12: '8' };
 // each interval's name and its steps of the scale (the second note spelled from the root: QA round 22, a minor 3rd
 // above C is E♭, never D♯)
@@ -110,6 +110,31 @@ const INTERVAL_SETS = {
   triad: [3, 4, 5, 7, 12],
   all: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
 };
+/**
+ * One interval round: the root (midi) sounds and shows, then the note `semis` above it (below, `down`); tap the second
+ * note. The intervals game's round, and the interval quiz's (#225) in tap mode.
+ */
+export function intervalAsk(root, semis, down, ctx) {
+  const midi = root + (down ? -semis : semis);
+  const r = showAt(root, ctx);
+  // the root's other name when the answer would need a double accidental or C♭ F♭ E♯ B♯ (QA round 23, user's
+  // choice: G♭'s minor 3rd is B♭♭, so the root is F♯ and the answer A)
+  const spell = (rn) => (down ? downFrom(rn, semis) : T.up(rn, IV_OF[semis]));
+  const odd = (n) => Math.abs(n.a) > 1 || (n.a === -1 && (n.l === 0 || n.l === 3)) || (n.a === 1 && (n.l === 2 || n.l === 6));
+  let rootN = T.bestRoot(T.mod(root, 12), ['1', '3', '5']);
+  if (odd(spell(rootN))) {
+    const other = [spellMidi(root, false), spellMidi(root, true)].find((x) => x.l !== rootN.l);
+    if (other && !odd(spell(other))) rootN = other;
+  }
+  return {
+    play: [{ midi: root, at: 0, dur: 0.9 }, { midi, at: 1.0, dur: 1.2 }],
+    refs: [{ midi: root, s: r.s, f: r.f, label: 'R', root: true }],
+    ask: down ? 'The root, then a note below or above it' : 'The root, then a note above it',
+    // (the tritone over F, C♭ as its ♭5, is written as the ♯4, B)
+    answer: { midi, ...(odd(spell(rootN)) && semis === 6 && !down ? { n: T.up(rootN, '#4'), label: '♯4' } : { n: spell(rootN), label: down ? `↓${IV_LABEL[semis]}` : IV_LABEL[semis] }), say: `the ${IV_NAME[semis]} ${down ? 'below' : 'above'}` },
+  };
+}
+
 /** A root, then a note above (or below) it: tap the second note. */
 const earIntervals = ex({
   id: 'game-ear-intervals', module: 'ear', level: 2,
@@ -133,25 +158,7 @@ const earIntervals = ex({
       // the root from C2 (a phone's speaker loses the low B and E: QA round 22) and both notes under G3 (the 12th
       // fret of the G string), whatever the bass
       const lo = 36 + (down ? semis : 0), hi = 55 - (down ? 0 : semis);
-      const root = lo + Math.floor(rand() * Math.max(1, hi - lo + 1));
-      const midi = root + (down ? -semis : semis);
-      const r = showAt(root, ctx);
-      // the root's other name when the answer would need a double accidental or C♭ F♭ E♯ B♯ (QA round 23, user's
-      // choice: G♭'s minor 3rd is B♭♭, so the root is F♯ and the answer A)
-      const spell = (rn) => (down ? downFrom(rn, semis) : T.up(rn, IV_OF[semis]));
-      const odd = (n) => Math.abs(n.a) > 1 || (n.a === -1 && (n.l === 0 || n.l === 3)) || (n.a === 1 && (n.l === 2 || n.l === 6));
-      let rootN = T.bestRoot(T.mod(root, 12), ['1', '3', '5']);
-      if (odd(spell(rootN))) {
-        const other = [spellMidi(root, false), spellMidi(root, true)].find((x) => x.l !== rootN.l);
-        if (other && !odd(spell(other))) rootN = other;
-      }
-      return {
-        play: [{ midi: root, at: 0, dur: 0.9 }, { midi, at: 1.0, dur: 1.2 }],
-        refs: [{ midi: root, s: r.s, f: r.f, label: 'R', root: true }],
-        ask: down ? 'The root, then a note below or above it' : 'The root, then a note above it',
-        // (the tritone over F, C♭ as its ♭5, is written as the ♯4, B)
-        answer: { midi, ...(odd(spell(rootN)) && semis === 6 && !down ? { n: T.up(rootN, '#4'), label: '♯4' } : { n: spell(rootN), label: down ? `↓${IV_LABEL[semis]}` : IV_LABEL[semis] }), say: `the ${IV_NAME[semis]} ${down ? 'below' : 'above'}` },
-      };
+      return intervalAsk(lo + Math.floor(rand() * Math.max(1, hi - lo + 1)), semis, down, ctx);
     },
   },
   build(p, ctx, S) { return sampleLine(this.game, p, ctx, S); },

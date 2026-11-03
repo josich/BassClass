@@ -286,6 +286,8 @@ function checkGames(problems) {
           const m = a.midi ?? a.show;
           if (!Number.isInteger(m) || !a.n) { problems.push(`${where}: an answer without a note`); break; }
           if (T.mod(T.pc(a.n), 12) !== T.mod(a.midi ?? a.pc, 12)) { problems.push(`${where}: answer ${a.midi ?? a.pc} spelled ${a.n.l}/${a.n.a}`); break; }
+          // (several notes asked, a chord's tones: each spelled as its pitch, none twice; 2026-11-03)
+          if (a.multi && (a.multi.some((x) => T.mod(T.pc(x.n), 12) !== x.pc) || new Set(a.multi.map((x) => x.pc)).size !== a.multi.length)) { problems.push(`${where}: a chord's notes spelled wrong or twice`); break; }
           // the places that answer it, as the screen works them out (ui/exercise.js tapPlaces)
           const hi = a.hi ?? 12;
           let pl = a.midi != null ? placesOf(a.midi, ctx, hi) : ctx.tuning.flatMap((o, s) => Array.from({ length: hi + 1 }, (_, f) => ({ s, f })).filter((q) => T.mod(o + q.f - a.pc, 12) === 0));

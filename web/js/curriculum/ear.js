@@ -2,6 +2,7 @@
 // with its notes hidden on the neck and in the strip; the answer step (silent) shows the shape and
 // the name.
 import { T, Builder, ex, sel, nm, chordName, progChords, PROGS, shapes } from './common.js';
+import { showAt } from './games.js';
 
 const M = 'ear';
 const pick = (xs) => xs[Math.floor(Math.random() * xs.length)];
@@ -48,6 +49,71 @@ function chordRound(b, ctx, S, type, i) {
   b.stack(placed, { dur: 4, silent: true });
 }
 
+// ---------------------------------------------------------------- tap mode
+// (user, 2026-11-03: every exercise that asks for a note uses the tap system of #112, wherever tapping the neck can
+// answer what is asked, and none shows the answer ahead; these open in it, 👆 goes back to the play-along rounds)
+
+/**
+ * The chord sounds, broken then together, over its root shown on the neck: tap its other notes, in any octave (the
+ * 3rd and the 5th tell a triad's quality, the 7th a 7th chord's). Triads close, 7th chords R-5-7-10 as bassists play
+ * them, the root from E2.
+ */
+function chordAsk(types, ctx, rand, S) {
+  const type = types[Math.floor(rand() * types.length)];
+  const ivs = T.CHORDS[type].iv;
+  const pcv = Math.floor(rand() * 12);
+  const root = T.bestRoot(pcv, ivs);
+  const rm = 40 + T.mod(pcv - 40, 12);
+  const spread = ivs.length === 4;
+  const midis = (spread ? [0, 2, 3, 1] : ivs.map((_, j) => j)).map((j, k) => rm + T.semis(ivs[j]) + (spread && k === 3 ? 12 : 0));
+  const gap = 0.42, at = midis.length * gap + 0.2;
+  const r = showAt(rm, ctx);
+  const tones = ivs.slice(1).map((iv) => ({ pc: T.mod(pcv + T.semis(iv), 12), n: T.up(root, iv), deg: T.fmtDeg(iv) }));
+  return {
+    play: [...midis.map((m, k) => ({ midi: m, at: k * gap, dur: 0.5 })), ...midis.map((m) => ({ midi: m, at, dur: 1.7 }))],
+    refs: [{ midi: rm, s: r.s, f: r.f, label: 'R', root: true }],
+    ask: `The chord over its root: tap its ${tones.length === 2 ? '3rd and 5th' : '3rd, 5th and 7th'}`,
+    answer: { pc: tones[0].pc, n: tones[0].n, show: rm + T.semis(ivs[1]), multi: tones, title: chordName(root, type, S), say: `${T.CHORDS[type].name}: R ${tones.map((t) => t.deg).join(' ')}` },
+  };
+}
+
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+/** A degree of the key as a numeral, by its chord: IV, vi, ♭VII, vii°. */
+function numeral(where, ivs) {
+  const flat = where.startsWith('b') ? '♭' : where.startsWith('#') ? '♯' : '';
+  const base = ROMAN[Number(where.replace(/[b#]/, '')) - 1] || '?';
+  const minor = ivs.includes('b3') && !ivs.includes('3');
+  return `${flat}${minor ? base.toLowerCase() : base}${ivs.includes('b5') && minor ? '°' : ''}`;
+}
+/**
+ * Hear the bass of a progression: the key's I chord (its root shown), then a chord of one of the set's progressions;
+ * tap its root, in any octave.
+ */
+function progAsk(set, ctx, rand, S) {
+  for (let tries = 0; tries < 40; tries++) {
+    const key = PROG_SETS[set][Math.floor(rand() * PROG_SETS[set].length)];
+    const prog = PROGS[key];
+    const k = Math.floor(rand() * 12);
+    const chords = progChords(key, k, { S });
+    const js = chords.map((_, j) => j).filter((j) => j > 0 && typeof prog.chords[j][0] === 'string' && T.mod(T.pc(chords[j].root) - k, 12) !== 0);
+    if (!js.length) continue;
+    const j = js[Math.floor(rand() * js.length)], c = chords[j];
+    const tm = 40 + T.mod(k - 40, 12), cm = 40 + T.mod(T.pc(c.root) - 40, 12);
+    const third = prog.minor ? 3 : 4;
+    const r = showAt(tm, ctx);
+    const triad = (m, ivs) => [m, m + 12 + T.semis(ivs[1]), m + 12 + T.semis(ivs[2])];
+    const tonicChord = triad(tm, ['1', third === 3 ? 'b3' : '3', '5']);
+    const num = numeral(prog.chords[j][0], c.ivs);
+    return {
+      play: [...tonicChord.map((m) => ({ midi: m, at: 0, dur: 1.2 })), ...triad(cm, c.ivs).map((m) => ({ midi: m, at: 1.5, dur: 1.4 }))],
+      refs: [{ midi: tm, s: r.s, f: r.f, label: prog.minor ? 'i' : 'I', root: true }],
+      ask: `The key's ${prog.minor ? 'i' : 'I'}, then a chord of ${prog.name}: tap its root`,
+      answer: { pc: T.pc(c.root), n: c.root, show: cm, label: num, say: `${num}: ${c.sym}` },
+    };
+  }
+  return null;
+}
+
 const TRIADS = { mm: ['maj', 'min'], all: ['maj', 'min', 'dim', 'aug'] };
 const triads = ex({
   id: 'ear-triads', module: M, level: 2,
@@ -58,6 +124,7 @@ const triads = ex({
   source: 'Aural tests in graded exams (chord quality); ear-training practice',
   params: { set: sel('Chords', [['mm', 'Major and minor'], ['all', 'Major, minor, diminished, augmented']]) },
   bpm: 72, sub: 1, label: 'degree',
+  tap: { kind: 'ear', def: true, round: (p, ctx, rand, S) => chordAsk(TRIADS[p.set] || TRIADS.mm, ctx, rand, S) },
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     for (let i = 0; i < 8; i++) chordRound(b, ctx, S, pick(TRIADS[p.set]), i);
@@ -75,6 +142,7 @@ const sevenths = ex({
   source: 'Aural tests in graded exams; jazz ear-training practice',
   params: { set: sel('Chords', [['basic', 'maj7, 7, m7'], ['five', 'maj7, 7, m7, m7♭5, °7'], ['all', '…plus m(maj7), 6 and m6']], 'five') },
   bpm: 72, sub: 1, label: 'degree',
+  tap: { kind: 'ear', def: true, round: (p, ctx, rand, S) => chordAsk(SEVENTHS[p.set] || SEVENTHS.five, ctx, rand, S) },
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     for (let i = 0; i < 8; i++) chordRound(b, ctx, S, pick(SEVENTHS[p.set]), i);
@@ -96,6 +164,7 @@ const progressions = ex({
   source: 'Harmonic dictation; aural tests in graded exams (cadences)',
   params: { set: sel('Progressions', [['pop', 'Pop and rock (I IV V vi ♭VII)'], ['jazz', 'Jazz (ii–V–I, turnarounds)'], ['minor', 'Minor keys']]) },
   bpm: 80, sub: 1, label: 'degree',
+  tap: { kind: 'ear', def: true, round: (p, ctx, rand, S) => progAsk(p.set, ctx, rand, S) },
   build(p, ctx, S) {
     const b = new Builder(ctx, S);
     for (let r = 0; r < 4; r++) {

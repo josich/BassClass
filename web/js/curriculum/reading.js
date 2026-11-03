@@ -79,7 +79,8 @@ const common = {
   module: M, reveal: 'quiz', view: 'staff', label: 'none', sub: 1,
   // 👆 tap mode (user, 2026-11-02, the reading game's way for its drills): the line's notes one by one on the staff,
   // tapped on the neck (ui/exercise.js)
-  tap: { kind: 'read' },
+  // (they open in tap mode, 👆 to read along at the tempo: user, 2026-11-03)
+  tap: { kind: 'read', def: true },
 };
 
 const naturals = ex({
