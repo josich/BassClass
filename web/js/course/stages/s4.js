@@ -211,6 +211,7 @@ export default {
           steps: [
             { ex: 'rd-keys', p: { mode: 'major' }, from: 56, goal: 72, do: 'Major keys. Choose a new key each day under Options.' },
             { ex: 'rd-keys', p: { mode: 'minor' }, from: 56, goal: 72, do: 'Minor keys: watch for the raised 7th.' },
+            { ex: 'game-harmony', p: { ask: 'keys' }, do: 'A key by its signature: the major or minor key with three flats.' },
           ],
           mistakes: [
             'Forgetting the key signature in the second bar. Check it at the start of every line.',
@@ -349,6 +350,7 @@ export default {
           steps: [
             { ex: 'hm-minor-keys', p: { prog: 'i-iv-V-i', pattern: 'r357' }, from: 84, goal: 104, backing: 'chords', do: 'i–iv–V–i with R-3-5-7. Find the raised 7th in the V chord.' },
             { ex: 'hm-minor-keys', p: { prog: 'i-bVII-bVI-V', pattern: 'r357' }, from: 84, goal: 104, backing: 'chords', music: true, do: 'The Andalusian cadence with the chords.' },
+            { ex: 'game-harmony', p: { ask: 'numerals' }, do: 'The root of a chord of the key by its numeral: the ♭VI of C minor.' },
           ],
           mistakes: [
             'Missing the raised 7th over V. It is the note that makes the cadence work.',
@@ -407,12 +409,12 @@ export default {
           id: 'hear-progressions', title: 'Hear the progression',
           idea: 'The bass line is the progression: sing the roots back.',
           concept: [
-            'Hearing progressions is hearing the bass. Each chord plays as its root, then the chord above it, with the notes hidden. Follow the root movement and the quality of each chord, and name the progression in Roman numerals before the answer appears.',
+            'Hearing progressions is hearing the bass. The key\'s I chord sounds, its root on the neck, then a chord of the progression: tap that chord\'s root. Follow the root movement; the answer names the chord in Roman numerals.',
             'Listen for the V chord: it pulls back to I. In minor keys, ♭VI and ♭VII are major chords a whole step apart.',
           ],
           steps: [
-            { ex: 'ear-progressions', p: { set: 'pop' }, do: 'Pop and rock progressions: name the numerals.' },
-            { ex: 'ear-progressions', p: { set: 'jazz' }, do: 'Jazz progressions: ii–V–I and turnarounds.' },
+            { ex: 'ear-progressions', p: { set: 'pop' }, do: 'Pop and rock progressions: tap each chord\'s root.' },
+            { ex: 'ear-progressions', p: { set: 'jazz' }, do: 'Jazz progressions, ii–V–I and turnarounds, by their roots.' },
           ],
           mistakes: [
             'Trying to hear every chord at once. Follow the roots first.',
@@ -552,8 +554,8 @@ export default {
             'A shell voicing keeps root, 7th and 3rd: the root on the E string, the 7th two strings up on the D string and the 3rd, as a 10th, on the G string.',
           ],
           steps: [
-            { ex: 'arp-guide-tones', p: { prog: 'ii-V-I', start: '3' }, from: 72, goal: 96, backing: 'chords', do: 'Guide tones from the 3rd. Sing the line.' },
-            { ex: 'hm-shells', p: { prog: 'ii-V-I' }, from: 60, goal: 80, backing: 'chords', do: 'Shell voicings R-7-10: arpeggio, then all three together.' },
+            { ex: 'arp-guide-tones', p: { prog: 'ii-V-I', start: '3', key: '10' }, from: 72, goal: 96, backing: 'chords', do: 'Guide tones from the 3rd. Sing the line.' },
+            { ex: 'hm-shells', p: { prog: 'ii-V-I', key: '3' }, from: 60, goal: 80, backing: 'chords', do: 'Shell voicings R-7-10: arpeggio, then all three together.' },
           ],
           mistakes: [
             'Hearing guide tones as random notes. They move by half steps or stay put.',
@@ -568,9 +570,9 @@ export default {
         ],
         steps: [
           { ex: 'tri-progressions', p: { prog: 'I-vi-ii-V', pattern: 'turn', voicing: 'nearest' }, sub: 1, from: 96, goal: 116, backing: 'chords' },
-          { ex: 'arp-guide-tones', p: { prog: 'ii-V-I', start: '3' }, from: 80, goal: 104, backing: 'chords' },
+          { ex: 'arp-guide-tones', p: { prog: 'ii-V-I', start: '3', key: '8' }, from: 80, goal: 104, backing: 'chords' },
           { ex: 'tri-string-sets', p: { quality: 'maj' }, sub: 2, from: 66, goal: 92 },
-          { ex: 'hm-shells', p: { prog: 'ii-V-I' }, from: 66, goal: 88, backing: 'chords' },
+          { ex: 'hm-shells', p: { prog: 'ii-V-I', key: '5' }, from: 66, goal: 88, backing: 'chords' },
         ],
       },
     },
@@ -694,7 +696,7 @@ export default {
             'Know the next root before you choose the approach, and mix approaches from below and above.',
           ],
           steps: [
-            { ex: 'wk-approach', p: { prog: 'jazz-blues' }, from: 100, goal: 126, backing: 'chords', do: 'A jazz blues with chromatic approaches on beat 4.' },
+            { ex: 'wk-approach', p: { prog: 'jazz-blues', key: '10' }, from: 100, goal: 126, backing: 'chords', do: 'A jazz blues with chromatic approaches on beat 4.' },
           ],
           mistakes: [
             'Approaching the wrong root. Look ahead to the next chord first.',
@@ -723,7 +725,7 @@ export default {
           ],
           steps: [
             { ex: 'wk-mixed', p: { prog: 'jazz-blues' }, from: 104, goal: 132, backing: 'chords', music: true, do: 'A jazz blues walking line with every device.' },
-            { ex: 'wk-mixed', p: { prog: 'I-vi-ii-V' }, from: 104, goal: 132, backing: 'chords', do: 'A turnaround, I–vi–ii–V, one chord per bar.' },
+            { ex: 'wk-mixed', p: { prog: 'I-vi-ii-V', key: '3' }, from: 104, goal: 132, backing: 'chords', do: 'A turnaround, I–vi–ii–V, one chord per bar.' },
           ],
           mistakes: [
             'Playing the same device every bar. Mix them, and listen to the shape of the line.',
@@ -737,7 +739,7 @@ export default {
         ],
         steps: [
           { ex: 'wk-mixed', p: { prog: 'autumn' }, from: 112, goal: 140, backing: 'chords' },
-          { ex: 'wk-approach', p: { prog: 'jazz-blues' }, from: 108, goal: 132, backing: 'chords' },
+          { ex: 'wk-approach', p: { prog: 'jazz-blues', key: '3' }, from: 108, goal: 132, backing: 'chords' },
         ],
       },
     },
@@ -753,8 +755,8 @@ export default {
             'Play slightly late, but always land the root on 1, and let the long notes ring.',
           ],
           steps: [
-            { ex: 'gr-soul', p: { style: 'neoSoul' }, from: 66, goal: 84, backing: 'chords', music: true, do: 'Neo-soul: laid back, with ghost notes.' },
-            { ex: 'gr-soul', p: { style: 'soulBallad' }, from: 60, goal: 76, backing: 'chords', do: 'A soul ballad: long roots and passing tones.' },
+            { ex: 'gr-soul', p: { style: 'neoSoul', key: '3' }, from: 66, goal: 84, backing: 'chords', music: true, do: 'Neo-soul: laid back, with ghost notes.' },
+            { ex: 'gr-soul', p: { style: 'soulBallad', key: '8' }, from: 60, goal: 76, backing: 'chords', do: 'A soul ballad: long roots and passing tones.' },
           ],
           mistakes: [
             'Laid back turning into late on beat 1. The root lands on time.',
@@ -802,9 +804,9 @@ export default {
           'I can slap 16th-note grooves with ghosts, hammers and pops.',
         ],
         steps: [
-          { ex: 'gr-soul', p: { style: 'neoSoul' }, from: 76, goal: 92, backing: 'chords' },
+          { ex: 'gr-soul', p: { style: 'neoSoul', key: '10' }, from: 76, goal: 92, backing: 'chords' },
           { ex: 'gr-odd-meters', p: { meter: '78' }, from: 130, goal: 170 },
-          { ex: 'gr-soul', p: { style: 'soulBallad' }, from: 66, goal: 84, backing: 'chords' },
+          { ex: 'gr-soul', p: { style: 'soulBallad', key: '1' }, from: 66, goal: 84, backing: 'chords' },
           { ex: 'sl-octaves-16', p: { lick: '1' }, from: 72, goal: 92, backing: 'chords' },
         ],
       },
@@ -856,9 +858,9 @@ export default {
             'Modern R&B syncopates the root, adds ghost notes and leans on the chord\'s 7th over neo-soul changes.',
           ],
           steps: [
-            { ex: 'gr-gospel', p: { style: 'gospelWalk' }, from: 76, goal: 96, backing: 'chords', do: 'Gospel walk-ups into each chord.' },
-            { ex: 'gr-gospel', p: { style: 'gospelShuffle' }, from: 88, goal: 108, backing: 'chords', do: 'The gospel shuffle, in triplets.' },
-            { ex: 'gr-gospel', p: { style: 'rnb' }, from: 66, goal: 84, backing: 'chords', music: true, do: 'Modern R&B: syncopated, with ghost notes.' },
+            { ex: 'gr-gospel', p: { style: 'gospelWalk', key: '8' }, from: 76, goal: 96, backing: 'chords', do: 'Gospel walk-ups into each chord.' },
+            { ex: 'gr-gospel', p: { style: 'gospelShuffle', key: '1' }, from: 88, goal: 108, backing: 'chords', do: 'The gospel shuffle, in triplets.' },
+            { ex: 'gr-gospel', p: { style: 'rnb', key: '3' }, from: 66, goal: 84, backing: 'chords', music: true, do: 'Modern R&B: syncopated, with ghost notes.' },
           ],
           mistakes: [
             'A walk-up that lands late. The next root is on beat 1.',
@@ -874,7 +876,7 @@ export default {
         steps: [
           { ex: 'gr-latin', p: { style: 'songo' }, from: 96, goal: 120, backing: 'chords' },
           { ex: 'gr-electronic', p: { style: 'dnb' }, from: 156, goal: 176, backing: 'chords' },
-          { ex: 'gr-gospel', p: { style: 'rnb' }, from: 70, goal: 90, backing: 'chords' },
+          { ex: 'gr-gospel', p: { style: 'rnb', key: '8' }, from: 70, goal: 90, backing: 'chords' },
         ],
       },
     },
@@ -887,19 +889,21 @@ export default {
       'I can choose the right scale for every chord of a progression.',
       'I connect chords by voice leading, and I can play guide tones.',
       'I can walk a complete line through a jazz blues.',
+      'I can hear the chords of a progression by their roots.',
     ],
     steps: [
       { ex: 'rh-sparse-click', p: { every: '4' }, from: 90, goal: 116 },
       { ex: 'sc-positions', p: { pos: 'all', type: 'aeolian' }, sub: 2, from: 80, goal: 104 },
       { ex: 'md-chord-scale', p: { prog: 'minor-ii-V-i' }, from: 92, goal: 112, backing: 'chords' },
-      { ex: 'arp-voice-led', p: { prog: 'jazz-blues', pattern: 'alt' }, from: 84, goal: 108, backing: 'chords' },
-      { ex: 'wk-mixed', p: { prog: 'jazz-blues' }, from: 120, goal: 148, backing: 'chords' },
+      { ex: 'arp-voice-led', p: { prog: 'jazz-blues', pattern: 'alt', key: '10' }, from: 84, goal: 108, backing: 'chords' },
+      { ex: 'wk-mixed', p: { prog: 'jazz-blues', key: '8' }, from: 120, goal: 148, backing: 'chords' },
       { ex: 'rh-displacement', p: { step: '0.25' }, from: 72, goal: 92 },
       { ex: 'rd-keys', p: { mode: 'minor' }, from: 60, goal: 80 },
       { ex: 'mm-criminal', p: { part: 'all' }, from: 84, goal: 112, backing: 'chords', music: true, do: 'Make music: a 16th-note octave engine, then a half-time groove with ghost notes.' },
       { ex: 'mm-goodtimes', p: { part: 'all' }, from: 84, goal: 108, backing: 'chords', music: true, do: 'Make music: disco 16ths with octave flicks over two chords.' },
       // (no dots: by ear and memory, the neck empty; user, 2026-11-03)
       { ex: 'sc-positions', p: { pos: 'all', type: 'aeolian' }, sub: 2, from: 72, goal: 92, dots: 'hide', do: 'No dots this time: the minor scale across its positions from memory, with only the sound to follow.' },
+      { ex: 'ear-progressions', p: { set: 'pop' } },
     ],
   },
 };

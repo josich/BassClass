@@ -186,6 +186,7 @@ export default {
           steps: [
             { ex: 'fb-chromatic-string', p: { string: 'A' }, sub: 1, from: 66, goal: 84, do: 'Sharps going up, flats coming down. Say every name.' },
             { ex: 'fb-chromatic-string', p: { string: 'E' }, sub: 1, from: 66, goal: 84, do: 'Now on the E string.' },
+            { ex: 'game-ear-notes', p: { frets: '5', string: 'any' }, do: 'By ear: the open string, then a note on it. Count the half steps and tap it.' },
           ],
           mistakes: [
             'Thinking there is a note between E and F or between B and C. There is no fret there.',
@@ -418,10 +419,10 @@ export default {
           ],
           steps: [
             { ex: 'tri-maj-min', p: { root: 'A' }, sub: 1, from: 66, goal: 90, do: 'Major, then minor on the same root: listen to the one note that changes, the 3rd (blue).' },
-            { ex: 'ear-triads', p: { set: 'mm' }, do: 'Ear check: a triad plays with its notes hidden. Say "major" or "minor" before the answer appears.' },
+            { ex: 'ear-triads', p: { set: 'mm' }, do: 'Ear check: the chord sounds over its root, shown on the neck. Tap its 3rd and 5th: the 3rd tells major from minor.' },
           ],
           mistakes: [
-            'Guessing from the shape you see. In the ear check, close your eyes.',
+            'Tapping at once in the ear check. Let the chord ring, sing its 3rd, then find it.',
           ],
         },
       ],
@@ -450,6 +451,7 @@ export default {
           ],
           steps: [
             { ex: 'rd-naturals', p: { range: 'ea' }, from: 50, goal: 66, do: 'E and A strings only. Read the note and play it before its dot appears.' },
+            { ex: 'game-read-notes', p: { notes: 'f', places: 'one' }, do: 'A note on the staff: tap it on the neck. Ten a set; 8 right passes.' },
           ],
           mistakes: [
             'Counting lines from the bottom for every note. Learn the open strings as anchors and read from them.',
@@ -465,6 +467,7 @@ export default {
           ],
           steps: [
             { ex: 'rd-naturals', p: { range: 'all' }, from: 50, goal: 66, do: 'All four strings in first position. Keep the tempo even, even when a note takes you a moment.' },
+            { ex: 'game-read-notes', p: { notes: 'first', places: 'one' }, do: 'Every note of the first position: read it, tap it.' },
           ],
           mistakes: [
             'Stopping when you miss a note. Keep going: the next note comes on time anyway.',
@@ -488,6 +491,7 @@ export default {
       'I can play the major scale and major and minor triads in any key.',
       'I keep time with the click on beat 1 only.',
       'I can read first-position notes on the staff.',
+      'I can hear a note on a string and find it.',
     ],
     steps: [
       { ex: 'gr-roots', p: { style: 'rock8', prog: 'I-V-vi-IV' }, from: 92, goal: 112, backing: 'chords' },
@@ -500,6 +504,7 @@ export default {
       { ex: 'mm-spirit', p: { part: 'all' }, from: 84, goal: 112, backing: 'chords', music: true, do: 'Make music: quiet verse, loud chorus. Same notes, two energies.' },
       // (no dots: by ear and memory, the neck empty; user, 2026-11-03)
       { ex: 'sc-one-octave', p: { type: 'ionian', root: 'E', oct: '1', key: '7' }, sub: 1, from: 60, goal: 80, dots: 'hide', do: 'No dots this time: G major from memory, with only the sound to follow.' },
+      { ex: 'game-ear-notes', p: { frets: '7', string: 'any' } },
     ],
   },
 };

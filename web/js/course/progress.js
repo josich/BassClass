@@ -56,6 +56,11 @@ export const CHANGED_STEPS = [
   { rev: 10, steps: ['s1-test.1'] },
   // the same step in B♭: Stage 1 had used G (content QA, 2026-11-03)
   { rev: 11, steps: ['s1-test.1'] },
+  // keys named on steps (content QA G6, 2026-11-03): the jazz steps in F, B♭, E♭ and A♭, gospel and soul in A♭, D♭ and
+  // E♭, rock and metal in E, A, D and G, where they had played the player's last key or C
+  { rev: 12, steps: ['walking-chord-tones.1', 'u-jazz-first-check.0', 'walk-approach.0', 'walk-mixed.1', 'u-walking4-check.1', 's4-test.4', 'walk-two-per-bar.0', 'u-walking5-check.0', 's5-test.8', 'walk-skips.0', 'u-walking5-check.3', 'walk-minor.1', 'u-walking5-check.4', 's5-test.3', 'guide-tones.0', 'guide-tones.1', 'u-voicelead-check.1', 'u-voicelead-check.3', 's4-test.3', 'licks-251.0', 'licks-251.1', 'licks-minor.0', 'licks-minor.1', 'licks-blues.0', 'licks-blues.1', 'u-licks-check.1', 'u-licks-check.2', 'u-licks-check.3', 'solo-devices.0', 'solo-devices.1', 's5-test.7', 'gospel-rnb.0', 'gospel-rnb.1', 'gospel-rnb.2', 'u-styles4-check.2', 'soul.0', 'soul.1', 'u-grooves4-check.0', 'u-grooves4-check.2', 'riffs.0', 'riffs.1', 'pick.0', 'pick.1', 'pick.2', 'blues-lines.1', 'fills.1', 'fills.3', 'rock-blues-licks.1', 'rock-blues-licks.2', 'rock-blues-licks.3', 'metal.0', 'metal.1', 'metal.2', 'metal.3', 'metal.4', 'u-styles3-check.0', 'u-rock3-check.0'] },
+  // Lesson 2.16 and its checkpoint on the intervals game #227, which checks the answer (user, 2026-11-03)
+  { rev: 13, steps: ['interval-ear.0', 'interval-ear.1', 'u-intervals-check.1'] },
 ];
 const REV = CHANGED_STEPS.length;
 // a step whose notes changed after the player finished its lesson asks to be played again, but the

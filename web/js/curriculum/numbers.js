@@ -22,7 +22,7 @@ export const NUMBERS = {
   'tri-four-types': 231, 'tri-zone-cycle': 232, 'arp-7th-qualities': 233, 'arp-7th': 234, 'hm-chord-qualities': 235,
   'hm-progression-roots': 236, 'hm-12-bar-blues': 237, 'gr-pick': 238, 'gr-octaves': 239, 'gr-blues': 240,
   'gr-fills': 241, 'mm-dust': 242, 'mm-sunshine': 243, 'mm-standby': 244, 'mm-calif': 245,
-  'mm-feelgood': 246, 'mm-blitz': 247, 'gr-waltz': 248, 'tn-grace': 249, 'tn-greensleeves': 250,
+  'mm-feelgood': 246, 'mm-blitz': 247, 'gr-waltz': 248, 'tn-grace': 249, 'tn-greensleeves': 250, 'game-theory': 251,
   // Level 3
   'tech-trills': 301, 'tech-legato': 302, 'tech-string-skip': 303, 'tech-shifting': 304, 'tech-simandl': 305,
   'tech-accents': 306, 'tech-ghost-16ths': 307, 'tech-pick-gallop': 308, 'rh-triplets': 309, 'rh-16th-grid': 310,
@@ -45,7 +45,7 @@ export const NUMBERS = {
   'arp-diatonic-inversions': 431, 'arp-ii-v-i': 432, 'arp-voice-led': 433, 'arp-guide-tones': 434, 'hm-minor-keys': 435,
   'hm-shells': 436, 'gr-soul': 437, 'gr-odd-meters': 438, 'wk-approach': 439, 'wk-scalar': 440,
   'wk-mixed': 441, 'sl-grooves': 442, 'sl-octaves-16': 443, 'mm-money': 444, 'mm-criminal': 445,
-  'mm-goodtimes': 446, 'mm-flyaway': 447, 'gr-latin': 448, 'gr-electronic': 449, 'gr-gospel': 450, 'tn-air': 451, 'tn-bourree': 452, 'tn-entertainer': 453,
+  'mm-goodtimes': 446, 'mm-flyaway': 447, 'gr-latin': 448, 'gr-electronic': 449, 'gr-gospel': 450, 'tn-air': 451, 'tn-bourree': 452, 'tn-entertainer': 453, 'game-harmony': 454,
   // Level 5
   'tech-permutations-across': 501, 'tech-pim': 502, 'tech-sweep': 503, 'tech-harmonic-chords': 504, 'rh-polyrhythm': 505,
   'iv-cycles': 506, 'sc-bebop': 507, 'sc-symmetric': 508, 'sc-exotic': 509, 'sc-sixth-diminished': 510,

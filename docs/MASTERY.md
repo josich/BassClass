@@ -96,6 +96,7 @@ In all, 203 exercises have a main option and 45 have none (the eight exercises a
 | 242–247 | Song studies | Part | Whole tune |
 | 248 | Waltzes, 6/8 and 12/8 | Groove (6) | all 6 |
 | 249–250 | Classic tunes: Amazing Grace, Greensleeves | — | one loop at its tempo |
+| 251 | Theory on the neck: chords and keys (game) | Ask: triads, 7th chords, major keys | 8 of 10 in all 3 |
 
 ## Level 3
 
@@ -201,6 +202,7 @@ In all, 203 exercises have a main option and 45 have none (the eight exercises a
 | 451 | Air (Suite No. 3) | Part | Whole tune |
 | 452 | Bourrée in E minor | Part: melody and bass, each half (4) | all 4 |
 | 453 | The Entertainer | — | one loop at its tempo |
+| 454 | Theory on the neck: keys and harmony (game) | Ask: keys, numerals, extensions, altered | 8 of 10 in all 4 |
 
 ## Level 5
 

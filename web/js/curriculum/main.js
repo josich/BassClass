@@ -22,7 +22,7 @@ export const MAIN = {
   'tech-raking': 'pattern', 'tech-muting': 'pattern', 'tech-permutations': ALL('perm', { pct: 0.8 }), 'tech-spider': 'pattern',
   'tech-finger-pairs': 'pair', 'tech-pick-alt': 'lick', 'fb-unison': 'string', 'rd-accidentals': { by: 'range', only: ['all'] },
   'rd-melodies': 'key', 'iv-shapes': 'iv', 'iv-moving': 'iv', 'iv-ear-quiz': { by: 'set', only: ['all'] }, 'ear-triads': { by: 'set', only: ['all'] },
-  'game-ear-intervals': { by: 'set', game: true }, 'sc-blues': 'type', 'sc-chromatic': 'layout', 'tri-qualities': 'quality',
+  'game-ear-intervals': { by: 'set', game: true }, 'game-theory': { by: 'ask', game: true }, 'sc-blues': 'type', 'sc-chromatic': 'layout', 'tri-qualities': 'quality',
   'tri-zone-cycle': 'quality', 'arp-7th': 'quality', 'hm-chord-qualities': 'scale', 'hm-progression-roots': P80('prog'),
   'hm-12-bar-blues': 'prog', 'gr-pick': 'style', 'gr-octaves': 'style', 'gr-blues': 'style', 'gr-fills': 'lick', 'gr-waltz': 'style',
   'mm-dust': SONG, 'mm-sunshine': SONG, 'mm-standby': SONG, 'mm-calif': SONG, 'mm-feelgood': SONG, 'mm-blitz': SONG,
@@ -48,7 +48,7 @@ export const MAIN = {
   'arp-ii-v-i': 'type', 'arp-voice-led': P80('prog'), 'arp-guide-tones': 'prog', 'hm-minor-keys': 'prog', 'hm-shells': 'prog',
   'gr-soul': 'style', 'gr-odd-meters': 'meter', 'wk-approach': P80('prog'), 'wk-scalar': P80('prog'), 'wk-mixed': P80('prog'),
   'sl-grooves': 'style', 'sl-octaves-16': 'lick', 'gr-latin': 'style', 'gr-electronic': 'style', 'gr-gospel': 'style', 'mm-money': SONG, 'mm-criminal': SONG, 'mm-goodtimes': SONG, 'mm-flyaway': SONG,
-  'tn-air': SONG, 'tn-bourree': 'part',
+  'tn-air': SONG, 'tn-bourree': 'part', 'game-harmony': { by: 'ask', game: true },
   // Level 5
   'tech-permutations-across': ALL('perm', { pct: 0.8 }), 'tech-false-harmonics': 'line', 'tech-sweep': 'shape', 'rh-polyrhythm': 'ratio', 'iv-cycles': 'iv',
   'sc-bebop': 'type', 'sc-symmetric': 'type', 'sc-exotic': 'type', 'sc-pent-sidestep': 'side', 'sc-pent-double-stops': 'pattern',

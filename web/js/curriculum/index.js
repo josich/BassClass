@@ -16,7 +16,7 @@ import ear from './ear.js';
 import songs from './songs.js';
 import tunes from './tunes.js';
 import { NUMBERS } from './numbers.js';
-import { EAR_GAMES, READ_GAMES } from './games.js';
+import { EAR_GAMES, READ_GAMES, THEORY_GAMES } from './games.js';
 import rock from './rock.js';
 
 export const LEVELS = [
@@ -48,7 +48,7 @@ export const MODULES = [
   { id: 'tunes', name: 'Classic tunes', icon: '🎻', desc: 'Melodies everyone knows, from folk songs to Beethoven, Bach and Joplin, played as written: free of copyright, the composer named.' },
 ];
 
-const ALL = [...fretboard, ...reading, ...READ_GAMES, ...technique, ...rhythm, ...intervals, ...ear, ...EAR_GAMES, ...scales, ...pentatonics, ...modes, ...triads, ...arpeggios, ...harmony, ...grooves, ...licks, ...rock, ...songs, ...tunes];
+const ALL = [...fretboard, ...reading, ...READ_GAMES, ...technique, ...rhythm, ...intervals, ...ear, ...EAR_GAMES, ...scales, ...pentatonics, ...modes, ...triads, ...arpeggios, ...harmony, ...THEORY_GAMES, ...grooves, ...licks, ...rock, ...songs, ...tunes];
 {
   const seen = new Set();
   for (const t of ALL) {

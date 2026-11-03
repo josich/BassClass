@@ -180,9 +180,9 @@ export default {
           ],
           steps: [
             { ex: 'lk-rock-blues', p: { lick: '0', feel: 'straight' }, from: 72, goal: 96, backing: 'chords', do: 'Down the minor pentatonic and back up.' },
-            { ex: 'lk-rock-blues', p: { lick: '3', feel: 'swing' }, from: 72, goal: 96, backing: 'chords', do: 'The blue note sliding into the 3rd, over a 7th chord.' },
-            { ex: 'lk-rock-blues', p: { lick: '5', feel: 'swing' }, from: 72, goal: 96, backing: 'chords', do: 'A Mixolydian riff with a chromatic step into the 5th.' },
-            { ex: 'lk-rock-blues', p: { lick: '2', feel: 'straight' }, from: 72, goal: 96, backing: 'chords', do: 'Hammer-ons up the box: one pluck, two notes.' },
+            { ex: 'lk-rock-blues', p: { lick: '3', feel: 'swing', key: '9' }, from: 72, goal: 96, backing: 'chords', do: 'The blue note sliding into the 3rd, over a 7th chord.' },
+            { ex: 'lk-rock-blues', p: { lick: '5', feel: 'swing', key: '7' }, from: 72, goal: 96, backing: 'chords', do: 'A Mixolydian riff with a chromatic step into the 5th.' },
+            { ex: 'lk-rock-blues', p: { lick: '2', feel: 'straight', key: '2' }, from: 72, goal: 96, backing: 'chords', do: 'Hammer-ons up the box: one pluck, two notes.' },
             { ex: 'lk-rock-blues', p: { lick: '7', feel: 'swing' }, from: 72, goal: 96, backing: 'chords', music: true, do: 'A turnaround from I to V, back to the top of the blues.' },
           ],
           mistakes: [
@@ -215,7 +215,7 @@ export default {
           'I can gallop and skip strings with a pick.',
         ],
         steps: [
-          { ex: 'lk-rock-blues', p: { lick: '1', feel: 'straight' }, from: 80, goal: 104, backing: 'chords' },
+          { ex: 'lk-rock-blues', p: { lick: '1', feel: 'straight', key: '9' }, from: 80, goal: 104, backing: 'chords' },
           { ex: 'lk-rock-blues', p: { lick: '6', feel: 'swing' }, from: 76, goal: 100, backing: 'chords' },
           { ex: 'tech-pick-gallop', p: { lick: '2' }, from: 84, goal: 112 },
         ],
@@ -234,11 +234,11 @@ export default {
             'Djent groups 16ths in threes across the bar; doom slows everything down and lets each note ring. Its darkest colours: the ♭5 (the tritone), the minor scale\'s ♭6 and, in Phrygian riffs and breakdowns, the ♭2.',
           ],
           steps: [
-            { ex: 'gr-metal', p: { style: 'metalChug' }, from: 100, goal: 140, backing: 'chords', do: 'Palm-muted 8th chugs, down-strokes only.' },
-            { ex: 'gr-metal', p: { style: 'doubleKick' }, from: 90, goal: 120, backing: 'chords', do: '16ths with alternate picking, locked with the double kick.' },
-            { ex: 'gr-metal', p: { style: 'breakdown' }, from: 100, goal: 132, backing: 'chords', do: 'A half-time breakdown: stabs and space.' },
-            { ex: 'gr-metal', p: { style: 'djent' }, from: 80, goal: 108, backing: 'chords', do: 'Djent: groups of three 16ths across the bar.' },
-            { ex: 'gr-metal', p: { style: 'doom' }, from: 50, goal: 66, backing: 'chords', music: true, do: 'Doom: slow and heavy, every note ringing its full length.' },
+            { ex: 'gr-metal', p: { style: 'metalChug', key: '4' }, from: 100, goal: 140, backing: 'chords', do: 'Palm-muted 8th chugs, down-strokes only.' },
+            { ex: 'gr-metal', p: { style: 'doubleKick', key: '4' }, from: 90, goal: 120, backing: 'chords', do: '16ths with alternate picking, locked with the double kick.' },
+            { ex: 'gr-metal', p: { style: 'breakdown', key: '2' }, from: 100, goal: 132, backing: 'chords', do: 'A half-time breakdown: stabs and space.' },
+            { ex: 'gr-metal', p: { style: 'djent', key: '4' }, from: 80, goal: 108, backing: 'chords', do: 'Djent: groups of three 16ths across the bar.' },
+            { ex: 'gr-metal', p: { style: 'doom', key: '2' }, from: 50, goal: 66, backing: 'chords', music: true, do: 'Doom: slow and heavy, every note ringing its full length.' },
           ],
           mistakes: [
             'Strings ringing between the chugs. Palm mute, and mute with the fretting hand too.',
@@ -287,7 +287,7 @@ export default {
           'I can play highlife, cumbia, soca and maqsum grooves.',
         ],
         steps: [
-          { ex: 'gr-metal', p: { style: 'doubleKick' }, from: 100, goal: 126, backing: 'chords' },
+          { ex: 'gr-metal', p: { style: 'doubleKick', key: '4' }, from: 100, goal: 126, backing: 'chords' },
           { ex: 'gr-reggae', p: { style: 'rockers' }, from: 72, goal: 88, backing: 'chords' },
           { ex: 'gr-world-grooves', p: { style: 'soca' }, from: 116, goal: 138, backing: 'chords' },
         ],
@@ -729,8 +729,9 @@ export default {
             'Decide the triad first (major, minor or diminished), then the 7th, the third note of these voicings: a major 7th sits a half step under the root\'s octave, a minor 7th a whole step under it, a diminished 7th a step and a half.',
           ],
           steps: [
-            { ex: 'ear-sevenths', p: { set: 'basic' }, do: 'maj7, 7 and m7, notes hidden. Name each before the answer appears.' },
+            { ex: 'ear-sevenths', p: { set: 'basic' }, do: 'maj7, 7 and m7 over the root: tap the 3rd, 5th and 7th.' },
             { ex: 'ear-sevenths', p: { set: 'five' }, do: 'All five 7th chords.' },
+            { ex: 'game-ear-chordtones', p: { chords: 'sevenths', ask: 'any' }, do: 'A 7th chord over its root, then one of its tones: tap it.' },
           ],
           mistakes: [
             'Mixing up maj7 and 7. Listen to the third note, the 7th: right under the octave (maj7) or a whole step under it (7). The top note is the 3rd in both.',
@@ -877,7 +878,7 @@ export default {
           ],
           steps: [
             { ex: 'wk-chord-tones', p: { prog: 'I-vi-ii-V' }, from: 96, goal: 120, backing: 'chords', do: 'A walking line through I–vi–ii–V.' },
-            { ex: 'wk-chord-tones', p: { prog: 'jazz-blues' }, from: 96, goal: 120, backing: 'chords', music: true, do: 'The jazz blues: walk it with the chords.' },
+            { ex: 'wk-chord-tones', p: { prog: 'jazz-blues', key: '10' }, from: 96, goal: 120, backing: 'chords', music: true, do: 'The jazz blues: walk it with the chords.' },
           ],
           mistakes: [
             'Short, choppy quarter notes. A walking line is legato.',
@@ -925,7 +926,7 @@ export default {
           'I can slap the roots with the thumb and pop the octaves.',
         ],
         steps: [
-          { ex: 'wk-chord-tones', p: { prog: 'jazz-blues' }, from: 104, goal: 132, backing: 'chords' },
+          { ex: 'wk-chord-tones', p: { prog: 'jazz-blues', key: '10' }, from: 104, goal: 132, backing: 'chords' },
           { ex: 'gr-genres', p: { style: 'samba' }, from: 88, goal: 108, backing: 'chords' },
           { ex: 'wk-two-feel', p: { prog: 'ii-V-I' }, from: 110, goal: 144, backing: 'chords' },
           { ex: 'sl-thumb-pop', p: { style: 'octPop' }, from: 80, goal: 104, backing: 'chords' },
@@ -941,6 +942,7 @@ export default {
       'I play two-octave scales, sequences and the modes.',
       'I play the triads and 7th chords of any key, in any fingering.',
       'I can walk a jazz blues with chord tones.',
+      'I can hear a chord\'s 3rd and 5th and tap them.',
     ],
     steps: [
       { ex: 'tech-legato', p: { pos: '7' }, sub: 2, from: 80, goal: 100 },
@@ -954,6 +956,7 @@ export default {
       { ex: 'mm-chain', p: { part: 'all' }, from: 100, goal: 140, backing: 'chords', music: true, do: 'Make music: a quiet pedal, then a bass break up the pentatonic.' },
       // (no dots: by ear and memory, the neck empty; user, 2026-11-03)
       { ex: 'arp-diatonic-7ths', p: { scale: 'ionian', order: 'fourths', pattern: 'alt' }, sub: 2, from: 70, goal: 92, dots: 'hide', do: 'No dots this time: the diatonic 7ths in 4ths from memory, with only the sound to follow.' },
+      { ex: 'game-ear-chordtones', p: { chords: 'triads', ask: 'any' } },
     ],
   },
 };

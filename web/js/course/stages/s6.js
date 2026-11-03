@@ -386,6 +386,7 @@ export default {
       'I can walk and arpeggiate Giant Steps and rhythm changes at tempo.',
       'I can play chordal bass across the strings.',
       'I can play bebop and modern jazz vocabulary in every key.',
+      'I can hear the roots of jazz changes.',
     ],
     steps: [
       { ex: 'sc-odd-groupings', p: { pattern: 'g5', type: 'melodicMinor', oct: '1' }, sub: 4, from: 66, goal: 88 },
@@ -400,6 +401,7 @@ export default {
       { ex: 'mm-solo-piece', p: { part: 'all' }, from: 60, goal: 84, backing: 'chords', music: true, do: 'Make music: a complete bass solo in four parts, from the arpeggios to the final low E.' },
       // (no dots: by ear and memory, the neck empty; user, 2026-11-03)
       { ex: 'tri-diatonic-all-keys', p: { scale: 'melodicMinor', order: 'fourths', pattern: 'alt', inversion: '1' }, sub: 3, from: 66, goal: 88, dots: 'hide', do: 'No dots this time: the melodic minor triads round the keys from memory, with only the sound to follow.' },
+      { ex: 'ear-progressions', p: { set: 'jazz' } },
     ],
   },
 };

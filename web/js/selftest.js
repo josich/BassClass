@@ -381,8 +381,9 @@ function checkCourse(problems, strings) {
         try {
           const inst = t.build({ ...defaultParams(t), ...st.p }, makeCtx(S), S);
           if (!inst?.steps?.length) problems.push(`${where} [${n}str]: empty`);
-          // the notes per beat belong to the step where the player can choose them (and only there)
-          else if (inst.uniform ? !(st.sub > 0) : st.sub != null) problems.push(`${where}: ${inst.uniform ? 'needs its sub (notes per beat)' : 'has a sub but the rhythm is written'}`);
+          // the notes per beat belong to the step where the player can choose them (and only there; a game's step plays
+          // in tap mode, scored, with no notes per beat)
+          else if (t.game ? st.sub != null : inst.uniform ? !(st.sub > 0) : st.sub != null) problems.push(`${where}: ${inst.uniform ? 'needs its sub (notes per beat)' : 'has a sub but the rhythm is written'}`);
         } catch (e) { problems.push(`${where} [${n}str]: threw ${e.message}`); }
       }
     });

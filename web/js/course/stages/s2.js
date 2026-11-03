@@ -292,12 +292,12 @@ export default {
           id: 'interval-ear', title: 'Hear the interval',
           idea: 'Sing the second note before it sounds.',
           concept: [
-            'The root plays, then the interval. Sing or name the second note before it sounds, then check yourself when its dot appears.',
+            'The root sounds and shows on the neck, then a second note above it. Sing it back, then tap where it is: a right answer grows on the neck, a wrong one shows where it was and plays it again.',
             'Begin with 3rds, 4ths, 5ths and the octave: they are the intervals bass lines use most.',
           ],
           steps: [
-            { ex: 'iv-ear-quiz', p: { set: 'basic' }, sub: 1, do: '3rds, 4ths, 5ths and the octave. Sing, name, then play.' },
-            { ex: 'iv-ear-quiz', p: { set: 'all' }, sub: 1, do: 'Every interval within the octave.' },
+            { ex: 'game-ear-intervals', p: { set: 'triad', dir: 'up' }, do: '3rds, 4ths, 5ths and the octave. Sing it, then tap it.' },
+            { ex: 'game-ear-intervals', p: { set: 'all', dir: 'up' }, do: 'Every interval within the octave.' },
           ],
           mistakes: [
             'Guessing from the fret. Close your eyes and listen first.',
@@ -311,7 +311,7 @@ export default {
         ],
         steps: [
           { ex: 'iv-all-from-root', p: { root: 'A' }, sub: 2, from: 80, goal: 100 },
-          { ex: 'iv-ear-quiz', p: { set: 'basic' }, sub: 1 },
+          { ex: 'game-ear-intervals', p: { set: 'triad', dir: 'up' } },
         ],
       },
     },
@@ -330,6 +330,7 @@ export default {
             { ex: 'tri-qualities', p: { quality: 'dim', shape: 'updown' }, sub: 2, from: 66, goal: 88, do: 'Diminished: R-♭3-♭5.' },
             { ex: 'tri-qualities', p: { quality: 'aug', shape: 'updown' }, sub: 2, from: 66, goal: 88, do: 'Augmented: R-3-♯5.' },
             { ex: 'tri-qualities', p: { quality: 'sus4', shape: 'updown' }, sub: 2, from: 66, goal: 88, do: 'Sus4: the 4th takes the place of the 3rd.' },
+            { ex: 'game-theory', p: { ask: 'triads' }, do: 'Theory on the neck: the 3rd or the 5th of a triad, by name. Tap it.' },
           ],
           mistakes: [
             'Mixing up diminished and minor. Diminished also lowers the 5th.',
@@ -343,7 +344,7 @@ export default {
           ],
           steps: [
             { ex: 'tri-four-types', p: { root: 'A' }, sub: 2, from: 70, goal: 92, do: 'Major → minor → diminished → augmented. Say each name before it plays.' },
-            { ex: 'ear-triads', p: { set: 'all' }, do: 'Ear check: all four types, notes hidden. Name each one before the answer appears.' },
+            { ex: 'ear-triads', p: { set: 'all' }, do: 'Ear check: all four types over the root. Tap the 3rd and the 5th: the 5th gives diminished and augmented away.' },
           ],
           mistakes: [
             'Rushing past the sound. Let each chord ring in your ear before the next.',
@@ -390,6 +391,7 @@ export default {
           ],
           steps: [
             { ex: 'arp-7th-qualities', p: { root: 'A' }, sub: 2, from: 70, goal: 90, do: 'Lower one note at a time. Say each chord\'s name.' },
+            { ex: 'game-theory', p: { ask: 'sevenths' }, do: 'The 3rd, 5th or 7th of a 7th chord: work it out, tap it.' },
           ],
           mistakes: [
             'Learning five unrelated shapes. See each one as the one before with one note lowered.',
@@ -419,6 +421,7 @@ export default {
           ],
           steps: [
             { ex: 'hm-chord-qualities', p: { scale: 'ionian' }, sub: 2, from: 72, goal: 92, do: 'Root and 3rd on every degree. Say "major" or "minor" each time, and "diminished" on vii.' },
+            { ex: 'game-theory', p: { ask: 'degrees' }, do: 'A note of a major key by its number: the 6th note of A♭ major.' },
           ],
           mistakes: [
             'Memorising the pattern without hearing it. Listen to the 3rd change.',
@@ -494,7 +497,7 @@ export default {
           ],
           steps: [
             { ex: 'gr-blues', p: { style: 'boogie', prog: 'blues' }, from: 84, goal: 112, backing: 'chords', do: 'The boogie line: one shape, moved to each chord.' },
-            { ex: 'gr-blues', p: { style: 'boogieSwing', prog: 'blues' }, from: 84, goal: 108, backing: 'chords', music: true, do: 'The same line swung. Play along with the chords.' },
+            { ex: 'gr-blues', p: { style: 'boogieSwing', prog: 'blues', key: '4' }, from: 84, goal: 108, backing: 'chords', music: true, do: 'The same line swung. Play along with the chords.' },
           ],
           mistakes: [
             'Changing the shape on the IV chord. It is the same shape, one string higher.',
@@ -542,8 +545,8 @@ export default {
             'A riff is a short phrase that repeats and moves with the chords. Keep its shape and move it to each root: R-5-♭7-8 or a minor pentatonic figure works on every chord of a blues or rock tune.',
           ],
           steps: [
-            { ex: 'gr-octaves', p: { style: 'r5b7', prog: 'blues' }, from: 92, goal: 112, backing: 'chords', do: 'R-5-♭7-8 through a 12-bar blues.' },
-            { ex: 'gr-octaves', p: { style: 'riff', prog: 'i-iv-v-min' }, from: 92, goal: 112, backing: 'chords', music: true, do: 'One minor-pentatonic riff, moved to each chord.' },
+            { ex: 'gr-octaves', p: { style: 'r5b7', prog: 'blues', key: '4' }, from: 92, goal: 112, backing: 'chords', do: 'R-5-♭7-8 through a 12-bar blues.' },
+            { ex: 'gr-octaves', p: { style: 'riff', prog: 'i-iv-v-min', key: '7' }, from: 92, goal: 112, backing: 'chords', music: true, do: 'One minor-pentatonic riff, moved to each chord.' },
           ],
           mistakes: [
             'Changing the riff on each chord. The shape stays; only the root moves.',
@@ -573,9 +576,9 @@ export default {
             'Hold the pick between the thumb and the side of the index, only its tip showing, and keep the stroke small. Rest the edge of the picking hand on the strings by the bridge (palm muting) for a short, chunky sound.',
           ],
           steps: [
-            { ex: 'gr-pick', p: { style: 'pickDown' }, from: 100, goal: 140, backing: 'chords', do: 'Punk 8ths with down-strokes only.' },
-            { ex: 'gr-pick', p: { style: 'pickAlt' }, from: 100, goal: 140, backing: 'chords', do: 'Alternate picking: down on the beat, up on the "&".' },
-            { ex: 'gr-pick', p: { style: 'gallop' }, from: 90, goal: 120, backing: 'chords', do: 'The gallop: an 8th and two 16ths.' },
+            { ex: 'gr-pick', p: { style: 'pickDown', key: '4' }, from: 100, goal: 140, backing: 'chords', do: 'Punk 8ths with down-strokes only.' },
+            { ex: 'gr-pick', p: { style: 'pickAlt', key: '2' }, from: 100, goal: 140, backing: 'chords', do: 'Alternate picking: down on the beat, up on the "&".' },
+            { ex: 'gr-pick', p: { style: 'gallop', key: '4' }, from: 90, goal: 120, backing: 'chords', do: 'The gallop: an 8th and two 16ths.' },
             { ex: 'tech-pick-alt', p: { lick: '2' }, from: 72, goal: 100, do: 'Alternate 16ths on one note: every stroke the same loudness.' },
             { ex: 'tech-pick-alt', p: { lick: '3' }, from: 80, goal: 110, do: 'Root and octave across the strings, down on the root, up on the octave.' },
           ],
@@ -593,9 +596,9 @@ export default {
           ],
           steps: [
             { ex: 'gr-fills', p: { lick: '0' }, from: 80, goal: 104, backing: 'chords', do: 'Down the box: the last two beats, back to the root on 1.' },
-            { ex: 'gr-fills', p: { lick: '1' }, from: 80, goal: 104, backing: 'chords', do: 'Up to the octave, then down to the root.' },
+            { ex: 'gr-fills', p: { lick: '1', key: '9' }, from: 80, goal: 104, backing: 'chords', do: 'Up to the octave, then down to the root.' },
             { ex: 'gr-fills', p: { lick: '2' }, from: 72, goal: 96, backing: 'chords', do: 'A triplet run: two beats of triplets, even and in time.' },
-            { ex: 'gr-fills', p: { lick: '5', feel: 'swing' }, from: 80, goal: 104, backing: 'chords', music: true, do: 'A blues: walk up chromatically into the IV chord, shuffled.' },
+            { ex: 'gr-fills', p: { lick: '5', feel: 'swing', key: '7' }, from: 80, goal: 104, backing: 'chords', music: true, do: 'A blues: walk up chromatically into the IV chord, shuffled.' },
           ],
           mistakes: [
             'Rushing the fill. It is in time like the groove.',
@@ -699,6 +702,7 @@ export default {
       'I can find any note up to fret 12 and play every triad type from it.',
       'I can play maj7, 7 and m7 arpeggios in any key.',
       'I can swing, play off-beats and read a melody with a key signature.',
+      'I can hear 3rds, 4ths, 5ths and the octave and find them on the neck.',
     ],
     steps: [
       { ex: 'gr-blues', p: { style: 'boogieSwing', prog: 'blues' }, from: 96, goal: 116, backing: 'chords' },
@@ -712,6 +716,7 @@ export default {
       { ex: 'mm-blitz', p: { part: 'all' }, from: 112, goal: 144, backing: 'chords', music: true, do: 'Make music: punk down-strokes. Hold the tempo for the whole song.' },
       // (no dots: by ear and memory, the neck empty; user, 2026-11-03)
       { ex: 'arp-7th', p: { quality: 'min7', oct: '1' }, sub: 2, from: 72, goal: 92, dots: 'hide', do: 'No dots this time: the minor 7th arpeggio from memory, with only the sound to follow.' },
+      { ex: 'game-ear-intervals', p: { set: 'triad', dir: 'up' } },
     ],
   },
 };

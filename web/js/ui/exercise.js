@@ -1380,6 +1380,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   /** What the screen asks: tap the note read, heard or named (its name, big, for a note-finding drill). */
   function tapAskText(ask) {
     const kind = inst.tap.kind, all = ask.answer.all;
+    // (a theory round asks in words, "the 3rd of E♭7": content QA G17, 2026-11-03)
+    if (ask.q) return `tap ${ask.q}`;
     if (kind === 'ear') return tapListening ? '🎧 Listen…' : `👆 tap ${ask.answer.multi ? 'its notes' : 'it'} <small>· ▶ hear it again</small>`;
     if (kind === 'find') return `find <b>${esc(tapName(ask.answer.n))}</b>${all ? ' · every place' : ''}`;
     return all ? 'tap <b>every place</b>, to the 12th fret' : 'tap it on the neck';
@@ -1388,7 +1390,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   function decorateStaff(root = tabEl) {
     const list = asks(), kind = inst?.tap?.kind;
     // (a note-finding drill writes its answers on the staff: no empty staff before the first, QA round 23)
-    tabEl.classList.toggle('tap-empty', kind === 'find' && !tapRes.some(Boolean));
+    tabEl.classList.toggle('tap-empty', (kind === 'find' || kind === 'theory') && !tapRes.some(Boolean));
     const at = tapAt < 0 ? -1 : tapAt >= list.length ? Infinity : list[tapAt].i;
     const index = new Map(list.map((a, j) => [a.i, j]));
     for (const g of root.querySelectorAll('.sn[data-i]')) {

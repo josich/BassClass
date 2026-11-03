@@ -495,6 +495,7 @@ export default {
           steps: [
             { ex: 'arp-extended', p: { ext: '9', scale: 'ionian', order: 'up' }, sub: 2, from: 60, goal: 88, do: '9th chords through the key.' },
             { ex: 'arp-extended', p: { ext: '13', scale: 'dorian', order: 'up' }, sub: 2, from: 56, goal: 80, do: '13th chords through Dorian.' },
+            { ex: 'game-harmony', p: { ask: 'extensions' }, do: 'The 9th, 11th or 13th of a chord: tap it.' },
           ],
           mistakes: [
             'Losing the shape over two octaves. Plan the shift before you play.',
@@ -539,6 +540,7 @@ export default {
           steps: [
             { ex: 'arp-altered-dominants', p: { alt: 'dom7b9' }, sub: 2, from: 60, goal: 84, do: '7♭9 resolving.' },
             { ex: 'arp-altered-dominants', p: { alt: 'dom7s5' }, sub: 2, from: 60, goal: 84, do: '7♯5 resolving.' },
+            { ex: 'game-harmony', p: { ask: 'altered' }, do: 'The ♭9, ♯9, ♯11 or ♭13 of a dominant, written plainly.' },
           ],
           mistakes: [
             'Playing the alteration without hearing it resolve. Follow it to the I chord.',
@@ -632,7 +634,7 @@ export default {
             'Start slowly: the changes come fast.',
           ],
           steps: [
-            { ex: 'wk-two-per-bar', p: { prog: 'rhythm-A' }, from: 96, goal: 126, backing: 'chords', do: 'Rhythm changes, A section.' },
+            { ex: 'wk-two-per-bar', p: { prog: 'rhythm-A', key: '10' }, from: 96, goal: 126, backing: 'chords', do: 'Rhythm changes, A section.' },
             { ex: 'wk-two-per-bar', p: { prog: 'cycle-251' }, from: 96, goal: 120, backing: 'chords', do: 'ii–V in all 12 keys.' },
           ],
           mistakes: [
@@ -648,7 +650,7 @@ export default {
           ],
           steps: [
             { ex: 'wk-minor', p: { prog: 'minor-ii-V-i' }, from: 100, goal: 126, backing: 'chords', do: 'Minor ii–V–i.' },
-            { ex: 'wk-minor', p: { prog: 'minor-blues' }, from: 100, goal: 126, backing: 'chords', music: true, do: 'The minor blues.' },
+            { ex: 'wk-minor', p: { prog: 'minor-blues', key: '0' }, from: 100, goal: 126, backing: 'chords', music: true, do: 'The minor blues.' },
           ],
           mistakes: [
             'A natural 5th on the m7♭5. Watch the dots.',
@@ -662,7 +664,7 @@ export default {
             'The skip is a ghost, barely audible. In real playing use it sparingly; here it comes every other bar.',
           ],
           steps: [
-            { ex: 'wk-triplet-skips', p: { prog: 'jazz-blues' }, from: 104, goal: 132, backing: 'chords', do: 'A jazz blues with triplet skips.' },
+            { ex: 'wk-triplet-skips', p: { prog: 'jazz-blues', key: '10' }, from: 104, goal: 132, backing: 'chords', do: 'A jazz blues with triplet skips.' },
           ],
           mistakes: [
             'Skips as loud as the line. They are ghosts.',
@@ -676,11 +678,11 @@ export default {
           'I use enclosures and triplet skips in a walking line.',
         ],
         steps: [
-          { ex: 'wk-two-per-bar', p: { prog: 'rhythm-A' }, from: 112, goal: 144, backing: 'chords' },
+          { ex: 'wk-two-per-bar', p: { prog: 'rhythm-A', key: '10' }, from: 112, goal: 144, backing: 'chords' },
           { ex: 'wk-enclosures', p: { prog: 'ii-V-I' }, from: 112, goal: 140, backing: 'chords' },
           { ex: 'wk-minor', p: { prog: 'minor-ii-V-i' }, from: 112, goal: 140, backing: 'chords' },
-          { ex: 'wk-triplet-skips', p: { prog: 'jazz-blues' }, from: 112, goal: 140, backing: 'chords' },
-          { ex: 'wk-minor', p: { prog: 'minor-blues' }, from: 112, goal: 140, backing: 'chords' },
+          { ex: 'wk-triplet-skips', p: { prog: 'jazz-blues', key: '3' }, from: 112, goal: 140, backing: 'chords' },
+          { ex: 'wk-minor', p: { prog: 'minor-blues', key: '5' }, from: 112, goal: 140, backing: 'chords' },
         ],
       },
     },
@@ -696,8 +698,8 @@ export default {
             'Learn one lick slowly in C, sing it, then move it through all 12 keys. Finally slip it into your walking lines and solos.',
           ],
           steps: [
-            { ex: 'lk-ii-v-i', p: { lick: '0', feel: 'swing' }, from: 96, goal: 120, backing: 'chords', do: 'Arpeggio up, ♭9 down. Watch where the ♭9 and the 3rd fall.' },
-            { ex: 'lk-ii-v-i', p: { lick: '1', feel: 'swing' }, from: 96, goal: 120, backing: 'chords', do: 'An enclosure into the 3rd.' },
+            { ex: 'lk-ii-v-i', p: { lick: '0', feel: 'swing', key: '10' }, from: 96, goal: 120, backing: 'chords', do: 'Arpeggio up, ♭9 down. Watch where the ♭9 and the 3rd fall.' },
+            { ex: 'lk-ii-v-i', p: { lick: '1', feel: 'swing', key: '3' }, from: 96, goal: 120, backing: 'chords', do: 'An enclosure into the 3rd.' },
           ],
           mistakes: [
             'Learning a lick in one key only. Move it through all 12.',
@@ -711,8 +713,8 @@ export default {
             'The ♭9 of the V (A♭ over G7♭9) falling to the 5th (G) of Cm is the signature move.',
           ],
           steps: [
-            { ex: 'lk-minor-ii-v-i', p: { lick: '0', feel: 'swing' }, from: 92, goal: 116, backing: 'chords', do: 'Locrian ♮2 into melodic minor.' },
-            { ex: 'lk-minor-ii-v-i', p: { lick: '2', feel: 'swing' }, from: 92, goal: 116, backing: 'chords', do: 'Diminished arpeggios on the V.' },
+            { ex: 'lk-minor-ii-v-i', p: { lick: '0', feel: 'swing', key: '2' }, from: 92, goal: 116, backing: 'chords', do: 'Locrian ♮2 into melodic minor.' },
+            { ex: 'lk-minor-ii-v-i', p: { lick: '2', feel: 'swing', key: '7' }, from: 92, goal: 116, backing: 'chords', do: 'Diminished arpeggios on the V.' },
           ],
           mistakes: [
             'Missing the natural B (the 3rd of G7) against the minor key. It is meant to be there.',
@@ -726,8 +728,8 @@ export default {
             'Lay back slightly behind the beat on blues phrases.',
           ],
           steps: [
-            { ex: 'lk-blues', p: { lick: '0', feel: 'swing' }, from: 92, goal: 112, backing: 'chords', do: 'A riff from the major blues scale, into the IV.' },
-            { ex: 'lk-turnarounds', p: { lick: '0', feel: 'swing' }, from: 96, goal: 120, backing: 'chords', do: 'A turnaround with ♭9s: it loops.' },
+            { ex: 'lk-blues', p: { lick: '0', feel: 'swing', key: '5' }, from: 92, goal: 112, backing: 'chords', do: 'A riff from the major blues scale, into the IV.' },
+            { ex: 'lk-turnarounds', p: { lick: '0', feel: 'swing', key: '10' }, from: 96, goal: 120, backing: 'chords', do: 'A turnaround with ♭9s: it loops.' },
           ],
           mistakes: [
             'Playing the ♭3 and the 3 as separate notes. Slide or hammer from one into the other.',
@@ -742,9 +744,9 @@ export default {
         ],
         steps: [
           { ex: 'lk-ii-v-i', p: { lick: '0', key: 'cycle4', feel: 'swing' }, from: 100, goal: 126, backing: 'chords' },
-          { ex: 'lk-turnarounds', p: { lick: '0', feel: 'swing' }, from: 100, goal: 126, backing: 'chords' },
-          { ex: 'lk-minor-ii-v-i', p: { lick: '0', feel: 'swing' }, from: 100, goal: 124, backing: 'chords' },
-          { ex: 'lk-blues', p: { lick: '0', feel: 'swing' }, from: 100, goal: 120, backing: 'chords' },
+          { ex: 'lk-turnarounds', p: { lick: '0', feel: 'swing', key: '3' }, from: 100, goal: 126, backing: 'chords' },
+          { ex: 'lk-minor-ii-v-i', p: { lick: '0', feel: 'swing', key: '5' }, from: 100, goal: 124, backing: 'chords' },
+          { ex: 'lk-blues', p: { lick: '0', feel: 'swing', key: '10' }, from: 100, goal: 120, backing: 'chords' },
         ],
       },
     },
@@ -760,8 +762,8 @@ export default {
             'Keep the time feel of a walking line even while soloing.',
           ],
           steps: [
-            { ex: 'lk-bass-solo', p: { lick: '0', feel: 'swing' }, from: 96, goal: 120, backing: 'chords', do: 'Two-feel into a walking pickup.' },
-            { ex: 'lk-bass-solo', p: { lick: '2', feel: 'swing' }, from: 96, goal: 120, backing: 'chords', do: 'A pedal-point fill.' },
+            { ex: 'lk-bass-solo', p: { lick: '0', feel: 'swing', key: '5' }, from: 96, goal: 120, backing: 'chords', do: 'Two-feel into a walking pickup.' },
+            { ex: 'lk-bass-solo', p: { lick: '2', feel: 'swing', key: '10' }, from: 96, goal: 120, backing: 'chords', do: 'A pedal-point fill.' },
           ],
           mistakes: [
             'Losing the time when you start soloing. The pulse stays as steady as the walking line.',
@@ -890,22 +892,24 @@ export default {
       'I know the modes of melodic and harmonic minor and how to superimpose them.',
       'I walk through rhythm changes and minor progressions.',
       'I can play jazz licks in all keys and develop a motif.',
+      'I can hear a 7th chord and find its notes.',
     ],
     steps: [
       { ex: 'rh-polyrhythm', p: { ratio: '4:3' }, from: 60, goal: 80 },
       { ex: 'sc-bebop', p: { type: 'bebopMajor', oct: '1' }, sub: 2, from: 84, goal: 112 },
       { ex: 'md-melodic-superimposition', p: { set: 'minor251' }, from: 88, goal: 112, backing: 'chords' },
-      { ex: 'wk-minor', p: { prog: 'minor-blues' }, from: 112, goal: 140, backing: 'chords' },
+      { ex: 'wk-minor', p: { prog: 'minor-blues', key: '7' }, from: 112, goal: 140, backing: 'chords' },
       { ex: 'lk-minor-ii-v-i', p: { lick: '0', key: 'cycle4', feel: 'swing' }, from: 100, goal: 120, backing: 'chords' },
       { ex: 'tech-permutations-across', p: { perm: '1324', pos: '5' }, sub: 2, from: 66, goal: 84 },
       { ex: 'sc-symmetric', p: { type: 'wholeTone', pattern: 'straight', oct: '1' }, sub: 2, from: 80, goal: 104 },
-      { ex: 'lk-motif', p: { lick: '0', feel: 'swing' }, from: 100, goal: 128, backing: 'chords' },
-      { ex: 'wk-two-per-bar', p: { prog: 'rhythm-A' }, from: 120, goal: 152, backing: 'chords' },
+      { ex: 'lk-motif', p: { lick: '0', feel: 'swing', key: '3' }, from: 100, goal: 128, backing: 'chords' },
+      { ex: 'wk-two-per-bar', p: { prog: 'rhythm-A', key: '10' }, from: 120, goal: 152, backing: 'chords' },
       { ex: 'mm-cantstop', p: { part: 'all' }, from: 72, goal: 92, backing: 'chords', music: true, do: 'Make music: funk-rock 16ths with ghost notes, then octave snaps in the chorus.' },
       { ex: 'mm-hysteria', p: { part: 'all' }, from: 70, goal: 94, backing: 'chords', music: true, do: 'Make music: non-stop 16th arpeggios. Even, clean, for the whole song.' },
       { ex: 'mm-whatsgoingon', p: { part: 'all' }, from: 80, goal: 100, backing: 'chords', music: true, do: 'Make music: a melodic Motown line with chromatic approaches and ghosted triplets.' },
       // (no dots: by ear and memory, the neck empty; user, 2026-11-03)
       { ex: 'sc-bebop', p: { type: 'bebopMajor', oct: '1' }, sub: 2, from: 72, goal: 96, dots: 'hide', do: 'No dots this time: the bebop major scale from memory, with only the sound to follow.' },
+      { ex: 'ear-sevenths', p: { set: 'all' } },
     ],
   },
 };
