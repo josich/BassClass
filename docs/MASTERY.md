@@ -163,7 +163,7 @@ In all, 203 exercises have a main option and 45 have none (the eight exercises a
 | 412 | Hear the progression | Progressions (3 sets) | all 3 |
 | 413 | The 7 scale positions | Position (7, and all) | all 7 (or all) |
 | 414 | Pentatonic: the 5 positions | Position (5, and all) | all 5 (or all) |
-| 415 | Harmonic & melodic minor | Scale (3) | all 3 |
+| 415 | Harmonic & melodic minor | Scale (4: harmonic, melodic jazz, melodic classical, natural) | all 4 |
 | 416 | One pentatonic phrase, many chords | Study (4) | all 4 |
 | 417 | Minor pentatonics on a major chord | Study (3, and all three) | all 3 (or all three) |
 | 418 | Groove bar, fill bar | Study (4, and all four) | all 4 (or all four) |

@@ -108,6 +108,9 @@ export const SCALES = {
   augmented:    { name: 'Augmented', iv: ['1', 'b3', '3', '5', '#5', '7'] },
 
   melodicMinor: { name: 'Melodic minor (jazz)', iv: ['1', '2', 'b3', '4', '5', '6', '7'] },
+  // the classical form (user, 2026-11-03): melodic minor going up, natural minor coming down; its going-up notes
+  // here, the coming-down ones from aeolian (scaleRun in builder.js)
+  melodicClassical: { name: 'Classical melodic minor (up melodic, down natural)', iv: ['1', '2', 'b3', '4', '5', '6', '7'] },
   dorianB2:     { name: 'Dorian ♭2', iv: ['1', 'b2', 'b3', '4', '5', '6', 'b7'] },
   lydianAug:    { name: 'Lydian augmented', iv: ['1', '2', '3', '#4', '#5', '6', '7'] },
   lydianDom:    { name: 'Lydian dominant', iv: ['1', '2', '3', '#4', '5', '6', 'b7'] },

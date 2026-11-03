@@ -617,7 +617,7 @@ export function keySigFor(tonic, type) {
   const sum = (mode) => T.SCALES[mode].iv.map((iv) => T.up(tonic, iv)).reduce((a, n) => a + Math.sign(n.a), 0);
   let ks = null;
   if (T.MAJOR_MODES.includes(type)) ks = sum(type);
-  else if (['harmonicMinor', 'melodicMinor', 'minorPent', 'blues'].includes(type)) ks = sum('aeolian');
+  else if (['harmonicMinor', 'melodicMinor', 'melodicClassical', 'minorPent', 'blues'].includes(type)) ks = sum('aeolian');
   else if (['majorPent', 'majorBlues', 'harmonicMajor'].includes(type)) ks = sum('ionian');
   return ks != null && Math.abs(ks) <= 7 ? ks : null;
 }

@@ -331,8 +331,21 @@ export function scaleSeq(top, patternKey = 'straight', dir = 'updown') {
 export function scaleRun(tonic, type, tonicMidi, { octaves = 1, pattern = 'straight', dir = 'updown', startDeg = 0 } = {}) {
   const len = T.SCALES[type].iv.length;
   // wide sequences (e.g. 7ths on a 5-note scale) need more than one octave of room
-  const maxOff = Math.max(...(SCALE_PATTERNS[pattern] || SCALE_PATTERNS.straight).off);
+  const pat = SCALE_PATTERNS[pattern] || SCALE_PATTERNS.straight;
+  const maxOff = Math.max(...pat.off);
   while (maxOff > len * octaves) octaves++;
+  // classical melodic minor: the run going up as melodic minor, coming down as natural minor (♭7, ♭6)
+  if (type === 'melodicClassical') {
+    const top = len * octaves, single = pat.off.length === 1;
+    const up = scaleSeq(top, pattern, 'up'), down = scaleSeq(top, pattern, 'down');
+    const asc = (ks) => ks.map((k) => T.scalePitch(tonic, 'melodicMinor', tonicMidi, k + startDeg));
+    const desc = (ks) => ks.map((k) => T.scalePitch(tonic, 'aeolian', tonicMidi, k + startDeg));
+    if (dir === 'up') return asc(up);
+    if (dir === 'down') return desc(down);
+    // (as scaleSeq joins them: a straight run shares its turning note, a sequence's up half ends before the top)
+    if (dir === 'downup') return [...desc(down), ...asc(single ? up.slice(1) : up.slice(0, -1))];
+    return [...asc(single ? up : up.slice(0, -1)), ...desc(single ? down.slice(1) : down)];
+  }
   const seq = scaleSeq(len * octaves, pattern, dir);
   return seq.map((k) => T.scalePitch(tonic, type, tonicMidi, k + startDeg));
 }

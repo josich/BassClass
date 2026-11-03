@@ -27,6 +27,7 @@ import { FREE_SOUNDS, FREE_LEVELS, FREE_TASTE, FREE_DRUMS, FREE_STYLE, PRO_SOUND
 import { DRONES, DRONE_GROUPS, droneMidis, droneName, droneFormula, droneIvs, droneNeeds } from './practice/drones.js';
 import { placesOf, tapSet } from './curriculum/games.js';
 import { tunerTuning, tunerFmin, TUNER_SHIFTS } from './ui/tuner.js';
+import { HIGHLIGHTS, proHighlights } from './ui/proSheet.js';
 import { yin } from './pitch.js';
 
 function combos(params, limit = 400, strings = 4) {
@@ -104,6 +105,8 @@ function checkPro(problems) {
   }
   for (const v of FREE_SOUNDS) if (!PAD_SOUNDS[v]) problems.push(`pro: free sound ${v} does not exist`);
   // (Settings' Pro details name every Pro sound: a new one needs its line)
+  // (every highlight on the Pro sheet names exercises that exist and are Pro: QA review, 2026-11-03)
+  if (proHighlights().length !== HIGHLIGHTS.length) problems.push(`pro: a Pro sheet highlight names an exercise that is gone or free: ${HIGHLIGHTS.filter((x) => !proHighlights().includes(x)).map((x) => x[1]).join('; ')}`);
   for (const v of Object.keys(PAD_SOUNDS)) if (!FREE_SOUNDS.has(v) && !PRO_SOUND_NOTES[v]) problems.push(`pro: Pro sound ${v} has no line in PRO_SOUND_NOTES`);
   if (!HARMONY_PROGS.some(([g]) => g === 'Pop & rock') || !HARMONY_PROGS.some(([g]) => g === 'Blues')) problems.push('pro: the free progression groups are missing');
   if (FREE_LEVELS < 1 || FREE_LEVELS > 6) problems.push(`pro: FREE_LEVELS ${FREE_LEVELS}`);

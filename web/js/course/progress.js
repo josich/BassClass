@@ -52,6 +52,8 @@ export const CHANGED_STEPS = [
   // QA round 23 (user, 2026-11-02): the country waltz two bars a chord, the gospel walk-ups into the next root, the
   // steppers' roots, the long drum & bass roots, and the jazz waltz, soca, songo and partido alto towards the next root
   { rev: 9, steps: ['waltz.0', 'waltz.1', 'u-grooves-check.5', 'reggae-ska.1', 'dance-grooves.2', 'u-styles3-check.2', 'latin-grooves.0', 'latin-grooves.1', 'hiphop-electronic.2', 'gospel-rnb.0', 'u-styles4-check.0', 'u-styles4-check.1'] },
+  // the Stage 1 test's major scale in G, a key of its own (user, 2026-11-03)
+  { rev: 10, steps: ['s1-test.1'] },
 ];
 const REV = CHANGED_STEPS.length;
 // a step whose notes changed after the player finished its lesson asks to be played again, but the

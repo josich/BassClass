@@ -367,10 +367,10 @@ const minorFamily = variant(sequences, {
   id: 'sc-minor-family', level: 4, star: true,
   title: 'Harmonic & melodic minor',
   summary: 'The two minor scales of jazz and classical music, straight and in sequences.',
-  about: 'Harmonic minor raises the 7th of natural minor, creating the exotic augmented 2nd (♭6 → 7) and a strong pull to the root. Melodic minor (jazz minor) also raises the 6th: it sounds like major with a ♭3 and is the parent of the altered and Lydian dominant scales. Both appear in RSL, LCM and conservatory programmes from the intermediate grades.',
-  tips: ['Harmonic minor: feel the augmented 2nd (♭6 → 7) as a three-fret gap.', 'Melodic minor is played the same going up and coming down, the way jazz players use it.'],
+  about: 'Harmonic minor raises the 7th of natural minor, creating the exotic augmented 2nd (♭6 → 7) and a strong pull to the root. Melodic minor also raises the 6th: it sounds like major with a ♭3. Jazz players keep it the same going up and coming down (the jazz minor, the parent of the altered and Lydian dominant scales); in classical music it is melodic going up and natural minor coming down, where the raised notes have nowhere to lead (the classical form). Both appear in RSL, LCM and conservatory programmes from the intermediate grades.',
+  tips: ['Harmonic minor: feel the augmented 2nd (♭6 → 7) as a three-fret gap.', 'Melodic minor, jazz: the same going up and coming down. Classical: the 6th and 7th raised going up, ♭7 and ♭6 coming down.'],
   source: 'Harmonic and melodic minor in graded exams and conservatory programmes',
-  defaults: { type: 'harmonicMinor', pattern: 'g3' }, only: { type: ['harmonicMinor', 'melodicMinor', 'aeolian'] },
+  defaults: { type: 'harmonicMinor', pattern: 'g3' }, only: { type: ['harmonicMinor', 'melodicMinor', 'melodicClassical', 'aeolian'] },
 });
 
 const pentPositions = variant(positions, {

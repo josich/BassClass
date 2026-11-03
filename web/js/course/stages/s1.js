@@ -491,7 +491,8 @@ export default {
     ],
     steps: [
       { ex: 'gr-roots', p: { style: 'rock8', prog: 'I-V-vi-IV' }, from: 92, goal: 112, backing: 'chords' },
-      { ex: 'sc-one-octave', p: { type: 'ionian', root: 'E', oct: '1' }, sub: 1, from: 80, goal: 100 },
+      // (in G, a key of its own: the can-line says "in any key"; QA review 2026-10-29, user 2026-11-03)
+      { ex: 'sc-one-octave', p: { type: 'ionian', root: 'E', oct: '1', key: '7' }, sub: 1, from: 80, goal: 100, do: 'G major, a key the lessons did not use: the same shape, from the E string\'s 3rd fret.' },
       { ex: 'tri-shape', p: { quality: 'min', shape: 'octave' }, sub: 1, from: 80, goal: 100 },
       { ex: 'rh-pulse', p: { click: '1' }, from: 76, goal: 92 },
       { ex: 'rd-naturals', p: { range: 'all' }, from: 60, goal: 72 },
