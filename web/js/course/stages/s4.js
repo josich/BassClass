@@ -898,6 +898,8 @@ export default {
       { ex: 'rd-keys', p: { mode: 'minor' }, from: 60, goal: 80 },
       { ex: 'mm-criminal', p: { part: 'all' }, from: 84, goal: 112, backing: 'chords', music: true, do: 'Make music: a 16th-note octave engine, then a half-time groove with ghost notes.' },
       { ex: 'mm-goodtimes', p: { part: 'all' }, from: 84, goal: 108, backing: 'chords', music: true, do: 'Make music: disco 16ths with octave flicks over two chords.' },
+      // (no dots: by ear and memory, the neck empty; user, 2026-11-03)
+      { ex: 'sc-positions', p: { pos: 'all', type: 'aeolian' }, sub: 2, from: 72, goal: 92, dots: 'hide', do: 'No dots this time: the minor scale across its positions from memory, with only the sound to follow.' },
     ],
   },
 };

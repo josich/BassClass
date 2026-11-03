@@ -417,6 +417,57 @@ export function settingsScreen(main) {
     });
     return h('div', { class: 'range-row' }, el, pct);
   };
+  // Audio delay (user, 2026-11-03: the review's Bluetooth delay): a slider, and a test that sets it from taps on the
+  // clicks heard (60 BPM, 4 clicks to find the pulse, then 8 to tap with, each tap against its click)
+  const audioDelay = () => {
+    const out = h('b', { class: 'pct' }, `${S.audioDelay} ms`);
+    const slider = h('input', { type: 'range', min: 0, max: 400, step: 10, value: S.audioDelay, 'aria-label': 'Audio delay' });
+    const set = (ms) => {
+      saveSettings({ audioDelay: ms });
+      slider.value = ms;
+      out.textContent = `${ms} ms`;
+      A.setAudioOptions({ visualDelay: ms / 1000 });
+    };
+    slider.addEventListener('input', () => set(Number(slider.value)));
+    const box = h('div', { class: 'delay-test', hidden: true });
+    let running = false;
+    const measure = () => {
+      if (running) return;
+      running = true;
+      A.audioCtx();
+      const t0 = A.now() + 0.8;
+      const clicks = Array.from({ length: 12 }, (_, i) => t0 + i);
+      clicks.forEach((t, i) => A.click(t, i % 4 === 0 ? 2 : 1));
+      const taps = [];
+      const pad = h('button', { class: 'btn primary delay-tap', type: 'button', 'data-silent': '', onPointerdown: (e) => {
+        e.preventDefault();
+        taps.push(A.now());
+        pad.classList.add('hit');
+        setTimeout(() => pad.classList.remove('hit'), 90);
+      } }, '👆 Tap with each click');
+      box.hidden = false;
+      box.replaceChildren(h('p', { class: 'muted small' }, 'Listen to 4 clicks, then tap with each click you hear: 8 taps.'), pad);
+      setTimeout(() => {
+        running = false;
+        if (!box.isConnected) return;
+        // each tap against the last click before it (the first four find the pulse)
+        const offs = [];
+        for (const t of taps) {
+          const c = clicks.slice(4).filter((x) => x <= t + 0.15).pop();
+          if (c != null && t - c <= 0.6) offs.push(t - c);
+        }
+        const again = h('button', { class: 'btn small', type: 'button', onClick: measure }, '↻ Again');
+        if (offs.length < 5) { box.replaceChildren(h('p', {}, 'Not enough taps to measure: one tap with each click you hear.'), again); return; }
+        // (the middle half of the taps, averaged: a stray early or late tap does not move it)
+        offs.sort((a, b) => a - b);
+        const mid = offs.slice(Math.floor(offs.length / 4), Math.ceil((offs.length * 3) / 4));
+        const ms = Math.max(0, Math.min(400, Math.round((mid.reduce((x, y) => x + y, 0) / mid.length) * 100) * 10));
+        set(ms);
+        box.replaceChildren(h('p', {}, ms ? `✓ The sound reaches you ${ms} ms late: the dots and lights now wait as long.` : '✓ No delay: the sound and the dots are together.'), again);
+      }, (clicks[11] - A.now() + 1) * 1000);
+    };
+    return h('div', {}, h('div', { class: 'range-row' }, slider, out, h('button', { class: 'btn small', type: 'button', onClick: measure }, '🎧 Measure')), box);
+  };
   const field = (label, control, hint) => h('div', { class: 'field' }, h('div', { class: 'field-head' }, h('label', {}, label), hint ? infoBtn(hint, `About ${label.charAt(0).toLowerCase()}${label.slice(1)}`) : null), control);
   // backup: one file with everything stored; loading one replaces this device's records, then reloads
   // (one save at a time: a second tap while Android's "Save to" picker is open does nothing)
@@ -464,6 +515,7 @@ export function settingsScreen(main) {
       field('Bass volume', range('bassVol', 0, 2, 0.1, 2)),
       field('Metronome volume', range('clickVol', 0, 1.5, 0.075, 1.5)),
       field('Tap sounds', seg('tapSounds', [[true, 'On'], [false, 'Off']])),
+      field('Audio delay', audioDelay(), ['🎧 Bluetooth headphones and speakers play the sound late: the dots light before you hear the note', '👆 Measure: tap with each click you hear, and the dots and lights wait as long', '🎚 Or set it by hand', '🔌 Wired headphones or the phone speaker: 0 ms']),
       field('Backup', h('div', { class: 'row' },
         h('button', { class: 'btn', onClick: save }, '💾 Save a backup'),
         h('button', { class: 'btn', onClick: () => fileIn.click() }, '📂 Load a backup'), fileIn),
@@ -472,7 +524,7 @@ export function settingsScreen(main) {
         h('button', { class: 'btn', onClick: () => { if (confirm('Reset all progress, the course and the practice log included?')) { resetProgress(); resetCourse(); resetLog(); toast('Progress reset'); } } }, 'Reset progress'),
         h('button', { class: 'btn', onClick: () => {
           saveSettings({ ...DEFAULT_SETTINGS });
-          A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol });
+          A.setAudioOptions({ bassVol: S.bassVol, clickVol: S.clickVol, visualDelay: S.audioDelay / 1000 });
           settingsScreen(main);
           toast('Settings restored');
         } }, 'Restore defaults'))),

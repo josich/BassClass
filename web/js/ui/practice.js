@@ -228,7 +228,8 @@ export function practiceScreen(main, params = {}) {
   };
   // the beat lights follow the sound: each tick lights when its time comes
   const frame = () => {
-    const now = A.now();
+    // (the lights wait for the sound when it reaches the ear late: Settings' Audio delay)
+    const now = A.now() - A.visualDelay();
     let t = null;
     while (queue.length && queue[0].time <= now) t = queue.shift();
     let c = null;

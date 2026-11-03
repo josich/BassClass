@@ -904,6 +904,8 @@ export default {
       { ex: 'mm-cantstop', p: { part: 'all' }, from: 72, goal: 92, backing: 'chords', music: true, do: 'Make music: funk-rock 16ths with ghost notes, then octave snaps in the chorus.' },
       { ex: 'mm-hysteria', p: { part: 'all' }, from: 70, goal: 94, backing: 'chords', music: true, do: 'Make music: non-stop 16th arpeggios. Even, clean, for the whole song.' },
       { ex: 'mm-whatsgoingon', p: { part: 'all' }, from: 80, goal: 100, backing: 'chords', music: true, do: 'Make music: a melodic Motown line with chromatic approaches and ghosted triplets.' },
+      // (no dots: by ear and memory, the neck empty; user, 2026-11-03)
+      { ex: 'sc-bebop', p: { type: 'bebopMajor', oct: '1' }, sub: 2, from: 72, goal: 96, dots: 'hide', do: 'No dots this time: the bebop major scale from memory, with only the sound to follow.' },
     ],
   },
 };

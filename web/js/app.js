@@ -248,7 +248,7 @@ document.addEventListener('click', (e) => {
   setTimeout(() => { if (settings.tapSounds) tapTick(); }, 0);
 }, true);
 // saved sound settings apply everywhere (Neck, tuner reference notes), not only in exercises
-setAudioOptions({ bassVol: settings.bassVol, clickVol: settings.clickVol });
+setAudioOptions({ bassVol: settings.bassVol, clickVol: settings.clickVol, visualDelay: settings.audioDelay / 1000 });
 // fetch the recorded bass samples in the background (decoded on first sound)
 loadBank();
 

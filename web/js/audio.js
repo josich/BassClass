@@ -10,7 +10,9 @@ const ACCOMP_THRESHOLD = -3.0;   // dB: the accompaniment's limiter (see audioCt
 const makeupGain = (threshold, ratio) => 10 ** ((0.6 * -threshold * (1 - 1 / ratio)) / 20);
 const synthCache = new Map();
 // route: what the Android app reports ('speaker' | 'external'), or null in a browser
-const opts = { bassVol: 2, clickVol: 0.75, drumVol: 0.8, padVol: 1, padTone: 1500, route: null, recClick: false };
+const opts = { bassVol: 2, clickVol: 0.75, drumVol: 0.8, padVol: 1, padTone: 1500, route: null, recClick: false, visualDelay: 0 };
+/** Seconds the sound reaches the ear late (Settings' Audio delay: Bluetooth): what is drawn waits as long. */
+export const visualDelay = () => opts.visualDelay || 0;
 // The click (user, 2026-10-24: too quiet at 100% with the phone at its loudest): it joins the output past the
 // accompaniment's limiter, so at the top of its slider (clickVol 1.5) its bar accent peaks at -2.8 dB, the
 // loudest it can be without distortion (measured through this graph: with drums and the room's pad at 100%,

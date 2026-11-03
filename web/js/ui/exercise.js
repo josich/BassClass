@@ -40,7 +40,8 @@ const NO_BACKING_NAME = { technique: 'technique drills', rhythm: 'rhythm drills'
 // the cycling buttons: each state's name (said in a toast when it is picked) and its icon (Backing
 // keeps its words: clearer than any icon)
 const REVEALS = [['gradual', 'Step by step', 'revStep'], ['full', 'Whole shape', 'revShape'], ['quiz', 'Quiz', 'revQuiz']];
-const LABELS = [['note', 'Note names', 'lblNote'], ['degree', 'Degrees', 'lblDeg'], ['finger', 'Fingers', 'lblFinger'], ['none', 'No labels', 'lblNone']];
+// ("No dots": the neck shows nothing, only the sound and the strip; user, 2026-11-03)
+const LABELS = [['note', 'Note names', 'lblNote'], ['degree', 'Degrees', 'lblDeg'], ['finger', 'Fingers', 'lblFinger'], ['none', 'No labels', 'lblNone'], ['hide', 'No dots', 'lblHide']];
 const BACKINGS = { off: 'Off', drone: 'Drone', chords: 'Chords' };
 const SCORES = { tab: ['Tab', 'tab'], staff: ['Staff', 'staff'] };
 const RANK = { ghost: 0, future: 1, past: 2, next: 3, current: 4 };
@@ -141,9 +142,12 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   let stripInst = null;   // the whole line the strip draws (a preview plays and shows only its first bar: `inst`)
   // a lesson step plays in its own subdivision (part of the lesson's options, never saved to the exercise)
   let userSub = lesson ? (LS.sub ?? null) : (prog.sub ?? null);
-  let labelMode = prog.label || null;
-  let reveal = S.reveal;
-  let score = null; // 'tab' | 'staff' (reading exercises open on the staff)
+  // (a step of a test with no dots, by ear and memory: the neck stays empty and the strip asks "?"; user, 2026-11-03)
+  const noDots = LS?.dots === 'hide';
+  let labelMode = noDots ? 'hide' : prog.label || null;
+  let reveal = noDots ? 'quiz' : S.reveal;
+  // (a no-dots step shows the tab in Quiz mode: "?" until each note has sounded, so only the sound leads)
+  let score = noDots ? 'tab' : null; // 'tab' | 'staff' (reading exercises open on the staff)
   let segStart = [], segEnd = [], chordAt = [], textAt = [];
   let cur = -1;
   let warnedFret = 0;
@@ -330,7 +334,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
           recordGoal(tpl.id, v);
           if (!isCleared(tpl.id, v) && countsHere()) {
             const name = choiceName(tpl.id, v);
-            tip(h('span', {}, `🎯 Goal (${masteryGoal(tpl.id, v)}) reached${name ? ` on ${name}` : ''}. If it was clean: `,
+            // (the app cannot hear the bass: it says what it knows, its own loop; user, 2026-11-03)
+            tip(h('span', {}, `🎯 The app played a full loop${name ? ` of ${name}` : ''} at ${played} BPM (the goal: ${masteryGoal(tpl.id, v)}). If you played along cleanly: `,
               h('button', { class: 'btn small primary', onClick: () => { hideTip(); toggleCleared(); } }, '✓ Cleared')));
           }
         }
@@ -343,7 +348,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         if (first || (reviewing && visitPassed && !passShown)) {
           passShown = true;
           tip(earStep ? (reviewing ? 'Round played: if you still got them all, tick ✓ Still got them?' : 'Round played: if you named them all before the answers, tick ✓ Got them all?')
-            : reviewing ? 'Goal reached: if it is still clean, tick ✓ Still clean?' : 'Goal reached! If it felt clean, tick ✓ Cleared?');
+            : reviewing ? `The app played a full loop at ${played} BPM. If you still played along cleanly, tick ✓ Still clean?`
+              : `The app played a full loop at ${played} BPM${LS.goal ? (played === LS.goal ? ', the step\'s goal' : ` (the goal is ${LS.goal})`) : ''}. If you played along cleanly, tick ✓ Cleared?`);
         }
         syncGoal();
       }
@@ -526,7 +532,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     const shown = preview && !TAP && stripInst ? stripInst : inst;
     tab.render(shown.steps.some((st) => st.notes.some((n) => n.held)) ? { ...shown, steps: shown.steps.map((st) => (st.notes.some((n) => n.held) ? { ...st, notes: st.notes.filter((n) => !n.held) } : st)) } : shown, {
       strings: ctx.tuning.length, beatsOf: (st) => player.beatsOf(st), beatsPerBar: inst.beatsPerBar || 4, sub: player.sub, mode: TAP ? 'staff' : score, quiz,
-      label: (n) => (labelMode === 'none' || (quiz && score === 'staff') ? '' : noteLabel(n, labelMode === 'finger' ? 'note' : labelMode, S.notation)),
+      label: (n) => (labelMode === 'none' || labelMode === 'hide' || (quiz && score === 'staff') ? '' : noteLabel(n, labelMode === 'finger' ? 'note' : labelMode, S.notation)),
       decorate: TAP ? (el) => decorateStaff(el) : null,
     });
     tab.setCurrent(cur);
@@ -535,7 +541,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
 
   // ------------------------------------------------------------ dots
   function mkDot(n, state) {
-    const label = reveal === 'quiz' && state === 'current' ? T.noteName(n.n, S.notation) : noteLabel(n, labelMode, S.notation);
+    // (Quiz mode too follows Dot labels: it always named the note, so the menu changed nothing there; 2026-11-03)
+    const label = noteLabel(n, labelMode, S.notation);
     const color = n.tag === 'x' ? 'ghost' : degKey(n.deg);
     return { s: n.s, f: n.f, at: n.at, label: n.tag === 'x' ? 'x' : label, color, state, tag: n.tag && n.tag !== 'x' ? n.tag : null };
   }
@@ -546,6 +553,15 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     if (TAP) { tapShow(i < 0 ? -1 : askOf(i)); return; }
     cur = i;
     const steps = inst.steps;
+    // No dots: the neck shows nothing (no dot, no string moving, no "next C"), only the count and the strip
+    if (labelMode === 'hide') {
+      fb.setDots([]);
+      tab.setCurrent(i);
+      const k = Math.max(0, i);
+      nowEl.innerHTML = `${chordAt[k] ? `<span class="chord">${esc(chordAt[k])}</span>` : ''}${textAt[k] ? `<span class="txt">${esc(textAt[k])}</span>` : ''}<span class="cnt">${i < 0 ? `ready · ${total()} notes` : `${i + 1}/${total()}`}</span>`;
+      promptEl.innerHTML = '';
+      return;
+    }
     const map = new Map();
     const put = (n, state) => {
       if (n.hidden) return;
@@ -872,7 +888,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     const i = LABELS.findIndex((r) => r[0] === labelMode);
     labelMode = LABELS[(i + 1) % LABELS.length][0];
     if (!preview) updateProgress(tpl.id, { label: labelMode });
-    toast(`Dot labels: ${LABELS[(i + 1) % LABELS.length][1].toLowerCase()}`);
+    toast(labelMode === 'hide' ? 'No dots: only the sound and the strip' : `Dot labels: ${LABELS[(i + 1) % LABELS.length][1].toLowerCase()}`);
     syncToggles();
     renderTab();
     showStep(cur);

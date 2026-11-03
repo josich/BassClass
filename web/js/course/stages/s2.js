@@ -710,6 +710,8 @@ export default {
       { ex: 'mm-calif', p: { part: 'all' }, from: 72, goal: 92, backing: 'chords', music: true, do: 'Make music: a melodic verse and a dotted chorus line. Play it like a singer.' },
       { ex: 'mm-feelgood', p: { part: 'all' }, from: 100, goal: 132, backing: 'chords', music: true, do: 'Make music: octave hops with space. Relaxed, a little behind the beat.' },
       { ex: 'mm-blitz', p: { part: 'all' }, from: 112, goal: 144, backing: 'chords', music: true, do: 'Make music: punk down-strokes. Hold the tempo for the whole song.' },
+      // (no dots: by ear and memory, the neck empty; user, 2026-11-03)
+      { ex: 'arp-7th', p: { quality: 'min7', oct: '1' }, sub: 2, from: 72, goal: 92, dots: 'hide', do: 'No dots this time: the minor 7th arpeggio from memory, with only the sound to follow.' },
     ],
   },
 };

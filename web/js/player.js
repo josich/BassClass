@@ -347,7 +347,8 @@ export class Player {
 
   _frame() {
     const ac = A.audioCtx();
-    const t = ac.currentTime;
+    // (the dots wait for the sound when it reaches the ear late: Settings' Audio delay)
+    const t = ac.currentTime - A.visualDelay();
     while (this.queue.length && this.queue[0].time <= t + 0.005) {
       const e = this.queue.shift();
       if (e.type === 'step') { this.cur = e.idx; this.cb.onStep?.(e.idx); }

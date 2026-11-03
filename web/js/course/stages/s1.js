@@ -498,6 +498,8 @@ export default {
       { ex: 'rd-naturals', p: { range: 'all' }, from: 60, goal: 72 },
       { ex: 'mm-zombie', p: { part: 'all' }, from: 66, goal: 84, backing: 'chords', music: true, do: 'Make music: the heavy verse, then pumping octaves in the chorus.' },
       { ex: 'mm-spirit', p: { part: 'all' }, from: 84, goal: 112, backing: 'chords', music: true, do: 'Make music: quiet verse, loud chorus. Same notes, two energies.' },
+      // (no dots: by ear and memory, the neck empty; user, 2026-11-03)
+      { ex: 'sc-one-octave', p: { type: 'ionian', root: 'E', oct: '1', key: '7' }, sub: 1, from: 60, goal: 80, dots: 'hide', do: 'No dots this time: G major from memory, with only the sound to follow.' },
     ],
   },
 };

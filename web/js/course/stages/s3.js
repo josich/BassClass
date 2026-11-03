@@ -952,6 +952,8 @@ export default {
       { ex: 'mm-together', p: { part: 'all' }, from: 66, goal: 84, backing: 'chords', music: true, do: 'Make music: a swampy riff with hammer-ons, lazy but never late.' },
       { ex: 'mm-longview', p: { part: 'all' }, from: 100, goal: 140, backing: 'chords', music: true, do: 'Make music: a busy verse line, then root 8ths in the chorus.' },
       { ex: 'mm-chain', p: { part: 'all' }, from: 100, goal: 140, backing: 'chords', music: true, do: 'Make music: a quiet pedal, then a bass break up the pentatonic.' },
+      // (no dots: by ear and memory, the neck empty; user, 2026-11-03)
+      { ex: 'arp-diatonic-7ths', p: { scale: 'ionian', order: 'fourths', pattern: 'alt' }, sub: 2, from: 70, goal: 92, dots: 'hide', do: 'No dots this time: the diatonic 7ths in 4ths from memory, with only the sound to follow.' },
     ],
   },
 };

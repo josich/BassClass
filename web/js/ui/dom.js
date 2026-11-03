@@ -65,6 +65,7 @@ const P = {
   lblDeg: '<circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.8"/><text x="12" y="15.9" text-anchor="middle" font-size="10.5" font-weight="800" font-family="system-ui, sans-serif" fill="currentColor">♭3</text>',
   lblFinger: '<path d="M8.4 14V4.7a1.7 1.7 0 0 1 3.4 0v5.5a1.6 1.6 0 0 1 3.2 0v1a1.6 1.6 0 0 1 3.2 0v1a1.5 1.5 0 0 1 3 0V16a6 6 0 0 1-6 6h-2.2a5 5 0 0 1-3.8-1.8l-3.6-4.3a1.6 1.6 0 0 1 2.4-2.1z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>',
   lblNone: '<circle cx="12" cy="12" r="9.2" fill="currentColor" fill-opacity=".22" stroke="currentColor" stroke-width="1.8"/>',
+  lblHide: '<circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-dasharray="3.2 2.6"/><path d="M5.5 18.5L18.5 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
   tab: '<path d="M2.5 5h19M2.5 9.5h19M2.5 14h6M15.5 14h6M2.5 18.5h19" stroke="currentColor" stroke-width="1.3" opacity=".7"/><text x="12" y="17.7" text-anchor="middle" font-size="10.5" font-weight="800" font-family="system-ui, sans-serif" fill="currentColor">5</text>',
   staff: '<path d="M2 4.5h20M2 8h20M2 11.5h20M2 15h20M2 18.5h20" stroke="currentColor" stroke-width="1" opacity=".6"/><ellipse cx="9.3" cy="16.8" rx="3.1" ry="2.2" transform="rotate(-20 9.3 16.8)" fill="currentColor"/><path d="M12.2 16.3V2.6c.5 2.8 4.8 3.6 4.1 8.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
 };
