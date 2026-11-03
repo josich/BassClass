@@ -126,7 +126,7 @@ const roots = grooveEx('gr-roots', 1, ['rock8', 'pop8', 'rootFifth', 'r585'], 'r
   title: 'Root-note grooves: rock 8ths, root–5th, R-5-8',
   summary: 'The first job of a bass player: lock the roots with the drums.',
   about: 'Most bass lines start with the root of each chord. Play driving 8ths (rock), the country two-beat (root and the 5th below), or the R-5-8-5 pattern through real progressions. Focus on time, tone and note length: this is what makes a band sound good.',
-  tips: ['Play every note the same length and volume.', 'Lock with an imaginary kick drum: beats 1 and 3.'],
+  tips: ['Play every note the same length and volume.', 'Lock with the kick drum on beats 1 and 3: the band plays it (with the click, imagine it).'],
   source: 'Hal Leonard Bass Method (Ed Friedland); graded exams', bpm: 100,
 });
 
@@ -141,7 +141,7 @@ const blues = grooveEx('gr-blues', 2, ['boogie', 'shuffle', 'boogieSwing', 'r5b7
 const octaveDisco = grooveEx('gr-octaves', 2, ['octaves', 'r5b7', 'riff'], 'octaves', {
   title: 'Octaves & riffs: disco, rock, riff transposing',
   summary: 'Disco octaves, R-5-♭7-8 and a minor pentatonic riff moved to each chord.',
-  about: 'Octave lines drive disco and dance music; R-5-♭7-8 is the classic rock and blues shape; and transposing a riff to each new root (RSL\'s "riff transposer") is how most rock bass lines are built. Keep the muting clean when you jump strings.',
+  about: 'Octave lines drive disco and dance music; R-5-♭7-8 is the classic rock and blues shape; and transposing a riff to each new root (as graded rock exams ask) is how most rock bass lines are built. Keep the muting clean when you jump strings.',
   tips: ['Mute the strings between the root and the octave with your fretting fingers.', 'Accent the octaves lightly for a disco feel.'],
   source: 'Riffs, octaves and R-5-♭7-8 shapes; graded exams', bpm: 104,
 });
@@ -157,7 +157,7 @@ const approach = grooveEx('gr-approach', 3, ['approach', 'fifthApproach', 'motow
 const world = grooveEx('gr-world', 3, ['reggae', 'bossa', 'tumbao'], 'bossa', {
   title: 'Reggae, bossa nova & Latin tumbao',
   summary: 'One-drop reggae, bossa R-5 and the anticipated tumbao: feels beyond 4/4 rock.',
-  about: 'Reggae leaves beat 1 empty and sits deep in the groove. Bossa nova uses root and 5th in a dotted, swaying rhythm. The Afro-Cuban tumbao anticipates the next chord on beat 4 and skips beat 1. All three teach you how much feel comes from where you do NOT play.',
+  about: 'In the reggae one drop the drums leave beat 1 empty, and this line does too, deep in the groove (other reggae lines play it, as rockers does in #351). Bossa nova uses root and 5th in a dotted, swaying rhythm. The Afro-Cuban tumbao anticipates the next chord on beat 4 and skips beat 1. All three teach you how much feel comes from where you do NOT play.',
   tips: ['Tumbao: the last note of each bar is the NEXT chord\'s root.', 'Reggae: play short and fat; use the neck pickup and a palm mute.'],
   source: 'Chuck Sher "The Improviser\'s Bass Method" (Latin styles); graded exams', bpm: 92,
 });
@@ -206,7 +206,7 @@ const waltz = grooveEx('gr-waltz', 2, ['countryWaltz', 'jazzWaltz', 'waltzBallad
 const metal = grooveEx('gr-metal', 3, ['metalChug', 'doubleKick', 'breakdown', 'djent', 'doom'], 'metalChug', {
   title: 'Metal grooves: chugs, double kick, breakdowns and doom',
   summary: 'With a pick: palm-muted chugs, 16ths with the double kick, a half-time breakdown, djent and doom.',
-  about: 'Metal bass locks with the kick drum and the guitar\'s palm-muted riffs. Chug 8ths with down-strokes; play 16ths with alternate picking when the drummer plays the double kick; leave space in a half-time breakdown and hit the stabs with the band; group 16ths in threes across the bar for djent; and in doom, slow everything down and let each note ring. The darkest colours are the ♭5, the tritone, and the minor scale\'s ♭6.',
+  about: 'Metal bass locks with the kick drum and the guitar\'s palm-muted riffs. Chug 8ths with down-strokes; play 16ths with alternate picking when the drummer plays the double kick; leave space in a half-time breakdown and hit the stabs with the band; group 16ths in threes across the bar for djent; and in doom, slow everything down and let each note ring. Its darkest colours: the ♭5 (the tritone), the minor scale\'s ♭6 and, in Phrygian riffs and breakdowns, the ♭2.',
   tips: ['Palm mute: the edge of the picking hand on the strings by the bridge.', 'Lock with the kick: in a breakdown, every stab is a kick hit.'],
   source: 'Metal and hard-rock bass practice', bpm: 120,
 });

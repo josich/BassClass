@@ -175,7 +175,7 @@ export default {
           id: 'rock-blues-licks', title: 'Rock and blues licks',
           idea: 'Short phrases from the pentatonic, the blues scale and the Mixolydian mode.',
           concept: [
-            'The rock and blues bassist\'s vocabulary is built on the minor pentatonic box, the blues scale\'s ♭5, the major pentatonic of country and soul, and the Mixolydian riffs of a blues in 7th chords. Use these phrases as fills, as answers to the singer, or as a short solo.',
+            'The rock and blues bassist\'s vocabulary is built on the minor pentatonic box, the blues scale\'s ♭5, the major pentatonic of country and soul, and the Mixolydian riffs of a blues in 7th chords (Mixolydian: the major scale with a ♭7, the sound of a 7th chord; the modes come later in this stage). Use these phrases as fills, as answers to the singer, or as a short solo.',
             'Over a 7th chord, slide or hammer from the ♭3 into the 3rd: that is the blues sound. Leave space after a lick: a phrase needs a breath.',
           ],
           steps: [
@@ -231,7 +231,7 @@ export default {
           idea: 'Lock with the kick drum and the guitar\'s palm-muted riff.',
           concept: [
             'Metal bass doubles the guitar riff and locks with the kick. Chug 8ths with down-strokes; when the drummer plays the double kick, play 16ths with alternate picking; in a half-time breakdown leave space and hit every stab with the kick.',
-            'Djent groups 16ths in threes across the bar; doom slows everything down and lets each note ring. The darkest colours are the ♭5, the tritone, and the minor scale\'s ♭6.',
+            'Djent groups 16ths in threes across the bar; doom slows everything down and lets each note ring. Its darkest colours: the ♭5 (the tritone), the minor scale\'s ♭6 and, in Phrygian riffs and breakdowns, the ♭2.',
           ],
           steps: [
             { ex: 'gr-metal', p: { style: 'metalChug' }, from: 100, goal: 140, backing: 'chords', do: 'Palm-muted 8th chugs, down-strokes only.' },
@@ -267,7 +267,7 @@ export default {
           idea: 'Four dance grooves, each answering its own drum pattern.',
           concept: [
             'Highlife, from Ghana and Nigeria, is bright and syncopated, weaving between root, 3rd and 5th. Cumbia, from Colombia, swings between the root and the 5th below. Soca, from Trinidad, drives 8ths on top of the beat.',
-            'The maqsum, the most common Middle-Eastern rhythm, plays its low "dum" strokes on beats 1 and 3, with the lighter "tek" strokes between: the bass plays its long notes with the dums and short ones with the teks, over a Phrygian vamp.',
+            'The maqsum, the most common Middle-Eastern rhythm, plays its low "dum" strokes on beats 1 and 3, with the lighter "tek" strokes between: the bass plays its long notes with the dums and short ones with the teks, over a Phrygian vamp (Phrygian: natural minor with a ♭2, its dark half step above the root).',
           ],
           steps: [
             { ex: 'gr-world-grooves', p: { style: 'highlife' }, from: 96, goal: 120, backing: 'chords', do: 'Highlife: bright and syncopated.' },
@@ -823,7 +823,7 @@ export default {
           id: 'world-grooves', title: 'Reggae, bossa nova and tumbao',
           idea: 'Feel comes from where you do not play.',
           concept: [
-            'Reggae leaves beat 1 empty and sits deep in the groove. Bossa nova sways on root and 5th in a dotted rhythm. The Afro-Cuban tumbao anticipates the next chord on beat 4 and skips beat 1.',
+            'In the reggae one drop the drums leave beat 1 empty, and this line does too, deep in the groove (other reggae lines play it: rockers, in a later lesson). Bossa nova sways on root and 5th in a dotted rhythm. The Afro-Cuban tumbao anticipates the next chord on beat 4 and skips beat 1.',
             'All three teach how much of the feel comes from the beats you leave out.',
           ],
           steps: [

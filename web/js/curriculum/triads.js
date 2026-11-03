@@ -227,7 +227,7 @@ const zoneCycle = ex({
   summary: 'All 12 triads without leaving a 5-fret zone. The zone decides the shape.',
   about: 'This is the "Circle of 5ths + Zones" warm-up. The neck is split into zones (frets 1–5, 5–9, 8–12). Play the triad of every key around the cycle of 4ths (C F B♭ E♭ A♭ D♭ G♭ B E A D G) and never leave the zone. A minor or diminished chord whose cycle name would need a double flat takes its simpler name (F♯m, not G♭m; D♯°, not E♭°). To stay inside the zone you have to use different fingerings, so you learn where every chord lives in that area of the neck. Spend a couple of weeks on Zone 1 before moving to Zone 2, then Zone 3.',
   tips: ['No open strings: every shape must be movable.', 'Say the chord name before you play it, then find the root inside the zone first.',
-    'Then switch to minor, diminished and augmented in the same zone.', 'Gary Willis\' advice: the notes are already under your fingers, so do not move the hand.'],
+    'Then switch to minor, diminished and augmented in the same zone.', 'The notes are already under your fingers: do not move the hand.'],
   source: 'The cycle of 5ths within one hand position',
   params: { quality: sel('Triad', QUALITY_TRIADS.slice(0, 5)), zone: zoneP, order: orderP, pattern: triadOrderP(['turn', 'up', 'down', 'alt', 'updown', 'r535'], 'turn') },
   bpm: 80, sub: 1, label: 'degree',

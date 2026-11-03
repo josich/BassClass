@@ -502,7 +502,7 @@ export function lessonScreen(main, id) {
     const t = byId.get(s.ex);
     const clean = stepClean(l, i), passed = stepPassed(l, i);
     // the essentials only: the Library number and the goal (the step's text is the exercise's tip)
-    const tempo = `#${t.num} · ${s.goal ? `🎯 ${s.goal} BPM${s.sub ? ` in ${SUB_NAMES[s.sub]}` : ''}` : 'one full round'}${s.dots === 'hide' ? ' · no dots, by ear' : ''}`;
+    const tempo = `#${t.num} · ${s.goal ? `🎯 ${s.goal} BPM${s.sub ? ` in ${SUB_NAMES[s.sub]}` : ''}` : 'one full round'}${s.dots === 'hide' ? ' · no dots, from memory' : ''}`;
     // a tick can be taken back, after a question (user, 2026-10-29); a step the Library ticks (its exercise mastered,
     // or its choice cleared: QA round 23) says so, and its untick takes that back too
     const by = clean ? stepCoveredBy(l, i) : null, name = by && choiceName(s.ex, choiceOf(s.ex, s.p));

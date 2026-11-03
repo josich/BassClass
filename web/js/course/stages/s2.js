@@ -57,7 +57,7 @@ export default {
           id: 'independence', title: 'Finger independence',
           idea: 'Every finger order, so no finger is the weak one.',
           concept: [
-            'Fingers 3 and 4 share a tendon, so they like to move together. Permutations (1243, 1324…) and the spider walk train each finger to move on its own.',
+            'Fingers 3 and 4 are linked by their tendons, so they like to move together. Permutations (1243, 1324…) and the spider walk train each finger to move on its own.',
             'Play these slowly and cleanly: the aim is control, not speed. A few minutes a day is enough.',
           ],
           steps: [

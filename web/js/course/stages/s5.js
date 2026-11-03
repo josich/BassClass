@@ -723,7 +723,7 @@ export default {
           idea: 'The blue ♭3 bends into the major 3rd.',
           concept: [
             'Over a dominant 7th you can mix the major 3rd with the blue ♭3, use the blues scale and approach chord tones chromatically. A turnaround is the two-bar link at the end of a chorus that leads back to the start: Imaj7 – VI7 – iim7 – V7 in a standard (in a blues the I is a 7th chord, I7 – VI7 – ii7 – V7), often with tritone substitutes.',
-            'Lay back slightly behind the click on blues phrases.',
+            'Lay back slightly behind the beat on blues phrases.',
           ],
           steps: [
             { ex: 'lk-blues', p: { lick: '0', feel: 'swing' }, from: 92, goal: 112, backing: 'chords', do: 'A riff from the major blues scale, into the IV.' },

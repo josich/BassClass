@@ -194,7 +194,7 @@ const pitchAxis = ex({
   summary: 'Keep the same root and switch modes every bar: hear and feel each colour over a pedal.',
   about: 'The "pitch axis" idea keeps one bass note while the mode above it changes. Each bar is a different mode on the same root, so your ear has to follow the colour changes while your hand reorganises around a fixed root. It is a powerful exercise for modal fluency.',
   tips: ['Choose the order: major modes, melodic minor modes, or a dramatic mix.', 'Accent the characteristic note of each mode.'],
-  source: 'Pitch-axis theory (Joe Satriani); modal improvisation pedagogy',
+  source: 'Pitch-axis playing in the style of Joe Satriani; modal improvisation pedagogy',
   params: { key: keyP(T.SCALES.ionian.iv, { def: '4', cycles: false }), set: sel('Modes', [['major', 'Major modes (bright → dark)'], ['melodic', 'Melodic minor modes'], ['mix', 'Lydian · Mixolydian · Dorian · Phrygian dominant · Altered']]), oct: octP() },
   bpm: 88, sub: 2, label: 'degree',
   build(p, ctx, S) {

@@ -323,7 +323,7 @@ const blues = lickTemplate({
   title: 'Jazz licks: blues',
   summary: 'A major-blues riff, a blue-note triplet fill, a chromatic double approach and the ♭3 → 3 "blue" slide.',
   about: 'The blues runs through all jazz. Over a dominant 7th chord you can mix the major 3rd with the "blue" ♭3, use the blues scale, and approach chord tones chromatically. Most licks here move from the I7 to the IV7, the most important change in a blues.',
-  tips: ['Slide or hammer from the ♭3 to the 3: the blue note bends into the major sound.', 'Lay back on the beat: blues phrases should sit slightly behind the click.'],
+  tips: ['Slide or hammer from the ♭3 to the 3: the blue note bends into the major sound.', 'Lay back on the beat: blues phrases sit slightly behind it.'],
   source: 'Original licks in standard jazz-blues vocabulary (Ray Brown, Paul Chambers, blues tradition).',
   bpm: 104,
   licks: [

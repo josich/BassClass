@@ -159,7 +159,7 @@ export default {
           id: 'key-box', title: 'Key centres in one position',
           idea: 'See all the notes of the key under your hand, wherever they start.',
           concept: [
-            'Gary Willis\' fingerboard approach: stop thinking of scales as patterns that start on the root. Instead, see all the notes of the key that lie under your hand in a position, wherever they begin. Play every key in one position around the cycle and the neck becomes a map of keys.',
+            'Think in keys, not patterns: stop thinking of scales as patterns that start on the root. Instead, see all the notes of the key that lie under your hand in a position, wherever they begin. Play every key in one position around the cycle and the neck becomes a map of keys.',
             'Start on the lowest available note, not on the root, and keep the hand still.',
           ],
           steps: [
@@ -704,7 +704,7 @@ export default {
           id: 'walk-scalar', title: 'Scale steps in walking lines',
           idea: 'Scale steps connect the chord tones smoothly.',
           concept: [
-            'Lines like R-2-3-5, or 8-7-6-5 coming down, are the melodic side of walking and balance the jumps of arpeggio lines. Each chord takes its scale by function, as in Lesson 31.2: Dorian on a ii, Mixolydian on a V, Aeolian on a minor i, and Phrygian dominant on a V7 that resolves to a minor chord.',
+            'Lines like R-2-3-5, or 8-7-6-5 coming down, are the melodic side of walking and balance the jumps of arpeggio lines. Each chord takes its scale by function, as in Lesson 4.19: Dorian on a ii, Mixolydian on a V, Aeolian on a minor i, and Phrygian dominant on a V7 that resolves to a minor chord.',
             'Land a chord tone on beat 1; the scale steps lead into the next chord.',
           ],
           steps: [
@@ -852,7 +852,7 @@ export default {
           id: 'gospel-rnb', title: 'Gospel and R&B',
           idea: 'Walk up into every chord, and syncopate with ghost notes.',
           concept: [
-            'Gospel bass walks: a run up the chord\'s scale into each new chord, landing on its root (R, 2, 3 into a root a 4th up), over the secondary dominants of church harmony. The gospel shuffle swings in triplets through the chord, with an approach into each new one.',
+            'Gospel bass walks: a run up the chord\'s scale into each new chord, landing on its root (R, 2, 3 into a root a 4th up), over the secondary dominants of church harmony (dominant 7th chords that lead to a chord of the key other than the I, as VI7 to ii). The gospel shuffle swings in triplets through the chord, with an approach into each new one.',
             'Modern R&B syncopates the root, adds ghost notes and leans on the chord\'s 7th over neo-soul changes.',
           ],
           steps: [

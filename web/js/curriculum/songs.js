@@ -409,7 +409,7 @@ const schism = song({
   id: 'mm-schism', level: 5, song: 'Schism', artist: 'Tool', year: 2001,
   style: 'riffs in 5/8 and 7/8', key: 'E', mode: 'phrygian', bpm: 140, center: 2,
   adapted: 'in E for a standard-tuned bass; the song is in drop-D tuning',
-  summary: 'An E Phrygian pedal riff in 5/8 (3 + 2) and another in 7/8 (2 + 2 + 3). The click is every 8th.',
+  summary: 'An E Phrygian pedal riff in 5/8 (3 + 2) and another in 7/8 (2 + 2 + 3). Counted in 8ths.',
   about: 'Progressive rock moves through odd metres as if they were normal. Both riffs return to the low E on every bar and change only the notes after it, with the dark ♭2 (F) of the Phrygian mode. In 5/8 feel 3 + 2, in 7/8 feel 2 + 2 + 3. Learn each part on its own, then switch between them.',
   tips: ['Say the groups out loud: "1-2-3 1-2" and "1-2 1-2 1-2-3".', 'The tempo counts 8th notes: start around 140 and add speed slowly.'],
   parts: [

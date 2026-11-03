@@ -621,7 +621,7 @@ const pim = ex({
   summary: 'Classical-guitar right hand on bass: thumb on the low string, fingers on the high strings.',
   about: 'Chordal and solo bassists use the thumb (p) for bass notes and the index and middle fingers (i, m) for the upper strings, like a classical guitarist. This lets you play wide arpeggios at speed with one plucking finger per string. The pattern spreads each chord as root (p), 5th (i), 10th (m), 5th (i).',
   tips: ['Keep the thumb slightly ahead of the fingers so the hand doesn\'t collapse.', 'Let the notes ring: this is chordal playing.'],
-  source: 'Dominique Di Piazza / Matthew Garrison right-hand approach; classical guitar technique',
+  source: 'A right hand in the style of Dominique Di Piazza and Matthew Garrison; classical guitar technique',
   params: { key: keyP(['1', '3', '5']), prog: progP(['I-vi-IV-V', 'I-V-vi-IV', 'ii-V-I', 'canon']) },
   bpm: 66, sub: 4, label: 'degree',
   build(p, ctx, S) {
