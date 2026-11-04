@@ -233,14 +233,18 @@ export class FretboardView {
     // from the open-string column (when shown) to the end of the board, on either side for left-handers
     const x0 = this.showOpen ? this._x(this.padL + 4) : xa;
     const left = Math.min(x0, xa, xb), right = Math.max(x0, xa, xb);
+    // (a string the area leaves out is dimmed along its whole length, its name too, so a string on the grey's edge
+    // reads as out: QA round 25, "one string asked, three look in use")
+    const outS = (s) => !!this.outside?.strings && !this.outside.strings.includes(s);
     for (let s = 0; s < this.strings; s++) {
       const y = this.stringY(s);
       const th = this.gaugePx(s);
-      p.push(`<rect x="${left}" y="${y + th * 0.6}" width="${right - left}" height="${th}" fill="#05060f" opacity="0.55" filter="url(#soft${uid})"/>`);
-      p.push(`<g class="string" data-s="${s}"><rect x="${left}" y="${y - th / 2}" width="${right - left}" height="${th}" rx="${th / 2}" fill="url(#str${uid})"/>`);
+      const o = outS(s) ? ' out' : '';
+      p.push(`<rect x="${left}" y="${y + th * 0.6}" width="${right - left}" height="${th}" fill="#05060f" opacity="${o ? 0.2 : 0.55}" filter="url(#soft${uid})"/>`);
+      p.push(`<g class="string${o}" data-s="${s}"><rect x="${left}" y="${y - th / 2}" width="${right - left}" height="${th}" rx="${th / 2}" fill="url(#str${uid})"/>`);
       if (th >= 1.8) p.push(`<rect x="${left}" y="${y - th / 2}" width="${right - left}" height="${th}" fill="url(#wind${uid})"/>`);
       p.push('</g>');
-      p.push(`<text x="${this._x(13)}" y="${y + 4}" class="strname">${this.names[s] || ''}</text>`);
+      p.push(`<text x="${this._x(13)}" y="${y + 4}" class="strname${o}">${this.names[s] || ''}</text>`);
     }
     // outside the area: greyed in rows between the string lines, so its edges lie on a string and a fret wire (user,
     // 2026-11-04: "aligned with strings and frets"); a row next to a string in use is greyed beyond the frets used,

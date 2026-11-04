@@ -74,6 +74,13 @@ export function keySignature(tonic, minor = false) {
   return notes.reduce((s, n) => s + Math.sign(n.a), 0);
 }
 
+/** A first-position drill's area: frets 0 to `hi`, the E string up to the A or the G string (its Notes option). */
+function firstArea(ctx, p, hi) {
+  const top = ctx.str(p.range === 'ea' ? 'A' : 'G'), strings = [];
+  for (let s = ctx.str('E'); s <= top; s++) strings.push(s);
+  return { lo: 0, hi, strings };
+}
+
 // no note names on screen: the staff is the only clue (the dot shows its name once it sounds)
 const common = {
   module: M, reveal: 'quiz', view: 'staff', label: 'none', sub: 1,
@@ -99,7 +106,8 @@ const naturals = ex({
     const notes = pool(ctx, 0, 3, (m) => (m >= lo && m <= hi && NAT[T.mod(m, 12)] ? T.N(NAT[T.mod(m, 12)]) : null));
     b.chord('First position');
     b.line(randomNotes(notes, 16).map((q) => ({ midi: q.midi, n: q.n, deg: '' })), { place: { region: [0, 3], open: 'allow' } });
-    return b.build({ uniform: false, label: 'none', reveal: 'quiz', view: 'staff', noPrompt: true });
+    // (the neck's area: the first position on the strings chosen, QA round 25)
+    return b.build({ uniform: false, label: 'none', reveal: 'quiz', view: 'staff', noPrompt: true, area: firstArea(ctx, p, 3) });
   },
 });
 
@@ -119,7 +127,7 @@ const accidentals = ex({
     const notes = pool(ctx, 0, 4, (m) => (m >= lo && m <= hi ? (NAT[T.mod(m, 12)] ? T.N(NAT[T.mod(m, 12)]) : spellMidi(m, Math.random() < 0.5)) : null));
     b.chord('First position');
     b.line(randomNotes(notes, 16).map((q) => ({ midi: q.midi, n: q.n, deg: '' })), { place: { region: [0, 4], open: 'allow' } });
-    return b.build({ uniform: false, label: 'none', reveal: 'quiz', view: 'staff', noPrompt: true });
+    return b.build({ uniform: false, label: 'none', reveal: 'quiz', view: 'staff', noPrompt: true, area: firstArea(ctx, p, 4) });
   },
 });
 

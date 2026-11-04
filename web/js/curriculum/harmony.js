@@ -171,7 +171,8 @@ const doubleStops = ex({
         b.stack(pair, { dur: c.beats / 2 });
       });
     }
-    return b.build({ uniform: false, label: 'degree' });
+    // (the neck's area: the strings the double stops use, the ones between greyed: QA round 25)
+    return b.build({ uniform: false, label: 'degree', area: { strings: 'used' } });
   },
 });
 

@@ -28,7 +28,7 @@ export const MAIN = {
   'mm-dust': SONG, 'mm-sunshine': SONG, 'mm-standby': SONG, 'mm-calif': SONG, 'mm-feelgood': SONG, 'mm-blitz': SONG,
   // Level 3
   'tech-trills': 'pair', 'tech-string-skip': 'style', 'tech-shifting': 'shift', 'tech-accents': 'group', 'tech-ghost-16ths': 'pattern',
-  'tech-pick-gallop': 'lick', 'rd-upper': 'pos', 'iv-diatonic': 'pattern', 'ear-sevenths': { by: 'set', only: ['all'] },
+  'tech-pick-gallop': 'lick', 'rd-upper': 'pos', 'iv-diatonic': 'pattern', 'ear-sevenths': { by: 'set', only: ['five'], all: 'all' },
   'game-ear-chordtones': { by: 'chords', game: true }, 'sc-two-octaves': 'type', 'sc-sequences': P80('pattern'), 'sc-one-string': 'type',
   'sc-keys-one-position': 'type', 'sc-3nps': 'type', 'sc-pent-three-boxes': 'lick', 'sc-pent-minor-grooves': 'lick',
   'tri-scale-forms': ALL('form'), 'tri-three-forms': 'quality', 'tri-neck-chain': 'quality', 'tri-inversions': 'quality',

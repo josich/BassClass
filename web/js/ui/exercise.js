@@ -5,6 +5,7 @@ import { settings, saveSettings, getProgress, updateProgress } from '../store.js
 import { makeCtx } from '../fretboard.js';
 import { FretboardView, degKey, PALETTE } from '../views/fretboardView.js';
 import { TabView } from '../views/tabView.js';
+import { syncHidden } from '../views/staff.js';
 import { Player, MAX_BPM, MIN_BPM } from '../player.js';
 import * as A from '../audio.js';
 import * as T from '../theory.js';
@@ -410,7 +411,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
         } }, l));
       }
       const c = isMain && !preview ? clearedCount(tpl.id) : null;
-      const status = c && (isMastered(tpl.id) ? '🏅 mastered' : `✓ ${c.done} cleared · ${c.need < c.of ? `${c.need} of ${c.of}` : `all ${c.of}`} needed for 🏅`);
+      const status = c && (isMastered(tpl.id) ? '🏅 mastered' : `✓ ${c.done} cleared · ${c.wait ? medalWait(c) : `${c.need < c.of ? `${c.need} of ${c.of}` : `all ${c.of}`} needed for 🏅`}`);
       return h('div', { class: `opt-group${fixed[k] ? ' fixed' : ''}` }, h('h4', {}, def.label, status ? h('span', { class: 'opt-mastery' }, status) : null),
         fixed[k] ? h('p', { class: 'opt-note' }, `Fixed for this choice: ${fixed[k]}.`) : null, chips);
     });
@@ -490,7 +491,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     subSel.hidden = !inst.uniform || TAP;
     rhythmBtn.hidden = !!inst.uniform || TAP;
     // (the reading game: quarter notes, a set not started)
-    if (TAP) { player.sub = 1; tapReset(); }
+    if (TAP) { player.sub = 1; tapReset(); tapFresh = true; }
     if (!labelMode && !TAP) labelMode = inst.label || tpl.label || S.label;
     if (inst.reveal) reveal = inst.reveal;
     if (!score && !TAP) score = inst.view || S.score;
@@ -536,7 +537,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     const shown = preview && !TAP && stripInst ? stripInst : inst;
     tab.render(shown.steps.some((st) => st.notes.some((n) => n.held)) ? { ...shown, steps: shown.steps.map((st) => (st.notes.some((n) => n.held) ? { ...st, notes: st.notes.filter((n) => !n.held) } : st)) } : shown, {
       strings: ctx.tuning.length, beatsOf: (st) => player.beatsOf(st), beatsPerBar: inst.beatsPerBar || 4, sub: player.sub, mode: TAP ? 'staff' : score, quiz,
-      label: (n) => (labelMode === 'none' || labelMode === 'hide' || (quiz && score === 'staff') ? '' : noteLabel(n, labelMode === 'finger' ? 'note' : labelMode, S.notation)),
+      // (tap mode writes no names under its staff: a note-finding drill's names are its questions, QA round 25)
+      label: (n) => (TAP || labelMode === 'none' || labelMode === 'hide' || (quiz && score === 'staff') ? '' : noteLabel(n, labelMode === 'finger' ? 'note' : labelMode, S.notation)),
       decorate: TAP ? (el) => decorateStaff(el) : null,
       // (an exercise whose quiz is fixed and is not a reading drill hides the staff's notes until they sound, as the tab
       // does; a reading drill keeps them, the staff being its clue)
@@ -948,7 +950,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     }
     setCleared(tpl.id, v, true);
     const c = clearedCount(tpl.id);
-    toast(!was && isMastered(tpl.id) ? `🏅 Mastered: it counts in the Library and the course` : `✓ ${what} cleared${c.of > 1 ? ` · ${c.done} of ${c.need} for 🏅` : ''}`, 2600);
+    toast(!was && isMastered(tpl.id) ? `🏅 Mastered: it counts in the Library and the course` : `✓ ${what} cleared${c.wait ? ` · ${medalWait(c)}` : c.of > 1 ? ` · ${c.done} of ${c.need} for 🏅` : ''}`, 2600);
     syncToggles();
   }
   /** 🏅 under ⋯: the mastery taken back, with its ✓ Cleared ticks (user, 2026-11-02). */
@@ -1020,19 +1022,23 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     const varyTip = inst?.uniform
       ? 'Change the subdivision (♩ → 8ths → triplets → 16ths), switch the Reveal button to "Quiz" to test yourself (under ⋯ on phones), and finish with labels off.'
       : 'The rhythm is written into this exercise, so keep the subdivision and work the tempo. Switch to "Quiz" to test yourself, and finish with labels off.';
+    // (a tap drill in tap mode: how tap mode works first, its play-mode text after it, under its own heading; QA
+    // round 25: #219's drawer opened on "Find and play it before the beat")
+    const tapDrillMode = TAP && !!TAP_DRILL;
+    const aboutHtml = `${(tpl.about || '').split('\n\n').map((para) => `<p>${esc(para)}</p>`).join('')}
+        ${tpl.tips?.length ? `${tapDrillMode ? '' : '<h4>Focus points</h4>'}<ul>${tpl.tips.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}`;
     drawer.innerHTML = `
       <header><h2>${tpl.num} · ${esc(tpl.title)}</h2><button class="icon-btn" data-close aria-label="Close">${icon('close')}</button></header>
       <div class="body">
         ${L ? lessonBox() : ''}
         <div class="row" style="margin-bottom:10px"><span class="chip lv lv${tpl.level}">Level ${tpl.level} · ${esc(lvl?.name ?? '')}</span><span class="chip">${esc(mod?.name ?? '')}</span></div>
-        ${(tpl.about || '').split('\n\n').map((para) => `<p>${esc(para)}</p>`).join('')}
-        ${tpl.tips?.length ? `<h4>Focus points</h4><ul>${tpl.tips.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
+        ${tapDrillMode ? '' : aboutHtml}
         ${TAP ? `<h4>How it works</h4>
         <ul>
           <li>▶ starts a set of 10 questions: tap each answer on the neck, in any octave unless the question names a place.</li>
           <li>‹ › look back over the answers given; a wrong one shows where the note was.</li>
-          <li>${tpl.game || TAP_DRILL?.kind === 'ear' ? '8 right clears the choice you are playing' : 'The score is yours to beat; the exercise is cleared in play mode'}${TAP_DRILL && !lesson ? ' · 👆 beside › switches to play mode, the rounds played along' : ''}.</li>
-        </ul>` : `<h4>How to practise it</h4>
+          <li>${tpl.game || TAP_DRILL?.kind === 'ear' ? '8 right clears the choice you are playing' : 'The score is yours to beat; the exercise is cleared in play mode'}${TAP_DRILL && !lesson ? ` · 👆 beside › switches to play mode, ${TAP_DRILL.kind === 'ear' ? 'where the rounds play on their own and each answer shows after its chord' : 'where you play the notes along on your bass'}` : ''}.</li>
+        </ul>${tapDrillMode ? `<h4>In play mode (👆)</h4>${aboutHtml}` : ''}` : `<h4>How to practise it</h4>
         <ul>
           <li>Step through it first with ◀ ▶ and say each note or degree out loud.</li>
           <li>Loop it at a tempo where it is effortless (about 60–70% of your limit). Raise 4 BPM after 3 clean loops, or switch on the speed trainer.</li>
@@ -1303,6 +1309,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   let tapRes = [];        // per question answered: { ok, wrong: { s, f, midi } | null }
   let tapHits = new Map();// the places found so far ("s:f" → its label), when every place or several notes are asked
   let tapBusy = false;    // an answer's feedback is showing
+  let tapFresh = false;   // the set shown is new, not started: ▶ plays it (QA round 25: ▶ drew another)
   let tapTimer = null;
   let tapSounds = [];     // the question's notes still to sound (a new question, a new set or leaving stops them)
   let tapListening = false;
@@ -1365,7 +1372,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
    * fretboard"): its zone or its frets and strings (`area` from its build), widened to every note it plays, so nothing
    * it plays is ever greyed; none for an exercise that uses the whole neck.
    */
-  function playArea() { return areaFor(inst); }
+  function playArea() { return areaFor(stripInst || inst); } // (a preview's area is its whole line's: QA round 25)
   /**
    * A line's area (user, 2026-11-04: "all exercises that need to grey out areas"): its own `area` or zone; else one
    * string when the exercise is played on the string chosen (a String option: the other strings greyed); else the
@@ -1379,15 +1386,22 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       || (tpl.params?.string ? { lo: 0, hi: 99, strings: used }
         : tpl.params?.pos && p.pos !== 'all' ? { lo: Math.min(...fr) <= 1 ? 0 : Math.min(...fr), hi: Math.max(...fr) } : null);
     if (!z) return null;
-    return { lo: Math.min(z.lo ?? 0, ...fr), hi: Math.max(z.hi ?? 24, ...fr), strings: z.strings ? [...new Set([...z.strings, ...used])] : null };
+    // (`strings: 'used'`: the strings the line plays, the others greyed: a string pair, one string)
+    return { lo: Math.min(z.lo ?? 0, ...fr), hi: Math.max(z.hi ?? 24, ...fr), strings: z.strings === 'used' ? used : z.strings ? [...new Set([...z.strings, ...used])] : null };
   }
-  /** A tap question's own area: the frets and strings its answer may be tapped in. */
+  /**
+   * A tap question's own area: the frets and strings its answer may be tapped in. A note in any octave or every place
+   * of a pitch answers up to the highest fret only, so the fret shown past it is greyed (QA round 25: "tap one in
+   * frets 0–12" over a bright 13th); a pitch that counts anywhere, or a chord's notes, leave the neck as it is.
+   */
   function tapArea(a) {
-    if (!a || (a.hi == null && !a.lo && !a.strings)) return null;
+    if (!a || a.multi) return null;
+    if (a.hi == null && !a.lo && !a.strings && a.pc == null && !a.all) return null;
     return { lo: a.lo ?? 0, hi: a.hi ?? inst.tap?.hi ?? TAP_HI, strings: a.strings || null };
   }
   function tapStart() {
-    rebuild();
+    if (!tapFresh) rebuild();
+    tapFresh = false;
     A.audioCtx();
     logPlaying(true, { idleMin: 5 });
     tapAsk(0);
@@ -1428,8 +1442,10 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
   /** The staff: the notes not asked yet hidden (the one asked too, when it is heard or named), the ones answered green or red. */
   function decorateStaff(root = tabEl) {
     const list = asks(), kind = inst?.tap?.kind;
-    // (a note-finding drill writes its answers on the staff: no empty staff before the first, QA round 23)
-    tabEl.classList.toggle('tap-empty', kind !== 'read' && !tapRes.some(Boolean));
+    // (a note-finding drill writes its answers on the staff: no empty staff before the first, QA round 23; folded
+    // until then, so the neck has its room, and unfolded with the next question, not over an answer's feedback, so
+    // the neck does not move under it: QA round 25)
+    tabEl.classList.toggle('tap-empty', kind !== 'read' && !tapRes.slice(0, Math.max(0, tapAt)).some(Boolean));
     const at = tapAt < 0 ? -1 : tapAt >= list.length ? Infinity : list[tapAt].i;
     const index = new Map(list.map((a, j) => [a.i, j]));
     for (const g of root.querySelectorAll('.sn[data-i]')) {
@@ -1438,15 +1454,33 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       g.classList.toggle('tap-ok', !!r?.ok);
       g.classList.toggle('tap-no', !!r && !r.ok);
     }
+    syncHidden(root, 'tap-hidden');
   }
   const foundDots = (name, fx = null) => [...tapHits].map(([k, label]) => {
     const [s, f] = k.split(':').map(Number);
     return { s, f, label: label ?? name, color: 'none', state: 'current', ...(fx ? { fx } : {}) };
   });
-  /** One place for each note of a several-notes answer, near the reference (the root shown): where to show them. */
+  /**
+   * One place for each note of a several-notes answer: above the root shown, within one hand position, the shape a
+   * bassist learns (QA round 25: G7's ♭7 was shown on the E string under its root); near it when there is no root.
+   */
   function multiPlaces(ask) {
     const ref = ask.refs?.[0];
     return ask.answer.multi.map((x) => {
+      if (ref?.midi != null) {
+        const up = T.mod(x.pc - ref.midi, 12);
+        let best = null;
+        for (const m of [ref.midi + up, ref.midi + up + 12]) {
+          for (let s = ref.s; s < ctx.tuning.length; s++) {
+            const f = m - ctx.tuning[s];
+            if (f < 0 || f > ctx.maxFret) continue;
+            // (the nearest fret to the root's; an octave higher only when it sits closer by more than half a fret)
+            const cost = Math.abs(f - ref.f) + (m > ref.midi + 12 ? 0.5 : 0);
+            if (!best || cost < best.cost) best = { s, f, cost };
+          }
+        }
+        if (best) return { s: best.s, f: best.f, label: x.deg };
+      }
       const pl = ctx.tuning.flatMap((o, s) => Array.from({ length: 13 }, (_, f) => ({ s, f })).filter((q) => T.mod(o + q.f - x.pc, 12) === 0));
       const near = pl.sort((a, b) => (ref ? Math.abs(a.f - ref.f) + Math.abs(a.s - ref.s) * 1.5 - (Math.abs(b.f - ref.f) + Math.abs(b.s - ref.s) * 1.5) : a.f - b.f))[0];
       return near ? { ...near, label: x.deg } : null;
@@ -1545,14 +1579,16 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     // the right note outside the strings or frets asked is not wrong: it says where to tap, nothing counted (user,
     // 2026-11-04: the E at the A string's 7th fret, frets 0–5 asked, read "✗ E, not E")
     const rightNote = a.midi != null ? midi === a.midi : a.pc != null && T.mod(midi - a.pc, 12) === 0;
-    const hasArea = a.midi == null || !!a.strings || a.hi != null || !!a.lo;
+    const hasArea = a.midi == null || a.all || !!a.strings || a.hi != null || !!a.lo;
     if (rightNote && hasArea && !places.some((q) => q.s === s && q.f === f)) {
       // (the note tapped shows where it was, in black and white: right, but not where asked; user, 2026-11-04)
       fb.setDots([...refDots(ask), ...foundDots(name), { s, f, label: name, color: 'mono', state: 'static', fx: 'mono' }]);
       const str = (k) => T.noteName(T.N(ctx.names[k]), S.notation);
+      const frets = `frets ${a.lo ?? 0}–${a.hi ?? inst.tap.hi ?? TAP_HI}`;
+      // (the wrong string names the frets too, when they are limited; an open string says so: QA round 25)
       promptEl.innerHTML = a.strings && !a.strings.includes(s)
-        ? `That ${esc(name)} is on the ${esc(str(s))} string: tap it on the ${esc(a.strings.map(str).join(' or '))} string`
-        : `That ${esc(name)} is at fret ${f}: tap one in frets ${a.lo ?? 0}–${a.hi ?? inst.tap.hi ?? TAP_HI}`;
+        ? `That ${esc(name)} is on the ${esc(str(s))} string: tap it on the ${esc(a.strings.map(str).join(' or '))} string${a.hi != null || a.lo ? `, ${frets}` : ''}`
+        : `That ${esc(name)} is ${f === 0 ? `the open ${esc(str(s))} string` : `at fret ${f}`}: tap one in ${frets}`;
       return;
     }
     // (the pitch asked anywhere on the neck counts, a fret higher than the ones shown too)
@@ -1637,7 +1673,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     }
     const c = clearedCount(tpl.id);
     // (a choice that does not count for 🏅, a drill's easier set, says which does)
-    const counts = choicesOf(tpl.id).includes(String(v));
+    const counts = choicesOf(tpl.id).includes(String(v)) || mainOf(tpl.id)?.all === String(v);
     const news = stepNews ?? (!scored ? null : !wasM && isMastered(tpl.id) ? `🏅 Mastered${game ? ': every mode cleared' : ''}`
       : !counts ? `🏅 asks for 8 of 10 on ${choicesOf(tpl.id).map((x) => choiceName(tpl.id, x)).join(', ')}`
         : !was && isCleared(tpl.id, v) ? `✓ ${choiceName(tpl.id, v) || 'Cleared'}${c.need > 1 ? ` cleared · ${c.done} of ${c.need}` : ''}`
@@ -1686,6 +1722,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     tapBtn.setAttribute('aria-label', tapBtn.title);
   }
 
+  /** 🏅 waiting for one choice, its tick taken back in a lesson: "🏅 once Major is cleared again". */
+  function medalWait(c) { return `🏅 once ${choiceName(tpl.id, c.wait) || 'this choice'} is cleared again`; }
   /** The drawer's mastery: 🏅, or how many choices are cleared and what clears one. */
   function masteryLine() {
     if (isMastered(tpl.id)) return ' · <b style="color:var(--good)">🏅 mastered</b>';
@@ -1694,7 +1732,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     const v = choiceOf(tpl.id, p), how = `${goalOf(tpl.id, v) ? `a full loop at ${esc(masteryGoal(tpl.id, v))}` : 'one full loop'}, then ✓ Cleared`;
     // (each choice has its own goal: the line names the one playing, QA round 23)
     if (c.of < 2) return ` · 🎯 to master it: ${how}`;
-    return ` · 🎯 to clear ${esc(choiceName(tpl.id, v) || 'this choice')}: ${how} (each choice has its own 🎯; ${c.done} of ${c.need} cleared for 🏅)`;
+    return ` · 🎯 to clear ${esc(choiceName(tpl.id, v) || 'this choice')}: ${how} (each choice has its own 🎯; ${c.wait ? esc(medalWait(c)) : `${c.done} of ${c.need} cleared for 🏅`})`;
   }
 
   // ------------------------------------------------------------ tip

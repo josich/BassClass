@@ -76,7 +76,9 @@ h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -0.01em; }
 .card.done { border-color: var(--good); box-shadow: inset 0 0 0 1px rgba(87, 201, 122, 0.55); }
 .mod-card { min-height: 110px; }
 .mod-card .ico { font-size: 22px; }
-.tap-empty { visibility: hidden; }
+/* a tap set's staff with nothing on it yet: folded, so the neck has its room (QA round 25: 97 px of blank under 12-px
+   strings at 640×300) */
+.tap-empty { display: none !important; }
 /* Settings' Audio delay test: a big pad to tap with each click */
 .range-row > .btn.small { flex: none; white-space: nowrap; }
 .delay-test { margin-top: 8px; display: grid; gap: 8px; }
@@ -1119,10 +1121,12 @@ input[type="range"] { touch-action: pan-y; }
 .rec-result { display: flex; flex-direction: column; gap: 8px; }
 .rec-card.prev .rec-result { filter: grayscale(1); opacity: 0.7; }
 /* the reading game in the exercise screen: notes not asked yet hidden, the answered ones green or red */
-.tabsvg.staff .sn.tap-hidden { visibility: hidden; }
-.tabsvg.staff .sn.future { visibility: hidden; }
+.tabsvg.staff .sn.tap-hidden, .tabsvg.staff .sbg.tap-hidden { visibility: hidden; }
+.tabsvg.staff .sn.future, .tabsvg.staff .sbg.future { visibility: hidden; }
 /* the part of the neck an exercise or a question does not use */
 .fb .fb-out { fill: rgba(9, 10, 26, 0.62); pointer-events: none; }
+.fb .string.out { opacity: 0.28; }
+.fb .strname.out { opacity: 0.35; }
 .tabsvg.staff .sn.tap-ok, .tabsvg.staff .sn.tap-ok * { fill: var(--good); stroke: var(--good); }
 .tabsvg.staff .sn.tap-no, .tabsvg.staff .sn.tap-no * { fill: var(--danger); stroke: var(--danger); }
 .exv-prompt .tap-ok { color: var(--good); }

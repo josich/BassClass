@@ -331,7 +331,8 @@ const octaveRun = ex({
       b.chord(nm(n, S));
       b.frets([F(ctx, s, f, 1, { deg: 'R', tag: 'i', n }), F(ctx, s + 2, f + 2, 3, { deg: 'R', tag: 'm', n: n8 }), F(ctx, s, f, 1, { deg: 'R', tag: 'i', n }), F(ctx, s + 2, f + 2, 3, { deg: 'R', tag: 'm', n: n8 })]);
     });
-    return b.build({ label: 'note' });
+    // (the neck's area: its two strings, the ones between greyed: QA round 25)
+    return b.build({ label: 'note', area: { strings: 'used' } });
   },
 });
 
@@ -395,7 +396,8 @@ const dynamics = ex({
       b.chord(mark);
       b.frets([1, 2, 3, 4, 4, 3, 2, 1].map((fg) => F(ctx, a, pos + fg - 1, fg, { vel })));
     }
-    const inst = b.build({ label: 'finger' });
+    // (the neck's area: the A string in its position, QA round 25)
+    const inst = b.build({ label: 'finger', area: { lo: pos <= 1 ? 0 : pos, hi: pos + 3, strings: 'used' } });
     // the marks are dynamics, not chords: the staff writes them below, in bold italic
     for (const st of inst.steps) if (st.chord) st.dyn = true;
     return inst;

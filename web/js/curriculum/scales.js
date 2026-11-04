@@ -124,7 +124,8 @@ const chromatic = ex({
     const tonic = T.bestRoot(k, ['1']);
     run.forEach((x) => { if (x.n.a) x.deg = T.fmtDeg(T.ivBetween(tonic, x.n)); });
     b.line(run, { place: p.layout === 'string' ? { string: r.s } : { pin: { [r.midi]: r.s }, open: 'avoid', center: r.f + 1 } });
-    return b.build({ label: 'note', fixed: p.layout === 'string' ? { oct: '1 octave (a string has 12 frets for it)' } : {} });
+    // (along one string, the neck's area is that string: QA round 25)
+    return b.build({ label: 'note', ...(p.layout === 'string' ? { area: { strings: 'used' } } : {}), fixed: p.layout === 'string' ? { oct: '1 octave (a string has 12 frets for it)' } : {} });
   },
 });
 

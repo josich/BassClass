@@ -41,7 +41,7 @@ In all, 203 exercises have a main option and 45 have none (the eight exercises a
 | 110 | The octave shape | — | one loop |
 | 111 | Reading: natural notes | Notes: E and A, all four strings | All four strings (holds both) |
 | 112 | Read it, tap it | Notes (4 modes) | 8/10 in each |
-| 113 | Hear it, tap it: notes | String (5 modes) | 8/10 in each |
+| 113 | One string, by ear | String (5 modes) | 8/10 in each |
 | 114 | Your first scales | Scale: major, natural minor, major pentatonic, minor pentatonic | all 4 |
 | 115 | Scales in open position | Scale: the same four | all 4 |
 | 116 | Your first triads | Triad: major, minor | both |
@@ -78,7 +78,7 @@ In all, 203 exercises have a main option and 45 have none (the eight exercises a
 | 224 | One interval, moved | Interval (16) | all 16 |
 | 225 | Interval quiz | Intervals: 3rds 4ths 5ths 8ve, all | "All within an octave" (holds both) |
 | 226 | Hear the chord | Chords: major and minor, all four | The four (holds both) |
-| 227 | Hear it, tap it: intervals | Intervals (4 modes) | 8/10 in each |
+| 227 | Intervals, by ear | Intervals (4 modes) | 8/10 in each |
 | 228 | Blues scales | Scale: blues, major blues | both |
 | 229 | Chromatic scale | Layout: in position, along one string | both |
 | 230 | Triad qualities | Triad (6) | all 6 |
@@ -115,8 +115,8 @@ In all, 203 exercises have a main option and 45 have none (the eight exercises a
 | 312 | One note in all octaves | — | one loop |
 | 313 | Reading up the neck | Position: 5th, 7th, 9th | all 3 |
 | 314 | Diatonic intervals | Interval (8) | all 8 |
-| 315 | Hear the 7th chord | Chords (3 sets, each holding the last) | the widest (holds all) |
-| 316 | Hear it, tap it: chord tones | Chords (3 modes) | 8/10 in each |
+| 315 | Hear the 7th chord | Chords (3 sets, each holding the last) | the five 7th chords its title names (the widest set holds them; QA round 25) |
+| 316 | Chord tones, by ear | Chords (3 modes) | 8/10 in each |
 | 317 | Two-octave scales | Scale (9) | all 9 |
 | 318 | Scale sequences | Sequence (12) | 10 of 12 |
 | 319 | Scales on one string | Scale (8) | all 8 |

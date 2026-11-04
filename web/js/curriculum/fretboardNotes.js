@@ -112,7 +112,8 @@ const octaves = ex({
       b.chord(nm(n, S));
       b.frets([{ s, f, n, deg: 'R', finger: 1 }, { s: s + 2, f: f + 2, n, deg: 'R', finger: 3 }]);
     }
-    return b.build({ label: 'note' });
+    // (the neck's area: its two strings, the one between greyed: QA round 25)
+    return b.build({ label: 'note', area: { strings: 'used' } });
   },
 });
 
@@ -319,7 +320,9 @@ const quiz = ex({
       const pcv = list[Math.floor(rand() * list.length)];
       const n = spellMidi(pcv + 48, rand() < 0.5);
       const show = Math.min(...strs.map((s) => ctx.tuning[s] + T.mod(pcv - ctx.tuning[s], 12)));
-      return { play: [], refs: [], ask: `${nm(n, S)}${p.strings === 'EA' ? ' on the E or A string' : ''}, frets 0–${hi}`,
+      // (the strings named in the player's notation, as the hint names them: QA round 25)
+      const on = p.strings === 'EA' ? ` on the ${strs.map((s) => T.noteName(T.N(ctx.names[s]), S.notation)).join(' or ')} string` : '';
+      return { play: [], refs: [], ask: `${nm(n, S)}${on}, frets 0–${hi}`,
         answer: { pc: pcv, n, show, hi, strings: strs, label: '', say: '' } };
     },
   },

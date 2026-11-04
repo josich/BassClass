@@ -71,9 +71,8 @@ const OPEN = (ctx) => ctx.tuning.map((m, s) => ({ m, s, name: ctx.names[s] }));
 /** The open string, then a note on it: tap where it is. */
 const earNotes = ex({
   id: 'game-ear-notes', module: 'ear', level: 1,
-  title: 'Hear it, tap it: notes on a string',
-  // (the header shows what tells the three apart first: QA round 22)
-  short: 'Notes on a string, by ear',
+  title: 'One string, by ear',
+  // (one name, the header's too, what tells the three apart first: QA rounds 22 and 25)
   summary: 'A game, no bass needed: the open string sounds, then a note on it. Tap where it is.',
   about: 'A game for the ear and the neck at once. The app plays an open string, then a note higher up the same string. Tap where that note is on the neck: count up from the open string by ear, a fret for each half step. A right answer grows on the neck; a wrong one shows you where it was and plays it again. Ten rounds a set: start with the first five frets, then go up to the 12th.\n\nNo bass needed: play it anywhere. With your bass in your hands, find each note on the string before you tap it.',
   tips: ['Sing the open string, then slide your voice up to the note: how far did it go?', 'Small steps (1–2 frets) sound close; the 5th fret is the next string\'s note; the 12th is the octave.'],
@@ -138,8 +137,7 @@ export function intervalAsk(root, semis, down, ctx) {
 /** A root, then a note above (or below) it: tap the second note. */
 const earIntervals = ex({
   id: 'game-ear-intervals', module: 'ear', level: 2,
-  title: 'Hear it, tap it: intervals',
-  short: 'Intervals, by ear',
+  title: 'Intervals, by ear',
   summary: 'A game, no bass needed: the root sounds and shows, then a second note. Tap it on the neck.',
   about: 'The root sounds and lights up on the neck; then a second note sounds. Tap where it is. Every interval has a shape on the neck you already know from the interval exercises: the 5th one string up and two frets up, the octave two strings up and two frets up, the major 3rd one string up and one fret down. Hearing the interval and finding its shape is how bassists learn lines by ear.\n\nStart with the octave and the 5th, then the 3rds, then every interval. "Up and down" asks for notes below the root too.',
   tips: ['Sing the root, then the note: is it close (a 2nd or 3rd) or far (a 5th, an octave)?', 'Major 3rd bright, minor 3rd dark; the 5th open and strong; the octave the same note higher.'],
@@ -171,8 +169,7 @@ const TONE_WORDS = { 3: 'major 3rd', b3: 'minor 3rd', 5: '5th', b5: '♭5', 7: '
 /** A chord on a shown root, then one of its tones: tap it. */
 const earChordTones = ex({
   id: 'game-ear-chordtones', module: 'ear', level: 3,
-  title: 'Hear it, tap it: chord tones',
-  short: 'Chord tones, by ear',
+  title: 'Chord tones, by ear',
   summary: 'A game, no bass needed: a chord sounds over its root, then one of its notes. Tap it: the 3rd, the 5th, the 7th.',
   about: 'The root lights up and a chord sounds on it, note by note and then together; then one of its notes sounds alone. Tap where it is. A bass line is built from chord tones, so hearing which one sounds (the 3rd that makes the chord major or minor, the 5th, the 7th) is how you follow a band and learn lines by ear.\n\nStart with the 3rd of major and minor chords, then any tone of a triad, then the 7th chords.',
   tips: ['The 3rd decides major or minor: listen for it first.', 'The 5th sounds like the root\'s strong partner. The major 7th leans up to the octave; the ♭7 sits a whole step under it.'],
@@ -248,7 +245,8 @@ const readNotes = ex({
         refs: [],
         staff: { midi, n },
         ask: p.places === 'all' ? 'Tap every place of this note, to the 12th fret' : 'Where is this note? Tap it on the neck',
-        answer: { midi, n, label: '', all: p.places === 'all', say: '' },
+        // (every place asked: to the 12th fret, the 13th shown greyed, QA round 25)
+        answer: { midi, n, label: '', all: p.places === 'all', ...(p.places === 'all' ? { hi: 12 } : {}), say: '' },
       };
     },
   },

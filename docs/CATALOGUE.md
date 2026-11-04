@@ -24,7 +24,7 @@ _Open strings, first notes, steady pulse, first shapes._
 | 110 | The octave shape | Fretboard & Notes | Two strings up, two frets up: the same note, one octave higher. | Hal Leonard Bass Method, Book 2 (Ed Friedland) |
 | 111 | Reading bass clef: the natural notes in first position | Reading | One note at a time on the staff: find it on the neck before its dot appears. | Standard bass-guitar notation (bass clef, sounding an octave lower); Hal Leonard Bass Method (Ed Friedland) |
 | 112 | Read it, tap it | Reading | A game, no bass needed: a note on the bass clef. Tap its place on the neck, or every place. | Original game. Note reading in the bass clef is part of graded exams and every method. |
-| 113 | Hear it, tap it: notes on a string | Ear training | A game, no bass needed: the open string sounds, then a note on it. Tap where it is. | Original game. Finding notes by ear on one string is classic ear and fretboard training. |
+| 113 | One string, by ear | Ear training | A game, no bass needed: the open string sounds, then a note on it. Tap where it is. | Original game. Finding notes by ear on one string is classic ear and fretboard training. |
 | 114 | ★ Your first scales: major, minor, pentatonic | Scales | One octave in one position, one finger per fret (or two octaves, with a shift). In any key. | First graded exams (RSL, LCM) |
 | 115 | Scales in open position | Scales | E, A, G, C, F and D using open strings: the first-position keys. | Hal Leonard Bass Method (Ed Friedland); first graded exams |
 | 116 | ★ Your first triads: major & minor | Triads | Root, 3rd and 5th: the building block of every bass line. | Triads in the first graded exams (RSL, LCM) |
@@ -70,7 +70,7 @@ _Core shapes in every key, simple grooves, 8ths and triplets._
 | 224 | One interval, moved chromatically | Intervals | Keep the shape, slide it up a fret at a time: hear the same distance from every root. | Common interval drill |
 | 225 | Interval quiz: hear it, name it, find it | Intervals | Random intervals from a root: tap the second note on the neck (👆: or sing and find it as the rounds play). | Aural tests in graded exams; interval ear training |
 | 226 | Hear the chord: major, minor, diminished, augmented | Ear training | A triad sounds over its root: tap its 3rd and 5th (👆: or name its quality as the rounds play). | Aural tests in graded exams (chord quality); ear-training practice |
-| 227 | Hear it, tap it: intervals | Ear training | A game, no bass needed: the root sounds and shows, then a second note. Tap it on the neck. | Original game. Interval recognition is part of the aural tests in graded exams. |
+| 227 | Intervals, by ear | Ear training | A game, no bass needed: the root sounds and shows, then a second note. Tap it on the neck. | Original game. Interval recognition is part of the aural tests in graded exams. |
 | 228 | Blues scales | Scales | Minor pentatonic + ♭5 (the "blue note"), and the major blues scale. | Graded exams (RSL, LCM) |
 | 229 | Chromatic scale | Scales | All 12 notes: in one position across the strings, or along one string. | Graded exams (LCM) |
 | 230 | ★ Triad qualities: major, minor, dim, aug, sus | Triads | Every triad type as a movable shape, in any key or all 12. | Triads in the first graded exams (RSL, LCM) |
@@ -117,7 +117,7 @@ _Harmony on the neck: diatonic chords, sequences, positions._
 | 313 | Reading up the neck: ledger lines and higher positions | Reading | Melodies in the 5th, 7th and 9th positions, with ledger lines above the staff. | Standard bass-guitar notation; position reading (low, middle and upper positions) |
 | 314 | Diatonic intervals through the scale | Intervals | The scale in 3rds, 4ths, 5ths, 6ths and 7ths: classic melodic sequences. | Chuck Sher "The Improviser's Bass Method"; conservatory entrance tests |
 | 315 | Hear the 7th chord: maj7, 7, m7, m7♭5, °7 | Ear training | The five main 7th chords over their root: tap the 3rd, 5th and 7th (👆: or name the quality as the rounds play). | Aural tests in graded exams; jazz ear-training practice |
-| 316 | Hear it, tap it: chord tones | Ear training | A game, no bass needed: a chord sounds over its root, then one of its notes. Tap it: the 3rd, the 5th, the 7th. | Original game. Hearing chord tones is part of aural training for bassists and of jazz ear training. |
+| 316 | Chord tones, by ear | Ear training | A game, no bass needed: a chord sounds over its root, then one of its notes. Tap it: the 3rd, the 5th, the 7th. | Original game. Hearing chord tones is part of aural training for bassists and of jazz ear training. |
 | 317 | ★ Two-octave scales | Scales | Major, minor, harmonic & melodic minor, pentatonics over two octaves with planned shifts. | Two-octave scales in advanced graded exams (RSL, LCM) |
 | 318 | Scale sequences | Scales | Groups of 3 and 4, 1-2-3-1 turns, 3rds, diatonic triads and 7ths… through any scale. | Scale sequences: common practice |
 | 319 | Scales on one string (linear) | Scales | The whole scale along a single string: see the whole and half steps. | Scales along one string: linear playing |
@@ -399,11 +399,11 @@ _All keys, all inversions, Coltrane changes, pro-level stamina._
 
 ### Ear training
 
-- **113 · Hear it, tap it: notes on a string** (L1, `game-ear-notes`): Frets: Up to fret 5 / Up to fret 7 / Up to fret 12 · String: Any string / Low B string (5-string) / E string / A string / D string / G string / High C string (6-string)
+- **113 · One string, by ear** (L1, `game-ear-notes`): Frets: Up to fret 5 / Up to fret 7 / Up to fret 12 · String: Any string / Low B string (5-string) / E string / A string / D string / G string / High C string (6-string)
 - **226 · Hear the chord: major, minor, diminished, augmented** (L2, `ear-triads`): Chords: Major and minor / Major, minor, diminished, augmented
-- **227 · Hear it, tap it: intervals** (L2, `game-ear-intervals`): Intervals: The octave and the 5th / Major and minor 3rds / 3rds, 4th, 5th and octave / Every interval to the octave · Direction: Up from the root / Up and down
-- **315 · Hear the 7th chord: maj7, 7, m7, m7♭5, °7** (L3, `ear-sevenths`): Chords: maj7, 7, m7 / maj7, 7, m7, m7♭5, °7 / …plus m(maj7), 6 and m6
-- **316 · Hear it, tap it: chord tones** (L3, `game-ear-chordtones`): Chords: Major and minor triads / maj7, 7 and m7 / Triads and 7th chords · Ask for: The 3rd / Any chord tone
+- **227 · Intervals, by ear** (L2, `game-ear-intervals`): Intervals: The octave and the 5th / Major and minor 3rds / 3rds, 4th, 5th and octave / Every interval to the octave · Direction: Up from the root / Up and down
+- **315 · Hear the 7th chord: maj7, 7, m7, m7♭5, °7** (L3, `ear-sevenths`): Chords: maj7, 7, m7 / maj7, 7, m7, m7♭5, °7 / The five, plus m(maj7), 6 and m6
+- **316 · Chord tones, by ear** (L3, `game-ear-chordtones`): Chords: Major and minor triads / maj7, 7 and m7 / Triads and 7th chords · Ask for: The 3rd / Any chord tone
 - **412 · Hear the progression: the chords by their roots** (L4, `ear-progressions`): Progressions: Pop and rock (I IV V vi ♭VII) / Jazz (ii–V–I, turnarounds) / Minor keys
 
 ### Scales

@@ -338,8 +338,17 @@ export function scaleRun(tonic, type, tonicMidi, { octaves = 1, pattern = 'strai
   if (type === 'melodicClassical') {
     const top = len * octaves, single = pat.off.length === 1;
     const up = scaleSeq(top, pattern, 'up'), down = scaleSeq(top, pattern, 'down');
-    const asc = (ks) => ks.map((k) => T.scalePitch(tonic, 'melodicMinor', tonicMidi, k + startDeg));
-    const desc = (ks) => ks.map((k) => T.scalePitch(tonic, 'aeolian', tonicMidi, k + startDeg));
+    // (in a sequence each group is spelled by the way it moves, not the way the whole run goes: a group falling
+    // in the climb takes the natural notes, one rising in the descent the raised ones; QA round 25, "E F G A" rose
+    // to the tonic with F and G natural. A group that ends where it began follows the run.)
+    const g = single ? 1 : pat.off.length;
+    const spell = (ks, d0) => ks.map((k, i) => {
+      const a = i - (i % g), grp = ks.slice(a, a + g);
+      const d = Math.sign(grp[grp.length - 1] - grp[0]) || d0;
+      return T.scalePitch(tonic, d > 0 ? 'melodicMinor' : 'aeolian', tonicMidi, k + startDeg);
+    });
+    const asc = (ks) => spell(ks, 1);
+    const desc = (ks) => spell(ks, -1);
     if (dir === 'up') return asc(up);
     if (dir === 'down') return desc(down);
     // (as scaleSeq joins them: a straight run shares its turning note, a sequence's up half ends before the top)

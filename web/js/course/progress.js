@@ -199,7 +199,8 @@ export function untickStep(lesson, i) {
   if (covered(lesson, i)) setCleared(step.ex, choiceOf(step.ex, step.p), false);
   // (still mastered, by its other choices or by the rule before the choices: only 🏅 goes, never the other
   // choices' ticks; QA round 24)
-  if (covered(lesson, i)) setMastered(step.ex, false, true);
+  // (🏅 then waits for that choice, cleared again: QA round 25)
+  if (covered(lesson, i)) setMastered(step.ex, false, choiceOf(step.ex, step.p));
   return setClean(lesson, i, false);
 }
 export const canTicked = (lesson, i) => !!state.can[skey(lesson.id, i)];

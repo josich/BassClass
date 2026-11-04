@@ -1,7 +1,7 @@
 // Scrolling strip under the neck: tab numbers, or standard notation on a bass-clef staff
 // (see staff.js), with chord symbols and bar lines. Long exercises draw only the bars around
 // the playhead and redraw as it moves, so an all-keys exercise stays responsive.
-import { engraveStaff } from './staff.js';
+import { engraveStaff, syncHidden } from './staff.js';
 
 const WIN_BACK = 1600, WIN_AHEAD = 4200; // px drawn behind and ahead of the playhead
 
@@ -116,7 +116,10 @@ export class TabView {
   markFuture() {
     if (!this.opts?.quiz) return;
     if (this.mode === 'tab') for (const g of this.inner.querySelectorAll('g.tcol')) g.classList.toggle('future', Number(g.dataset.i) > this.cur);
-    else if (this.opts.hideAhead) for (const g of this.inner.querySelectorAll('.sn[data-i]')) g.classList.toggle('future', Number(g.dataset.i) > this.cur);
+    else if (this.opts.hideAhead) {
+      for (const g of this.inner.querySelectorAll('.sn[data-i]')) g.classList.toggle('future', Number(g.dataset.i) > this.cur);
+      syncHidden(this.inner, 'future');
+    }
   }
 
   tabSvg(win0, i0) {

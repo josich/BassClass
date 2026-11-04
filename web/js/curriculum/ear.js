@@ -90,7 +90,9 @@ function numeral(where, ivs) {
   const flat = where.startsWith('b') ? '♭' : where.startsWith('#') ? '♯' : '';
   const base = ROMAN[Number(where.replace(/[b#]/, '')) - 1] || '?';
   const minor = ivs.includes('b3') && !ivs.includes('3');
-  return `${flat}${minor ? base.toLowerCase() : base}${ivs.includes('b5') && minor ? '°' : ''}`;
+  // (a diminished chord by its 7th: iiø7 for m7♭5, as the app writes viiø7 elsewhere; vii°7; a triad vii°: QA round 25)
+  const dim = ivs.includes('b5') && minor ? (ivs.includes('b7') ? 'ø7' : ivs.includes('bb7') ? '°7' : '°') : '';
+  return `${flat}${minor ? base.toLowerCase() : base}${dim}`;
 }
 /**
  * Hear the bass of a progression: the key's I chord (its root shown), then a chord of one of the set's progressions;
@@ -149,7 +151,7 @@ const sevenths = ex({
   about: 'Seventh chords add a fourth colour on top of the triad. Major 7 is soft and dreamy, dominant 7 wants to move, minor 7 is mellow, half-diminished is dark and searching, diminished 7 is tense and symmetrical. Each round plays one on a random root, notes hidden, and shows the answer right after the chord. The chords are voiced the way bassists play them: root, 5th, 7th and the 3rd on top (R-5-7-10), in one hand position.',
   tips: ['First decide the triad (major or minor or diminished), then the 7th (major 7th, a half step under the octave, or minor 7th, a whole step under it).', 'Dominant 7 = major triad + minor 7th: the "unfinished" sound.'],
   source: 'Aural tests in graded exams; jazz ear-training practice',
-  params: { set: sel('Chords', [['basic', 'maj7, 7, m7'], ['five', 'maj7, 7, m7, m7♭5, °7'], ['all', '…plus m(maj7), 6 and m6']], 'five') },
+  params: { set: sel('Chords', [['basic', 'maj7, 7, m7'], ['five', 'maj7, 7, m7, m7♭5, °7'], ['all', 'The five, plus m(maj7), 6 and m6']], 'five') },
   bpm: 72, sub: 1, label: 'degree',
   tap: { kind: 'ear', def: true, round: (p, ctx, rand, S) => chordAsk(SEVENTHS[p.set] || SEVENTHS.five, ctx, rand, S) },
   build(p, ctx, S) {

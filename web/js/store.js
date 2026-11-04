@@ -113,6 +113,8 @@ function cleanEntry(e) {
   if (marks(e.cleared)) out.cleared = Object.fromEntries(Object.keys(e.cleared).filter((k) => e.cleared[k] === true && k.length <= 40).map((k) => [k, true]));
   if (marks(e.metOn)) out.metOn = Object.fromEntries(Object.keys(e.metOn).filter((k) => e.metOn[k] === true && k.length <= 40).map((k) => [k, true]));
   if (marks(e.bests)) out.bests = Object.fromEntries(Object.entries(e.bests).filter(([k, v]) => k.length <= 40 && numIn(0, 10)(v)));
+  // (the choice 🏅 waits for, its tick taken back by a lesson step: mastery.js, QA round 25)
+  if (typeof e.waitOn === 'string' && e.waitOn.length <= 40) out.waitOn = e.waitOn;
   if (SUB_VALUES.includes(e.sub)) out.sub = e.sub;
   if (LABEL_VALUES.includes(e.label)) out.label = e.label;
   if (numIn(0, 1e15)(e.last)) out.last = e.last;

@@ -171,6 +171,15 @@ export function bassClef(x, yF, s) {
  * Lay out and engrave the staff. Returns { svg, cols: [{i, x, w}], width, height }.
  * opts: beatsOf(step), label(note), beatsPerBar, compact (smaller staff for short screens)
  */
+/**
+ * What a quiz or a tap game hides on the staff goes with its notes: a beam group's stems, beams and number, and a
+ * note's label, hidden (class `cls`) while any note they belong to is (QA round 25: each stem's end showed its head).
+ */
+export function syncHidden(root, cls) {
+  const hidden = new Set([...root.querySelectorAll(`.sn.${cls}[data-i]`)].map((g) => g.dataset.i));
+  for (const g of root.querySelectorAll('.sbg[data-is]')) g.classList.toggle(cls, g.dataset.is.split(' ').some((i) => hidden.has(i)));
+}
+
 export function engraveStaff(inst, { beatsOf, label, beatsPerBar = 4, compact = false, size = 0, window: win = null }) {
   const s = size || (compact ? 7 : 8);
   const half = s / 2;
@@ -532,7 +541,6 @@ export function engraveStaff(inst, { beatsOf, label, beatsPerBar = 4, compact = 
         }
       });
     }
-    out(evs[0].pos, svg);
     // tuplet number over (or under) a beamed tuplet group: in a steady run of the same tuplet only the
     // first group of each bar shows it (the engraver's convention), so 5s and 6s do not crowd the staff
     if (gr.tup && evs.reduce((a, e) => a + e.dur, 0) % beatT === 0) {
@@ -542,11 +550,14 @@ export function engraveStaff(inst, { beatsOf, label, beatsPerBar = 4, compact = 
         const xm = (xs[0] + xs[xs.length - 1]) / 2;
         const topHead = Math.min(...evs.map((e) => yOf(Math.max(...stepsOfEvent(e)))));
         const ym = up ? by(xm) - 0.8 * s : Math.min(topHead, yOf(26)) - 0.9 * s;
-        out(evs[0].pos, `<text x="${f2(xm)}" y="${f2(ym)}" class="stn">${gr.tup}</text>`);
+        svg += `<text x="${f2(xm)}" y="${f2(ym)}" class="stn">${gr.tup}</text>`;
       }
       const end = evs[evs.length - 1];
       lastTup = { n: gr.tup, bar, end: end.pos + end.dur };
     }
+    // (the stems, beams and number in a group naming its notes: a quiz or a tap game hides them while any of
+    // its notes is hidden, as each stem's end would show where its head is: QA round 25)
+    out(evs[0].pos, `<g class="sbg" data-is="${[...new Set(evs.map((e) => e.i))].join(' ')}">${svg}</g>`);
   }
   // tuplets that are not beamed: a bracket with the number in a gap, over each span back on the beat grid
   {
@@ -595,10 +606,11 @@ export function engraveStaff(inst, { beatsOf, label, beatsPerBar = 4, compact = 
     if (st.implied) out(wpos[i], `<text x="${f2(cols[i].x + 2)}" y="11" class="timpl">(${st.implied})</text>`);
     if (st.hide || st.silent) return;
     const ls = labelsOf[i];
+    // (each label in a group naming its note, hidden with it: QA round 25)
     if (stacked[i]) {
       // top note's label first, so the column reads like the chord
-      [...ls].reverse().forEach((t, j) => out(wpos[i], `<text x="${f2(X(wpos[i]) - 4)}" y="${f2(labelY + j * 9)}" class="tlbl">${t}</text>`));
-    } else if (ls.length) out(wpos[i], `<text x="${f2(X(wpos[i]) - 4)}" y="${f2(labelY)}" class="tlbl">${ls.join('·')}</text>`);
+      out(wpos[i], `<g class="sbg" data-is="${i}">${[...ls].reverse().map((t, j) => `<text x="${f2(X(wpos[i]) - 4)}" y="${f2(labelY + j * 9)}" class="tlbl">${t}</text>`).join('')}</g>`);
+    } else if (ls.length) out(wpos[i], `<g class="sbg" data-is="${i}"><text x="${f2(X(wpos[i]) - 4)}" y="${f2(labelY)}" class="tlbl">${ls.join('·')}</text></g>`);
   });
 
   // the frame: staff lines, clef, key and time signature, bar lines

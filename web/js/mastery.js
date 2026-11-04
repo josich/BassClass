@@ -178,10 +178,14 @@ export function goalMet(id, v) {
   const g = rec(id).metOn || {}, m = mainOf(id);
   return !!g[v] || (!!m?.all && !!g[m.all]);
 }
-/** The choices that count: { done (cleared), of (all of them), need }. */
+/**
+ * The choices that count: { done (cleared), of (all of them), need, wait }. `wait`: a choice whose tick a lesson step
+ * took back, which 🏅 waits for although enough others are cleared (QA round 25: 23 of 24 cleared, 20 needed, no 🏅).
+ */
 export function clearedCount(id, strings) {
-  const list = choicesOf(id, strings);
-  return { done: list.filter((v) => isCleared(id, v)).length, of: list.length, need: neededOf(id, strings) };
+  const list = choicesOf(id, strings), w = rec(id).waitOn;
+  const wait = w != null && list.includes(String(w)) && !isCleared(id, String(w)) ? String(w) : null;
+  return { done: list.filter((v) => isCleared(id, v)).length, of: list.length, need: neededOf(id, strings), wait };
 }
 /** A full loop on choice `v` reached the goal (the Library, today's session): ✓ Cleared can be ticked on it. */
 export function recordGoal(id, v) {
@@ -191,7 +195,9 @@ export function recordGoal(id, v) {
 /** The mastery follows the cleared choices: set once enough are, taken back when one fewer is. */
 function settle(id) {
   const c = clearedCount(id);
-  const ok = c.of > 0 && c.done >= c.need;
+  const ok = c.of > 0 && c.done >= c.need && !c.wait;
+  // (the choice waited for, cleared again: nothing waits any more)
+  if (rec(id).waitOn != null && !c.wait) updateProgress(id, { waitOn: null });
   if (ok === isMastered(id)) return;
   updateProgress(id, { done: ok });
   tell(id);
@@ -217,18 +223,19 @@ export function recordGame(id, v, score, total) {
 }
 /**
  * Master an exercise (every choice cleared), or take it back with its ticks (the ⋯ menu). `keep`: take back only 🏅,
- * the cleared choices staying (a lesson step unticked: QA round 24, unticking one step wiped every choice).
+ * the cleared choices staying (a lesson step unticked: QA round 24, unticking one step wiped every choice); a choice
+ * given as `keep` is the one 🏅 then waits for, cleared again (QA round 25).
  */
 export function setMastered(id, on, keep = false) {
   if (on) {
     const c = { ...(rec(id).cleared || {}) };
     for (const v of choicesOf(id)) c[v] = true;
-    updateProgress(id, { cleared: c });
+    updateProgress(id, { cleared: c, waitOn: null });
     settle(id);
     return;
   }
   const was = isMastered(id);
-  updateProgress(id, keep ? { done: false } : { cleared: {}, done: false });
+  updateProgress(id, keep ? { done: false, waitOn: typeof keep === 'string' ? keep : null } : { cleared: {}, done: false, waitOn: null });
   if (was) tell(id);
 }
 
