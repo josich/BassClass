@@ -242,15 +242,21 @@ export class FretboardView {
       p.push('</g>');
       p.push(`<text x="${this._x(13)}" y="${y + 4}" class="strname">${this.names[s] || ''}</text>`);
     }
-    // outside the area: each string's band greyed beyond the frets used, or all along when the string is not used
-    // (the bands tile the board, so no part is greyed twice)
+    // outside the area: greyed in rows between the string lines, so its edges lie on a string and a fret wire (user,
+    // 2026-11-04: "aligned with strings and frets"); a row next to a string in use is greyed beyond the frets used,
+    // any other all along (the rows tile the board, so no part is greyed twice)
     if (this.outside) {
       const { lo = 0, hi = 99, strings: use } = this.outside;
       const a = lo <= 0 ? x0 : this.wireX(lo - 1), b = hi >= this.hi ? xb : this.wireX(hi);
       const inA = Math.min(a, b), inB = Math.max(a, b);
-      for (let s = 0; s < this.strings; s++) {
-        const y = this.stringY(s), y0 = Math.max(top, y - this.gap / 2), y1 = Math.min(bot, y + this.gap / 2);
-        const segs = use && !use.includes(s) ? [[left, right]] : [[left, inA], [inB, right]];
+      const on = (s) => s >= 0 && s < this.strings && (!use || use.includes(s));
+      const ys = [top, bot, ...Array.from({ length: this.strings }, (_, s) => this.stringY(s))].sort((u, v) => u - v);
+      for (let k = 0; k + 1 < ys.length; k++) {
+        const y0 = ys[k], y1 = ys[k + 1];
+        if (y1 - y0 < 0.5) continue;
+        // (the strings this row touches: the lines at its edges, the board's edge touching none)
+        const near = [y0, y1].map((y) => [...Array(this.strings).keys()].find((s) => Math.abs(this.stringY(s) - y) < 0.01) ?? -1);
+        const segs = near.some(on) ? [[left, inA], [inB, right]] : [[left, right]];
         for (const [u, v] of segs) if (v - u > 0.5) p.push(`<rect class="fb-out" x="${u}" y="${y0}" width="${v - u}" height="${y1 - y0}"/>`);
       }
     }
