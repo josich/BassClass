@@ -1316,9 +1316,12 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     if (TAP_DRILL.round) return tapSet(TAP_DRILL, p, ctx, S);
     const b = tpl.build(p, ctx, S);
     const list = [];
+    // (a drill in a position or on a string is answered there: its area, the same note elsewhere a hint)
+    const ar = areaFor(b);
+    const lim = ar ? { lo: ar.lo, ...(ar.hi < 99 ? { hi: ar.hi } : {}), ...(ar.strings ? { strings: ar.strings } : {}) } : {};
     b.steps.forEach((st, i) => {
       const n = st.notes?.[0];
-      if (n && !st.rest && !st.silent) list.push({ i, answer: { midi: n.play ?? n.midi, n: n.n, label: '', say: '' } });
+      if (n && !st.rest && !st.silent) list.push({ i, answer: { midi: n.play ?? n.midi, n: n.n, label: '', say: '', ...lim } });
     });
     const hi = Math.max(TAP_HI, ...b.steps.flatMap((st) => (st.notes || []).map((n) => n.f ?? 0)));
     return Object.assign(b, { view: 'staff', reveal: 'quiz', noPrompt: true, tap: { kind: 'read', hi, asks: list } });
@@ -1362,12 +1365,21 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
    * fretboard"): its zone or its frets and strings (`area` from its build), widened to every note it plays, so nothing
    * it plays is ever greyed; none for an exercise that uses the whole neck.
    */
-  function playArea() {
-    const z = inst.area || (inst.zone ? { lo: inst.zone[0] <= 1 ? 0 : inst.zone[0], hi: inst.zone[1] } : null);
+  function playArea() { return areaFor(inst); }
+  /**
+   * A line's area (user, 2026-11-04: "all exercises that need to grey out areas"): its own `area` or zone; else one
+   * string when the exercise is played on the string chosen (a String option: the other strings greyed); else the
+   * frets of its position (a Position option, not "All"); none for the rest. Widened to every note the line plays.
+   */
+  function areaFor(line) {
+    const ns = line.steps.flatMap((st) => (st.rest ? [] : (st.notes || []).filter((n) => !n.held)));
+    if (!ns.length) return null;
+    const fr = ns.map((n) => n.f), used = [...new Set(ns.map((n) => n.s))];
+    const z = line.area || (line.zone ? { lo: line.zone[0] <= 1 ? 0 : line.zone[0], hi: line.zone[1] } : null)
+      || (tpl.params?.string ? { lo: 0, hi: 99, strings: used }
+        : tpl.params?.pos && p.pos !== 'all' ? { lo: Math.min(...fr) <= 1 ? 0 : Math.min(...fr), hi: Math.max(...fr) } : null);
     if (!z) return null;
-    const ns = inst.steps.flatMap((st) => (st.rest ? [] : st.notes || []));
-    const fr = ns.map((n) => n.f);
-    return { lo: Math.min(z.lo ?? 0, ...fr), hi: Math.max(z.hi ?? 24, ...fr), strings: z.strings ? [...new Set([...z.strings, ...ns.map((n) => n.s)])] : null };
+    return { lo: Math.min(z.lo ?? 0, ...fr), hi: Math.max(z.hi ?? 24, ...fr), strings: z.strings ? [...new Set([...z.strings, ...used])] : null };
   }
   /** A tap question's own area: the frets and strings its answer may be tapped in. */
   function tapArea(a) {
@@ -1532,7 +1544,9 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     }
     // the right note outside the strings or frets asked is not wrong: it says where to tap, nothing counted (user,
     // 2026-11-04: the E at the A string's 7th fret, frets 0–5 asked, read "✗ E, not E")
-    if (a.pc != null && a.midi == null && T.mod(midi - a.pc, 12) === 0 && !places.some((q) => q.s === s && q.f === f)) {
+    const rightNote = a.midi != null ? midi === a.midi : a.pc != null && T.mod(midi - a.pc, 12) === 0;
+    const hasArea = a.midi == null || !!a.strings || a.hi != null || !!a.lo;
+    if (rightNote && hasArea && !places.some((q) => q.s === s && q.f === f)) {
       const str = (k) => T.noteName(T.N(ctx.names[k]), S.notation);
       promptEl.innerHTML = a.strings && !a.strings.includes(s)
         ? `That ${esc(name)} is on the ${esc(str(s))} string: tap it on the ${esc(a.strings.map(str).join(' or '))} string`

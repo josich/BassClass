@@ -97,7 +97,7 @@ const earNotes = ex({
         play: [{ midi: st.m, at: 0, dur: 0.9 }, { midi, at: 1.0, dur: 1.2 }],
         refs: [{ midi: st.m, s: st.s, f: 0, label: name }],
         ask: `The open ${name} string, then a note on it`,
-        answer: { midi, n: spellMidi(midi), label: '', say: `fret ${f} of the ${name} string` },
+        answer: { midi, n: spellMidi(midi), label: '', say: `fret ${f} of the ${name} string`, strings: [st.s], hi: Number(p.frets || 5) },
       };
     },
   },
