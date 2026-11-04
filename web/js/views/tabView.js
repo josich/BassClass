@@ -108,10 +108,15 @@ export class TabView {
     this.opts?.decorate?.(this.inner);
   }
 
-  /** Quiz mode (tab): the notes not played yet show "?" instead of their fret and name. */
+  /**
+   * Quiz mode: on the tab the notes not played yet show "?" instead of their fret and name; on the staff, where the
+   * quiz is not a reading drill (`hideAhead`: a note-finding or interval quiz, whose written pitch would give the place
+   * or the answer away), they stay hidden until they sound (user, 2026-11-04: #219 showed its notes on the staff).
+   */
   markFuture() {
-    if (!this.opts?.quiz || this.mode !== 'tab') return;
-    for (const g of this.inner.querySelectorAll('g.tcol')) g.classList.toggle('future', Number(g.dataset.i) > this.cur);
+    if (!this.opts?.quiz) return;
+    if (this.mode === 'tab') for (const g of this.inner.querySelectorAll('g.tcol')) g.classList.toggle('future', Number(g.dataset.i) > this.cur);
+    else if (this.opts.hideAhead) for (const g of this.inner.querySelectorAll('.sn[data-i]')) g.classList.toggle('future', Number(g.dataset.i) > this.cur);
   }
 
   tabSvg(win0, i0) {

@@ -537,6 +537,9 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       strings: ctx.tuning.length, beatsOf: (st) => player.beatsOf(st), beatsPerBar: inst.beatsPerBar || 4, sub: player.sub, mode: TAP ? 'staff' : score, quiz,
       label: (n) => (labelMode === 'none' || labelMode === 'hide' || (quiz && score === 'staff') ? '' : noteLabel(n, labelMode === 'finger' ? 'note' : labelMode, S.notation)),
       decorate: TAP ? (el) => decorateStaff(el) : null,
+      // (an exercise whose quiz is fixed and is not a reading drill hides the staff's notes until they sound, as the tab
+      // does; a reading drill keeps them, the staff being its clue)
+      hideAhead: quiz && !TAP && tpl.module !== 'reading' && (tpl.reveal === 'quiz' || inst.reveal === 'quiz'),
     });
     tab.setCurrent(cur);
     previewStrip();
