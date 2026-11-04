@@ -54,6 +54,7 @@ export class FretboardView {
     this.hi = 12;
     this.lefty = false;
     this.zone = null;
+    this.outside = null;
     this.dots = [];
     this.uid = Math.random().toString(36).slice(2, 7);
     this.svg = document.createElementNS(SVGNS, 'svg');
@@ -74,6 +75,18 @@ export class FretboardView {
     if (lo != null) this.lo = lo;
     if (hi != null) this.hi = hi;
     if (lefty != null) this.lefty = lefty;
+    this.layout();
+  }
+
+  /**
+   * The part of the neck an exercise or a question uses, { lo, hi, strings } (frets lo–hi, those strings; null: all
+   * of it): the rest is greyed (user, 2026-11-04: "clarify the area greying out the not allowed area").
+   */
+  setOutside(area) {
+    const key = area ? `${area.lo ?? 0}-${area.hi ?? 99}-${(area.strings || []).join(',')}` : '';
+    if (key === (this._outKey || '')) return;
+    this._outKey = key;
+    this.outside = area;
     this.layout();
   }
 
@@ -226,6 +239,18 @@ export class FretboardView {
       if (th >= 1.8) p.push(`<rect x="${left}" y="${y - th / 2}" width="${right - left}" height="${th}" fill="url(#wind${uid})"/>`);
       p.push('</g>');
       p.push(`<text x="${this._x(13)}" y="${y + 4}" class="strname">${this.names[s] || ''}</text>`);
+    }
+    // outside the area: each string's band greyed beyond the frets used, or all along when the string is not used
+    // (the bands tile the board, so no part is greyed twice)
+    if (this.outside) {
+      const { lo = 0, hi = 99, strings: use } = this.outside;
+      const a = lo <= 0 ? x0 : this.wireX(lo - 1), b = hi >= this.hi ? xb : this.wireX(hi);
+      const inA = Math.min(a, b), inB = Math.max(a, b);
+      for (let s = 0; s < this.strings; s++) {
+        const y = this.stringY(s), y0 = Math.max(top, y - this.gap / 2), y1 = Math.min(bot, y + this.gap / 2);
+        const segs = use && !use.includes(s) ? [[left, right]] : [[left, inA], [inB, right]];
+        for (const [u, v] of segs) if (v - u > 0.5) p.push(`<rect class="fb-out" x="${u}" y="${y0}" width="${v - u}" height="${y1 - y0}"/>`);
+      }
     }
     p.push('<g class="plucks"></g><g class="dots"></g>');
     this.svg.innerHTML = p.join('');

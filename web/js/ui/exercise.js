@@ -498,6 +498,7 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     applyBacking();
     fb.configure({ strings: ctx.tuning.length, names: ctx.names, tuning: ctx.tuning, lefty: S.lefty, zone: inst.zone || null });
     if (TAP) fb.fit(0, inst.tap?.hi ?? TAP_HI, 12); else fb.fit(inst.range[0], inst.range[1], 9);
+    fb.setOutside(TAP ? null : playArea());
     beatsEl.replaceChildren(...Array.from({ length: inst.beatsPerBar || 4 }, () => h('i')));
     renderTab();
     showStep(-1);
@@ -1356,6 +1357,23 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     if (inst.tap?.kind === 'ear' && tapAt >= 0 && tapAt < asks().length) { tapListen(tapView >= 0 ? tapView : tapAt); return; }
     tapStart();
   }
+  /**
+   * The part of the neck an exercise uses (user, 2026-11-04: "for all those exercises that use just an area of the
+   * fretboard"): its zone or its frets and strings (`area` from its build), widened to every note it plays, so nothing
+   * it plays is ever greyed; none for an exercise that uses the whole neck.
+   */
+  function playArea() {
+    const z = inst.area || (inst.zone ? { lo: inst.zone[0] <= 1 ? 0 : inst.zone[0], hi: inst.zone[1] } : null);
+    if (!z) return null;
+    const ns = inst.steps.flatMap((st) => (st.rest ? [] : st.notes || []));
+    const fr = ns.map((n) => n.f);
+    return { lo: Math.min(z.lo ?? 0, ...fr), hi: Math.max(z.hi ?? 24, ...fr), strings: z.strings ? [...new Set([...z.strings, ...ns.map((n) => n.s)])] : null };
+  }
+  /** A tap question's own area: the frets and strings its answer may be tapped in. */
+  function tapArea(a) {
+    if (!a || (a.hi == null && !a.lo && !a.strings)) return null;
+    return { lo: a.lo ?? 0, hi: a.hi ?? inst.tap?.hi ?? TAP_HI, strings: a.strings || null };
+  }
   function tapStart() {
     rebuild();
     A.audioCtx();
@@ -1431,6 +1449,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     const list = asks();
     cur = j < 0 ? -1 : list[j].i;
     tab.setCurrent(cur);
+    // (before ▶ the first question's area: the options set it)
+    fb.setOutside(tapArea(list[Math.max(0, j)]?.answer));
     if (j < 0) {
       fb.setDots([]);
       nowEl.innerHTML = `<span class="cnt">ready · ${list.length} ${inst.tap?.kind === 'read' ? 'notes' : 'questions'} · ▶ to start</span>`;
@@ -1508,6 +1528,15 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
       }
       nowEl.innerHTML = `<span class="cnt">${tapCount(tapAt)}${ask.ask ? ` · ${esc(ask.ask)}` : ''}</span>`;
       decorateStaff();
+      return;
+    }
+    // the right note outside the strings or frets asked is not wrong: it says where to tap, nothing counted (user,
+    // 2026-11-04: the E at the A string's 7th fret, frets 0–5 asked, read "✗ E, not E")
+    if (a.pc != null && a.midi == null && T.mod(midi - a.pc, 12) === 0 && !places.some((q) => q.s === s && q.f === f)) {
+      const str = (k) => T.noteName(T.N(ctx.names[k]), S.notation);
+      promptEl.innerHTML = a.strings && !a.strings.includes(s)
+        ? `That ${esc(name)} is on the ${esc(str(s))} string: tap it on the ${esc(a.strings.map(str).join(' or '))} string`
+        : `That ${esc(name)} is at fret ${f}: tap one in frets ${a.lo ?? 0}–${a.hi ?? inst.tap.hi ?? TAP_HI}`;
       return;
     }
     // (the pitch asked anywhere on the neck counts, a fret higher than the ones shown too)

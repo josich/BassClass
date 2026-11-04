@@ -1119,6 +1119,8 @@ input[type="range"] { touch-action: pan-y; }
 /* the reading game in the exercise screen: notes not asked yet hidden, the answered ones green or red */
 .tabsvg.staff .sn.tap-hidden { visibility: hidden; }
 .tabsvg.staff .sn.future { visibility: hidden; }
+/* the part of the neck an exercise or a question does not use */
+.fb .fb-out { fill: rgba(9, 10, 26, 0.62); pointer-events: none; }
 .tabsvg.staff .sn.tap-ok, .tabsvg.staff .sn.tap-ok * { fill: var(--good); stroke: var(--good); }
 .tabsvg.staff .sn.tap-no, .tabsvg.staff .sn.tap-no * { fill: var(--danger); stroke: var(--danger); }
 .exv-prompt .tap-ok { color: var(--good); }

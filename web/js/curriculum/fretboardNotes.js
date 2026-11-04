@@ -188,7 +188,7 @@ const findNote = ex({
         for (let f = 0; f <= hi; f++) if (T.mod(open + f, 12) === k) b.frets([{ s, f, n, deg: 'R' }]);
       });
     }
-    return b.build({ label: 'note' });
+    return b.build({ label: 'note', area: { lo: 0, hi } });
   },
 });
 
@@ -340,7 +340,7 @@ const quiz = ex({
       last = q;
       b.frets([{ s: q.s, f: q.f, n: spellMidi(ctx.tuning[q.s] + q.f, Math.random() < 0.5) }]);
     }
-    return b.build({ label: 'note', reveal: 'quiz' });
+    return b.build({ label: 'note', reveal: 'quiz', area: { lo: 0, hi, strings: p.strings === 'EA' ? strs : null } });
   },
 });
 
