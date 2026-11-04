@@ -14,6 +14,8 @@ export const PALETTE = {
   other: '#8a93c2',
   none: '#4fb4dc',
   ghost: '#5d6386',
+  // (black and white: the right note tapped outside the area asked, user 2026-11-04)
+  mono: '#c9ccd8',
 };
 
 /** Colour key for a degree label. */

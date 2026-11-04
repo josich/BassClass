@@ -1547,6 +1547,8 @@ export function renderExercise(root, tpl, { params = {}, onBack, routine = null,
     const rightNote = a.midi != null ? midi === a.midi : a.pc != null && T.mod(midi - a.pc, 12) === 0;
     const hasArea = a.midi == null || !!a.strings || a.hi != null || !!a.lo;
     if (rightNote && hasArea && !places.some((q) => q.s === s && q.f === f)) {
+      // (the note tapped shows where it was, in black and white: right, but not where asked; user, 2026-11-04)
+      fb.setDots([...refDots(ask), ...foundDots(name), { s, f, label: name, color: 'mono', state: 'static', fx: 'mono' }]);
       const str = (k) => T.noteName(T.N(ctx.names[k]), S.notation);
       promptEl.innerHTML = a.strings && !a.strings.includes(s)
         ? `That ${esc(name)} is on the ${esc(str(s))} string: tap it on the ${esc(a.strings.map(str).join(' or '))} string`
